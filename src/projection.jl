@@ -1,8 +1,4 @@
-module solvers
-
 using LinearAlgebra
-
-export stdCore, lowCore, fullCore
 
 """
     stdCore(x :: Vector{Float64}, q :: Vector{Float64}, b :: Float64; α :: Float64 = 1.0)
@@ -120,5 +116,3 @@ function fullCore(
 
     return x, S
 end
-
-end #end module

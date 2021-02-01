@@ -1,8 +1,4 @@
-module solver_sample
-
 using LinearAlgebra, Random, Distributions
-
-export kaczmarzWR, kaczmarzCyc, gauss, count_sketch
 
 """
     kaczmarzWR(A :: Matrix{Float64}, b :: Vector{Float64}, p :: Vector{Float64} = ones(Float64, length(b))/length(b))
@@ -130,5 +126,3 @@ function count_sketch(A::Matrix{Float64}, b::Vector{Float64}, e::Int64 = 10)
 
     return genSample
 end
-
-end #end module
