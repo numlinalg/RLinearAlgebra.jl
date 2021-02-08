@@ -15,7 +15,7 @@ include("projection.jl")
 # Abstract parent class for solver type
 abstract type LinearSolverType end
 # Solver type
-struct TypeKaczmarz <: LinearSolverType end
+struct TypeRPM <: LinearSolverType end
 struct TypeBlendenpik <: LinearSolverType end
 
 # Solver data structure
@@ -39,4 +39,27 @@ function solve(sol::LinearSolverStruct, type::TypeBlendenpik, A, b)
     return blendenpick_gauss(A, b, verbose=sol.verbose)
 end
 
+function solve(sol::LinearSolverStruct, type::TypeRPM, A, b)
+    #Stopping threshold
+    x_init = copy(b)
+    x_init .= 0.0
+
+    thresh = norm(A*x_init - b)*sol.atol
+    maxit = sol.maxit
+
+    #Sampling
+    sampler = kaczmarzWR(A, b)
+
+    x = x_init
+    j = 1
+    while (j < maxit) & (norm(A*x - b) > thresh)
+        q, s = sampler()
+        x = stdCore(x, q[:, 1], s)
+        j += 1
+    end
+
+    return x
+end
+
+# end of module
 end
