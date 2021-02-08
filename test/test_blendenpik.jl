@@ -1,10 +1,11 @@
-@testset "Blendenpik vs LU" begin
-    n = 1000
-    d = 20
-    κ = 1e29
+n = 1000
+d = 20
+κ = 1e29
 
-    A = RLinearAlgebra.generate_matrix(n, d, d, κ)
-    b = randn(n)
+A = RLinearAlgebra.generate_matrix(n, d, d, κ)
+b = randn(n)
+
+@testset "Blendenpik vs LU" begin
 
     x_lu = A \ b
     r_lu = A*x_lu - b
@@ -24,4 +25,11 @@
     \tNormal System Residual Norm: $(norm(A'*r_bg))
     """
     )
+end
+
+@testset "Call Bledenpik via API" begin
+    sol = RLinearAlgebra.Solvers.LinearSolver(RLinearAlgebra.Solvers.TypeBlendenpik())
+    x = RLinearAlgebra.Solvers.solve(sol, A, b)
+    r = A*x - b
+    println("Residual norm: ", norm(A'*r))
 end
