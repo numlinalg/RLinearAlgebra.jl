@@ -15,7 +15,6 @@ Solves the least squares problem with coefficient `A` and constant `b`, where `A
 column rank, using the blendenpick method with Gaussian row mixing. The number of sampled
 rows, `r`, defaults to the number of columns.
 """
-
 function blendenpick_gauss(
     A::Matrix{T},  # Coefficient matrix of system
     b::Vector{T};  # Constant vector of system
