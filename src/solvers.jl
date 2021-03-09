@@ -19,8 +19,7 @@ struct TypeRPM <: LinearSolverType end
 struct TypeBlendenpik <: LinearSolverType end
 
 # Solver data structure
-abstract type LinearSolverStruct end
-mutable struct LinearSolver <: LinearSolverStruct
+mutable struct LinearSolver
     type::LinearSolverType
     maxit::Int64
     rtol::Float64
@@ -30,16 +29,16 @@ end
 LinearSolver(type::LinearSolverType) = LinearSolver(type, 100, 1e-8, 1e-6, false)
 
 # Solver APIs
-function solve(sol::LinearSolverStruct, A, b)
+function solve(sol::LinearSolver, A, b)
     type = sol.type
     solve(sol, type, A, b)
 end
 
-function solve(sol::LinearSolverStruct, type::TypeBlendenpik, A, b)
+function solve(sol::LinearSolver, type::TypeBlendenpik, A, b)
     return blendenpick_gauss(A, b, verbose=sol.verbose)
 end
 
-function solve(sol::LinearSolverStruct, type::TypeRPM, A, b)
+function solve(sol::LinearSolver, type::TypeRPM, A, b)
     #Stopping threshold
     x_init = copy(b)
     x_init .= 0.0
