@@ -1,3 +1,5 @@
+using Random
+
 #Generate a matrix of given rank and ratio kappa between
 #largest and smallest nonzero singular values
 function generate_matrix(
@@ -19,4 +21,31 @@ function generate_matrix(
 
     #Return Matrix
     return u*diagm(m, n, 0 => σ)*vt
+end
+
+# Generate a set of isotropic vector
+function isotropic_vector(n::Int)
+    return randn(n)
+end
+
+function isotropic_vector!(x::AbstractVector)
+    randn!(x)
+    return nothing
+end
+
+function randomized_trace(A::AbstractMatrix, nsamples::Int)
+    n = size(A, 1)
+    w = zeros(n)
+    x = zeros(n)
+    estimator = 0.0
+    # TODO: use compensated summation technique for large nsamples
+    factor = 1.0/nsamples
+
+    for i=1:nsamples
+        isotropic_vector!(w)
+        x .= A*w
+        estimator += factor*(w'*x)
+    end
+
+    return estimator
 end
