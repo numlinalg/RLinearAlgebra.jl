@@ -27,7 +27,7 @@ function stdCore(
     b::Float64,
     α::Float64 = 1.0,
 )
-    return x + q*(α*(b - dot(q,x)))
+    return x + q*(α*(b - dot(q,x)))/dot(q,q)
 end
 
 """
