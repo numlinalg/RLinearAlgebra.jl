@@ -13,7 +13,10 @@ end
 
 A = [1 0 0; 0 2 0; 0 0 3]
 @testset "Test row samplers" begin
-    p = RLinearAlgebra.Solvers.samplerSV(A)
+    p = RLinearAlgebra.Solvers.sampler(A, RLinearAlgebra.Solvers.SVSampler())
     @test sum(p) ≈ 1.0
     @test p[3] ≈ 0.5
+    p = RLinearAlgebra.Solvers.sampler(A, RLinearAlgebra.Solvers.UFSampler())
+    @test sum(p) ≈ 1.0
+    @test p[3] ≈ 1/3
 end
