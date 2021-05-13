@@ -161,3 +161,11 @@ function count_sketch(A::Matrix{Float64}, b::Vector{Float64}, e::Int64 = 10)
 
     return genSample
 end
+
+function motzkin(A::Matrix{Float64}, b::Vector{Float64})
+    function genSample(x::Vector{Float64})
+        r = A*x - b
+        i = argmax(abs.(r))
+        return A[i,:], b[i]
+    end
+end
