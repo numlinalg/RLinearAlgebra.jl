@@ -1,17 +1,17 @@
 using LinearAlgebra, Random, Distributions
 
-abstract type AbstractRowSampler end
+abstract type AbstractRowDistribution end
 
 
-struct UFSampler <: AbstractRowSampler end
-function sampler(A::Matrix, type::UFSampler)
+struct UFDistribution <: AbstractRowDistribution end
+function distribution(A::Matrix, type::UFDistribution)
     p = ones(Float64, size(A, 1))
     return p./sum(p)
 end
 
-struct SVSampler <: AbstractRowSampler end
+struct SVDistribution <: AbstractRowDistribution end
 """
-    sampler(A :: Matrix{Float64}, )
+    distribution(A :: Matrix{Float64}, )
 
     Implements the Strohmer and Vershynin sampler of:
     > Strohmer, T., Vershynin, R. A Randomized Kaczmarz Algorithm with Exponential Convergence. J Fourier Anal Appl 15, 262 (2009). https://doi.org/10.1007/s00041-008-9030-4
@@ -24,7 +24,7 @@ struct SVSampler <: AbstractRowSampler end
 - `:: Vector{Float64}`, discrete probability distribution p
 
 """
-function sampler(A::Matrix, type::SVSampler)
+function distribution(A::Matrix, type::SVDistribution)
     p = zeros(Float64, size(A, 1))
     for i=1:size(A, 1)
         p[i] = norm(A[i,:], 2)
@@ -52,9 +52,9 @@ end
 function kaczmarzWR(
     A::Matrix{Float64},
     b::Vector{Float64},
-    row_sampler::AbstractRowSampler=UFSampler()
+    dist_type::AbstractRowDistribution=UFDistribution()
 )
-    p = sampler(A, row_sampler)
+    p = distribution(A, dist_type)
 
     dist = Categorical(p)
 
