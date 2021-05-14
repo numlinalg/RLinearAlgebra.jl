@@ -13,10 +13,10 @@ end
 
 A = [1 0 0; 0 2 0; 0 0 3]
 @testset "Test row dstribution" begin
-    p = RLinearAlgebra.Solvers.distribution(A, RLinearAlgebra.Solvers.SVDistribution())
+    p = RLinearAlgebra.Solvers.distribution(RLinearAlgebra.Solvers.SVDistribution(), A)
     @test sum(p) ≈ 1.0
     @test p[3] ≈ 0.5
-    p = RLinearAlgebra.Solvers.distribution(A, RLinearAlgebra.Solvers.UFDistribution())
+    p = RLinearAlgebra.Solvers.distribution(RLinearAlgebra.Solvers.UFDistribution(), A)
     @test sum(p) ≈ 1.0
     @test p[3] ≈ 1/3
 end

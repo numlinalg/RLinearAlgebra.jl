@@ -1,15 +1,17 @@
 using LinearAlgebra, Random, Distributions
 
-abstract type AbstractRowDistribution end
+################################
+#  DISTRIBUTIONS FOR KACZMARZ  #
+################################
+abstract type RowDistributionType end
 
-
-struct UFDistribution <: AbstractRowDistribution end
-function distribution(A::Matrix, type::UFDistribution)
+struct UFDistribution <: RowDistributionType end
+function distribution(type::UFDistribution, A::Matrix)
     p = ones(Float64, size(A, 1))
     return p./sum(p)
 end
 
-struct SVDistribution <: AbstractRowDistribution end
+struct SVDistribution <: RowDistributionType end
 """
     distribution(A :: Matrix{Float64}, )
 
@@ -24,7 +26,7 @@ struct SVDistribution <: AbstractRowDistribution end
 - `:: Vector{Float64}`, discrete probability distribution p
 
 """
-function distribution(A::Matrix, type::SVDistribution)
+function distribution(type::SVDistribution, A::Matrix)
     p = zeros(Float64, size(A, 1))
     for i=1:size(A, 1)
         p[i] = norm(A[i,:], 2)
@@ -32,6 +34,15 @@ function distribution(A::Matrix, type::SVDistribution)
     return p./sum(p)
 end
 
+#################
+#  RPM Samplers #
+#################
+abstract type RPMSamplerType end
+
+struct SamplerKaczmarzWR <: RPMSamplerType
+    distribution::RowDistributionType
+end
+SamplerKaczmarzWR() = SamplerKaczmarzWR(UFDistribution())
 
 """
     kaczmarzWR(A :: Matrix{Float64}, b :: Vector{Float64}, p :: Vector{Float64} = ones(Float64, length(b))/length(b))
@@ -49,21 +60,18 @@ end
                     row, and s is the corresponding sampled constant vector
 
 """
-function kaczmarzWR(
+function sample(
+    type::SamplerKaczmarzWR,
     A::Matrix{Float64},
     b::Vector{Float64},
-    dist_type::AbstractRowDistribution=UFDistribution()
+    x::Vector{Float64},
+    iter::Int64
 )
-    p = distribution(A, dist_type)
-
+    p = distribution(type.distribution, A)
     dist = Categorical(p)
 
-    function genSample()
-        w_ind = rand(dist,1)
-        return A[w_ind[1],:], b[w_ind[1]]
-    end
-
-    return genSample
+    w_ind = rand(dist,1)
+    return A[w_ind[1],:], b[w_ind[1]]
 end
 
 """

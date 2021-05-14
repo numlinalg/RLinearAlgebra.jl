@@ -1,5 +1,16 @@
 using LinearAlgebra
 
+abstract type RPMProjectionType end
+
+struct ProjectionStdCore <: RPMProjectionType
+    α::Float64
+end
+ProjectionStdCore() = ProjectionStdCore(1.0)
+
+function project(type::ProjectionStdCore, x, q, b)
+    return stdCore(x, q, b, type.α)
+end
+
 """
     stdCore(x :: Vector{Float64}, q :: Vector{Float64}, b :: Float64; α :: Float64 = 1.0)
 

@@ -15,7 +15,11 @@ include("projection.jl")
 # Abstract parent class for solver type
 abstract type LinearSolverType end
 # Solver type
-struct TypeRPM <: LinearSolverType end
+struct TypeRPM <: LinearSolverType
+    sampler::RPMSamplerType
+    projection::RPMProjectionType
+end
+TypeRPM() = TypeRPM(SamplerKaczmarzWR(), ProjectionStdCore()) # default values
 struct TypeBlendenpik <: LinearSolverType end
 
 # Solver data structure
@@ -26,6 +30,7 @@ mutable struct LinearSolver
     atol::Float64
     verbose::Bool
 end
+LinearSolver(type::LinearSolverType) = LinearSolver(type, 100, 1e-8, 1e-6, false)
 LinearSolver(type::LinearSolverType) = LinearSolver(type, 100, 1e-8, 1e-6, false)
 
 # Solver APIs
@@ -39,6 +44,10 @@ function solve(sol::LinearSolver, type::TypeBlendenpik, A, b)
 end
 
 function solve(sol::LinearSolver, type::TypeRPM, A, b)
+    # Retrieve sampler and projection types
+    sampler_type = type.sampler
+    projection_type = type.projection
+
     #Stopping threshold
     x_init = copy(b)
     x_init .= 0.0
@@ -46,14 +55,11 @@ function solve(sol::LinearSolver, type::TypeRPM, A, b)
     thresh = norm(A*x_init - b)*sol.atol
     maxit = sol.maxit
 
-    #Sampling
-    sampler = kaczmarzWR(A, b)
-
     x = x_init
     j = 1
     while (j < maxit) & (norm(A*x - b) > thresh)
-        q, s = sampler()
-        x = stdCore(x, q[:, 1], s)
+        q, s = sample(sampler_type, A, b, x, j)
+        x = project(projection_type, x, q[:, 1], s)
         j += 1
     end
 
