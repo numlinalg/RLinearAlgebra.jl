@@ -24,6 +24,13 @@ TypeRPM(projection::RPMProjectionType) = TypeRPM(SamplerKaczmarzWR(), projection
 
 struct TypeBlendenpik <: LinearSolverType end
 
+mutable struct SolveLog
+    iters::Int64
+    residual_hist::Vector{Float64}
+    converged::Bool
+end
+SolveLog() = SolveLog(0, Vector{Float64}(undef, 0), false)
+
 # Solver data structure
 mutable struct LinearSolver
     type::LinearSolverType
@@ -31,8 +38,9 @@ mutable struct LinearSolver
     rtol::Float64
     atol::Float64
     verbose::Bool
+    log::SolveLog
 end
-LinearSolver(type::LinearSolverType) = LinearSolver(type, 100, 1e-8, 1e-6, false)
+LinearSolver(type::LinearSolverType) = LinearSolver(type, 500, 1e-8, 1e-6, false, SolveLog())
 
 # Solver APIs
 function solve(sol::LinearSolver, A, b)
@@ -53,16 +61,22 @@ function solve(sol::LinearSolver, type::TypeRPM, A, b)
     x_init = copy(b)
     x_init .= 0.0
 
-    thresh = norm(A*x_init - b)*sol.atol
+    residual = norm(A*x_init - b)
+    thresh = residual*sol.atol
     maxit = sol.maxit
 
     x = x_init
     j = 1
-    while (j < maxit) & (norm(A*x - b) > thresh)
+    while (j < maxit) & (residual > thresh)
         q, s = sample(sampler_type, A, b, x, j)
         x = project(projection_type, x, q[:, 1], s)
+        residual = norm(A*x - b)
         j += 1
+        push!(sol.log.residual_hist, residual)
     end
+
+    sol.log.iters = j
+    residual < sol.atol ? sol.log.converged = true : sol.log.converged = false
 
     return x
 end
