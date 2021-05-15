@@ -13,10 +13,11 @@ end
 
 struct SVDistribution <: RowDistributionType end
 """
-    distribution(A :: Matrix{Float64}, )
+    distribution(type::SVDistribution, A :: Matrix{Float64})
 
     Implements the Strohmer and Vershynin sampler of:
-    > Strohmer, T., Vershynin, R. A Randomized Kaczmarz Algorithm with Exponential Convergence. J Fourier Anal Appl 15, 262 (2009). https://doi.org/10.1007/s00041-008-9030-4
+    > Strohmer, T., Vershynin, R. A Randomized Kaczmarz Algorithm with Exponential Convergence. 
+    J Fourier Anal Appl 15, 262 (2009). https://doi.org/10.1007/s00041-008-9030-4
 
 # Arguments
 - `A::Matrix{Float64}`, coefficient matrix
@@ -39,20 +40,24 @@ end
 #################
 abstract type RPMSamplerType end
 
-struct SamplerKaczmarzWR <: RPMSamplerType
-    distribution::RowDistributionType
+mutable struct SamplerKaczmarzWR <: RPMSamplerType
+    distribution_type::RowDistributionType
+    # using union allows us to pre-initialize to nothing.
+    dist::Union{Distributions.Categorical{Float64, Vector{Float64}}, Nothing}
 end
-SamplerKaczmarzWR() = SamplerKaczmarzWR(UFDistribution())
+SamplerKaczmarzWR() = SamplerKaczmarzWR(UFDistribution(), nothing)
+
+struct SamplerKaczmarzCYC <: RPMSamplerType end
 
 """
-    kaczmarzWR(A :: Matrix{Float64}, b :: Vector{Float64}, p :: Vector{Float64} = ones(Float64, length(b))/length(b))
+    sample(type :: SamplerKaczmarzWR, A :: Matrix{Float64}, b :: Vector{Float64},
+        x :: Vector{Float64}, iter :: Int64)
 
-    Implements Kaczmarz sampling with replacement scheme according to distribution p
+    Implements Kaczmarz sampling with replacement scheme
 
 # Arguments
 - `A::Matrix{Float64}`, coefficient matrix
 - `b::Vector{Float64}`, constant vector
-- `row_sampler::AbstractRowSampler`, sampler type (defaults to uniform) 
 
 # Returns
 
@@ -67,10 +72,12 @@ function sample(
     x::Vector{Float64},
     iter::Int64
 )
-    p = distribution(type.distribution, A)
-    dist = Categorical(p)
+    if iter == 1
+        p = distribution(type.distribution_type, A)
+        type.dist = Categorical(p)
+    end
 
-    w_ind = rand(dist,1)
+    w_ind = rand(type.dist,1)
     return A[w_ind[1],:], b[w_ind[1]]
 end
 
@@ -87,7 +94,13 @@ Implements Kaczmarz sampling under random permutation ordering.
 - `::Function`, argument free function that returns a pair (q,s) where q is the sampled row,
                 and s is the corresponding sampled constant vector.
 """
-function kaczmarzCyc(A::Matrix{Float64}, b::Vector{Float64})
+function sample(
+        type::SamplerKaczmarzCYC,
+        A::Matrix{Float64},
+        b::Vector{Float64},
+        x::Vector{Float64},
+        iter::Int64
+    )
     counter_max = length(b)
 
     counter = 0

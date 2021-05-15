@@ -10,7 +10,7 @@ b = randn(n)
     x_lu = A \ b
     r_lu = A*x_lu - b
 
-    x_bg = RLinearAlgebra.Solvers.blendenpick_gauss(A, b);
+    x_bg = RLinearAlgebra.blendenpick_gauss(A, b);
     r_bg = A*x_bg - b
 
     printstyled("""
@@ -28,8 +28,8 @@ b = randn(n)
 end
 
 @testset "Call Bledenpik via API" begin
-    sol = RLinearAlgebra.Solvers.LinearSolver(RLinearAlgebra.Solvers.TypeBlendenpik())
-    x = RLinearAlgebra.Solvers.solve(sol, A, b)
+    sol = RLinearAlgebra.LinearSolver(RLinearAlgebra.TypeBlendenpik())
+    x = RLinearAlgebra.solve(sol, A, b)
     r = A*x - b
     println("Residual norm: ", norm(A'*r))
 end

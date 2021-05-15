@@ -2,8 +2,6 @@
 # can achieve this with multidispatch. We allow users to access implementations directly but
 # we provide a simple, common interface to those implementations following the example of
 # PETSc (KSP module for linear solvers).
-module Solvers
-
 using LinearAlgebra
 using Krylov
 using Random
@@ -11,6 +9,7 @@ using Random
 include("blendenpik_gauss.jl")
 include("matrix_sampler.jl")
 include("projection.jl")
+
 
 # Abstract parent class for solver type
 abstract type LinearSolverType end
@@ -20,6 +19,9 @@ struct TypeRPM <: LinearSolverType
     projection::RPMProjectionType
 end
 TypeRPM() = TypeRPM(SamplerKaczmarzWR(), ProjectionStdCore()) # default values
+TypeRPM(sampler::RPMSamplerType) = TypeRPM(sampler, ProjectionStdCore()) # default values
+TypeRPM(projection::RPMProjectionType) = TypeRPM(SamplerKaczmarzWR(), projection) # default values
+
 struct TypeBlendenpik <: LinearSolverType end
 
 # Solver data structure
@@ -30,7 +32,6 @@ mutable struct LinearSolver
     atol::Float64
     verbose::Bool
 end
-LinearSolver(type::LinearSolverType) = LinearSolver(type, 100, 1e-8, 1e-6, false)
 LinearSolver(type::LinearSolverType) = LinearSolver(type, 100, 1e-8, 1e-6, false)
 
 # Solver APIs
@@ -64,7 +65,4 @@ function solve(sol::LinearSolver, type::TypeRPM, A, b)
     end
 
     return x
-end
-
-# end of module
 end
