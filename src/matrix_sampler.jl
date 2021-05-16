@@ -38,6 +38,8 @@ end
 #################
 #  RPM Samplers #
 #################
+
+# Type structure
 abstract type RPMSamplerType end
 
 mutable struct SamplerKaczmarzWR <: RPMSamplerType
@@ -50,6 +52,18 @@ mutable struct SamplerKaczmarzCYC <: RPMSamplerType
     perm::Union{Vector{Int64}, Nothing}
 end
 SamplerKaczmarzCYC() = SamplerKaczmarzCYC(nothing)
+
+mutable struct SamplerMotzkin <: RPMSamplerType
+    sampled::Bool
+end
+SamplerMotzkin() = SamplerMotzkin(false)
+
+
+struct SamplerGaussSketch <: RPMSamplerType end
+
+RPMSamplers() = [SamplerKaczmarzWR(), SamplerKaczmarzCYC(), SamplerMotzkin(), SamplerGaussSketch()]
+
+# Implementation
 
 """
     sample(type :: SamplerKaczmarzWR, A :: Matrix{Float64}, b :: Vector{Float64},
@@ -126,13 +140,16 @@ Implements Gaussian sketching sampling scheme
             and s is the corresponding sketched constant
 
 """
-function gauss(A::Matrix{Float64}, b::Vector{Float64})
+function sample(
+        type::SamplerGaussSketch,
+        A::Matrix{Float64},
+        b::Vector{Float64},
+        x::Vector{Float64},
+        iter::Int64
+    )
     N = length(b)
-    function genSample()
-        w = randn(N)
-        return A'*w, dot(b,w)
-    end
-    return genSample
+    w = randn(N)
+    return A'*w, dot(b,w)
 end
 
 """
@@ -175,10 +192,28 @@ function count_sketch(A::Matrix{Float64}, b::Vector{Float64}, e::Int64 = 10)
     return genSample
 end
 
-function motzkin(A::Matrix{Float64}, b::Vector{Float64})
-    function genSample(x::Vector{Float64})
+function sample_subset(n::Int64)
+    p = randperm(n)
+    low = rand(1:n)
+    up = rand(low:n)
+    return p[low:up]
+end
+
+function sample(
+    type::SamplerMotzkin,
+    A::Matrix{Float64},
+    b::Vector{Float64},
+    x::Vector{Float64},
+    iter::Int64
+)
+    if type.sampled == true
+        rows = sample_subset(length(b))
+        r = A[rows, :]*x - b[rows]
+        j = argmax(abs.(r))
+        i = rows[j]
+    else
         r = A*x - b
         i = argmax(abs.(r))
-        return A[i,:], b[i]
     end
+    return A[i,:], b[i]
 end
