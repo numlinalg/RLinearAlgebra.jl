@@ -42,12 +42,14 @@ abstract type RPMSamplerType end
 
 mutable struct SamplerKaczmarzWR <: RPMSamplerType
     distribution_type::RowDistributionType
-    # using union allows us to pre-initialize to nothing.
     dist::Union{Distributions.Categorical{Float64, Vector{Float64}}, Nothing}
 end
 SamplerKaczmarzWR() = SamplerKaczmarzWR(UFDistribution(), nothing)
 
-struct SamplerKaczmarzCYC <: RPMSamplerType end
+mutable struct SamplerKaczmarzCYC <: RPMSamplerType
+    perm::Union{Vector{Int64}, Nothing}
+end
+SamplerKaczmarzCYC() = SamplerKaczmarzCYC(nothing)
 
 """
     sample(type :: SamplerKaczmarzWR, A :: Matrix{Float64}, b :: Vector{Float64},
@@ -101,23 +103,13 @@ function sample(
         x::Vector{Float64},
         iter::Int64
     )
-    counter_max = length(b)
-
-    counter = 0
-    ordering = Int64[]
-
-    function genSample()
-        if counter == 0
-            ordering = randperm(counter_max)
-        end
-
-        w = popfirst!(ordering)
-
-        counter = mod(counter+1,counter_max)
-        return A[w,:], b[w]
+    if iter == 1
+        type.perm = randperm(length(b))
     end
+    i = mod(iter, length(b))
+    row = type.perm[i + 1]
 
-    return genSample
+    return A[row,:], b[row]
 end
 
 """

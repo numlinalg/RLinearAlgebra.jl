@@ -13,7 +13,7 @@ include("solvers.jl")
 export solve
 export LinearSolver
 export TypeRPM, TypeBlendenpik
-export SamplerKaczmarzWR
+export SamplerKaczmarzWR, SamplerKaczmarzCYC
 export SVDistribution, UFDistribution
 export ProjectionStdCore
 

@@ -12,5 +12,10 @@ b = randn(n)
 
 sol = LinearSolver(TypeRPM())
 x = solve(sol, A, b)
+plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
+println(plt)
 
-plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "residual", ylabel = "iteration")
+sol = LinearSolver(TypeRPM(SamplerKaczmarzCYC()))
+x = solve(sol, A, b)
+plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
+println(plt)
