@@ -49,3 +49,9 @@ for s in samplers
     lineplot!(plt, solt.log.residual_hist)
 end
 println(plt)
+
+println("Randomized Gauss seidel")
+sol = LinearSolver(TypeRGS())
+x = solve(sol, A, b)
+plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
+println(plt)

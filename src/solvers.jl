@@ -1,7 +1,3 @@
-# Design philosophy: we wat "deep modules" with simple interfaces but deep functionality. We
-# can achieve this with multidispatch. We allow users to access implementations directly but
-# we provide a simple, common interface to those implementations following the example of
-# PETSc (KSP module for linear solvers).
 using LinearAlgebra
 using Krylov
 using Random
@@ -22,7 +18,7 @@ TypeRPM() = TypeRPM(SamplerKaczmarzWR(), ProjectionStdCore()) # default values
 TypeRPM(sampler::RPMSamplerType) = TypeRPM(sampler, ProjectionStdCore()) # default values
 TypeRPM(projection::RPMProjectionType) = TypeRPM(SamplerKaczmarzWR(), projection) # default values
 
-struct TypeGS <: LinearSolverType end
+struct TypeRGS <: LinearSolverType end
 
 struct TypeBlendenpik <: LinearSolverType end
 
@@ -84,4 +80,22 @@ function solve!(x, sol::LinearSolver, type::TypeRPM, A, b)
     residual < sol.atol ? sol.log.converged = true : sol.log.converged = false
 
     return x
+end
+
+function solve!(x, sol::LinearSolver, type::TypeRGS, A, b)
+    residual = b - A*x
+    residual_norm = norm(residual)
+    thresh = residual_norm*sol.atol
+    maxit = sol.maxit
+    ncol = size(A, 2)
+
+    j = 1
+    while (j < maxit) & (residual_norm > thresh)
+        col = rand(1:ncol)
+        x[col] = x[col] + dot(A[:, col], residual)/dot(A[:, col], A[:, col])
+        residual = b - A*x
+        residual_norm = norm(residual)
+        j += 1
+        push!(sol.log.residual_hist, residual_norm)
+    end
 end
