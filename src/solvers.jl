@@ -7,8 +7,8 @@ using Krylov
 using Random
 
 include("blendenpik_gauss.jl")
-include("matrix_sampler.jl")
-include("projection.jl")
+include("rpm_sampler.jl")
+include("rpm_projection.jl")
 
 
 # Abstract parent class for solver type
@@ -22,8 +22,11 @@ TypeRPM() = TypeRPM(SamplerKaczmarzWR(), ProjectionStdCore()) # default values
 TypeRPM(sampler::RPMSamplerType) = TypeRPM(sampler, ProjectionStdCore()) # default values
 TypeRPM(projection::RPMProjectionType) = TypeRPM(SamplerKaczmarzWR(), projection) # default values
 
+struct TypeGS <: LinearSolverType end
+
 struct TypeBlendenpik <: LinearSolverType end
 
+# Loggers
 mutable struct SolveLog
     iters::Int64
     residual_hist::Vector{Float64}
@@ -43,29 +46,31 @@ end
 LinearSolver(type::LinearSolverType) = LinearSolver(type, 500, 1e-8, 1e-6, false, SolveLog())
 
 # Solver APIs
+
 function solve(sol::LinearSolver, A, b)
+    x = zeros(size(A, 2))
+    solve!(x, sol, A, b)
+    return x
+end
+
+function solve!(x, sol::LinearSolver, A, b)
     type = sol.type
-    solve(sol, type, A, b)
+    solve!(x, sol, type, A, b)
 end
 
-function solve(sol::LinearSolver, type::TypeBlendenpik, A, b)
-    return blendenpick_gauss(A, b, verbose=sol.verbose)
+function solve!(x, sol::LinearSolver, type::TypeBlendenpik, A, b)
+    blendenpick_gauss!(x, A, b, verbose=sol.verbose)
 end
 
-function solve(sol::LinearSolver, type::TypeRPM, A, b)
+function solve!(x, sol::LinearSolver, type::TypeRPM, A, b)
     # Retrieve sampler and projection types
     sampler_type = type.sampler
     projection_type = type.projection
 
-    #Stopping threshold
-    x_init = copy(b)
-    x_init .= 0.0
-
-    residual = norm(A*x_init - b)
+    residual = norm(A*x - b)
     thresh = residual*sol.atol
     maxit = sol.maxit
 
-    x = x_init
     j = 1
     while (j < maxit) & (residual > thresh)
         q, s = sample(sampler_type, A, b, x, j)
