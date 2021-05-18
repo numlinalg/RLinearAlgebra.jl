@@ -46,7 +46,6 @@ LinearSolver(type::LinearSolverType) = LinearSolver(type, 500, 1e-8, 1e-6, false
 function rsolve(sol::LinearSolver, A, b)
     x = zeros(size(A, 2))
     rsolve!(x, sol, A, b)
-    println(x)
     return x
 end
 
