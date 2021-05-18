@@ -70,7 +70,7 @@ function rsolve!(x, sol::LinearSolver, type::TypeRPM, A, b)
     j = 1
     while (j < maxit) & (residual > thresh)
         q, s = sample(sampler_type, A, b, x, j)
-        x = project(projection_type, x, q[:, 1], s)
+        x .= project(projection_type, x, q[:, 1], s)
         residual = norm(A*x - b)
         j += 1
         push!(sol.log.residual_hist, residual)
@@ -78,8 +78,6 @@ function rsolve!(x, sol::LinearSolver, type::TypeRPM, A, b)
 
     sol.log.iters = j
     residual < sol.atol ? sol.log.converged = true : sol.log.converged = false
-
-    return x
 end
 
 function rsolve!(x, sol::LinearSolver, type::TypeRGS, A, b)
