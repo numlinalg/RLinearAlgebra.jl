@@ -6,7 +6,7 @@ A = RLinearAlgebra.generate_matrix(n, d, d, κ)
 b = randn(n)
 @testset "Call basic RPM via API" begin
     sol = LinearSolver(TypeRPM())
-    x = solve(sol, A, b)
+    x = rsolve(sol, A, b)
     x_lu = A\b
 end
 

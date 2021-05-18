@@ -17,6 +17,6 @@ end
 
 @testset "Call Bledenpik via API" begin
     sol = RLinearAlgebra.LinearSolver(RLinearAlgebra.TypeBlendenpik())
-    x = RLinearAlgebra.solve(sol, A, b)
+    x = RLinearAlgebra.rsolve(sol, A, b)
     r = A*x - b
 end

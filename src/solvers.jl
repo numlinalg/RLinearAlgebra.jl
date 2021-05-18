@@ -43,22 +43,22 @@ LinearSolver(type::LinearSolverType) = LinearSolver(type, 500, 1e-8, 1e-6, false
 
 # Solver APIs
 
-function solve(sol::LinearSolver, A, b)
+function rsolve(sol::LinearSolver, A, b)
     x = zeros(size(A, 2))
-    solve!(x, sol, A, b)
+    rsolve!(x, sol, A, b)
     return x
 end
 
-function solve!(x, sol::LinearSolver, A, b)
+function rsolve!(x, sol::LinearSolver, A, b)
     type = sol.type
-    solve!(x, sol, type, A, b)
+    rsolve!(x, sol, type, A, b)
 end
 
-function solve!(x, sol::LinearSolver, type::TypeBlendenpik, A, b)
+function rsolve!(x, sol::LinearSolver, type::TypeBlendenpik, A, b)
     blendenpick_gauss!(x, A, b, verbose=sol.verbose)
 end
 
-function solve!(x, sol::LinearSolver, type::TypeRPM, A, b)
+function rsolve!(x, sol::LinearSolver, type::TypeRPM, A, b)
     # Retrieve sampler and projection types
     sampler_type = type.sampler
     projection_type = type.projection
@@ -82,7 +82,7 @@ function solve!(x, sol::LinearSolver, type::TypeRPM, A, b)
     return x
 end
 
-function solve!(x, sol::LinearSolver, type::TypeRGS, A, b)
+function rsolve!(x, sol::LinearSolver, type::TypeRGS, A, b)
     residual = b - A*x
     residual_norm = norm(residual)
     thresh = residual_norm*sol.atol
