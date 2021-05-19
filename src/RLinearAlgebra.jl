@@ -16,6 +16,6 @@ export TypeRPM, TypeBlendenpik, TypeRGS
 export SamplerKaczmarzWR, SamplerKaczmarzCYC, SamplerMotzkin, SamplerGaussSketch
 export RPMSamplers
 export SVDistribution, UFDistribution
-export ProjectionStdCore
+export ProjectionStdCore, ProjectionLowCore, ProjectionFullCore
 
 end # module

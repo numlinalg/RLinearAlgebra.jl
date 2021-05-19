@@ -7,8 +7,31 @@ struct ProjectionStdCore <: RPMProjectionType
 end
 ProjectionStdCore() = ProjectionStdCore(1.0)
 
-function project(type::ProjectionStdCore, x, q, b)
-    return stdCore(x, q, b, type.α)
+struct ProjectionLowCore <: RPMProjectionType
+    α::Float64
+    m::Int64
+end
+ProjectionLowCore() = ProjectionLowCore(1.0, 5)
+
+struct ProjectionFullCore <: RPMProjectionType
+end
+
+function project!(type::ProjectionStdCore, x, q, b)
+    stdCore!(x, q, b, type.α)
+
+    return nothing
+end
+
+function project!(type::ProjectionLowCore, x, q, b, Z)
+    lowCore!(x, q, b, Z, type.α)
+
+    return nothing
+end
+
+function project!(type::ProjectionFullCore, x, q, b, S)
+    fullCore!(x, q, b, S)
+
+    return nothing
 end
 
 """
@@ -30,15 +53,16 @@ x_{k+1} = x_k + \\alpha q ( b - q'x)
 - `α::Float64 = 1.0`, the step length
 
 # Returns
-- `:: Vector{Float64}`, the updated iterate
 """
-function stdCore(
+function stdCore!(
     x::Vector{Float64},
     q::Vector{Float64},
     b::Float64,
     α::Float64 = 1.0,
 )
-    return x + q*(α*(b - dot(q,x)))/dot(q,q)
+    x .= x + q*(α*(b - dot(q,x)))/dot(q,q)
+
+    return nothing
 end
 
 """
@@ -57,10 +81,8 @@ Arguments Implements low memory Rank-one RPM Method
 - `α::Float64 = 1.0`, step length
 
 # Returns
-- `::Vector{Float64}`, the updated iterate
-- `::Vector{Vector{Float64}}`, updated orthonormal vectors Z
 """
-function lowCore(
+function lowCore!(
     x::Vector{Float64},
     q::Vector{Float64},
     b::Float64,
@@ -74,19 +96,19 @@ function lowCore(
     end
 
     nrmU = norm(u)
-    if nrmU < 1e-15
+    if nrmU < 1e-15 * length(x)
         return x, Z
     end
 
     #Update Iterate
     res = b - dot(q,x)
-    x = x + u*(α*res/dot(u,q))
+    x .= x + u*(α*res/dot(u,q))
 
     #Update Orthonormal set
     z = u/nrmU
-    Z = push!(Z[2:end],z)
+    Z .= push!(Z[2:end],z)
 
-    return x, Z
+    return nothing
 end
 
 """
@@ -101,10 +123,8 @@ Implements full memory Rank-one RPM Method
 - `S :: Matrix{Float64}`, an orthogonal projection matrix
 
 # Returns
-- `:: Vector{Float64}`, the updated iterate
-- `:: Vector{Vector{Float64}}`, updated orthogonal projection matrix
 """
-function fullCore(
+function fullCore!(
     x :: Vector{Float64},
     q :: Vector{Float64},
     b :: Float64,
@@ -113,17 +133,17 @@ function fullCore(
     #Compute orthogonal component of q using S (projection matrix)
     u = S*q
 
-    if dot(u,u) < 1e-30
+    if dot(u,u) < 1e-30 * length(x)
         return x, S
     end
 
     #Update Iterate
     res = (b - dot(q,x))
     γ = dot(u,q)
-    x = x + u*(res/γ)
+    x .= x + u*(res/γ)
 
     #Update Projection matrix
-    S = (I - (u/γ)*q')*S
+    S .= (I - (u/γ)*q')*S
 
-    return x, S
+    return nothing
 end

@@ -20,7 +20,28 @@ x = rsolve(sol, A, b)
 plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
 println(plt)
 
+sol = LinearSolver(TypeRPM(SamplerKaczmarzCYC(), ProjectionLowCore()))
+x = rsolve(sol, A, b)
+plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
+println(plt)
+
+sol = LinearSolver(TypeRPM(SamplerKaczmarzCYC(), ProjectionFullCore()))
+x = rsolve(sol, A, b)
+plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
+println(plt)
+
+
 sol = LinearSolver(TypeRPM(SamplerMotzkin()))
+x = rsolve(sol, A, b)
+plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
+println(plt)
+
+sol = LinearSolver(TypeRPM(SamplerMotzkin(), ProjectionLowCore()))
+x = rsolve(sol, A, b)
+plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
+println(plt)
+
+sol = LinearSolver(TypeRPM(SamplerMotzkin(), ProjectionFullCore()))
 x = rsolve(sol, A, b)
 plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
 println(plt)
@@ -29,6 +50,17 @@ sol = LinearSolver(TypeRPM(SamplerGaussSketch()))
 x = rsolve(sol, A, b)
 plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
 println(plt)
+
+sol = LinearSolver(TypeRPM(SamplerGaussSketch(), ProjectionLowCore()))
+x = rsolve(sol, A, b)
+plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
+println(plt)
+
+sol = LinearSolver(TypeRPM(SamplerGaussSketch(), ProjectionFullCore()))
+x = rsolve(sol, A, b)
+plt = lineplot(sol.log.residual_hist, title = "RPM Convergence", xlabel = "iteration", ylabel = "residual")
+println(plt)
+
 
 samp = SamplerMotzkin()
 samp.sampled = true
