@@ -84,7 +84,7 @@ function rsolve!(
     j = 1
     while (j < maxit) & (residual > thresh)
         q, s = sample(sampler_type, A, b, x, j)
-        x .= project(projection_type, x, q[:, 1], s)
+        project!(projection_type, x, q[:, 1], s)
         residual = norm(A*x - b)
         j += 1
         push!(sol.log.residual_hist, residual)
@@ -119,7 +119,7 @@ function rsolve!(
     j = 1
     while (j < maxit) & (residual > thresh)
         q, s = sample(sampler_type, A, b, x, j)
-        x, Z .= project(projection_type, x, q[:, 1], s, Z)
+        project!(projection_type, x, q[:, 1], s, Z)
         residual = norm(A*x - b)
         j += 1
         push!(sol.log.residual_hist, residual)
@@ -154,7 +154,7 @@ function rsolve!(
     j = 1
     while (j < maxit) & (residual > thresh)
         q, s = sample(sampler_type, A, b, x, j)
-        x, S .= project(projection_type, x, q[:, 1], s, S)
+        project!(projection_type, x, q[:, 1], s, S)
         residual = norm(A*x - b)
         j += 1
         push!(sol.log.residual_hist, residual)
