@@ -69,7 +69,7 @@ function rsolve!(
     x,
     sol::LinearSolver,
     type::TypeRPM,
-    projection::ProjectionStdCore,
+    projection::RPMProjectionType,
     A,
     b
 )
@@ -84,7 +84,7 @@ function rsolve!(
     j = 1
     while (j < maxit) & (residual > thresh)
         q, s = sample(sampler_type, A, b, x, j)
-        project!(projection_type, x, q[:, 1], s)
+        project!(projection_type, x, q[:, 1], s, j)
         residual = norm(A*x - b)
         j += 1
         push!(sol.log.residual_hist, residual)
@@ -95,77 +95,6 @@ function rsolve!(
 
     return nothing
 end
-
-function rsolve!(
-    x,
-    sol::LinearSolver,
-    type::TypeRPM,
-    projection::ProjectionLowCore,
-    A,
-    b
-)
-    # Retrieve Sampler
-    sampler_type = type.sampler
-    projection_type = type.projection
-
-    residual = norm(A*x - b)
-    thresh = residual*sol.atol
-    maxit = sol.maxit
-
-    # Assign Storage
-    d = length(x)
-    Z = Vector{Float64}[zeros(Float64, d) for i in 1:projection.m]
-
-    j = 1
-    while (j < maxit) & (residual > thresh)
-        q, s = sample(sampler_type, A, b, x, j)
-        project!(projection_type, x, q[:, 1], s, Z)
-        residual = norm(A*x - b)
-        j += 1
-        push!(sol.log.residual_hist, residual)
-    end
-
-    sol.log.iters = j
-    residual < sol.atol ? sol.log.converged = true : sol.log.converged = false
-
-    return nothing
-end
-
-function rsolve!(
-    x,
-    sol::LinearSolver,
-    type::TypeRPM,
-    projection::ProjectionFullCore,
-    A,
-    b
-)
-    # Retrieve Sampler
-    sampler_type = type.sampler
-    projection_type = type.projection
-
-    residual = norm(A*x - b)
-    thresh = residual*sol.atol
-    maxit = sol.maxit
-
-    # Assign Storage
-    d = length(x)
-    S = diagm( ones(Float64, d) )
-
-    j = 1
-    while (j < maxit) & (residual > thresh)
-        q, s = sample(sampler_type, A, b, x, j)
-        project!(projection_type, x, q[:, 1], s, S)
-        residual = norm(A*x - b)
-        j += 1
-        push!(sol.log.residual_hist, residual)
-    end
-
-    sol.log.iters = j
-    residual < sol.atol ? sol.log.converged = true : sol.log.converged = false
-
-    return nothing
-end
-
 
 function rsolve!(x, sol::LinearSolver, type::TypeRGS, A, b)
     residual = b - A*x

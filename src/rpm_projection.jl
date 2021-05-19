@@ -2,34 +2,48 @@ using LinearAlgebra
 
 abstract type RPMProjectionType end
 
-struct ProjectionStdCore <: RPMProjectionType
+mutable struct ProjectionStdCore <: RPMProjectionType
     α::Float64
 end
 ProjectionStdCore() = ProjectionStdCore(1.0)
 
-struct ProjectionLowCore <: RPMProjectionType
+mutable struct ProjectionLowCore <: RPMProjectionType
     α::Float64
     m::Int64
+    Z::Union{Vector{Vector{Float64}}, Nothing}
 end
-ProjectionLowCore() = ProjectionLowCore(1.0, 5)
+ProjectionLowCore() = ProjectionLowCore(1.0, 5, nothing)
 
-struct ProjectionFullCore <: RPMProjectionType
+mutable struct ProjectionFullCore <: RPMProjectionType
+    S::Union{Matrix{Float64}, Nothing}
 end
+ProjectionFullCore() = ProjectionFullCore(nothing)
 
-function project!(type::ProjectionStdCore, x, q, b)
+function project!(type::ProjectionStdCore, x, q, b, iter::Int64)
     stdCore!(x, q, b, type.α)
 
     return nothing
 end
 
-function project!(type::ProjectionLowCore, x, q, b, Z)
-    lowCore!(x, q, b, Z, type.α)
+function project!(type::ProjectionLowCore, x, q, b, iter::Int64)
+
+    # Allocate space in the first iteration.
+    if iter == 1
+        d = length(x)
+        type.Z = Vector{Float64}[zeros(Float64, d) for i in 1:type.m]
+    end
+    lowCore!(x, q, b, type.Z, type.α)
 
     return nothing
 end
 
-function project!(type::ProjectionFullCore, x, q, b, S)
-    fullCore!(x, q, b, S)
+function project!(type::ProjectionFullCore, x, q, b, iter::Int64)
+
+    if iter == 1
+        d = length(x)
+        type.S = diagm(ones(Float64, d))
+    end
+    fullCore!(x, q, b, type.S)
 
     return nothing
 end
