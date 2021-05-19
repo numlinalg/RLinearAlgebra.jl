@@ -91,7 +91,7 @@ function lowCore(
     end
 
     nrmU = norm(u)
-    if nrmU < 1e-15
+    if nrmU < 1e-15 * length(x)
         return x, Z
     end
 
@@ -130,7 +130,7 @@ function fullCore(
     #Compute orthogonal component of q using S (projection matrix)
     u = S*q
 
-    if dot(u,u) < 1e-30
+    if dot(u,u) < 1e-30 * length(x)
         return x, S
     end
 
