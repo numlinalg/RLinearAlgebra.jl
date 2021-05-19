@@ -7,8 +7,25 @@ struct ProjectionStdCore <: RPMProjectionType
 end
 ProjectionStdCore() = ProjectionStdCore(1.0)
 
+struct ProjectionLowCore <: RPMProjectionType
+    α::Float64
+    m::Int64
+end
+ProjectionLowCore() = ProjectionLowCore(1.0, 5)
+
+struct ProjectionFullCore <: RPMProjectionType
+end
+
 function project(type::ProjectionStdCore, x, q, b)
     return stdCore(x, q, b, type.α)
+end
+
+function project(type::ProjectionLowCore, x, q, b, Z)
+    return lowCore(x, q, b, Z, type.α)
+end
+
+function project(type::ProjectionFullCore, x, q, b, S)
+    return fullCore(x, q, b, S)
 end
 
 """
