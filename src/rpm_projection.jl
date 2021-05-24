@@ -3,14 +3,14 @@ using LinearAlgebra
 """
     RPMProjectionType
 
-Abstract row projection matrix encapsulation.
+Abstract supertype for row projection strategy.
 """
 abstract type RPMProjectionType end
 
 """
     ProjectionStdCore
 
-A mutable subtype of `RPMProjectionType` that represents a standard row projection method.
+A mutable structure that represents a standard row projection method.
 The type can be constructed with an optional `Float64` argument for the relaxation parameter
 (usually between `0.0` and `2.0`).
 
@@ -24,7 +24,7 @@ ProjectionStdCore() = ProjectionStdCore(1.0)
 """
     ProjectionLowCore
 
-A mutable subtype of `RPMProjectionType` that represents the standard row projection method
+A mutable structure that represents the standard row projection method
 with orthogonalization of the current projection against a set of `m` previous projection
 directions, where `m` is specified by the user.
 
@@ -48,7 +48,7 @@ ProjectionLowCore() = ProjectionLowCore(1.0, 5, nothing)
 """
     `ProjectionFullCore`
 
-A mutable subtype of `RPMProjectionType` that represents the standard row projection method
+A mutable structure that represents the standard row projection method
 with full orthogonalization against all previous projections. Equivalently, this type
 represents a solver for incrementally constructed matrix sketches.
 
