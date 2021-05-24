@@ -3,30 +3,45 @@ using LinearAlgebra, Random, Distributions
 ################################
 #  DISTRIBUTIONS FOR KACZMARZ  #
 ################################
+"""
+    RowDistributionType
+
+Abstract supertype for sampling over the equations of a linear system.
+"""
 abstract type RowDistributionType end
 
+"""
+    UFDistribution <: RowDistributionType
+
+Abstract specification of a discrete uniform distribution over a system of linear equations.
+There are no fields.
+"""
 struct UFDistribution <: RowDistributionType end
+
+"""
+    SVDistribution <: RowDistributionType
+
+Abstract specification of a Strohmer-Vershynin sampling scheme over a system of linear
+equations. There are no fields.
+
+See Strohmer, T., Vershynin, R. A Randomized Kaczmarz Algorithm with Exponential Convergence.
+J Fourier Anal Appl 15, 262 (2009). https://doi.org/10.1007/s00041-008-9030-4
+"""
+struct SVDistribution <: RowDistributionType end
+
+
+"""
+    distribution(type::T, A::Matrix) where T<:RowDistributionType
+
+Generates a vector in the probability simplex corresponding to (1) a linear system whose
+coefficient matrix is given by argument `A` and (2) the abstract distribution specified by
+`type`.
+"""
 function distribution(type::UFDistribution, A::Matrix)
     p = ones(Float64, size(A, 1))
     return p./sum(p)
 end
 
-struct SVDistribution <: RowDistributionType end
-"""
-    distribution(type::SVDistribution, A :: Matrix{Float64})
-
-    Implements the Strohmer and Vershynin sampler of:
-    > Strohmer, T., Vershynin, R. A Randomized Kaczmarz Algorithm with Exponential Convergence. 
-    J Fourier Anal Appl 15, 262 (2009). https://doi.org/10.1007/s00041-008-9030-4
-
-# Arguments
-- `A::Matrix{Float64}`, coefficient matrix
-
-# Returns
-
-- `:: Vector{Float64}`, discrete probability distribution p
-
-"""
 function distribution(type::SVDistribution, A::Matrix)
     p = zeros(Float64, size(A, 1))
     for i=1:size(A, 1)
@@ -40,25 +55,76 @@ end
 #################
 
 # Type structure
+"""
+    RPMSamplerType
+
+Abstract supertype for vector sketching (including discrete equation samplers).
+"""
 abstract type RPMSamplerType end
 
+
+"""
+    SamplerKaczmarzWR <: RPMSamplerType
+
+A mutable structure that specifies sampling with replacement over the equations of a linear
+systems according to its field `distribution_type`.
+
+# Fields
+
+- `distribution_type::RowDistributionType`, a discrete distribution
+- `dist::Union{Distributions.Categorical{Float64, Vector{Float64}}, Nothing}`, a vector
+    corresponding to the sampling probabilities over the equations of a system
+
+Calling `SamplerKaczmarzWR()` defaults to uniform sampling over the equations of a system.
+"""
 mutable struct SamplerKaczmarzWR <: RPMSamplerType
     distribution_type::RowDistributionType
     dist::Union{Distributions.Categorical{Float64, Vector{Float64}}, Nothing}
 end
 SamplerKaczmarzWR() = SamplerKaczmarzWR(UFDistribution(), nothing)
 
+"""
+    SamplerKaczmarzCYC <: RPMSamplerType
+
+A mutable structure that specifies cyclic sampling over the equations of linear system.
+The cycle is first set randomly and then is kept fixed.
+
+# Fields
+
+- `perm::Union{Vector{Int64}, Nothing}` is a vector specifying the ordering over the
+    equations of the system.
+
+Calling `SamplerKaczmarzCYC()` defaults to setting `perm` to `nothing`.
+"""
 mutable struct SamplerKaczmarzCYC <: RPMSamplerType
     perm::Union{Vector{Int64}, Nothing}
 end
 SamplerKaczmarzCYC() = SamplerKaczmarzCYC(nothing)
 
+"""
+    SamplerMotzkin <: RPMSamplerType
+
+A mutuable structure that specifies Motzkin (maximum absolute residual) equation selection.
+If the field `sampled` is `true`, then the maximum absolute residual equation is selected
+from a unfirormly randomly sampled subset.
+
+# Fields
+
+- `sampled::Bool`, if `false` then equation is selected from all equations in the system. if
+    `true` then the equation is selected from a random subset
+
+Calling `SamplerMotzkin()` defaults to setting `sampled` to `false`.
+"""
 mutable struct SamplerMotzkin <: RPMSamplerType
     sampled::Bool
 end
 SamplerMotzkin() = SamplerMotzkin(false)
 
+"""
+    SamplerGaussSketch <: RPMSamplerType
 
+A structure that specifies the Gaussian vector sketching.
+"""
 struct SamplerGaussSketch <: RPMSamplerType end
 
 RPMSamplers() = [SamplerKaczmarzWR(), SamplerKaczmarzCYC(), SamplerMotzkin(), SamplerGaussSketch()]
@@ -66,20 +132,12 @@ RPMSamplers() = [SamplerKaczmarzWR(), SamplerKaczmarzCYC(), SamplerMotzkin(), Sa
 # Implementation
 
 """
-    sample(type :: SamplerKaczmarzWR, A :: Matrix{Float64}, b :: Vector{Float64},
-        x :: Vector{Float64}, iter :: Int64)
+    sample(type::T, A::Matrix{Float64}, b::Vector{Float64}, x::Vector{Float64}, iter::Int64)
+        where T <: RPMSamplerType
 
-    Implements Kaczmarz sampling with replacement scheme
-
-# Arguments
-- `A::Matrix{Float64}`, coefficient matrix
-- `b::Vector{Float64}`, constant vector
-
-# Returns
-
-- `:: Function`, argument free function that returns a pair (q, s) where q is the sampled
-                    row, and s is the corresponding sampled constant vector
-
+Implements the sampling scheme specified by `type` for a linear system with coefficient
+matrix `A` and constant vector `b` at iterate `x` and iterate counter `iter`. Returns a
+vector-scalar pair that specifies a hyper plane.
 """
 function sample(
     type::SamplerKaczmarzWR,
@@ -96,20 +154,6 @@ function sample(
     w_ind = rand(type.dist,1)
     return A[w_ind[1],:], b[w_ind[1]]
 end
-
-"""
-    kaczmarzCyc(A :: Matrix{Float64}, b :: Vector{Float64})
-
-Implements Kaczmarz sampling under random permutation ordering.
-
-# Arguments
-- `A::Matrix{Float64}`, coefficient matrix
-- `b::Vector{Float64}`, constant vector
-
-# Returns
-- `::Function`, argument free function that returns a pair (q,s) where q is the sampled row,
-                and s is the corresponding sampled constant vector.
-"""
 function sample(
         type::SamplerKaczmarzCYC,
         A::Matrix{Float64},
@@ -125,21 +169,6 @@ function sample(
 
     return A[row,:], b[row]
 end
-
-"""
-    gauss(A :: Matrix{Float64}, b :: Vector{Float64})`
-
-Implements Gaussian sketching sampling scheme
-
-# Arguments
-- `A :: Matrix{Float64}`, coefficient matrix
-- `b :: Vector{Float64}`, constant vector
-
-# Returns
-- `:: Function`, argument free function that returns a pair (q, s) where q is the sketched row,
-            and s is the corresponding sketched constant
-
-"""
 function sample(
         type::SamplerGaussSketch,
         A::Matrix{Float64},
@@ -151,6 +180,38 @@ function sample(
     w = randn(N)
     return A'*w, dot(b,w)
 end
+function sample(
+    type::SamplerMotzkin,
+    A::Matrix{Float64},
+    b::Vector{Float64},
+    x::Vector{Float64},
+    iter::Int64
+)
+    if type.sampled == true
+        rows = sample_subset(length(b))
+        r = A[rows, :]*x - b[rows]
+        j = argmax(abs.(r))
+        i = rows[j]
+    else
+        r = A*x - b
+        i = argmax(abs.(r))
+    end
+    return A[i,:], b[i]
+end
+
+"""
+    sample_subset(n::Int64)
+
+Generates a random set of values from `1` to `n` of a random size.
+"""
+function sample_subset(n::Int64)
+    p = randperm(n)
+    low = rand(1:n)
+    up = rand(low:n)
+    return p[low:up]
+end
+
+
 
 """
     count_sketch(A :: Matrix{Float64}, b :: Vector{Float64}, e :: Int64 = 5)
@@ -190,30 +251,4 @@ function count_sketch(A::Matrix{Float64}, b::Vector{Float64}, e::Int64 = 10)
     end
 
     return genSample
-end
-
-function sample_subset(n::Int64)
-    p = randperm(n)
-    low = rand(1:n)
-    up = rand(low:n)
-    return p[low:up]
-end
-
-function sample(
-    type::SamplerMotzkin,
-    A::Matrix{Float64},
-    b::Vector{Float64},
-    x::Vector{Float64},
-    iter::Int64
-)
-    if type.sampled == true
-        rows = sample_subset(length(b))
-        r = A[rows, :]*x - b[rows]
-        j = argmax(abs.(r))
-        i = rows[j]
-    else
-        r = A*x - b
-        i = argmax(abs.(r))
-    end
-    return A[i,:], b[i]
 end
