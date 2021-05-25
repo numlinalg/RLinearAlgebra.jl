@@ -71,7 +71,7 @@ A wrapper function for updating the itertate `x` using an `RPMProjectionType` fo
 hyperplane specified by a vector `q` and scalar `b`,
 
 ```math
-\lbrace z : \langle q, z \rangle = b \rbrace.
+\\lbrace z : \\langle q, z \\rangle = b \\rbrace.
 ```
 
 The `iter` argument is the iteration counter.
@@ -109,7 +109,7 @@ end
 Implements an in-place vector row projection to update `x` according to the formula
 
 ```math
-x_{k+1} = x_k + \\alpha q ( b - \langle q, x_k \rangle)/ \Vert q \Vert_2^2
+x_{k+1} = x_k + \\alpha q ( b - \\langle q, x_k \\rangle)/ \\Vert q \\Vert_2^2
 ```
 
 # Arguments
@@ -140,7 +140,7 @@ end
 Implements an in-place vector row projection to update `x` according to the formula
 
 ```math
-x_{k+1} = x_k + \\alpha u ( b- \langle q, x_k \rangle ) / \langle q, u \rangle,
+x_{k+1} = x_k + \\alpha u ( b- \\langle q, x_k \\rangle ) / \\langle q, u \\rangle,
 ```
 where `u` is the vector produced by orthogonalizing `q` against the set of vectors in `Z`.
 Also updates the set `Z` with the vector `u` and expels the initial element of `Z`
@@ -153,7 +153,7 @@ Also updates the set `Z` with the vector `u` and expels the initial element of `
 - `Z::Vector{Vector{Float64}}`, a collection of orthonormal vectors
 
 # Keywords
-- `α::Float64`, a relaxation parameter. Defaults to $1.0$.
+- `α::Float64`, a relaxation parameter. Defaults to `1.0`.
 """
 function lowCore!(
     x::Vector{Float64},
@@ -190,12 +190,12 @@ end
 Implements an in-place row projection update to `x` according to the formulate
 
 ```math
-x_{k+1} = x_k + \\alpha u ( b- \langle q, x_k \rangle ) / \langle q, u \rangle,
+x_{k+1} = x_k + \\alpha u ( b- \\langle q, x_k \\rangle ) / \\langle q, u \\rangle,
 ```
 where `u` is the product of `S` and `q`. The matrix `S` is also updated according to
 
 ```math
-S_{k+1} = \left( I - \frac{1}{\langle q, u \rangle} u q' ) S_k.
+S_{k+1} = \\left( I - \\frac{1}{\\langle q, u \\rangle} u q' ) S_k.
 ```
 
 # Arguments
