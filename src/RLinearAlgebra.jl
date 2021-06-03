@@ -1,9 +1,9 @@
 module RLinearAlgebra
 
-using LinearAlgebra
+using LinearAlgebra, Random, Distributions
 
 include("tools.jl")
-include("solvers.jl")
+include("linear_samplers.jl")
 
 ###########
 # Exports #
@@ -12,10 +12,5 @@ include("solvers.jl")
 # Linear Solver exports
 export rsolve, rsolve!
 export LinearSolver
-export TypeRPM, TypeBlendenpik, TypeRGS
-export SamplerKaczmarzWR, SamplerKaczmarzCYC, SamplerMotzkin, SamplerGaussSketch
-export RPMSamplers
-export SVDistribution, UFDistribution
-export ProjectionStdCore, ProjectionLowCore, ProjectionFullCore
 
 end # module
