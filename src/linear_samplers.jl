@@ -160,7 +160,7 @@ include("linear_samplers/vec_row_unid_replace.jl")
 include("linear_samplers/vec_row_prop-to-norm_replace.jl")
 
 # Non-adaptive Sketching
-include("linear_samplers/vec_row_uniform.jl")
+#include("linear_samplers/vec_row_uniform.jl")
 #include("linear_samplers/vec_row_uniform_sym.jl")
 #include("linear_samplers/vec_row_gauss.jl")
 #include("linear_samplers/vec_row_uniform_sparse.jl")
