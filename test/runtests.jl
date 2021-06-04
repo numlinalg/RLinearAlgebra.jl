@@ -1,11 +1,5 @@
-using Test
-using RLinearAlgebra
+# This file is part of RLinearAlgebra.jl
 
-#verbose = true, Julia 1.6
-@testset "Linear System Sampler Tests" begin
-      for (testset_name, tests) in RLinearAlgebra.linear_samplers_testset_proc
-            @testset "$testset_name" begin
-                  [eval(tst) for tst in tests]
-            end
-      end
+for file in readlines(joinpath(@__DIR__, "testgroups.txt"))
+    include(file * ".jl")
 end

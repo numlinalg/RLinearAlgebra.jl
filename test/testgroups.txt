@@ -1,0 +1,7 @@
+proc_linear_samplers
+linear_samplers/proc_vec_row_deterministic_cyclic
+linear_samplers/proc_vec_row_hop_rand_cyclic
+linear_samplers/proc_vec_row_one_rand_cyclic
+linear_samplers/proc_vec_row_prop_to_norm_replace
+linear_samplers/proc_vec_row_rand_cyclic
+linear_samplers/proc_vec_row_unid_replace

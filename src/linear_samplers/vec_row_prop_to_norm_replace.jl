@@ -51,38 +51,3 @@ function sample(
 end
 
 #export LinSysVecRowPropToNormSampler, LinSysVecRowSVSampler
-
-if @isdefined linear_samplers_testset_proc
-
-    tsts = Expr[]
-
-    # Test super type
-    push!(tsts, :(@test supertype(LinSysVecRowPropToNormSampler) == LinSysVecRowSampler))
-
-    # Test alias
-    push!(tsts, :(@test LinSysVecRowPropToNormSampler == LinSysVecRowSVSampler))
-
-    # Test construction
-    let tst
-        tst = quote
-            A = rand(10,3)
-            b = rand(10)
-            x = rand(3)
-
-            samp = LinSysVecRowSVSampler()
-
-            α, β = RLinearAlgebra.sample(samp, A, b, x, 1)
-
-            true
-        end
-
-        push!(tsts, :(@test $tst))
-    end
-
-    push!(linear_samplers_testset_proc,
-        "LSVR Strohmer-Vershynin Sampling -- Procedural" => tsts
-    )
-
-
-
-end

@@ -44,14 +44,6 @@ abstract type LinSysSampler end
 LinSysSketch = LinSysSampler
 LinSysSelect = LinSysSampler
 
-# Tests
-push!(linear_samplers_testset_proc,
-    "Linear System Sampler Super Type" => [
-        :(@test LinSysSketch == LinSysSampler), #Check alias
-        :(@test LinSysSelect == LinSysSampler), #Check alias
-    ]
-)
-
 """
     LinSysVecRowSampler <: LinSysSampler
 
@@ -66,14 +58,6 @@ abstract type LinSysVecRowSampler <: LinSysSampler end
 LinSysVecRowSketch = LinSysVecRowSampler
 LinSysVecRowSelect = LinSysVecRowSampler
 
-# Tests
-push!(linear_samplers_testset_proc,
-    "Linear System Vector Row Sampler Super Type" => [
-        :(@test supertype(LinSysVecRowSampler) == LinSysSampler), #Check parent type
-        :(@test LinSysVecRowSketch == LinSysVecRowSampler), #Check alias
-        :(@test LinSysVecRowSelect == LinSysVecRowSampler), #Check alias
-    ]
-)
 
 """
     LinSysVecColSampler <: LinSysSampler
@@ -89,15 +73,6 @@ abstract type LinSysVecColSampler <: LinSysSampler end
 LinSysVecColSketch = LinSysVecColSampler
 LinSysVecColSelect = LinSysVecColSampler
 
-# Tests
-push!(linear_samplers_testset_proc,
-    "Linear System Vector Column Sampler Super Type" => [
-        :(@test supertype(LinSysVecColSampler) == LinSysSampler), #Check parent type
-        :(@test LinSysVecColSketch == LinSysVecColSampler), #Check alias
-        :(@test LinSysVecColSelect == LinSysVecColSampler), #Check alias
-    ]
-)
-
 """
     LinSysBlkRowSampler <: LinSysSampler
 
@@ -111,16 +86,6 @@ Abstract supertype for sampling, sketching or deterministically selecting a coll
 abstract type LinSysBlkRowSampler <: LinSysSampler end
 LinSysBlkRowSketch = LinSysBlkRowSampler
 LinSysBlkRowSelect = LinSysBlkRowSampler
-
-# Tests
-push!(linear_samplers_testset_proc,
-    "Linear System Block Row Sampler Super Type" => [
-        :(@test supertype(LinSysBlkRowSampler) == LinSysSampler), #Check parent type
-        :(@test LinSysBlkRowSketch == LinSysBlkRowSampler), #Check alias
-        :(@test LinSysBlkRowSelect == LinSysBlkRowSampler), #Check alias
-    ]
-)
-
 
 """
     LinSysBlkColSampler <: LinSysSampler
@@ -136,16 +101,6 @@ abstract type LinSysBlkColSampler <: LinSysSampler end
 LinSysBlkColSketch = LinSysBlkColSampler
 LinSysBlkColSelect = LinSysBlkColSampler
 
-# Tests
-push!(linear_samplers_testset_proc,
-    "Linear System Vector Column Sampler Super Type" => [
-        :(@test supertype(LinSysBlkColSampler) == LinSysSampler), #Check parent type
-        :(@test LinSysBlkColSketch == LinSysBlkColSampler), #Check alias
-        :(@test LinSysBlkColSelect == LinSysBlkColSampler), #Check alias
-    ]
-)
-
-
 #############################################
 # Vector Row Sampler/Sketch/Selector
 #############################################
@@ -157,7 +112,7 @@ include("linear_samplers/vec_row_rand_cyclic.jl")
 
 # Non-adaptive Sampling (with replacement)
 include("linear_samplers/vec_row_unid_replace.jl")
-include("linear_samplers/vec_row_prop-to-norm_replace.jl")
+include("linear_samplers/vec_row_prop_to_norm_replace.jl")
 
 # Non-adaptive Sketching
 #include("linear_samplers/vec_row_uniform.jl")

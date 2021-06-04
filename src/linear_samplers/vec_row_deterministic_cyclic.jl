@@ -27,37 +27,3 @@ function sample(
 end
 
 #export LinSysVecRowDetermCyclic
-
-# Tests
-if @isdefined linear_samplers_testset_proc
-
-    # Test for appropriate super type
-    tsts = Expr[:(@test supertype(LinSysVecRowDetermCyclic) == LinSysVecRowSampler)]
-
-    # Test for determining whether the rows are being cycled through correctly
-    let tst
-        tst = quote
-            A = rand(10,3)
-            b = rand(10)
-            x = rand(3) #Irrelevant
-
-            cyc = LinSysVecRowDetermCyclic()
-
-            flag = true
-
-            for i = 11:20
-                α, β = RLinearAlgebra.sample(cyc, A, b, x, i)
-                flag = flag & (α == A[i-10,:])
-                flag = flag & (β == b[i-10])
-            end
-
-            flag
-        end
-
-        push!(tsts, :(@test $tst))
-    end
-
-    push!(linear_samplers_testset_proc,
-        "LSVR Deterministic Cyclic -- Procedural" => tsts
-    )
-end

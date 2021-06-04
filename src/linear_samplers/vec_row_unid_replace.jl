@@ -24,30 +24,3 @@ function sample(
 end
 
 #export LinSysVecRowUnidSampler
-
-if @isdefined linear_samplers_testset_proc
-
-    # Test for appropriate super type
-    tsts = Expr[:(@test supertype(LinSysVecRowUnidSampler) == LinSysVecRowSampler)]
-
-    # Test construction
-    let tst
-        tst = quote
-            A = rand(10,3)
-            b = rand(10)
-            x = rand(3)
-
-            samp = LinSysVecRowUnidSampler()
-
-            α, β = RLinearAlgebra.sample(samp, A, b, x, 1)
-
-            true
-        end
-
-        push!(tsts, :(@test $tst))
-    end
-
-    push!(linear_samplers_testset_proc,
-        "LSVR Uniform Discrete Sampling -- Procedural" => tsts
-    )
-end
