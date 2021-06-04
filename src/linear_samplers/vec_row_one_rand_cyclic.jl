@@ -38,7 +38,7 @@ function sample(
     return A[eqn_ind, :], b[eqn_ind]
 end
 
-export LinSysVecRowOneRandCyclic
+#export LinSysVecRowOneRandCyclic
 
 # Tests
 if @isdefined linear_samplers_testset_prop

@@ -23,7 +23,7 @@ function sample(
     return A[eqn_ind, :], b[eqn_ind]
 end
 
-export LinSysVecRowUnidSampler
+#export LinSysVecRowUnidSampler
 
 if @isdefined linear_samplers_testset_proc
 

@@ -50,7 +50,7 @@ function sample(
     return A[eqn_ind, :], b[eqn_ind]
 end
 
-export LinSysVecRowPropToNormSampler, LinSysVecRowSVSampler
+#export LinSysVecRowPropToNormSampler, LinSysVecRowSVSampler
 
 if @isdefined linear_samplers_testset_proc
 

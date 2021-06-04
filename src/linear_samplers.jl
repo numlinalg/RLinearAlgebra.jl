@@ -196,9 +196,9 @@ include("linear_samplers/vec_row_prop-to-norm_replace.jl")
 #############################################
 # Export Statements
 #############################################
-
-export LinSysSampler, LinSysSketch, LinSysSelect
-export LinSysVecRowSampler, LinSysVecRowSketch, LinSysVecRowSelect
-export LinSysVecColSampler, LinSysVecColSketch, LinSysVecColSelect
-export LinSysBlkRowSampler, LinSysBlkRowSketch, LinSysBlkRowSelect
-export LinSysBlkColSampler, LinSysBlkColSketch, LinSysBlkColSelect
+# See RLinearAlgebra.jl
+#export LinSysSampler, LinSysSketch, LinSysSelect
+#export LinSysVecRowSampler, LinSysVecRowSketch, LinSysVecRowSelect
+#export LinSysVecColSampler, LinSysVecColSketch, LinSysVecColSelect
+#export LinSysBlkRowSampler, LinSysBlkRowSketch, LinSysBlkRowSelect
+#export LinSysBlkColSampler, LinSysBlkColSketch, LinSysBlkColSelect

@@ -13,4 +13,20 @@ include("linear_samplers.jl")
 export rsolve, rsolve!
 export LinearSolver
 
+###########################################
+# Linear Sampler Exports
+###########################################
+
+# Abstract Types
+export LinSysSampler, LinSysSketch, LinSysSelect
+export LinSysVecRowSampler, LinSysVecRowSketch, LinSysVecRowSelect
+export LinSysVecColSampler, LinSysVecColSketch, LinSysVecColSelect
+export LinSysBlkRowSampler, LinSysBlkRowSketch, LinSysBlkRowSelect
+export LinSysBlkColSampler, LinSysBlkColSketch, LinSysBlkColSelect
+
+# Vector Row Samplers
+export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandCyclic,
+    LinSysVecRowPropToNormSampler, LinSysVecRowSVSampler, LinSysVecRowRandCyclic,
+    LinSysVecRowUnidSampler
+
 end # module
