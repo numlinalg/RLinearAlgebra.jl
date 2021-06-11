@@ -81,7 +81,7 @@ include("linear_solver_routines/vec_row_projection_fortho.jl")
 #############################################
 include("linear_solver_routines/vec_col_projection_std.jl")
 include("linear_solver_routines/vec_col_projection_portho.jl")
-#include("linear_solver_routines/vec_col_projection_ortho.jl")
+include("linear_solver_routines/vec_col_projection_fortho.jl")
 
 #############################################
 # Block Row Projection Solvers
