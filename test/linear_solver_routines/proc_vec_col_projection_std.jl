@@ -29,7 +29,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
             e[i] = 1.0
 
             # Update
-            RLinearAlgebra.rsubsolve!(rsub, z, (e, A[:,i], dot(A[:,i], A * z - b)), i)
+            RLinearAlgebra.rsubsolve!(rsub, z, (e, A, dot(A * e, A * z - b)), i)
 
             abs(dot(A[:,i], A * z - b)) < 1e-15
         end
