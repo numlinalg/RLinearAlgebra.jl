@@ -1,4 +1,5 @@
 ############################################################################################
+## This file is part of RLinearAlgebra.jl
 ##
 ## Overview: abstractions and methods for sampling, sketching or selecting from linear
 ## systems of equations.
