@@ -29,4 +29,7 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
     LinSysVecRowPropToNormSampler, LinSysVecRowSVSampler, LinSysVecRowRandCyclic,
     LinSysVecRowUnidSampler
 
+# Vector Column Samplers
+export LinSysVecColDetermCyclic
+
 end # module
