@@ -6,6 +6,7 @@
 ##
 ## Contents
 ## - Abstract Types
+## - `sample` function documentation
 ## - Vector Row Sampler/Sketch/Selector
 ## - Vector Column Sampler/Sketch/Selector
 ## - Block Row Sampler/Sketch/Selector
@@ -90,6 +91,37 @@ Abstract supertype for sampling, sketching or deterministically selecting a coll
 abstract type LinSysBlkColSampler <: LinSysSampler end
 LinSysBlkColSketch = LinSysBlkColSampler
 LinSysBlkColSelect = LinSysBlkColSampler
+
+#############################################
+# `sample` Function Documentation
+#############################################
+"""
+    sample(type::T where T<:LinSysSampler,
+        A::Matrix{Float64},
+        b::Vector{Float64},
+        x::Vector{Float64},
+        iter::Int64)
+
+A common interface for specifying different strategies for sampling, selecting or sketching
+    a linear system specified by `A` and `b`. The `type` argument is used to select the an
+    appropriately defined strategy. The argument `x` is the current iterate value for the
+    solution. The arguent `iter` is the iteration counter.
+
+The value(s) returned by sample depend on the subtype of `LinSysSampler` being used.
+    Specifically,
+- For `T<:LinSysVecRowSampler`, a vector in the row space of `A` and constant are returned
+- For `T<:LinSysVecColSampler`, a vector of `length(x)`, a vector in column space of `A`,
+    and a scalar-valued residual are returned.
+"""
+function sample(
+    type::Nothing,
+    A::Matrix{Float64},
+    b::Vector{Float64},
+    x::Vector{Float64},
+    iter::Int64
+)
+    return nothing
+end
 
 #############################################
 # Vector Row Sampler/Sketch/Selector
