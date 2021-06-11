@@ -5,7 +5,6 @@
 ## systems of equations.
 ##
 ## Contents
-## - Test Sets
 ## - Abstract Types
 ## - Vector Row Sampler/Sketch/Selector
 ## - Vector Column Sampler/Sketch/Selector
@@ -16,15 +15,6 @@
 ############################################################################################
 
 # Dependencies: Random, Distributions, LinearAlgebra
-
-#############################################
-# Test Sets
-#############################################
-# Procedural tests -- usually inexpensive tests, usually deterministic
-linear_samplers_testset_proc = Dict{String,Vector{Expr}}()
-
-# Property tests -- usually expensive to run, usually complex or non-determinism
-linear_samplers_testset_prop = Dict{String,Vector{Expr}}()
 
 #############################################
 # Abstract Types
