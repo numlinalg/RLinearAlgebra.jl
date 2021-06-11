@@ -1,3 +1,4 @@
+# This file is pat of RLinearAlgebra.jl
 # 1. Specifies type
 # 2. Implements sample function
 # 3. Exports Type
