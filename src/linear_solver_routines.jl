@@ -6,6 +6,7 @@
 ##
 ## Contents
 ## - Abstract Types
+## - `rsubsolve!` function documentation
 ## - Vector Row Projection Solvers
 ## - Vector Column Projection Solvers
 ## - Block Row Projection Solvers
@@ -63,11 +64,17 @@ Abstract supertype for block column action projection methods.
 abstract type LinSysPreconKrylov <: LinSysSolveRoutine end
 
 #############################################
+# `rsubsolve!` Function Documentation`
+#############################################
+
+
+
+#############################################
 # Vector Row Projection Solvers
 #############################################
-#include("linears_solver_routines/vec_row_projection_std.jl")
-#include("linears_solver_routines/vec_row_projection_porth.jl")
-#include("linears_solver_routines/vec_row_projection_ortho.jl")
+include("linears_solver_routines/vec_row_projection_std.jl")
+#include("linears_solver_routines/vec_row_projection_portho.jl")
+#include("linears_solver_routines/vec_row_projection_fortho.jl")
 
 #############################################
 # Vector Column Projection Solvers

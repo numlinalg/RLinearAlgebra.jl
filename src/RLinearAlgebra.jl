@@ -52,6 +52,8 @@ export LinSysVecColDetermCyclic
 export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
     LinSysBlkRowProjection, LinSysBlkColProjection, LinSysPreconKrylov
 
+# Vector Row Projection
+export LinSysVecRowProjStd, Kaczmarz, ART
 ###########################################
 # Source File Inclusions
 ###########################################
