@@ -25,7 +25,7 @@ See Patel, Vivak, Mohammad Jahangoshahi, and Daniel Adrian Maldonado. "An Implic
 - `S::Union{Matrix{Float64}, Nothing}` is a matrix used for orthogonalizing against
     all previous search directions.
 
-Calling `ProjectionFullCore()` defaults to `ProjectionFullCore(nothing)`.
+Calling `LinSysVecRowProjFO()` defaults to `LinSysVecRowProjFO(nothing)`.
 """
 mutable struct LinSysVecRowProjFO <: LinSysVecRowProjection
     S::Union{Matrix{Float64}, Nothing}
