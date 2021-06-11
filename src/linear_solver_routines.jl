@@ -66,8 +66,43 @@ abstract type LinSysPreconKrylov <: LinSysSolveRoutine end
 #############################################
 # `rsubsolve!` Function Documentation`
 #############################################
+"""
+    rsubsolve!(
+        type::T where T<:LinSysSolveRoutine,
+        x::Vector{Float64},
+        samp::U where U<:Tuple,
+        iter::Int64)
 
+A common interface for specifying different strategies for solving a subproblem generated
+    by a sampling, selecting or sketching operation on a linear system. The `type` argument
+    is used to select the appropriately defined strategy. The argument `x` is the current
+    iterate value for the solution. The argument `samp` depends on the subtype
+    of `LinSysSolveRoutine` that is being deployed and is described below. The `iter`
+    argument is the iteration counter.
 
+The value of `samp` depends on the type of subtype of `LinSysSolveRoutine` being deployed.
+To describe this, let `A` be the coefficient matrix of the system, and `b` its constant
+vector.
+- For `T<:LinSysVecRowProjection`, `samp` is a two-dimensional tuple where the first
+    entry is a vector in the row space of `A`; and the second entry is a scalar value
+    corresponding to a linear combination of the elements of `b`.
+- For `T<:LinSysVecColProjection`, `samp` is a three-dimensional tuple where the first
+    entry is a vector of `length(x)` corresponding to the search direction; the second
+    entry is a matrix with the same number of rows as `A` (usually it is `A`);
+    and the third entry is a scalar-valued residual for the normal system corresponding
+    to `samp[1]'* A' * (A * x - b)`.
+
+The function `rsubsolve!` updates the quantity `x` and any fields of `type` that must be
+    updated.
+"""
+function rsubsolve!(
+    type::Nothing,
+    x::Vector{Float64},
+    samp::U where U<:Tuple,
+    iter::Int64,
+)
+    return nothing
+end
 
 #############################################
 # Vector Row Projection Solvers
