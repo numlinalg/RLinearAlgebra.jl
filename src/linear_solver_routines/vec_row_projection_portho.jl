@@ -51,7 +51,7 @@ function rsubsolve!(
 
     # Compute orthogonal component of q using modified Gram-Schmidt
     u = samp[1]
-    for z in Z
+    for z in type.Z
         u = u - dot(z, u) * z
     end
 
@@ -65,7 +65,7 @@ function rsubsolve!(
 
     # Update orthonormal set
     z = u/sqrt(nrmUsq)
-    Z .= push!(Z[2:end], z)
+    type.Z .= push!(type.Z[2:end], z)
 
     return nothing
 end
