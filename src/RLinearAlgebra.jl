@@ -50,7 +50,7 @@ export LinSysVecColDetermCyclic
 
 # Abstract Types
 export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
-    LinSysBlkRowProjection, LInSysBlkColProjection, LinSysPreconKrylov
+    LinSysBlkRowProjection, LinSysBlkColProjection, LinSysPreconKrylov
 
 ###########################################
 # Source File Inclusions

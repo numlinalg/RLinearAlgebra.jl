@@ -2,13 +2,17 @@
 
 module ProceduralTestLinSysSolveRoutine
 
-@testset "Linear System Solver Routine Abstractions"
+using Test, RLinearAlgebra
+
+@testset "Linear System Solver Routine Abstractions" begin
 
     # Verify parent types
     @test supertype(LinSysVecRowProjection) == LinSysSolveRoutine
     @test supertype(LinSysVecColProjection) == LinSysSolveRoutine
     @test supertype(LinSysBlkRowProjection) == LinSysSolveRoutine
     @test supertype(LinSysBlkColProjection) == LinSysSolveRoutine
-    @test supertype(LinSysPreconKrylov) == LinSysKrylovPrecon
+    @test supertype(LinSysPreconKrylov) == LinSysSolveRoutine
+
+end
 
 end # End module

@@ -10,6 +10,7 @@
 ## - Vector Column Projection Solvers
 ## - Block Row Projection Solvers
 ## - Block Column Projection Solvers
+## - Preconditioned Krylov Solvers
 ## - Export Statements
 ##
 ############################################################################################
@@ -60,3 +61,45 @@ abstract type LinSysBlkColProjection <: LinSysSolveRoutine end
 Abstract supertype for block column action projection methods.
 """
 abstract type LinSysPreconKrylov <: LinSysSolveRoutine end
+
+#############################################
+# Vector Row Projection Solvers
+#############################################
+#include("linears_solver_routines/vec_row_projection_std.jl")
+#include("linears_solver_routines/vec_row_projection_porth.jl")
+#include("linears_solver_routines/vec_row_projection_ortho.jl")
+
+#############################################
+# Vector Column Projection Solvers
+#############################################
+#include("linears_solver_routines/vec_col_projection_std.jl")
+#include("linears_solver_routines/vec_col_projection_porth.jl")
+#include("linears_solver_routines/vec_col_projection_ortho.jl")
+
+#############################################
+# Block Row Projection Solvers
+#############################################
+# Exact Solvers
+
+# Approximate Solvers
+
+#############################################
+# Block Column Projection Solvers
+#############################################
+# Exact Solvers
+
+# Approximate Solvers
+
+#############################################
+# Precondition Krylov Solvers
+#############################################
+#Blendenpik
+
+
+
+#############################################
+# Export Statements
+#############################################
+# See RLinearAlgebra.jl
+#export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
+#    LinSysBlkRowProjection, LInSysBlkColProjection, LinSysPreconKrylov
