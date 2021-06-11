@@ -72,16 +72,16 @@ abstract type LinSysPreconKrylov <: LinSysSolveRoutine end
 #############################################
 # Vector Row Projection Solvers
 #############################################
-include("linears_solver_routines/vec_row_projection_std.jl")
-#include("linears_solver_routines/vec_row_projection_portho.jl")
-#include("linears_solver_routines/vec_row_projection_fortho.jl")
+include("linear_solver_routines/vec_row_projection_std.jl")
+#include("linear_solver_routines/vec_row_projection_portho.jl")
+#include("linear_solver_routines/vec_row_projection_fortho.jl")
 
 #############################################
 # Vector Column Projection Solvers
 #############################################
-#include("linears_solver_routines/vec_col_projection_std.jl")
-#include("linears_solver_routines/vec_col_projection_porth.jl")
-#include("linears_solver_routines/vec_col_projection_ortho.jl")
+#include("linear_solver_routines/vec_col_projection_std.jl")
+#include("linear_solver_routines/vec_col_projection_porth.jl")
+#include("linear_solver_routines/vec_col_projection_ortho.jl")
 
 #############################################
 # Block Row Projection Solvers
