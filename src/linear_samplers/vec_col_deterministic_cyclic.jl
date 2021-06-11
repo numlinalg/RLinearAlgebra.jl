@@ -32,7 +32,7 @@ function sample(
     c = A[:,col_ind]
     res = dot(c, A * x - b)
 
-    return v, dot(c,c), res
+    return v, c, res
 end
 
 #export LinSysVecColDetermCyclic
