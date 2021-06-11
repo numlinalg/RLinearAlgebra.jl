@@ -8,3 +8,4 @@ linear_samplers/proc_vec_row_unid_replace
 linear_samplers/proc_vec_col_deterministic_cyclic
 proc_linear_solver_routines
 linear_solver_routines/proc_vec_row_projection_std
+linear_solver_routines/proc_vec_row_projection_portho
