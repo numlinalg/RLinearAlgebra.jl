@@ -1,21 +1,33 @@
+############################################################################################
+## This file is part of RLinearAlgebra.jl
+##
+## Overview: abstractions and methods for performing various randomized linear algebra
+## computations
+##
+## Contents
+## - Dependencies
+## - Export Statements
+##  + Linear Sampler
+##  + Linear Solver Routine
+## - Source File Inclusions
+##
+############################################################################################
+
 module RLinearAlgebra
+
+###########################################
+# Dependencies
+###########################################
 
 using LinearAlgebra, Random, Distributions
 
-include("tools.jl")
-include("linear_samplers.jl")
-
-###########
-# Exports #
-###########
-
-# Linear Solver exports
-export rsolve, rsolve!
-export LinearSolver
-
 ###########################################
+# Exports
+###########################################
+
+#*****************************************#
 # Linear Sampler Exports
-###########################################
+#*****************************************#
 
 # Abstract Types
 export LinSysSampler, LinSysSketch, LinSysSelect
@@ -31,5 +43,22 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
 
 # Vector Column Samplers
 export LinSysVecColDetermCyclic
+
+#*****************************************#
+# Linear Solver Routine Exports
+#*****************************************#
+
+# Abstract Types
+export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
+    LinSysBlkRowProjection, LInSysBlkColProjection, LinSysPreconKrylov
+
+###########################################
+# Source File Inclusions
+###########################################
+
+include("tools.jl")
+include("linear_samplers.jl")
+include("linear_solver_routines.jl")
+
 
 end # module
