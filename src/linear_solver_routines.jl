@@ -80,7 +80,7 @@ include("linear_solver_routines/vec_row_projection_fortho.jl")
 # Vector Column Projection Solvers
 #############################################
 include("linear_solver_routines/vec_col_projection_std.jl")
-#include("linear_solver_routines/vec_col_projection_porth.jl")
+include("linear_solver_routines/vec_col_projection_portho.jl")
 #include("linear_solver_routines/vec_col_projection_ortho.jl")
 
 #############################################
