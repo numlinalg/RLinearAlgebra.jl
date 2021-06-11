@@ -34,7 +34,7 @@ LinSysVecRowProjStd() = LinSysVecRowProjStd(1.0)
 function rsubsolve!(
     type::LinSysVecRowProjStd,
     x::Vector{Float64},
-    samp::T where T<:Tuple,
+    samp::Tuple{U,V} where {U<:Vector,V<:Real},
     iter::Int64,
 )
     # samp[1] is vector in the row space of the coefficient matrix
