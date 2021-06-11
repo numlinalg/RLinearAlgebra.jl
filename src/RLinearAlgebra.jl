@@ -53,7 +53,7 @@ export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
     LinSysBlkRowProjection, LinSysBlkColProjection, LinSysPreconKrylov
 
 # Vector Row Projection
-export LinSysVecRowProjStd, Kaczmarz, ART
+export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO
 ###########################################
 # Source File Inclusions
 ###########################################
