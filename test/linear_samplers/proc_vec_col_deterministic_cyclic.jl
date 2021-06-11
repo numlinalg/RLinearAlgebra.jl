@@ -22,9 +22,9 @@ Random.seed!(1010)
         flag = true
 
         for i = 11:20
-            v, nrml, res = RLinearAlgebra.sample(cyc, A, b, x, i)
+            v, c, res = RLinearAlgebra.sample(cyc, A, b, x, i)
             flag = flag & (v[i-10] == 1.0)
-            flag = flag & (nrml == sum(A[:, i-10].^2))
+            flag = flag & (c == A[:, i-10])
             flag = flag & (res ≈ dot(A[:,i-10], A * x - b))
         end
 
