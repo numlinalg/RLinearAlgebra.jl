@@ -14,8 +14,7 @@
 ##
 ############################################################################################
 
-# Dependencies: Random, Distributions
-# Additional dependnecies for testing: Test
+# Dependencies: Random, Distributions, LinearAlgebra
 
 #############################################
 # Test Sets
@@ -133,6 +132,8 @@ include("linear_samplers/vec_row_prop_to_norm_replace.jl")
 #############################################
 # Vector Column Sampler/Sketch/Selector
 #############################################
+# Non-adaptive Cyclic Methods
+include("linear_samplers/vec_col_deterministic_cyclic.jl")
 
 #############################################
 # Block Row Sampler/Sketch/Selector
