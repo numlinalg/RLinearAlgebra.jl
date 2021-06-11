@@ -158,6 +158,9 @@ include("linear_samplers/vec_row_prop_to_norm_replace.jl")
 # Non-adaptive Cyclic Methods
 include("linear_samplers/vec_col_deterministic_cyclic.jl")
 
+# Non-adaptive Sampling (with replacement)
+#Leventhal-Lewis (non-symmetric)
+
 #############################################
 # Block Row Sampler/Sketch/Selector
 #############################################
