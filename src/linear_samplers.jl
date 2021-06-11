@@ -110,7 +110,7 @@ A common interface for specifying different strategies for sampling, selecting o
 The value(s) returned by sample depend on the subtype of `LinSysSampler` being used.
     Specifically,
 - For `T<:LinSysVecRowSampler`, a vector in the row space of `A` and constant are returned
-- For `T<:LinSysVecColSampler`, a vector of `length(x)`, a vector in column space of `A`,
+- For `T<:LinSysVecColSampler`, a vector of `length(x)`, the matrix `A`,
     and a scalar-valued residual are returned.
 """
 function sample(

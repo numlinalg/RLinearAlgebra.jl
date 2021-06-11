@@ -29,10 +29,8 @@ function sample(
     v[col_ind] = 1.0
 
     # Normal equation residual
-    c = A[:,col_ind]
-    res = dot(c, A * x - b)
+    res = dot(A[:,col_ind], A * x - b)
 
-    return v, c, res
+    return v, A, res
 end
-
 #export LinSysVecColDetermCyclic
