@@ -55,6 +55,9 @@ export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
 # Vector Row Projection
 export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjFO
 
+# Vector Column Projection
+export LinSysVecColProjStd, CoordinateDescent, GaussSeidel
+
 ###########################################
 # Source File Inclusions
 ###########################################
