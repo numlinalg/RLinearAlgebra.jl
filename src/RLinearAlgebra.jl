@@ -59,6 +59,12 @@ export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjF
 export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
     LinSysVecColProjFO
 
+#*****************************************#
+# Linear Solver Log Exports
+#*****************************************#
+export LinSysSolverLog
+export LSLogOracle, LSLogFull
+
 ###########################################
 # Source File Inclusions
 ###########################################
@@ -66,6 +72,7 @@ export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
 include("tools.jl")
 include("linear_samplers.jl")
 include("linear_solver_routines.jl")
+include("linear_solver_logs.jl")
 
 
 end # module
