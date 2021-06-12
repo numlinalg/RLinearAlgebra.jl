@@ -5,6 +5,7 @@
 ##
 ## Contents
 ## - Abstract Types
+## - `check_stop_criterion` Docstring
 ## - Stopping Criteria
 ## - Export Statements
 ##
@@ -22,6 +23,11 @@
 Abstract supertype for specifying stopping criteria for randomized linear solver.
 """
 abstract type LinSysStopCriterion end
+
+#############################################
+# `check_stop_criterion` Docstring
+#############################################
+
 
 #############################################
 # Stopping Criteria

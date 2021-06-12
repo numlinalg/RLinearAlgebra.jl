@@ -9,6 +9,8 @@
 ## - Export Statements
 ##  + Linear Sampler
 ##  + Linear Solver Routine
+##  + Linear Solver Log
+##  + Linear Solver Stopping Criteria
 ## - Source File Inclusions
 ##
 ############################################################################################
