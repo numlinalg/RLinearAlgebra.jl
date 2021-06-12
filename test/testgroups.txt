@@ -16,3 +16,5 @@ linear_solver_routines/proc_vec_col_projection_fortho
 proc_linear_solver_logs
 linear_solver_logs/proc_solve_log_oracle
 linear_solver_logs/proc_solve_log_full
+proc_linear_solver_stops
+linear_solver_stops/proc_stop_max_iter

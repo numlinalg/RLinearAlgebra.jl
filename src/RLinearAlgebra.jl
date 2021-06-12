@@ -65,6 +65,13 @@ export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
 export LinSysSolverLog
 export LSLogOracle, LSLogFull
 
+#*****************************************#
+# Linear Solver Stopping Criteria Exports
+#*****************************************#
+export LinSysStopCriterion
+export LSStopMaxIterations
+
+
 ###########################################
 # Source File Inclusions
 ###########################################
@@ -73,6 +80,7 @@ include("tools.jl")
 include("linear_samplers.jl")
 include("linear_solver_routines.jl")
 include("linear_solver_logs.jl")
+include("linear_solver_stops.jl")
 
 
 end # module
