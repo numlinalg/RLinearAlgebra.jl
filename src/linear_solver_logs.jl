@@ -12,7 +12,7 @@
 ##
 ############################################################################################
 
-# Dependencies: Random, Distributions, LinearAlgebra
+# Dependencies: LinearAlgebra
 
 #############################################
 # Abstract Types
