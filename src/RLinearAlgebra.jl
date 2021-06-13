@@ -73,6 +73,11 @@ export LSLogOracle, LSLogFull
 export LinSysStopCriterion
 export LSStopMaxIterations
 
+#*****************************************#
+# Randomized Linear Solver Exports
+#*****************************************#
+export RLSSolver, rsolve, rsolve!
+
 
 ###########################################
 # Source File Inclusions
@@ -83,6 +88,7 @@ include("linear_samplers.jl")
 include("linear_solver_routines.jl")
 include("linear_solver_logs.jl")
 include("linear_solver_stops.jl")
+include("linear_rsolve.jl")
 
 
 end # module
