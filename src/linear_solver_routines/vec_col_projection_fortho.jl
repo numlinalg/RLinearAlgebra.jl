@@ -48,7 +48,7 @@ function rsubsolve!(
     q = samp[2]' * (samp[2] * samp[1])
     u = type.S * q
 
-    if dot(u,u) < 1e-26 * length(x)
+    if dot(u,u) < eps()^1.5 * length(x) #1.5 instead of 2 since normal system 
         return nothing
     end
 

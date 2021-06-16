@@ -52,7 +52,7 @@ function rsubsolve!(
     #Compute orthogonal component of q using S (projection matrix)
     u = type.S * samp[1]
 
-    if dot(u,u) < 1e-30 * length(x)
+    if dot(u,u) < eps()^2 * length(x)
         return nothing
     end
 

@@ -59,7 +59,7 @@ function rsubsolve!(
 
     # Check whether vector u is nearly zero
     nrmUsq = dot(u, u)
-    if nrmUsq < 1e-15 * length(x); return nothing; end
+    if nrmUsq < eps() * length(x); return nothing; end
 
     # Otherwise, update iterate
     x .= x - u * (type.α * samp[3] / nrmUsq )
