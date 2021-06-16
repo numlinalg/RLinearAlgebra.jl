@@ -39,12 +39,12 @@ LSLogFull(cr::Int64) = LSLogFull(cr, Float64[], norm, -1, false)
 # Common interface for update
 function log_update!(
     log::LSLogFull,
-    sampler::S where S<:LinSysSampler,
-    x::Vector{Float64},
-    samp::T where T<:Tuple,
+    sampler::LinSysSampler,
+    x::AbstractVector,
+    samp::Tuple,
     iter::Int64,
-    A,
-    b
+    A::AbstractArray,
+    b::AbstractVector
 )
     # Update iteration counter
     log.iterations = iter

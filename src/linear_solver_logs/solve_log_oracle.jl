@@ -10,7 +10,7 @@ A mutable structure that stores information about a randomized linear solver's b
     The goal of this log is usually for research, development, or testing.
 
 # Fields
-- `solution::Vector{Float64}`, a solution to the given linear system.
+- `solution::AbstractVector`, a solution to the given linear system.
 - `collection_rate::Int64`, the frequency with which to record information to append to the
     remaining fields, starting with the initialization (i.e., iteration 0).
 - `error_hist::Vector{Float64}`, retains a vector of numbers corresponding to the error
@@ -33,7 +33,7 @@ A mutable structure that stores information about a randomized linear solver's b
     same parameters as for `LSLogOracle(x_star)` except `collection_rate = cr`.
 """
 mutable struct LSLogOracle <: LinSysSolverLog
-    solution::Vector{Float64}
+    solution::AbstractVector
     collection_rate::Int64
     error_hist::Vector{Float64}
     error_norm::Function
@@ -50,12 +50,12 @@ LSLogOracle(x_star::Vector{Float64}, cr::Int64) = LSLogOracle(x_star, cr, Float6
 # Common interface for update
 function log_update!(
     log::LSLogOracle,
-    sampler::S where S<:LinSysSampler,
-    x::Vector{Float64},
-    samp::T where T<:Tuple,
+    sampler::LinSysSampler,
+    x::AbstractVector,
+    samp::Tuple,
     iter::Int64,
-    A,
-    b
+    A::AbstractArray,
+    b::AbstractVector
 )
     # Update iteration counter
     log.iterations = iter
