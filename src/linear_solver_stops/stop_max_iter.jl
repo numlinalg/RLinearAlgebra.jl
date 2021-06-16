@@ -15,7 +15,7 @@ end
 
 # Common interface for stopping criteria
 function check_stop_criterion(
-    log::L where L <: LinSysSolverLog,
+    log::LinSysSolverLog,
     stop::LSStopMaxIterations
 )
     return log.iterations == stop.max_iter ? true : false
