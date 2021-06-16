@@ -35,10 +35,10 @@ abstract type LinSysSolverLog end
 #############################################
 """
     log_update!(
-        log::L where L<:LinSysSolverLog,
-        sampler::S where S<:LinSysSampler,
-        x::Vector{Float64},
-        samp::T where T<:Tuple,
+        log::LinSysSolverLog,
+        sampler::LinSysSampler,
+        x::AbstractVector,
+        samp:s:Tuple,
         iter::Int64,
         A,
         b)
@@ -51,9 +51,9 @@ A common interface for specifying different strategies for updating the `log` wi
 """
 function log_update!(
     log::Nothing,
-    sampler::S where S<:LinSysSampler,
-    x::Vector{Float64},
-    samp::T where T<:Tuple,
+    sampler::LinSysSampler,
+    x::AbstractVector,
+    samp::Tuple,
     iter::Int64,
     A,
     b
