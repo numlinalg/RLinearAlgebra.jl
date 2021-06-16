@@ -62,7 +62,7 @@ RLSSolver(iter::Int64) = RLSSolver(
 # `rsolve` functions
 #############################################
 """
-    rsolve([solver::O where O<:RLSSolver,] A, b)
+    rsolve([solver::RLSSolver,] A, b)
 
 Deploys an iterative randomized solver for the linear system whose coefficient matrix is
     encapsulated in `A` and whose constant vector is encapsulated in `b`. If the `solver`
@@ -80,7 +80,7 @@ function rsolve(A, b)
     return x
 end
 
-function rsolve(solver::O where O<:RLSSolver, A, b)
+function rsolve(solver::RLSSolver, A, b)
     x = zeros(size(A, 2))
     rsolve!(solver, A, b, x)
 
@@ -88,19 +88,19 @@ function rsolve(solver::O where O<:RLSSolver, A, b)
 end
 
 """
-    rsolve!([solver::O where O<:RLSSolver,] A, b, x::Vector{Float64})
+    rsolve!([solver::RLSSolver,] A, b, x::AbstractVector)
 
 Identical to `rsolve` except an initial iterate is supplied by the argument `x`. The
     function overwrites the solution into the vector `x`.
 """
-function rsolve!(A, b, x::Vector{Float64})
+function rsolve!(A, b, x::AbstractVector)
     solver = RLSSolver(10 * length(b))
     rsolve!(solver, A, b, x)
 
     return nothing
 end
 
-function rsolve!(solver::O where O<:RLSSolver, A, b, x::Vector{Float64})
+function rsolve!(solver::RLSSolver, A, b, x::AbstractVector)
 
     iter = 0
     log_update!(solver.log, solver.sampler, x, (), iter, A, b)
@@ -112,7 +112,6 @@ function rsolve!(solver::O where O<:RLSSolver, A, b, x::Vector{Float64})
         log_update!(solver.log, solver.sampler, x, samp, iter, A, b)
     end
 
-    solver.log.converged = true
     solver.x = x
 
     return nothing
