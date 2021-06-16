@@ -37,8 +37,8 @@ LinSysVecRowProjPO() = LinSysVecRowProjPO(1.0, 5, nothing)
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
     type::LinSysVecRowProjPO,
-    x::Vector{Float64},
-    samp::Tuple{U,V} where {U<:Vector,V<:Real},
+    x::AbstractVector,
+    samp::Tuple{U,V} where {U<:AbstractVector,V<:Real},
     iter::Int64,
 )
     # samp[1] is vector in the row space of the coefficient matrix

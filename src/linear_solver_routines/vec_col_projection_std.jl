@@ -40,8 +40,8 @@ LinSysVecColProjStd() = LinSysVecColProjStd(1.0)
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
     type::LinSysVecColProjStd,
-    x::Vector{Float64},
-    samp::Tuple{U,V,W} where {U<:Vector,V<:Matrix,W<:Real},
+    x::AbstractVector,
+    samp::Tuple{U,V,W} where {U<:AbstractVector,V<:AbstractArray,W<:Real},
     iter::Int64,
 )
     # samp[1] is the search direction
