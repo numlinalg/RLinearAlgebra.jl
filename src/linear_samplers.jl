@@ -97,9 +97,9 @@ LinSysBlkColSelect = LinSysBlkColSampler
 #############################################
 """
     sample(type::T where T<:LinSysSampler,
-        A::Matrix{Float64},
-        b::Vector{Float64},
-        x::Vector{Float64},
+        A::AbstractArray,
+        b::AbstractVector,
+        x::AbstractVector,
         iter::Int64)
 
 A common interface for specifying different strategies for sampling, selecting or sketching
@@ -115,9 +115,9 @@ The value(s) returned by sample depend on the subtype of `LinSysSampler` being u
 """
 function sample(
     type::Nothing,
-    A::Matrix{Float64},
-    b::Vector{Float64},
-    x::Vector{Float64},
+    A::AbstractArray,
+    b::AbstractVector,
+    x::AbstractVector,
     iter::Int64
 )
     return nothing
