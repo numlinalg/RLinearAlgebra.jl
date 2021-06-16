@@ -1,6 +1,9 @@
-using Test, Krylov, LinearAlgebra, Random
-using RLinearAlgebra
+# This file is part of RLinearAlgebra.jl
 
-include("test_blendenpik.jl")
-include("test_rpm.jl")
-include("test_trace.jl")
+using Test
+
+@testset verbose=true "RLinearAlbera.jl" begin
+    for file in readlines(joinpath(@__DIR__, "testgroups.txt"))
+        include(file * ".jl")
+    end
+end
