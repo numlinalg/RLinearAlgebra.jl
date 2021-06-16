@@ -26,9 +26,9 @@ LinSysVecRowRandCyclic() = LinSysVecRowRandCyclic(nothing)
 # Common sample interface for linear systems
 function sample(
     type::LinSysVecRowRandCyclic,
-    A::Matrix{Float64},
-    b::Vector{Float64},
-    x::Vector{Float64},
+    A::AbstractArray,
+    b::AbstractVector,
+    x::AbstractVector,
     iter::Int64
 )
 

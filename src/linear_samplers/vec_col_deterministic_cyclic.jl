@@ -16,9 +16,9 @@ struct LinSysVecColDetermCyclic <: LinSysVecColSelect end
 # Common sample interface for linear systems
 function sample(
     type::LinSysVecColDetermCyclic,
-    A::Matrix{Float64},
-    b::Vector{Float64},
-    x::Vector{Float64},
+    A::AbstractArray,
+    b::AbstractVector,
+    x::AbstractVector,
     iter::Int64
 )
 

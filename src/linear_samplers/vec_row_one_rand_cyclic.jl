@@ -26,9 +26,9 @@ LinSysVecRowOneRandCyclic() = LinSysVecRowOneRandCyclic(nothing)
 # Common sample interface for linear systems
 function sample(
     type::LinSysVecRowOneRandCyclic,
-    A::Matrix{Float64},
-    b::Vector{Float64},
-    x::Vector{Float64},
+    A::AbstractArray,
+    b::AbstractVector,
+    x::AbstractVector,
     iter::Int64
 )
     if iter == 1

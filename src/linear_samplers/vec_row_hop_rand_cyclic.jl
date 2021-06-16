@@ -32,9 +32,9 @@ LinSysVecRowHopRandCyclic(hop::Int64) = LinSysVecRowHopRandCyclic(nothing, hop)
 # Common sample interface for linear systems
 function sample(
     type::LinSysVecRowHopRandCyclic,
-    A::Matrix{Float64},
-    b::Vector{Float64},
-    x::Vector{Float64},
+    A::AbstractArray,
+    b::AbstractVector,
+    x::AbstractVector,
     iter::Int64
 )
 
