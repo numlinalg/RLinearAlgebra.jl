@@ -68,9 +68,9 @@ abstract type LinSysPreconKrylov <: LinSysSolveRoutine end
 #############################################
 """
     rsubsolve!(
-        type::T where T<:LinSysSolveRoutine,
-        x::Vector{Float64},
-        samp::U where U<:Tuple,
+        type::LinSysSolveRoutine,
+        x::AbstractVector,
+        samp::Tuple,
         iter::Int64)
 
 A common interface for specifying different strategies for solving a subproblem generated
@@ -97,8 +97,8 @@ The function `rsubsolve!` updates the quantity `x` and any fields of `type` that
 """
 function rsubsolve!(
     type::Nothing,
-    x::Vector{Float64},
-    samp::U where U<:Tuple,
+    x::AbstractVector,
+    samp::Tuple,
     iter::Int64,
 )
     return nothing
