@@ -52,14 +52,14 @@ abstract type LinSysBlkRowProjection <: LinSysSolveRoutine end
 """
     LinSysBlkColProjection <: LinSysSolveRoutine
 
-Abstract supertype for block row action projection methods.
+Abstract supertype for block column action projection methods.
 """
 abstract type LinSysBlkColProjection <: LinSysSolveRoutine end
 
 """
     LinSysPreconKrylov <: LinSysSolveRoutine
 
-Abstract supertype for block column action projection methods.
+Abstract supertype for preconditioned Krylov solver.
 """
 abstract type LinSysPreconKrylov <: LinSysSolveRoutine end
 
