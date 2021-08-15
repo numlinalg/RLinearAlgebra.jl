@@ -3,17 +3,22 @@ using RLinearAlgebra
 
 makedocs(
     sitename = "RLinearAlgebra",
-    format = Documenter.HTML(),
+    format = Documenter.HTML(
+	collapselevel=1,
+    ),
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
-        hide("API Reference" => "api/contents.md", [
+		"Manual" => [
+			"Consistent Linear Systems" => "man/cls_overview.md",
+		],
+        "API Reference" => [
             "Randomized Linear Solvers" => "api/linear_rsolve.md",
             "Linear Samplers" => "api/linear_samplers.md",
             "Linear Subsolvers" => "api/linear_solver_routines.md",
             "Linear Solver Logs" => "api/linear_solver_logs.md",
             "Linear Solver Stop Criteria" => "api/linear_solver_stops.md",
-        ]),
+        ],
     ]
 )
 
