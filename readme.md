@@ -14,7 +14,7 @@ To install it, you can write in the REPL:
 ] add https://github.com/numlinalg/RLinearAlgebra.jl.git
 ```
 
-It is also to clone the repository into a local directory. In that case refer to Julia Pkg instructions:
+It is also possible to clone the repository into a local directory. In that case refer to Julia Pkg instructions:
 
 [Using someone else's project](https://pkgdocs.julialang.org/v1/environments/#Using-someone-else's-project)
 
