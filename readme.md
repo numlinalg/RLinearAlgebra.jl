@@ -5,5 +5,18 @@
 
 RLinearAlgebra is a Julia package that implements standard Randomized Linear Algebra algorithms and provides means for performance comparison.
 
+## Installation
+This package is not yet registered in Julia's package official registry.
+
+To install it, you can write in the REPL:
+
+```julia
+] add https://github.com/numlinalg/RLinearAlgebra.jl.git
+```
+
+It is also to clone the repository into a local directory. In that case refer to Julia Pkg instructions:
+
+[Using someone else's project](https://pkgdocs.julialang.org/v1/environments/#Using-someone-else's-project)
+
 ## Acknowledgements
 This material is based upon work supported by the U.S. Department of Energy, Office of Science, under contract number DE-AC02-06CH11357.
