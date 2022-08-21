@@ -4,14 +4,14 @@ using RLinearAlgebra
 makedocs(
     sitename = "RLinearAlgebra",
     format = Documenter.HTML(
-	collapselevel=1,
+    collapselevel=1,
     ),
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
-		"Manual" => [
-			"Consistent Linear Systems" => "man/cls_overview.md",
-		],
+        "Manual" => [
+            "Consistent Linear Systems" => "man/cls_overview.md",
+        ],
         "API Reference" => [
             "Randomized Linear Solvers" => "api/linear_rsolve.md",
             "Linear Samplers" => "api/linear_samplers.md",
