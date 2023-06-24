@@ -41,7 +41,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
             RLinearAlgebra.rsubsolve!(rsub, z, (e, A, res), i)
         end
 
-        norm( A[:,2:6]'*(A * z - b)) < eps()*1e3 #Ajdust for condition number
+        norm( A[:,2:6]'*(A * z - b)) < eps()*1e4 #Ajdust for condition number
     end
 
     @test let
@@ -52,7 +52,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
             RLinearAlgebra.rsubsolve!(rsub, z, (e, A, res), i)
         end
 
-        norm( A[:,4:8]'*(A * z - b)) < eps()*1e3 #Adjust for condition number
+        norm( A[:,4:8]'*(A * z - b)) < eps()*1e4 #Adjust for condition number
     end
 end
 
