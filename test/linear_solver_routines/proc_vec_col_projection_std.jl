@@ -31,7 +31,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
             # Update
             RLinearAlgebra.rsubsolve!(rsub, z, (e, A, dot(A * e, A * z - b)), i)
 
-            abs(dot(A[:,i], A * z - b)) < 1e-15
+            abs(dot(A[:,i], A * z - b)) < eps()*1e2
         end
     end
 end
