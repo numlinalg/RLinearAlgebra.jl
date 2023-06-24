@@ -32,6 +32,8 @@ LinSysVecRowPropToNormSampler
 LinSysVecRowRandCyclic
 
 LinSysVecRowUnidSampler
+
+LinSysVecRowUnifSampler
 ```
 
 ## Vector Column Samplers
