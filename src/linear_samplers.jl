@@ -138,8 +138,8 @@ include("linear_samplers/vec_row_prop_to_norm_replace.jl")
 
 # Non-adaptive Sketching
 include("linear_samplers/vec_row_uniform.jl")
+include("linear_samplers/vec_row_gaussian.jl")
 #include("linear_samplers/vec_row_uniform_sym.jl")
-#include("linear_samplers/vec_row_gauss.jl")
 #include("linear_samplers/vec_row_uniform_sparse.jl")
 #include("linear_samplers/vec_row_uniform_sym_sparse.jl")
 #include("linear_samplers/vec_row_gauss_sparse.jl")
