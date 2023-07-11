@@ -51,7 +51,7 @@ Random.seed!(1010)
             x = rand(5)
 
             samp = LinSysVecRowSparseUnifSampler() #Default 0.2 sparsity
-            α, β = RLinearAlgebra.sampl(samp, A, b, x, 1)
+            α, β = RLinearAlgebra.sample(samp, A, b, x, 1)
 
             true
         end
