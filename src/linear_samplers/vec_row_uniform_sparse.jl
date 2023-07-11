@@ -22,15 +22,16 @@ between 0 and 1 (not inclusive).
 """
 mutable struct LinSysVecRowSparseUnifSampler <: LinSysVecRowSelect
     sparsity::Float64
-    LinSysVecRowSparseUnifSampler(sparsity) = let 
+    function LinSysVecRowSparseUnifSampler(sparsity::Float64)
         if sparsity <= 0.0 || sparsity >= 1.0
             DomainError(sparsity, "Must be strictly between 0.0 and 1.0") |>
                 throw
         else
-            LinSysVecRowSparseUnifSampler(sparsity)
+            return new(sparsity)
         end
     end
 end
+
 LinSysVecRowSparseUnifSampler() = LinSysVecRowSparseUnifSampler(0.2)
 
 function sample(
