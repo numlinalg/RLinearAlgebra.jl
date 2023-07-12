@@ -142,7 +142,7 @@ include("linear_samplers/vec_row_gaussian.jl")
 #include("linear_samplers/vec_row_uniform_sym.jl")
 #include("linear_samplers/vec_row_uniform_sparse.jl")
 #include("linear_samplers/vec_row_uniform_sym_sparse.jl")
-#include("linear_samplers/vec_row_gauss_sparse.jl")
+include("linear_samplers/vec_row_gaussian_sparse.jl")
 
 # Adaptive Deterministic Selection
 #include("linear_samplers/vec_row_max_residual.jl")
