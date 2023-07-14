@@ -52,6 +52,8 @@ LinSysVecRowMaxDistance
 
 ```@docs
 LinSysVecColDetermCyclic
+
+LinSysVecColOneRandCyclic
 ```
 
 ## Sample Function

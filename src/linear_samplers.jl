@@ -157,7 +157,7 @@ include("linear_samplers/vec_row_cyclic_residual.jl")
 #############################################
 # Non-adaptive Cyclic Methods
 include("linear_samplers/vec_col_deterministic_cyclic.jl")
-
+include("linear_samplers/vec_col_one_rand_cyclic.jl")
 # Non-adaptive Sampling (with replacement)
 #Leventhal-Lewis (non-symmetric)
 
