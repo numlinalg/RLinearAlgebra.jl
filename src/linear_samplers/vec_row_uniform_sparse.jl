@@ -43,7 +43,7 @@ function sample(
 )
 
     # Determine indices of equations from the system to use
-    numrows = floor(Int64, type.sparsity * size(A,1))
+    numrows = max(floor(Int64, type.sparsity * size(A,1)), 1)
     indices = randperm(size(A,1))[1:numrows]
 
     # Generate random coefficients  
