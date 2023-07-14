@@ -44,7 +44,7 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
     LinSysVecRowUnidSampler, LinSysVecRowUnifSampler, LinSysVecRowGaussSampler
 
 # Vector Column Samplers
-export LinSysVecColDetermCyclic
+export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 
 #*****************************************#
 # Linear Solver Routine Exports

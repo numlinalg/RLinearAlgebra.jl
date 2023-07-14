@@ -42,6 +42,8 @@ LinSysVecRowGaussSampler
 
 ```@docs
 LinSysVecColDetermCyclic
+
+LinSysVecColOneRandCyclic
 ```
 
 ## Sample Function
