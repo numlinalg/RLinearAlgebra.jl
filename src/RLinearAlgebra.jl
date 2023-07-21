@@ -42,7 +42,7 @@ export LinSysBlkColSampler, LinSysBlkColSketch, LinSysBlkColSelect
 export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandCyclic,
     LinSysVecRowPropToNormSampler, LinSysVecRowSVSampler, LinSysVecRowRandCyclic,
     LinSysVecRowUnidSampler, LinSysVecRowUnifSampler, LinSysVecRowGaussSampler,
-    LinSysVecRowSparseGaussSampler
+    LinSysVecRowSparseUnifSampler, LinSysVecRowSparseGaussSampler
 
 # Vector Column Samplers
 export LinSysVecColDetermCyclic
