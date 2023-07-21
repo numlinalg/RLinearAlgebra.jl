@@ -35,6 +35,8 @@ LinSysVecRowUnidSampler
 
 LinSysVecRowUnifSampler
 
+LinSysVecRowSparseUnifSampler
+
 LinSysVecRowGaussSampler
 ```
 
