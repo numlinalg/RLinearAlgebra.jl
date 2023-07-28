@@ -35,7 +35,11 @@ LinSysVecRowUnidSampler
 
 LinSysVecRowUnifSampler
 
+LinSysVecRowSparseUnifSampler
+
 LinSysVecRowGaussSampler
+
+LinSysVecRowSparseGaussSampler
 
 LinSysVecRowMaxResidual
 ```
