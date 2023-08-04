@@ -145,7 +145,7 @@ include("linear_samplers/vec_row_gaussian_sparse.jl")
 #include("linear_samplers/vec_row_uniform_sym.jl")
 
 # Adaptive Deterministic Selection
-#include("linear_samplers/vec_row_max_residual.jl")
+include("linear_samplers/vec_row_max_residual.jl")
 #include("linear_samplers/vec_row_max_distance.jl")
 
 # Adaptive Cyclic Methods

@@ -40,6 +40,8 @@ LinSysVecRowSparseUnifSampler
 LinSysVecRowGaussSampler
 
 LinSysVecRowSparseGaussSampler
+
+LinSysVecRowMaxResidual
 ```
 
 ## Vector Column Samplers
