@@ -1,4 +1,4 @@
-# This file is pat of RLinearAlgebra.jl
+# This file is part of RLinearAlgebra.jl
 # 1. Specifies type
 # 2. Implements sample function
 # 3. Exports Type
@@ -13,15 +13,15 @@ order over the equations of a linear system. Once this ordering is specified, th
 is kept fixed.
 
 # Fields
-- `order::Union{Vector{Int64},Nothing}`
+- `order::Vector{Int64}`
 
 Calling `LinSysVecColOneRandCyclic()` defaults to setting `order` to `nothing`. The `sample`
 function will handle the re-initialization of the fields once the system is provided.
 """
 mutable struct LinSysVecColOneRandCyclic <: LinSysVecColSelect
-    order::Union{Vector{Int64},Nothing}
+    order::Vector{Int64}
 end
-LinSysVecColOneRandCyclic() = LinSysVecColOneRandCyclic(nothing)
+LinSysVecColOneRandCyclic() = LinSysVecColOneRandCyclic(Int64[])
 
 # Common sample interface for linear systems
 function sample(
