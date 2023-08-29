@@ -35,8 +35,16 @@ function sample(
         type.order = randperm(length(x))
     end
 
-    eqn_ind = type.order[mod(iter, 1:length(x))]
-    return A[:, eqn_ind], x[eqn_ind]
+    col_idx = type.order[mod(iter, 1:length(x))]
+
+    # Search direction
+    v = zeros(length(x))
+    v[col_idx] = 1.0
+
+    # Normal equation residual
+    res = dot(A[:,col_ind], A * x - b)
+
+    return v, A, res
 end
 
 #export LinSysVecColOneRandCyclic

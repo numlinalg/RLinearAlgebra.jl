@@ -19,19 +19,15 @@ Random.seed!(1010)
 
         cyc = LinSysVecColOneRandCyclic()
 
-        α, β = RLinearAlgebra.sample(cyc, A, b, x, 1)
+        v, M, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
 
         order = copy(cyc.order)
 
-        flag = true
-        for j = 2:100
-            α, β = RLinearAlgebra.sample(cyc, A, b, x, j)
-
-            #Ordering should not change
-            flag = flag & (cyc.order == order)
+        for j = 2:lenght(cyc.order)
+            v, M, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
+            @assert v[order[j]] == 1.0
         end
 
-        flag
     end
 
 end
