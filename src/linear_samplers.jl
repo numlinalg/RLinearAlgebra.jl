@@ -150,7 +150,7 @@ include("linear_samplers/vec_row_max_distance.jl")
 
 # Adaptive Cyclic Methods
 include("linear_samplers/vec_row_cyclic_residual.jl")
-#include("linear_samplers/vec_row_distance_cycle.jl")
+include("linear_samplers/vec_row_cyclic_distance.jl")
 
 #############################################
 # Vector Column Sampler/Sketch/Selector
