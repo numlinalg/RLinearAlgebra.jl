@@ -20,7 +20,9 @@ function sample(
     x::AbstractVector,
     iter::Int64
 )
-    eqn_indx = argmax(abs.(A * x - b) ./ sum(A.^2, dims=2)[:])
+
+    # Largest Square Distance 
+    eqn_indx = argmax(abs2.(A * x - b) ./ sum(A.^2, dims=2)[:])
 
     return A[eqn_indx,:], b[eqn_indx]
 end
