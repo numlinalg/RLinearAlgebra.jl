@@ -54,6 +54,8 @@ LinSysVecRowDistCyclic
 
 ```@docs
 LinSysVecColDetermCyclic
+
+LinSysVecColOneRandCyclic
 ```
 
 ## Sample Function
