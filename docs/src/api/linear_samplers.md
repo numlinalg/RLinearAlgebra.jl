@@ -46,6 +46,8 @@ LinSysVecRowMaxResidual
 LinSysVecRowResidCyclic
 
 LinSysVecRowMaxDistance
+
+LinSysVecRowDistCyclic
 ```
 
 ## Vector Column Samplers
