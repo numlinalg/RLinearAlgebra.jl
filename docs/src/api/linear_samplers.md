@@ -43,6 +43,8 @@ LinSysVecRowSparseGaussSampler
 
 LinSysVecRowMaxResidual
 
+LinSysVecRowResidCyclic
+
 LinSysVecRowMaxDistance
 ```
 
