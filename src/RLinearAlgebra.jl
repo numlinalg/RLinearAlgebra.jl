@@ -67,7 +67,7 @@ export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
 # Linear Solver Log Exports
 #*****************************************#
 export LinSysSolverLog
-export LSLogOracle, LSLogFull
+export LSLogOracle, LSLogFull, LSLogFullMA
 
 #*****************************************#
 # Linear Solver Stopping Criteria Exports
