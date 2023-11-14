@@ -28,8 +28,8 @@ Random.seed!(1010)
 
         RLinearAlgebra.log_update!(log, sampler, z, (A[1,:],b[1]), 0, A, b)
 
-        @test length(log.rho_hist) == 1
-        @test log.rho_hist[1] == norm(dot(A[1,:], z) - b[1])^2
+        @test length(log.resid_hist) == 1
+        @test log.resid_hist[1] == norm(dot(A[1,:], z) - b[1])^2
         @test log.iota_hist[1] == norm(dot(A[1,:], z) - b[1])^4
         @test log.iterations == 0
         @test log.converged == false
@@ -55,8 +55,8 @@ Random.seed!(1010)
         #compute sampled residuals
         obs_res = [abs(dot(A[1,:],x + i*(z-x)) - b[1])^2 for i = 1:10]
         obs_res2 = [abs(dot(A[1,:],x + i*(z-x)) - b[1])^4 for i = 1:10]
-        @test length(log.rho_hist) == 10
-        @test norm(log.rho_hist - vcat(obs_res[1:2], [(obs_res[i] + obs_res[i-1])/2 for i = 3:10])) < 1e-15
+        @test length(log.resid_hist) == 10
+        @test norm(log.resid_hist - vcat(obs_res[1:2], [(obs_res[i] + obs_res[i-1])/2 for i = 3:10])) < 1e-15
         @test norm(log.iota_hist - vcat(obs_res2[1:2], [(obs_res2[i] + obs_res2[i-1])/2 for i = 3:10])) < 1e-15
         @test log.iterations == 10
         @test log.converged == false
