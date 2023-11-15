@@ -11,22 +11,26 @@ using Test, RLinearAlgebra
 
     # Verify check_stop_criterion functionality
     log = LSLogFullMA()
-    stop = LSStopMaxIterations(10, 1e-10, 1.1, .9, .01, .01)
+    stop = LSStopMA(2, 1e-10, 1.1, .9, .01, .01)
+    log.resid_hist = [1, 1, 1]
+    log.iota_hist = [1, 1, 1]
+    log.max_dimension = 100
 
     log.iterations = 0
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false
 
-    log.iterations = 10
+    log.iterations = 2 
     @test RLinearAlgebra.check_stop_criterion(log, stop) == true
 
-    log.iterations = 11
+    log.iterations = 3
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false
 
     #Verify threshold stopping
     log.resid_hist = [1, 1e-11, 1e-11]
-    log.iota_hist = [1, 1e-11, 1e-22]
+    log.iota_hist = [1, 1e-11, 1e-32]
     log.sigma2 = 1
-    log.MAInfo.lambda = 15
+    log.ma_info.lambda = 15
+    stop = LSStopMA(4, 1e-10, 1.1, .9, .01, .01)
 
     log.iterations = 1
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false

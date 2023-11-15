@@ -33,6 +33,8 @@ abstract type LinSysStopCriterion end
 # Stopping Criteria
 #############################################
 include("linear_solver_stops/stop_max_iter.jl")
+include("linear_solver_stops/stop_ma_thres.jl")
+include("linear_solver_stops/stop_thres.jl")
 
 #############################################
 # Export Statements

@@ -11,16 +11,17 @@ using Test, RLinearAlgebra
 
     # Verify check_stop_criterion functionality
     log = LSLogFull()
-    stop = LSStopThreshold(10, 1e-10)
+    stop = LSStopThreshold(2, 1e-10)
+    log.resid_hist = [1, 1, 1]
     
     #Test max iteration stopping
     log.iterations = 0
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false
 
-    log.iterations = 10
+    log.iterations = 2
     @test RLinearAlgebra.check_stop_criterion(log, stop) == true
 
-    log.iterations = 11
+    log.iterations = 3
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false
 
     #Verify threshold stopping

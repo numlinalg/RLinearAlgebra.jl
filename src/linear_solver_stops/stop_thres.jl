@@ -18,8 +18,9 @@ end
 # Common interface for stopping criteria
 function check_stop_criterion(
     log::LinSysSolverLog,
-    stop::LSStopMaxIterations
+    stop::LSStopThreshold
 )
     its = log.iterations
-    return log.resid_hist[its] < stop.thres || its == stop.max_iter ? true : false
+    thresholdCheck = its > 0 && log.resid_hist[its] < stop.thres ? true : false 
+    return thresholdCheck || its == stop.max_iter ? true : false
 end

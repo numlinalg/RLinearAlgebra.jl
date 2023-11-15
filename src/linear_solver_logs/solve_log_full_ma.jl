@@ -16,7 +16,8 @@ A mutable structure that stores information about a randomized linear solver's b
 - `ma_info::MAInfo`, structure that holds information relevant only to moving average, 
    like the two choices of moving average widths (lambda1 and lambda2), the current moving average
    width (lambda), a flag to indicate which moving average regime, between lambda1 and lambda2, is 
-   being used, a 
+   being used, a vector containing the values to be averaged (res_window), and an indicator of where 
+   the next value should be placed (idx).
 - `resid_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy, 
    typically the norm of residual or gradient of normal equations.
 - `iota_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy, 
@@ -28,19 +29,22 @@ A mutable structure that stores information about a randomized linear solver's b
 - `iterations::Int64`, the number of iterations of the solver.
 - `converged::Bool`, a flag to indicate whether the system has converged by some measure.
 - `sampler::DataType`, a data type that is needed for computing constants used in the uncertainty
-  quantification and stopping steps.
+  quantification and stopping steps. This is updated with each `log_update!` call. 
 - `max_dimension::Int64`, a value that stores the max between the row and column dimension needed for
   computation of stopping criterion and uncertainty sets.
 - `sigma2::Union{Float64, Nothing}`, a value that stores the sigma^2 parameter of a sub-Exponential
   distribution used for determing stopping criterion and uncertainty sets.
 - `omega::Union{Float64, Nothing}`, a value that stores the omega parameter of a sub-Exponential
   distribution used for determing stopping criterion and uncertainty sets.
-
+- `eta::Float641, a parameter that allows the adjustment of the uncertainty quantification if the 
+  size of the default covariance is too wide for the particular problem.
 # Constructors
-- Calling `LSLogFullMA()` sets `collection_rate = 1`, `resid_hist = Float64[]`,
-    `resid_norm = norm` (Euclidean norm), `iterations = -1`, and `converged = false`.
-- Calling `LSLogFull(cr::Int64)` is the same as calling `LSLogFull()` except
-    `collection_rate = cr`.
+- Calling `LSLogFullMA()` sets `collection_rate = 1`,  `lambda1 = 1`,
+    `lambda2 = 30`, `resid_hist = Float64[]`, `iota_hist = Float64[]`, `width_hist = Int64[]`, 
+    `resid_norm = norm` (Euclidean norm), `iterations = -1`, `converged = false`, 
+    `sampler = LinSysVecRowDetermCyclic`, `max_dimension = 0`, `sigma2 = nothing`, `omega = nothing`,
+    and `eta = 1`. The user can specify their own values of lambda1, lambda2, sigma2, omega, and eta using 
+    key word arguments as inputs into the constructor.
 """
 mutable struct MAInfo
     lambda1::Int64
@@ -54,8 +58,8 @@ end
 mutable struct LSLogFullMA <: LinSysSolverLog
     collection_rate::Int64
     ma_info::MAInfo
-    iota_hist::Vector{Float64}
     resid_hist::Vector{Float64}
+    iota_hist::Vector{Float64}
     width_hist::Vector{Int64}
     resid_norm::Function
     iterations::Int64
@@ -64,6 +68,7 @@ mutable struct LSLogFullMA <: LinSysSolverLog
     max_dimension::Int64
     sigma2::Union{Float64, Nothing}
     omega::Union{Float64, Nothing}
+    eta::Float64
 end
 
 LSLogFullMA() = LSLogFullMA(
@@ -75,13 +80,14 @@ LSLogFullMA() = LSLogFullMA(
                           norm, 
                           -1, 
                           false,
-                          LinSysVecColDetermCyclic,
+                          LinSysVecRowDetermCyclic,
                           0,
                           nothing,
-                          nothing
+                          nothing,
+                          1
                          )
 
-LSLogFullMA(;lambda1 = 1, lambda2 = 30, sigma2 = nothing, omega = nothing) = LSLogFullMA(
+LSLogFullMA(;lambda1 = 1, lambda2 = 30, sigma2 = nothing, omega = nothing, eta = 1) = LSLogFullMA(
                           1,
                           MAInfo(1, lambda2, 1, false, 1, zeros(lambda2)),
                           Float64[], 
@@ -93,7 +99,8 @@ LSLogFullMA(;lambda1 = 1, lambda2 = 30, sigma2 = nothing, omega = nothing) = LSL
                           LinSysVecColDetermCyclic,
                           0,
                           sigma2,
-                          omega
+                          omega,
+                          eta 
                          )
 
 #Function to update the moving average
@@ -106,7 +113,7 @@ function log_update!(
     A::AbstractArray,
     b::AbstractVector
 )
-    log.max_dimension = max(size(A))
+    log.max_dimension = maximum(size(A))
     ma_info = log.ma_info
     log.iterations = iter
     log.sampler = typeof(sampler)  
@@ -184,3 +191,46 @@ function Update_MAEstimators!(log, ma_info, res, lambda_base, iter)
     end
 
 end
+
+#Function that will return rho and its uncertainty from a LSLogFullMA type 
+"""
+    get_uncertainty(hist::LSLogFullMA; alpha = .95)
+    A function that takes a LSLogFullMA type and a confidence level, alpha, and returns credible intervals for for every rho in the log, specifically it returns a tuple with (rho, Upper bound, Lower bound).
+"""
+function get_uncertainty(hist::LSLogFullMA; alpha = .95)
+    lambda = hist.ma_info.lambda
+    l = length(hist.iota_hist)
+    upper = zeros(l)
+    lower = zeros(l)
+    # If the constants for the sub-Exponential distribution are not defined then define them
+    if typeof(hist.sigma2) <: Nothing
+        get_SE_constants!(hist, hist.sampler)
+    end
+    
+    for i in 1:l
+        width = hist.width_hist[i]
+        iota = hist.iota_hist[i]
+        rho = hist.resid_hist[i]
+        #Define the variance term for the Gaussian part
+        cG = hist.sigma2 * (1 + log(width)) * iota / (width * hist.eta)
+        #If there is an omega in the sub-Exponential distribution then skip that calculation 
+        if typeof(hist.omega) <: Nothing
+            # Compute the threshold bound in the case where there is no omega
+            diffG = sqrt(cG * 2 * log(2/(1-alpha)))
+            upper[i] = rho + diffG
+            lower[i] = rho - diffG
+        else
+            #compute error bound when there is an omega
+            diffG = sqrt(cG * 2 * log(2/(1-alpha)))
+            diffO = sqrt(iota) * 2 * log(2/(1-alpha)) * hist.omega / (hist.eta * width)
+            diffM = min(diffG, diffO)
+            upper[i] = rho + diffG
+            lower[i] = rho - diffG
+        end
+        
+    end
+
+    return (hist.resid_hist, upper, lower)  
+
+end
+
