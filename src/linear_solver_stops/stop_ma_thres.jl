@@ -65,7 +65,8 @@ function iota_threshold(hist::LSLogFullMA, stop::LSStopMA)
     #If there is an omega in the sub-Exponential distribution then skip that calculation 
     if typeof(hist.omega) <: Nothing
         # Compute the threshold bound in the case where there is no omega
-        c = min((1 - delta1)^2 * threshold^2 / (2 * log(1/chi1)), (delta2 - 1)^2 * threshold^2 / (2 * log(1/chi2)))
+        c = min((1 - delta1)^2 * threshold^2 / (2 * log(1/chi1)), (delta2 - 1)^2 * 
+                threshold^2 / (2 * log(1/chi2)))
         c /= (hist.sigma2 * sqrt(hist.iota_hist[hist.iterations])) * (1 + log(lambda)) / lambda
     else
         #compute error bound when there is an omega
@@ -87,7 +88,6 @@ end
 
 for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,LinSysVecRowPropToNormSampler,
              LinSysVecRowSVSampler, LinSysVecRowUnidSampler,
-             LinSysVecRowUnifSampler, LinSysVecRowSparseUnifSampler,
              LinSysVecRowOneRandCyclic, LinSysVecRowDistCyclic,
              LinSysVecRowResidCyclic, LinSysVecRowMaxResidual,
              LinSysVecRowMaxDistance)
@@ -123,3 +123,4 @@ for type in (LinSysVecRowGaussSampler, LinSysVecRowSparseGaussSampler)
     end
 
 end
+# Need to implement this for the uniform sampling
