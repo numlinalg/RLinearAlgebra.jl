@@ -9,8 +9,7 @@ A structure that specifies a stopping criterion that incoroporates the randomnes
 # Fields
 - `max_iter::Int64`, the maximum number of iterations.
 - `threshold::Float64`, the value of the estimator that is sufficient progress. 
-- `delta1::Float64`, the percent below the threshold does the true value of the progress estimator need to be for not stopping to be a 
-    mistake. This is equivalent to stopping too late.
+- `delta1::Float64`, the percent below the threshold does the true value of the progress estimator need to be for not stopping to be a mistake. This is equivalent to stopping too late.
 - `delta2::Float64`, the percent above the threshold does the true value of the progress estimator need to be for stopping to be a 
     mistake. This is equivalent to stopping too early.
 - `chi1::Float64`, the probability that the stopping too late action occurs.

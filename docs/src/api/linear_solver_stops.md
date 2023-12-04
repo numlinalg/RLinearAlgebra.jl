@@ -12,6 +12,8 @@ LinSysStopCriterion
 ## Stopping Criteria
 ```@docs
 LSStopMaxIterations
+LSStopThreshold
+LSStopMA
 ```
 
 ## Check Stopping Criterion Function

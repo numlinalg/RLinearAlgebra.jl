@@ -3,6 +3,29 @@
 # using LinearAlgebra
 
 """
+    MAInfo 
+
+A mutable data structure that stores information relevant to the moving average log.
+
+# Fields
+- `lambda1::Int64`, stores the width of the moving average in the first phase of the computation. This is typically just set ot    be one.
+- `lambda2::Int64`, stores the width of the moving average during the second phase of the log, when the residuals no longer 
+   monotonically decrease. Wider widths here lead to more smoothing of the progress estimate.
+- `lambda::Int64`, the moving average width at the current iteration.
+- `flag::Bool`, a variable indicating whether we are in the first or second phase of the moving average.
+- `idx::Int64`, the index in the `res_window` being replaced on the current iteration. 
+- `res_window::Vector{Float64}`, a vector containing the values being averaged over.
+"""
+mutable struct MAInfo
+    lambda1::Int64
+    lambda2::Int64
+    lambda::Int64
+    flag::Bool
+    idx::Int64
+    res_window::Vector{Float64}
+end
+
+"""
     LSLogFullMA <: LinSysSolverLog
 
 A mutable structure that stores information about a randomized linear solver's behavior.
@@ -33,10 +56,10 @@ A mutable structure that stores information about a randomized linear solver's b
 - `max_dimension::Int64`, a value that stores the max between the row and column dimension needed for
   computation of stopping criterion and uncertainty sets.
 - `sigma2::Union{Float64, Nothing}`, a value that stores the sigma^2 parameter of a sub-Exponential
-  distribution used for determing stopping criterion and uncertainty sets.
+  distribution used for determining stopping criterion and uncertainty sets.
 - `omega::Union{Float64, Nothing}`, a value that stores the omega parameter of a sub-Exponential
-  distribution used for determing stopping criterion and uncertainty sets.
-- `eta::Float641, a parameter that allows the adjustment of the uncertainty quantification if the 
+  distribution used for determining stopping criterion and uncertainty sets.
+- `eta::Float64, a parameter that allows the adjustment of the uncertainty quantification if the 
   size of the default covariance is too wide for the particular problem.
 # Constructors
 - Calling `LSLogFullMA()` sets `collection_rate = 1`,  `lambda1 = 1`,
@@ -46,15 +69,6 @@ A mutable structure that stores information about a randomized linear solver's b
     and `eta = 1`. The user can specify their own values of lambda1, lambda2, sigma2, omega, and eta using 
     key word arguments as inputs into the constructor.
 """
-mutable struct MAInfo
-    lambda1::Int64
-    lambda2::Int64
-    lambda::Int64
-    flag::Bool
-    idx::Int64
-    res_window::Vector{Float64}
-end
-
 mutable struct LSLogFullMA <: LinSysSolverLog
     collection_rate::Int64
     ma_info::MAInfo
