@@ -2,20 +2,6 @@
 
 # using LinearAlgebra
 
-"""
-    MAInfo 
-
-A mutable data structure that stores information relevant to the moving average log.
-
-# Fields
-- `lambda1::Int64`, stores the width of the moving average in the first phase of the computation. This is typically just set ot    be one.
-- `lambda2::Int64`, stores the width of the moving average during the second phase of the log, when the residuals no longer 
-   monotonically decrease. Wider widths here lead to more smoothing of the progress estimate.
-- `lambda::Int64`, the moving average width at the current iteration.
-- `flag::Bool`, a variable indicating whether we are in the first or second phase of the moving average.
-- `idx::Int64`, the index in the `res_window` being replaced on the current iteration. 
-- `res_window::Vector{Float64}`, a vector containing the values being averaged over.
-"""
 mutable struct MAInfo
     lambda1::Int64
     lambda2::Int64
@@ -208,27 +194,27 @@ end
 
 #Function that will return rho and its uncertainty from a LSLogFullMA type 
 """
-    get_uncertainty(hist::LSLogFullMA; alpha = .95)
+    get_uncertainty(log::LSLogFullMA; alpha = .95)
     A function that takes a LSLogFullMA type and a confidence level, alpha, and returns credible intervals for for every rho in the log, specifically it returns a tuple with (rho, Upper bound, Lower bound).
 """
-function get_uncertainty(hist::LSLogFullMA; alpha = .95)
-    lambda = hist.ma_info.lambda
-    l = length(hist.iota_hist)
+function get_uncertainty(log::LSLogFullMA; alpha = .95)
+    lambda = log.ma_info.lambda
+    l = length(log.iota_hist)
     upper = zeros(l)
     lower = zeros(l)
     # If the constants for the sub-Exponential distribution are not defined then define them
-    if typeof(hist.sigma2) <: Nothing
-        get_SE_constants!(hist, hist.sampler)
+    if typeof(log.sigma2) <: Nothing
+        get_SE_constants!(hist, log.sampler)
     end
     
     for i in 1:l
-        width = hist.width_hist[i]
-        iota = hist.iota_hist[i]
-        rho = hist.resid_hist[i]
+        width = log.width_hist[i]
+        iota = log.iota_hist[i]
+        rho = log.resid_hist[i]
         #Define the variance term for the Gaussian part
-        cG = hist.sigma2 * (1 + log(width)) * iota / (width * hist.eta)
+        cG = log.sigma2 * (1 + log(width)) * iota / (width * log.eta)
         #If there is an omega in the sub-Exponential distribution then skip that calculation 
-        if typeof(hist.omega) <: Nothing
+        if typeof(log.omega) <: Nothing
             # Compute the threshold bound in the case where there is no omega
             diffG = sqrt(cG * 2 * log(2/(1-alpha)))
             upper[i] = rho + diffG
@@ -236,7 +222,7 @@ function get_uncertainty(hist::LSLogFullMA; alpha = .95)
         else
             #compute error bound when there is an omega
             diffG = sqrt(cG * 2 * log(2/(1-alpha)))
-            diffO = sqrt(iota) * 2 * log(2/(1-alpha)) * hist.omega / (hist.eta * width)
+            diffO = sqrt(iota) * 2 * log(2/(1-alpha)) * log.omega / (log.eta * width)
             diffM = min(diffG, diffO)
             upper[i] = rho + diffG
             lower[i] = rho - diffG
@@ -244,7 +230,7 @@ function get_uncertainty(hist::LSLogFullMA; alpha = .95)
         
     end
 
-    return (hist.resid_hist, upper, lower)  
+    return (log.resid_hist, upper, lower)  
 
 end
 
