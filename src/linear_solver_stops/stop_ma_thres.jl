@@ -89,6 +89,7 @@ for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,LinSysVecRowProp
              LinSysVecRowSVSampler, LinSysVecRowUnidSampler,
              LinSysVecRowOneRandCyclic, LinSysVecRowDistCyclic,
              LinSysVecRowResidCyclic, LinSysVecRowMaxResidual,
+             LinSysVecRowRandCyclic,
              LinSysVecRowMaxDistance)
     @eval begin
         function get_SE_constants!(log::LSLogFullMA, sampler::Type{$type})
