@@ -66,7 +66,7 @@ end
 #############################################
 include("linear_solver_logs/solve_log_oracle.jl")
 include("linear_solver_logs/solve_log_full.jl")
-
+include("linear_solver_logs/solve_log_full_ma.jl")
 #############################################
 # Exports
 #############################################

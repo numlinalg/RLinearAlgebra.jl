@@ -108,8 +108,8 @@ function rsolve!(solver::RLSSolver, A, b, x::AbstractVector)
     while check_stop_criterion(solver.log, solver.stop) == false
         iter += 1
         samp = sample(solver.sampler, A, b, x, iter)
-        rsubsolve!(solver.routine, x, samp, iter)
         log_update!(solver.log, solver.sampler, x, samp, iter, A, b)
+        rsubsolve!(solver.routine, x, samp, iter)
     end
 
     solver.x = x

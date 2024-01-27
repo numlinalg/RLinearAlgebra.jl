@@ -17,6 +17,8 @@ LinSysSolverLog
 LSLogOracle
 
 LSLogFull
+
+LSLogFullMA
 ```
 
 ## Log Function
@@ -24,4 +26,10 @@ LSLogFull
 ```@docs
 RLinearAlgebra.log_update!(::Nothing,::LinSysSampler,::AbstractVector,::Tuple,
   ::Int64,::Any,::Any)
+```
+
+## Log Specific Functions
+
+```@docs
+RLinearAlgebra.get_uncertainty(::LSLogFullMA; alpha = .05)
 ```
