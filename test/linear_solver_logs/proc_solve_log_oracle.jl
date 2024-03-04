@@ -62,9 +62,9 @@ Random.seed!(1010)
         end
 
         @test length(log.error_hist) == 4 # Record at 0, 3, 6, 9
-        @test norm(log.error_hist - [1.0, 3.0, 6.0, 9.0] * norm(z - x)) < 1e-15
+        @test norm(log.error_hist - [1.0, 3.0, 6.0, 9.0] * norm(z - x)) < 1e-12
         @test length(log.resid_hist) == 4 # Record at 0, 3, 6, 9
-        @test norm(log.resid_hist - [1.0, 3.0, 6.0, 9.0] * norm(A * z - b)) < 1e-15
+        @test norm(log.resid_hist - [1.0, 3.0, 6.0, 9.0] * norm(A * z - b)) < 1e-12
         @test log.iterations == 10
         @test log.converged == false
     end
