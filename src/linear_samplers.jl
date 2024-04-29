@@ -168,7 +168,7 @@ include("linear_samplers/vec_col_one_rand_cyclic.jl")
 #############################################
 # Block Column Sampler/Sketch/Selector
 #############################################
-
+include("linear_samplers/vec_col_block_rand_cyclic.jl")
 #############################################
 # Compositional Sampler/Sketch/Selector
 #############################################
