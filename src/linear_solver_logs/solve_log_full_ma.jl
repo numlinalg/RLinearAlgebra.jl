@@ -125,9 +125,10 @@ function log_update!(
         #Check if we want exact residuals computed
         if !log.true_res
             # Compute the current residual to second power to align with theory
-            res::Float64 = size(samp[1],2) != 1 ? log.resid_norm(samp[1] * x - samp[2])^2 :  
-                                          log.resid_norm(dot(samp[1], x) - samp[2])^2 
-        else 
+            res::Float64 = log.resid_norm(samp[3])^2 
+        elseif typeof(sampler) <: LinSysVecColSampler 
+            res = log.resid_norm(A'* (A * x - b))^2
+        else
             res = log.resid_norm(A * x - b)^2 
         end
         # Check if MA is in lambda1 or lambda2 regime

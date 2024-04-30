@@ -7,9 +7,56 @@ it is important to track these techniques in a manner that does
 not undermine the stated benefits of the method, namely being able 
 update a solution using only a row or block of rows of the matrix.
 Na\"ive methods of tracking like computing the norm of the residual,
-$\|Ax-b\|_2$, directly undermine these benefits, by requiring access
+$\|Ax-b\|_2^2$, directly undermine these benefits, by requiring access
 to the full matrix to compute. In fact, when the row dimension of the 
 underlying linear system is far greater than block size, computing 
 the progress estimator can be substantially more expensive than computing
-the update itself. The RLinearAlgebra library implemented a technique from 
-  
+the update itself. These cost could be avoided by computing the block
+residual i.e. $\|S A x - Sb\|_2^2$, but at the cost exact knowledge of 
+progress. To reduce this randomness Pritchard and Patel propose using 
+a moving average of the sketched residuals in ``Solving, Tracking 
+and Stopping Streaming Linear Inverse Problems." Specifically they define
+the progress estimator 
+$$
+    \hat \rho_k^\lambda = \sum_{i-\lambda +1}^k \frac{\|S_i A x - S_ib\|_2^2}{\lambda}
+$$  
+to estimate progress where $\lambda$ is the width of the moving average window. 
+This technique can be used in RLinearAlgebra.jl by using the log option
+`LSLogFullMA()` when defining the solver, with a default moving average of 30.
+```julia
+using RLinearAlgebra
+
+# Generate a system
+A = rand(20, 5);
+x = rand(5);
+b = A * x;
+
+# Specify solver
+solver = RLSSolver(
+    LinSysVecRowRandCyclic(),   # Random Cyclic Sampling
+    LinSysVecRowProjStd(),      # Hyperplane projection
+    LSLogFullMA(),              # Full Logger: maintains moving average residual history
+    LSStopMaxIterations(200),   # Maximum iterations stopping criterion
+    nothing                     # System solution (not solved yet)
+);
+
+# Solve the system
+sol = rsolve(solver, A, b)
+```
+The user is able to choose their own width of the moving average by inputting 
+`lambda2=USER_WIDTH` as an option within `LSLogFullMA()`. Increasing the width
+will decrease the variability of the progress estimate and therefore is a suggested
+action when the matrix is poorly conditioned or has highly variable magnitude of row 
+norms. In most cases, the default option of 30 should be more than sufficient for 
+tracking. 
+
+It is also important to note that because of the geometric convergence of 
+many of these randomized methods early iterations have residual convergence that 
+arises from the convergence of the algorithm itself. Meaning that it is often 
+undesirable to smooth this initial variability. This lead to a two phase implementation
+of the moving average scheme where during the first phase a moving average of $\lambda_1$, 
+typically set to be one, is used to judge progress. Then in a second phase, which is judge
+to be the point where there is no longer monotonic decreases in the norm of the residual,
+the moving average is expanded to a value of $\lambda_2$.
+
+
