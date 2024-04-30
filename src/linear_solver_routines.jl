@@ -103,7 +103,10 @@ function rsubsolve!(
 )
     return nothing
 end
-
+############################################
+# Inner Loop Linear Solvers
+############################################
+include("helper_functions/Gentlemans_House.jl")
 #############################################
 # Vector Row Projection Solvers
 #############################################
@@ -129,7 +132,7 @@ include("linear_solver_routines/vec_col_projection_fortho.jl")
 # Block Column Projection Solvers
 #############################################
 # Exact Solvers
-
+include("linear_solver_routines/vec_col_projection_block.jl")
 # Approximate Solvers
 
 #############################################

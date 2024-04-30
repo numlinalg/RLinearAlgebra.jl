@@ -24,29 +24,34 @@ Calling `LinSysVecColBlockProj()` defaults the relaxatoin parameter to `1.0`.
 mutable struct LinSysVecColBlockProj <: LinSysVecColProjection
     α::Float64
     G::Union{Nothing, GentData}
+    update::Union{Nothing, AbstractArray}
 end
-CoordinateDescent = LinSysVecColProjStd
+LinSysVecColBlockProj(α) = LinSysVecColBlockProj(α, nothing, nothing)
 
-LinSysVecColProjStd() = LinSysVecColProjStd(1.0, nothing)
+LinSysVecColBlockProj() = LinSysVecColBlockProj(1.0, nothing, nothing)
+
+BlockCoordinateDescent = LinSysVecColBlockProj
 
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
-    type::LinSysVecColProjStd,
+    type::LinSysVecColBlockProj,
     x::AbstractVector,
-    samp::Tuple{U,V,W} where {U<:AbstractVector,V<:AbstractArray,W<:Real},
+    samp::Tuple{U,V,W,X} where {U<:AbstractVector,V<:AbstractArray,W<:AbstractVector,X<:AbstractVector},
     iter::Int64,
 )
     # samp[1] is the search direction
     # samp[2] is the sketched matrix A
     # samp[3] is the residual of system in A * samp[1], samp[1]' A' * (A * x - b)
+    # samp[4] is the residual of the system A * x - b
     if iter == 1
-        m = size(samp[2],1)
+        m,p = size(samp[2])
         rowBlockSize = m < 100000 ? m : min(div(m, 10), 100000)
         type.G = Gent(samp[2], min(rowBlockSize, 10000))
+        type.update = Array{typeof(samp[2][1])}(undef, p)
     end
     type.G.A = samp[2]
     ldiv!(type.update, type.G, samp[4])
-    update_sol!(x, type.update, samp[1], type.alpha)
+    update_sol!(x, type.update, samp[1], type.α)
 
     return nothing
 end

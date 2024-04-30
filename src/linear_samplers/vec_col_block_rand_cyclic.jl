@@ -88,14 +88,16 @@ function sample(
     col_idx = type.blocks[type.blockSize * (block - 1) + 1:type.blockSize * block]
     SA = A[:, col_idx]
 
-    # Normal equation residual
-    res = SA' * (A * x - b)
+    # Residual of the linear system
+    res = A * x - b
+    # Normal equation residual in the Sketched Block
+    grad = SA' * (A * x - b)
 
-    return col_idx, SA, res
+    return col_idx, SA, grad, res
 end
 
 #Function to update the solution 
-function update_sol!(x::AbstractVector, update::AbstractVector, col_idx::Vector{Int64})
-    x[col_idx] .= update
+function update_sol!(x::AbstractVector, update::AbstractVector, col_idx::Vector{Int64}, α::Real)
+    x[col_idx] .-= α .* update
 end
 #export LinSysVecBlockRandCyclic

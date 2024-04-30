@@ -64,7 +64,8 @@ export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjF
 # Vector Column Projection
 export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
     LinSysVecColProjFO
-
+# Vector Block Column Projection
+export LinSysVecColBlockProj
 #*****************************************#
 # Linear Solver Log Exports
 #*****************************************#
