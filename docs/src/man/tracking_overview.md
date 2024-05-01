@@ -100,4 +100,47 @@ bounds = get_uncertainty(sol.log, alpha = .99)
 ## Stopping
 In addition to being able to form the uncertainty sets, Pritchard and Patel also proposed a criterion for
 stopping when using the sketched moving average estimator. RLinearAlgebra.jl allows for the specification 
-these methods this can be done using `LSStopMA().` To understand the stopping criterion 
+these methods this can be done using `LSStopMA().` Tho understand the stopping criterion, it is valuable
+to define some notation. If we allow $\rho_k^\lambda$ be the moving average of the true residuals, and 
+$\hat \rho_k^\lambda$ be the moving average of the sketched residuals then two types of errors can occur.  
+The first can be viewed as stopping too late, and it occurs when the tracking parameter value, 
+$\rho_k^\lambda \leq \delta_I \upsilon$, while $\hat \rho_k^\lambda > \upsilon$, where $\delta_I$ 
+is a user defined parameter that permits the specification of where the gap between $\hat \rho_k^\lambda$ 
+and $\rho_k^\lambda$ is large enough to be considered problematic. By using the condition on 
+$\hat{\iota}^\lambda_k$ (defined on line 13), we approximately control the probability of this error at 
+$\xi_{I}$.
+
+The second error type can be viewed as stopping too early, and it occurs when the tracking parameter value, 
+$\rho_k^\lambda \geq \delta_{II} \upsilon$, while $\hat \rho_k^\lambda < \upsilon$.
+Where $\delta_{II}$ is a user defined parameter that permits the specification of where the gap between 
+$\hat \rho_k^\lambda$ and $\rho_k^\lambda$ is great enough to be considered problematic. By choosing the 
+right stopping criterion we can then control the probability of this error at  $\xi_{II}$.
+
+The options for these stopping criterion parameters are represented by the options $\delta_I =$ `delta1`, $\delta_{II} = $ `delta2`,
+$\xi_I =$ `chi1`, $\xi_{II}=$ `chi2`, and $\upsilon=$ `upsilon`. By default `upsilon=1e-10`, `delta1=.9`, `delta2=1.1`, `chi_I = .01`,
+`chi_{II} = .01`. To use the stopping criterion, the user must input a max number of iterations, and specify
+changes to the default settings as options. So for instance if one wanted to use the stopping criterion with a 
+maximum iteration of 1000 and `upsilon = 1e-3`, the following code could be used. 
+
+```julia
+
+using RLinearAlgebra
+
+# Generate a system
+A = rand(20, 5);
+x = rand(5);
+b = A * x;
+
+# Specify solver
+solver = RLSSolver(
+    LinSysVecRowRandCyclic(),   # Random Cyclic Sampling
+    LinSysVecRowProjStd(),      # Hyperplane projection
+    LSLogFullMA(lambda_2 = 100),# Full Logger: maintains moving average residual history
+    LSStopMA(1000, upsilon=1e-3),   # Maximum iterations stopping criterion
+    nothing                     # System solution (not solved yet)
+);
+
+# Solve the system
+sol = rsolve(solver, A, b)
+bounds = get_uncertainty(sol.log, alpha = .99)
+```

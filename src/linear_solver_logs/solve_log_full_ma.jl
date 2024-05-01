@@ -37,7 +37,7 @@ A mutable structure that stores information about a randomized linear solver's b
     scalar. Used to compute the residual size.
 - `iterations::Int64`, the number of iterations of the solver.
 - `converged::Bool`, a flag to indicate whether the system has converged by some measure.
-- `sampler::DataType`, a data type that is needed for computing constants used in the uncertainty
+- `sampler::Union{DataType,Nothing}`, a data type that is needed for computing constants used in the uncertainty
   quantification and stopping steps. This is updated with each `log_update!` call. 
 - `max_dimension::Int64`, a value that stores the max between the row and column dimension needed for
   computation of stopping criterion and uncertainty sets.
@@ -65,7 +65,7 @@ mutable struct LSLogFullMA <: LinSysSolverLog
     resid_norm::Function
     iterations::Int64
     converged::Bool
-    sampler::DataType
+    sampler::Union{DataType,Nothing}
     max_dimension::Int64
     sigma2::Union{Float64, Nothing}
     omega::Union{Float64, Nothing}
@@ -82,7 +82,7 @@ LSLogFullMA() = LSLogFullMA(
                           norm, 
                           -1, 
                           false,
-                          LinSysVecRowDetermCyclic,
+                          nothing,
                           0,
                           nothing,
                           nothing,
@@ -99,7 +99,7 @@ LSLogFullMA(;lambda1 = 1, lambda2 = 30, sigma2 = nothing, omega = nothing, eta =
                           norm, 
                           -1, 
                           false,
-                          LinSysVecColDetermCyclic,
+                          nothing,
                           0,
                           sigma2,
                           omega,
