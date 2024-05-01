@@ -1,13 +1,12 @@
-
 # This file is part of RLinearAlgebra.jl
 
-module ProceduralTestLSVCOneRandCyclic
+module ProceduralTestLSVCBlockRandCyclic
 
 using Test, RLinearAlgebra, Random
 
 Random.seed!(1010)
 
-@testset "LSVC One Hop Random Cyclic -- Procedural" begin
+@testset "LSVC Block Random Cyclic -- Procedural" begin
 
     # Verify appropriate super type
     @test supertype(LinSysVecColBlockRandCyclic) == LinSysVecColSampler

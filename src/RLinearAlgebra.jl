@@ -48,7 +48,7 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 #Vector Block Row Samplers
-export LinSysVecRowBlockGaussian
+export LinSysVecRowBlockGaussian, LinSysVecRowBlockRandCyclic
 #Vector Block Column Samplers
 export LinSysVecColBlockRandCyclic, LinSysVecColBlockGaussian
 #*****************************************#

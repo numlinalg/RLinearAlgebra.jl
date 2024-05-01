@@ -165,6 +165,7 @@ include("linear_samplers/vec_col_one_rand_cyclic.jl")
 # Block Row Sampler/Sketch/Selector
 #############################################
 include("linear_samplers/vec_row_block_gaussian.jl")
+include("linear_samplers/vec_row_block_rand_cyclic.jl")
 #############################################
 # Block Column Sampler/Sketch/Selector
 #############################################
