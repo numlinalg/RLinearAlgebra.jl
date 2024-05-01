@@ -43,6 +43,7 @@ solver = RLSSolver(
 # Solve the system
 sol = rsolve(solver, A, b)
 ```
+## The moving average
 The user is able to choose their own width of the moving average by inputting 
 `lambda2=USER_WIDTH` as an option within `LSLogFullMA()`. Increasing the width
 will decrease the variability of the progress estimate and therefore is a suggested
@@ -59,4 +60,44 @@ typically set to be one, is used to judge progress. Then in a second phase, whic
 to be the point where there is no longer monotonic decreases in the norm of the residual,
 the moving average is expanded to a value of $\lambda_2$.
 
+If you want to compare the performance of the moving average of the sketched residuals to 
+that of the true residuals then it is possible to input the option `true_res=true`. This will 
+perform the same tracking procedure, but use the true residual rather than the sketched one.
 
+Finally, if one wanted to get uncertainty sets for the sketched residual tracking they can use
+the function `get_uncertainty()`, where they input the history accessed from the solver 
+and can specify `alpha`, which indicates the probability that the moving average of the 
+true residuals falls within that interval. As an example if one wanted to track a standard row solver
+ with a moving average of the sketched residuals of width 100 and get a 99% uncertainty sets
+they could run the following code.  
+```julia
+
+using RLinearAlgebra
+
+# Generate a system
+A = rand(20, 5);
+x = rand(5);
+b = A * x;
+
+# Specify solver
+solver = RLSSolver(
+    LinSysVecRowRandCyclic(),   # Random Cyclic Sampling
+    LinSysVecRowProjStd(),      # Hyperplane projection
+    LSLogFullMA(lambda_2 = 100),# Full Logger: maintains moving average residual history
+    LSStopMaxIterations(200),   # Maximum iterations stopping criterion
+    nothing                     # System solution (not solved yet)
+);
+
+# Solve the system
+sol = rsolve(solver, A, b)
+bounds = get_uncertainty(sol.log, alpha = .99)
+```
+!!! Note
+    If one is using a subset of identity type sampling these uncertainty sets will perform conservatively
+    because of a poor variance estimate. You can reduce this conservativeness using the option $\eta$ in 
+    the `LSLogFullMA()` settings for the solver.
+
+## Stopping
+In addition to being able to form the uncertainty sets, Pritchard and Patel also proposed a criterion for
+stopping when using the sketched moving average estimator. RLinearAlgebra.jl allows for the specification 
+these methods this can be done using `LSStopMA().` To understand the stopping criterion 
