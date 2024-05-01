@@ -24,8 +24,8 @@ mutable struct LinSysVecColBlockGaussian <: LinSysVecColSelect
     scaling::Float64
 end
 
-LinSysVecColBlockGaussian(blockSize) = LinSysVecColBlockGaussian(blockSize, nothing)
-LinSysVecColBlockGaussian() = LinSysVecColBlockGaussian(2, nothing)
+LinSysVecColBlockGaussian(blockSize) = LinSysVecColBlockGaussian(blockSize, nothing, 0.)
+LinSysVecColBlockGaussian() = LinSysVecColBlockGaussian(2, nothing, 0.)
 
 # Common sample interface for linear systems
 function sample(
@@ -38,18 +38,17 @@ function sample(
     if iter == 1
         m, n = size(A)
         scaling = sqrt(type.blockSize / n)
-        type.SketchMatrix = Matrix{Float64}(n, s) 
+        type.sketchMatrix = Matrix{Float64}(undef, n, type.blockSize) 
     end
-    randn!(type.SketchMatrix)
-    type.SketchMatrix .*= type.scaling
-    AS = A * type.SketchMatrix
 
+    randn!(type.sketchMatrix)
+    type.sketchMatrix .*= type.scaling
+    AS = A * type.sketchMatrix
     # Residual of the linear system
     res = A * x - b
     # Normal equation residual in the Sketched Block
     grad = AS' * (A * x - b)
-
-    return type.SketchMatrix, AS, grad, res
+    return type.sketchMatrix, AS, grad, res
 end
 
 #Function to update the solution 

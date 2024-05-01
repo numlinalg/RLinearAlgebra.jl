@@ -18,14 +18,14 @@ A mutable structure with fields to handle Guassian column sketching.
 
 Calling `LinSysVecRowBlockGaussian()` defaults to setting `blockSize` to 2.
 """
-mutable struct LinSysVecRowBlockGaussian <: LinSysVecColSelect
+mutable struct LinSysVecRowBlockGaussian <: LinSysVecRowSelect
     blockSize::Int64
     sketchMatrix::Union{AbstractMatrix, Nothing}
     scaling::Float64
 end
 
-LinSysVecRowBlockGaussian(blockSize) = LinSysVecRowBlockGaussian(blockSize, nothing)
-LinSysVecRowBlockGaussian() = LinSysVecRowBlockGaussian(2, nothing)
+LinSysVecRowBlockGaussian(blockSize) = LinSysVecRowBlockGaussian(blockSize, nothing, 0.0)
+LinSysVecRowBlockGaussian() = LinSysVecRowBlockGaussian(2, nothing, 0.0)
 
 # Common sample interface for linear systems
 function sample(
@@ -38,14 +38,14 @@ function sample(
     if iter == 1
         m, n = size(A)
         scaling = sqrt(type.blockSize / m)
-        type.SketchMatrix = Matrix{Float64}(s, m) 
+        type.sketchMatrix = Matrix{Float64}(undef, type.blockSize, m) 
     end
-    randn!(type.SketchMatrix)
-    type.SketchMatrix .*= type.scaling
-    SA = type.SketchMatrix * A
-    Sb = type.SketchMatrix * b
+
+    randn!(type.sketchMatrix)
+    type.sketchMatrix .*= type.scaling
+    SA = type.sketchMatrix * A
+    Sb = type.sketchMatrix * b
     # Residual of the linear system
     res = SA * x - Sb
-
-    return type.SketchMatrix, SA, res, sb
+    return type.sketchMatrix, SA, res
 end
