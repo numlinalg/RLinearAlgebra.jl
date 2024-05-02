@@ -1,10 +1,3 @@
-# This file is part of RLinearAlgebra.jl
-# 1. Specifies type
-# 2. Implements sample function
-# 3. Exports Type
-
-# using Random
-
 """
     LinSysVecColBlockRandCyclic <: LinSysVecColSelect
 
@@ -86,18 +79,17 @@ function sample(
 
     block = type.order[bIndx] 
     col_idx = type.blocks[type.blockSize * (block - 1) + 1:type.blockSize * block]
-    SA = A[:, col_idx]
+    AS = A[:, col_idx]
 
     # Residual of the linear system
     res = A * x - b
     # Normal equation residual in the Sketched Block
-    grad = SA' * (A * x - b)
+    grad = AS' * (A * x - b)
 
-    return col_idx, SA, grad, res
+    return col_idx, AS, grad, res
 end
 
 #Function to update the solution 
 function update_sol!(x::AbstractVector, update::AbstractVector, col_idx::Vector{Int64}, α::Real)
     x[col_idx] .-= α .* update
 end
-#export LinSysVecBlockRandCyclic

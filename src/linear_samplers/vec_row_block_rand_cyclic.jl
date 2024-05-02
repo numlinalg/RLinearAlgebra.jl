@@ -1,25 +1,18 @@
-# This file is part of RLinearAlgebra.jl
-# 1. Specifies type
-# 2. Implements sample function
-# 3. Exports Type
-
-# using Random
-
 """
     LinSysVecRowBlockRandCyclic <: LinSysVecRowSelect
 
 A mutable structure with fields to handle randomly permuted block sampling. Can allow for fixed
 blocks or blocks whose entries are randomly permuted. After each cycle, a new random ordering is
-created. If the last block would be smaller than the others, columns from a previous block are 
+created. If the last block would be smaller than the others, rows from a previous block are 
 added to keep all blocks the same size.
 
 # Fields
 - `blockSize::Int64` - Specifies the size of each block.
-- `constantBlock::Bool` - A variable specifying if the user would like for the columns to be randomly
+- `constantBlock::Bool` - A variable specifying if the user would like for the rows to be randomly
 permuted. 
 - `nBlocks::Int64` - Variable that contains the number of blocks overall.
 - `order::Vector{Int64}` - The order that the blocks will be used to generate updates.
-- `blocks::Vector{Int64}` - The list of all the columns in each block.
+- `blocks::Vector{Int64}` - The list of all the row in each block.
 
 Calling `LinSysVecColBlockRandCyclic()` defaults to setting `blockSize` to 2 and `constantBlock` to true. The `sample`
 function will handle the re-initialization of the fields once the system is provided.
@@ -57,16 +50,16 @@ function sample(
             if rem(n, type.blockSize) == 0
                 type.blocks[lastBlockStart:blockIdxs] .= collect(lastBlockStart:m)
             else
-                # maintain size of last block using last blockSize columns
+                # maintain size of last block using last blockSize rows 
                 type.blocks[lastBlockStart:blockIdxs] .= collect(vcat(m - type.blockSize + 1:lastBlockStart - 1, lastBlockStart:m))
             end
         
         else
-            # If non-constant blocks randomly permute columns
+            # If non-constant blocks randomly permute rows
             if rem(n, type.blockSize) == 0
                 type.blocks .= randperm(m)
             else
-                # maintain size of last block using last blockSize columns
+                # maintain size of last block using last blockSize rows
                 type.blocks[1:m] .= randperm(m)
                 type.blocks[m:m + type.blockSize] .= type.blocks[type.blockSize]
             end
@@ -85,11 +78,11 @@ function sample(
     end
 
     block = type.order[bIndx] 
-    col_idx = type.blocks[type.blockSize * (block - 1) + 1:type.blockSize * block]
-    SA = A[col_idx, :]
-    Sb = A[col_idx]
+    row_idx = type.blocks[type.blockSize * (block - 1) + 1:type.blockSize * block]
+    SA = A[row_idx, :]
+    Sb = b[row_idx]
     # Residual of the linear system
     res = SA * x - Sb
 
-    return col_idx, SA, res
+    return row_idx, SA, res
 end

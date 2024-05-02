@@ -1,11 +1,3 @@
-
-# This file is part of RLinearAlgebra.jl
-# 1. Specifies type
-# 2. Implements sample function
-# 3. Exports Type
-
-# using Random
-
 """
     LinSysVecColBlockGaussian <: LinSysVecColSelect
 
@@ -43,16 +35,15 @@ function sample(
 
     randn!(type.sketchMatrix)
     type.sketchMatrix .*= type.scaling
-    AS = A * type.sketchMatrix
+    SA = A * type.sketchMatrix
     # Residual of the linear system
     res = A * x - b
     # Normal equation residual in the Sketched Block
-    grad = AS' * (A * x - b)
-    return type.sketchMatrix, AS, grad, res
+    grad = SA' * (A * x - b)
+    return type.sketchMatrix, SA, grad, res
 end
 
 #Function to update the solution 
 function update_sol!(x::AbstractVector, update::AbstractVector, S::Matrix{Float64}, α::Real)
     x .-= α .* S * update
 end
-#export LinSysVecBlockRandCyclic

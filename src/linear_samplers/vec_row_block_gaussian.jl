@@ -1,15 +1,7 @@
-
-# This file is part of RLinearAlgebra.jl
-# 1. Specifies type
-# 2. Implements sample function
-# 3. Exports Type
-
-# using Random
-
 """
-    LinSysVecRowBlockGaussian <: LinSysVecColSelect
+    LinSysVecRowBlockGaussian <: LinSysVecRowSelect
 
-A mutable structure with fields to handle Guassian column sketching. 
+A mutable structure with fields to handle Guassian row sketching. 
 
 # Fields
 - `blockSize::Int64` - Specifies the size of each block.

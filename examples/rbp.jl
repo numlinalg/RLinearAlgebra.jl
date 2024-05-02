@@ -23,6 +23,19 @@ x = rsolve(sol, A, b)
 plt = lineplot(sol.log.resid_hist, title = "Block Row Random Cyclic", xlabel = "iteration", ylabel = "MA residual")
 println(plt)
 
+# Row random sampling with replacement projection with block size 4
+sol = RLSSolver(
+    LinSysVecRowBlockReplace(4),     # Random Cyclic Sampling
+    LinSysVecRowBlockProj(),            # Block row projection 
+    LSLogFullMA(),                      # Full Moving Average Logger: maintains moving average of residual history
+    LSStopMaxIterations(iter),          # Maximum iterations stopping criterion
+    nothing                             # System solution
+)
+
+x = rsolve(sol, A, b)
+plt = lineplot(sol.log.resid_hist, title = "Block Row Random Replacement", xlabel = "iteration", ylabel = "MA residual")
+println(plt)
+
 # Row Gaussian sampling with block size 4
 sol = RLSSolver(
     LinSysVecRowBlockGaussian(4),       # Block Gaussian Sampling

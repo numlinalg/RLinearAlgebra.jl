@@ -166,11 +166,13 @@ include("linear_samplers/vec_col_one_rand_cyclic.jl")
 #############################################
 include("linear_samplers/vec_row_block_gaussian.jl")
 include("linear_samplers/vec_row_block_rand_cyclic.jl")
+include("linear_samplers/vec_row_block_rand_replace.jl")
 #############################################
 # Block Column Sampler/Sketch/Selector
 #############################################
 include("linear_samplers/vec_col_block_rand_cyclic.jl")
 include("linear_samplers/vec_col_block_gaussian.jl")
+include("linear_samplers/vec_col_block_rand_replace.jl")
 #############################################
 # Compositional Sampler/Sketch/Selector
 #############################################

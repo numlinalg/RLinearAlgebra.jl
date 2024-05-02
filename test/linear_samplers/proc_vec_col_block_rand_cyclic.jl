@@ -18,12 +18,12 @@ Random.seed!(1010)
 
     cyc = LinSysVecColBlockRandCyclic()
 
-    v, M, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
+    v, M, grad, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
 
     order = copy(cyc.order)
     block = copy(cyc.blocks)
     for j = 2:length(cyc.order)
-        v, M, res = RLinearAlgebra.sample(cyc, A, b, x, j)
+        v, M, grad, res = RLinearAlgebra.sample(cyc, A, b, x, j)
         block_num = order[j]
         @test v[1] == block[(block_num - 1) * 2 + 1]
         @test v[2] == block[(block_num - 1) * 2 + 2]
