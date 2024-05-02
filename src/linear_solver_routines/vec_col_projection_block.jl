@@ -36,7 +36,7 @@ BlockCoordinateDescent = LinSysVecColBlockProj
 function rsubsolve!(
     type::LinSysVecColBlockProj,
     x::AbstractVector,
-    samp::Tuple{U,V,W,X} where {U<:AbstractVector,V<:AbstractArray,W<:AbstractVector,X<:AbstractVector},
+    samp::Tuple{U,V,W,X} where {U<:Union{AbstractVector,AbstractMatrix},V<:AbstractArray,W<:AbstractVector,X<:AbstractVector},
     iter::Int64,
 )
     # samp[1] is the search direction

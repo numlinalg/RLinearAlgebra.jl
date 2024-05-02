@@ -46,10 +46,10 @@ function sample(
 )
     if iter == 1
         m, n = size(A)
-        lastBlockStart = m - type.blockSize + 1
         # Determine number of blocks
         type.nBlocks = div(m, type.blockSize) + (rem(m, type.blockSize) == 0 ? 0 : 1)
         blockIdxs = type.blockSize * type.nBlocks
+        lastBlockStart = blockIdxs - type.blockSize + 1 
         type.blocks = Vector{Int64}(undef, blockIdxs)
         # Block definitions
         if type.constantBlock

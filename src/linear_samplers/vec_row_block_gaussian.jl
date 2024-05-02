@@ -37,7 +37,7 @@ function sample(
 )
     if iter == 1
         m, n = size(A)
-        scaling = sqrt(type.blockSize / m)
+        type.scaling = sqrt(type.blockSize / m)
         type.sketchMatrix = Matrix{Float64}(undef, type.blockSize, m) 
     end
 

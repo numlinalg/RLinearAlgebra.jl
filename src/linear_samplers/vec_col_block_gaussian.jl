@@ -37,7 +37,7 @@ function sample(
 )
     if iter == 1
         m, n = size(A)
-        scaling = sqrt(type.blockSize / n)
+        type.scaling = sqrt(type.blockSize / n)
         type.sketchMatrix = Matrix{Float64}(undef, n, type.blockSize) 
     end
 
@@ -53,6 +53,6 @@ end
 
 #Function to update the solution 
 function update_sol!(x::AbstractVector, update::AbstractVector, S::Matrix{Float64}, α::Real)
-    x .-= α .* S' * update
+    x .-= α .* S * update
 end
 #export LinSysVecBlockRandCyclic

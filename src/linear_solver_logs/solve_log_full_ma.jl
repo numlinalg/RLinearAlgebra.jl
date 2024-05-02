@@ -41,6 +41,8 @@ A mutable structure that stores information about a randomized linear solver's b
   quantification and stopping steps. This is updated with each `log_update!` call. 
 - `max_dimension::Int64`, a value that stores the max between the row and column dimension needed for
   computation of stopping criterion and uncertainty sets.
+- `block_dimension::Int64`, a value that stores the sampling block dimension for the 
+  computation of stopping criterion and uncertainty sets.
 - `sigma2::Union{Float64, Nothing}`, a value that stores the sigma^2 parameter of a sub-Exponential
   distribution used for determining stopping criterion and uncertainty sets.
 - `omega::Union{Float64, Nothing}`, a value that stores the omega parameter of a sub-Exponential
@@ -67,6 +69,7 @@ mutable struct LSLogFullMA <: LinSysSolverLog
     converged::Bool
     sampler::DataType
     max_dimension::Int64
+    block_dimension::Int64
     sigma2::Union{Float64, Nothing}
     omega::Union{Float64, Nothing}
     eta::Float64
@@ -83,6 +86,7 @@ LSLogFullMA() = LSLogFullMA(
                           -1, 
                           false,
                           LinSysVecRowDetermCyclic,
+                          0,
                           0,
                           nothing,
                           nothing,
@@ -101,6 +105,7 @@ LSLogFullMA(;lambda1 = 1, lambda2 = 30, sigma2 = nothing, omega = nothing, eta =
                           false,
                           LinSysVecColDetermCyclic,
                           0,
+                          0,
                           sigma2,
                           omega,
                           eta, 
@@ -117,7 +122,10 @@ function log_update!(
     A::AbstractArray,
     b::AbstractVector
 )
-    log.max_dimension = maximum(size(A))
+    if iter == 0
+        log.max_dimension = maximum(size(A))
+        log.block_dimension = length(samp) >= 3 ? samp[3] : 1  
+    end
     ma_info = log.ma_info
     log.iterations = iter
     log.sampler = typeof(sampler)  
@@ -125,8 +133,8 @@ function log_update!(
         #Check if we want exact residuals computed
         if !log.true_res
             # Compute the current residual to second power to align with theory
-            res::Float64 = size(samp[1],2) != 1 ? log.resid_norm(samp[1] * x - samp[2])^2 :  
-                                          log.resid_norm(dot(samp[1], x) - samp[2])^2 
+            res::Float64 = eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
+                log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2 
         else 
             res = log.resid_norm(A * x - b)^2 
         end
