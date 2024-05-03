@@ -15,3 +15,10 @@ LSStopMaxIterations
 LSStopThreshold
 LSStopMA
 ```
+
+## Stopping Function
+
+```@docs
+RLinearAlgebra.check_stop_criterion(log::LinSysSolverLog, stop::LinSysStopCriterion)
+
+```
