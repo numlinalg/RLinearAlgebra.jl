@@ -40,6 +40,18 @@ LinSysVecColProjPO
 LinSysVecColProjFO
 ```
 
+## Block Row Solver
+
+```
+LinSysBlkRowProj
+```
+
+## Block Column Solver
+
+```
+LinSysBlkColProj
+```
+
 ## Subsolver Function
 
 ```@docs
