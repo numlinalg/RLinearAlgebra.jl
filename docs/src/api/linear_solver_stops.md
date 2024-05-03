@@ -20,3 +20,4 @@ LSStopMA
 ```@docs
 check_stop_criterion
 ```
+
