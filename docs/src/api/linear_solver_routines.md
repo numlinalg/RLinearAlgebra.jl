@@ -13,11 +13,11 @@ LinSysVecRowProjection
 
 LinSysVecColProjection
 
-LinSysBlkRowProjection
-
-LinSysBlkColProjection
-
 LinSysPreconKrylov
+
+LinSysBlkRowProj
+
+LinSysBlkColProj
 ```
 
 ## Vector Row Solvers
