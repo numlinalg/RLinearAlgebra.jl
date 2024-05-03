@@ -13,6 +13,10 @@ LinSysVecRowProjection
 
 LinSysVecColProjection
 
+LinSysBlkRowProjection
+
+LinSysBlkColProjection
+
 LinSysPreconKrylov
 
 LinSysBlkRowProj
