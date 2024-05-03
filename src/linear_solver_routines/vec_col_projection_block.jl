@@ -7,7 +7,7 @@
 #using LinearAlgebra
 
 """
-    LinSysVecColBlockProj <: LinSysVecColProjection
+    LinSysBlkColProj <: LinSysVecColProjection
 
 A mutable structure that represents a standard block column projection method.
 
@@ -18,23 +18,23 @@ A mutable structure that represents a standard block column projection method.
 - `alpha::Float64`, a relaxation parameter that should be set between `0.0` and `2.0`
 - `G::GentData`, a buffer to store important information related to the Gentleman's 
 incremental QR least squares solver.
-Calling `LinSysVecColBlockProj()` defaults the relaxatoin parameter to `1.0`.
+Calling `LinSysBlkColProj()` defaults the relaxatoin parameter to `1.0`.
 
 """
-mutable struct LinSysVecColBlockProj <: LinSysVecColProjection
+mutable struct LinSysBlkColProj <: LinSysBlkColProjection 
     α::Float64
     G::Union{Nothing, GentData}
     update::Union{Nothing, AbstractArray}
 end
-LinSysVecColBlockProj(α) = LinSysVecColBlockProj(α, nothing, nothing)
+LinSysBlkColProj(α) = LinSysBlkColProj(α, nothing, nothing)
 
-LinSysVecColBlockProj() = LinSysVecColBlockProj(1.0, nothing, nothing)
+LinSysBlkColProj() = LinSysBlkColProj(1.0, nothing, nothing)
 
-BlockCoordinateDescent = LinSysVecColBlockProj
+BlockCoordinateDescent = LinSysBlkColProj
 
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
-    type::LinSysVecColBlockProj,
+    type::LinSysBlkColProj,
     x::AbstractVector,
     samp::Tuple{U,V,W,X} where {U<:Union{AbstractVector,AbstractMatrix},V<:AbstractArray,W<:AbstractVector,X<:AbstractVector},
     iter::Int64,

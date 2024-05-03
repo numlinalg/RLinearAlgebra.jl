@@ -13,8 +13,8 @@ b = randn(n)
 iter = 1000
 # Row random cyclic projection with block size 4
 sol = RLSSolver(
-    LinSysVecRowBlockRandCyclic(4),     # Random Cyclic Sampling
-    LinSysVecRowBlockProj(),            # Block row projection 
+    LinSysBlkRowRandCyclic(4),          # Random Cyclic Sampling
+    LinSysBlkRowProj(),                 # Block row projection 
     LSLogFullMA(),                      # Full Moving Average Logger: maintains moving average of residual history
     LSStopMaxIterations(iter),          # Maximum iterations stopping criterion
     nothing                             # System solution
@@ -25,8 +25,8 @@ println(plt)
 
 # Row random sampling with replacement projection with block size 4
 sol = RLSSolver(
-    LinSysVecRowBlockReplace(4),     # Random Cyclic Sampling
-    LinSysVecRowBlockProj(),            # Block row projection 
+    LinSysBlkRowReplace(4),             # Random Cyclic Sampling
+    LinSysBlkRowProj(),                 # Block row projection 
     LSLogFullMA(),                      # Full Moving Average Logger: maintains moving average of residual history
     LSStopMaxIterations(iter),          # Maximum iterations stopping criterion
     nothing                             # System solution
@@ -38,8 +38,8 @@ println(plt)
 
 # Row Gaussian sampling with block size 4
 sol = RLSSolver(
-    LinSysVecRowBlockGaussian(4),       # Block Gaussian Sampling
-    LinSysVecRowBlockProj(),            # Block row projection 
+    LinSysBlkRowGaussSampler(4),        # Block Gaussian Sampling
+    LinSysBlkRowProj(),                 # Block row projection 
     LSLogFullMA(),                      # Full Moving Average Logger: maintains moving average of residual history
     LSStopMaxIterations(iter),          # Maximum iterations stopping criterion
     nothing                             # System solution

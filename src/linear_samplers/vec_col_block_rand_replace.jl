@@ -1,5 +1,5 @@
 """
-    LinSysVecColBlockRandReplace <: LinSysVecColSelect
+    LinSysVecColBlockRandReplace <: LinSysBlkColSampler 
 
 A mutable structure with fields to handle randomly subset block sampling with replacement, also known as
 vanilla block randomized kaczmarz. 
@@ -11,18 +11,18 @@ vanilla block randomized kaczmarz.
 Calling `LinSysVecColBlockRandReplace()` defaults to setting `blockSize` to 2. The `sample`
 function will handle the re-initialization of the fields once the system is provided.
 """
-mutable struct LinSysVecColBlockReplace <: LinSysVecColSelect
+mutable struct LinSysBlkColReplace <: LinSysBlkColSampler 
     blockSize::Int64
     block::Vector{Int64}
 end
 
-LinSysVecColBlockReplace(blockSize, constantBlock) = LinSysVecColBlockReplace(blockSize, Int64[])
-LinSysVecColBlockReplace(blockSize) = LinSysVecColBlockReplace(blockSize, Int64[])
-LinSysVecColBlockReplace() = LinSysVecColBlockReplace(2, Int64[])
+LinSysBlkColReplace(blockSize, constantBlock) = LinSysBlkColReplace(blockSize, Int64[])
+LinSysBlkColReplace(blockSize) = LinSysBlkColReplace(blockSize, Int64[])
+LinSysBlkColReplace() = LinSysBlkColReplace(2, Int64[])
 
 # Common sample interface for linear systems
 function sample(
-    type::LinSysVecColBlockReplace,
+    type::LinSysBlkColReplace,
     A::AbstractArray,
     b::AbstractVector,
     x::AbstractVector,

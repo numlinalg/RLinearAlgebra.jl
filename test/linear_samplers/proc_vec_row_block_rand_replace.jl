@@ -1,7 +1,7 @@
 
 # This file is part of RLinearAlgebra.jl
 
-module ProceduralTestLSVRBlockReplace
+module ProceduralTestLSBRReplace
 
 using Test, RLinearAlgebra, Random
 
@@ -9,17 +9,17 @@ import LinearAlgebra: norm
 
 Random.seed!(1010)
 
-@testset "LSVR Block Random Sampling with Replacement -- Procedural" begin
+@testset "LSBR Random Sampling with Replacement -- Procedural" begin
 
     # Verify appropriate super type
-    @test supertype(LinSysVecRowBlockReplace) == LinSysVecRowSampler
+    @test supertype(LinSysBlkRowReplace) == LinSysBlkRowSampler
 
     # Test whether row ordering remains fixed
     A = rand(10,6)
     b = rand(10)
     x = rand(6)
 
-    cyc = LinSysVecRowBlockReplace()
+    cyc = LinSysBlkRowReplace()
 
     v, M, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
 

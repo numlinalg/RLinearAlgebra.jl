@@ -1,5 +1,5 @@
 """
-    LinSysVecColBlockRandCyclic <: LinSysVecColSelect
+    LinSysBlkColRandCyclic <: LinSysBlkColSampler 
 
 A mutable structure with fields to handle randomly permuted block sampling. Can allow for fixed
 blocks or blocks whose entries are randomly permuted. After each cycle, a new random ordering is
@@ -14,10 +14,10 @@ permuted.
 - `order::Vector{Int64}` - The order that the blocks will be used to generate updates.
 - `blocks::Vector{Int64}` - The list of all the columns in each block.
 
-Calling `LinSysVecColBlockRandCyclic()` defaults to setting `blockSize` to 2 and `constantBlock` to true. The `sample`
+Calling `LinSysBlkColRandCyclic()` defaults to setting `blockSize` to 2 and `constantBlock` to true. The `sample`
 function will handle the re-initialization of the fields once the system is provided.
 """
-mutable struct LinSysVecColBlockRandCyclic <: LinSysVecColSelect
+mutable struct LinSysBlkColRandCyclic <: LinSysBlkColSampler 
     blockSize::Int64
     constantBlock::Bool
     nBlocks::Int64
@@ -25,13 +25,13 @@ mutable struct LinSysVecColBlockRandCyclic <: LinSysVecColSelect
     blocks::Vector{Int64}
 end
 
-LinSysVecColBlockRandCyclic(blockSize, constantBlock) = LinSysVecColBlockRandCyclic(blockSize, constantBlock, 1, Int64[], Int64[])
-LinSysVecColBlockRandCyclic(blockSize) = LinSysVecColBlockRandCyclic(blockSize, true, 1, Int64[], Int64[])
-LinSysVecColBlockRandCyclic() = LinSysVecColBlockRandCyclic(2, true, 1,  Int64[], Int64[])
+LinSysBlkColRandCyclic(blockSize, constantBlock) = LinSysBlkColRandCyclic(blockSize, constantBlock, 1, Int64[], Int64[])
+LinSysBlkColRandCyclic(blockSize) = LinSysBlkColRandCyclic(blockSize, true, 1, Int64[], Int64[])
+LinSysBlkColRandCyclic() = LinSysBlkColRandCyclic(2, true, 1,  Int64[], Int64[])
 
 # Common sample interface for linear systems
 function sample(
-    type::LinSysVecColBlockRandCyclic,
+    type::LinSysBlkColRandCyclic,
     A::AbstractArray,
     b::AbstractVector,
     x::AbstractVector,

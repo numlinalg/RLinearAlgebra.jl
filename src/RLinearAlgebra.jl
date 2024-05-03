@@ -49,9 +49,9 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 #Vector Block Row Samplers
-export LinSysVecRowBlockGaussian, LinSysVecRowBlockRandCyclic, LinSysVecRowBlockReplace
+export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace
 #Vector Block Column Samplers
-export LinSysVecColBlockRandCyclic, LinSysVecColBlockGaussian, LinSysVecColBlockReplace
+export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace
 #*****************************************#
 # Linear Solver Routine Exports
 #*****************************************#
@@ -64,14 +64,14 @@ export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
 export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjFO
 
 # Vector Block Row Projection
-export LinSysVecRowBlockProj
+export LinSysBlkRowProj, BlockKaczmarz
 
 # Vector Column Projection
 export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
     LinSysVecColProjFO
 
 # Vector Block Column Projection
-export LinSysVecColBlockProj, BlockKaczmarz
+export LinSysBlkColProj, BlockCoordinateDescent 
 #*****************************************#
 # Linear Solver Log Exports
 #*****************************************#

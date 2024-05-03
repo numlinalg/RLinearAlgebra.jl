@@ -7,7 +7,7 @@
 #using LinearAlgebra
 
 """
-    LinSysVecRowBlockProj <: LinSysVecRowProjection
+    LinSysBlkRowProj <: LinSysVecRowProjection
 
 A mutable structure that represents a standard block row projection method.
 
@@ -17,21 +17,21 @@ A mutable structure that represents a standard block row projection method.
 # Fields
 - `alpha::Float64`, a relaxation parameter that should be set between `0.0` and `2.0`
 - `update::Union{Nothing, AbstractArray}` - A buffer for storing update.
-Calling `LinSysVecColBlockProj()` defaults the relaxatoin parameter to `1.0`.
+Calling `LinSysBlkRowProj()` defaults the relaxatoin parameter to `1.0`.
 
 """
-mutable struct LinSysVecRowBlockProj <: LinSysVecRowProjection
+mutable struct LinSysBlkRowProj <: LinSysBlkRowProjection 
     α::Float64
     update::Union{Nothing, AbstractArray}
 end
-LinSysVecRowBlockProj(α) = LinSysVecRowBlockProj(α, nothing)
+LinSysBlkRowProj(α) = LinSysBlkRowProj(α, nothing)
 
-LinSysVecRowBlockProj() = LinSysVecRowBlockProj(1.0, nothing)
+LinSysBlkRowProj() = LinSysBlkRowProj(1.0, nothing)
 
-BlockKaczmarz = LinSysVecRowBlockProj
+BlockKaczmarz = LinSysBlkRowProj
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
-    type::LinSysVecRowBlockProj,
+    type::LinSysBlkRowProj,
     x::AbstractVector,
     samp::Tuple{U,V,W} where {U<:Union{AbstractVector,AbstractMatrix},V<:AbstractArray,W<:AbstractVector},
     iter::Int64,

@@ -1,22 +1,22 @@
 # This file is part of RLinearAlgebra.jl
 
-module ProceduralTestLSVCBlockGaussSampler
+module ProceduralTestLSBCGaussSampler
 
 using Test, RLinearAlgebra, Random, LinearAlgebra
 
 Random.seed!(1010)
 
-@testset "LSVC Block Gaussian Sampling -- Procedural" begin
+@testset "LSBC Gaussian Sampling -- Procedural" begin
 
     # Verify appropriate super type
-    @test supertype(LinSysVecColBlockGaussian) == LinSysVecColSampler
+    @test supertype(LinSysBlkColGaussSampler) == LinSysBlkColSampler 
 
     # Test construction
     A = rand(5,10)
     b = rand(5)
     x = rand(10)
 
-    samp = LinSysVecColBlockGaussian()
+    samp = LinSysBlkColGaussSampler()
 
     S, AS, grad, res  = RLinearAlgebra.sample(samp, A, b, x, 1)
 

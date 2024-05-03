@@ -1,13 +1,13 @@
 # This file is part of RLinearAlgebra.jl
 
-module ProceduralTestLSVCProjStd
+module ProceduralTestLSBCProj
 
 using Test, RLinearAlgebra, LinearAlgebra, Random
 
-@testset "LSVC Projection Block -- Procedural" begin
+@testset "LSBC Projection -- Procedural" begin
     # Supertype and aliases
-    @test supertype(LinSysVecColProjStd) == LinSysVecColProjection
-    @test CoordinateDescent == LinSysVecColProjStd
+    @test supertype(LinSysBlkColProj) == LinSysBlkColProjection 
+    @test BlockCoordinateDescent == LinSysBlkColProj 
 
     # Verify that the residual projection is zero
     Random.seed!(1010)
@@ -16,7 +16,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     x = rand(10)
     b = A * x
 
-    rsub = LinSysVecColBlockProj()
+    rsub = LinSysBlkColProj()
     for i = 1:5
         @test let
             # Initialization of iteration

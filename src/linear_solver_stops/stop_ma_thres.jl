@@ -89,8 +89,9 @@ for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,LinSysVecRowProp
              LinSysVecRowSVSampler, LinSysVecRowUnidSampler,
              LinSysVecRowOneRandCyclic, LinSysVecRowDistCyclic,
              LinSysVecRowResidCyclic, LinSysVecRowMaxResidual,
-             LinSysVecRowRandCyclic, LinSysVecRowBlockRandCyclic,
-             LinSysVecRowMaxDistance)
+             LinSysVecRowRandCyclic, LinSysBlkRowRandCyclic,
+             LinSysVecRowMaxDistance, LinSysBlkRowReplace, 
+             LinSysBlkColReplace)
     @eval begin
         function get_SE_constants!(log::LSLogFullMA, sampler::Type{$type})
             log.sigma2 = log.max_dimension^2 / (4 * log.block_dimension^2 * log.eta)
@@ -102,7 +103,7 @@ end
 
 
 #Column subsetting methods have same constants as in row case
-for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic, LinSysVecColBlockRandCyclic)
+for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic, LinSysBlkColRandCyclic, LinSysBlkColReplace)
     @eval begin
         function get_SE_constants!(log::LSLogFullMA, sampler::Type{$type})
             log.sigma2 = log.max_dimension^2 / (4 * log.block_dimension^2 * log.eta)
@@ -124,7 +125,7 @@ for type in (LinSysVecRowGaussSampler, LinSysVecRowSparseGaussSampler)
 
 end
 # For row and column samplers with gaussian sampling we have sigma2 = blockDimension/.2345 and omega = .1127
-for type in (LinSysVecRowBlockGaussian, LinSysVecRowBlockGaussian)
+for type in (LinSysBlkRowGaussSampler, LinSysBlkColGaussSampler)
     @eval begin
         function get_SE_constants!(log::LSLogFullMA, sampler::Type{$type})
             log.sigma2 = log.block_dimension / (0.2345 * log.eta)

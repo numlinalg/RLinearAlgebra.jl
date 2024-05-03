@@ -1,22 +1,22 @@
 # This file is part of RLinearAlgebra.jl
 
-module ProceduralTestLSVRBlockRandCyclic
+module ProceduralTestLSBRRandCyclic
 
 using Test, RLinearAlgebra, Random
 
 Random.seed!(1010)
 
-@testset "LSVR Block Random Cyclic -- Procedural" begin
+@testset "LSBR Random Cyclic -- Procedural" begin
 
     # Verify appropriate super type
-    @test supertype(LinSysVecRowBlockRandCyclic) == LinSysVecRowSampler
+    @test supertype(LinSysBlkRowRandCyclic) == LinSysBlkRowSampler
 
     # Test whether row ordering remains fixed
     A = rand(10,6)
     b = rand(10)
     x = rand(6)
 
-    cyc = LinSysVecRowBlockRandCyclic()
+    cyc = LinSysBlkRowRandCyclic()
 
     v, M, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
 

@@ -1,5 +1,5 @@
 """
-    LinSysVecRowBlockGaussian <: LinSysVecRowSelect
+    LinSysBlkRowGaussSampler <: LinSysBlkRowSampler
 
 A mutable structure with fields to handle Guassian row sketching. 
 
@@ -8,20 +8,20 @@ A mutable structure with fields to handle Guassian row sketching.
 - `sketchMatrix::Union{AbstractMatrix, Nothing}` - The buffer for storing the Gaussian sketching matrix.
 - `scaling::Float64` - The variance of the sketch, is set to be s/n.
 
-Calling `LinSysVecRowBlockGaussian()` defaults to setting `blockSize` to 2.
+Calling `LinSysBlkRowGaussSampler()` defaults to setting `blockSize` to 2.
 """
-mutable struct LinSysVecRowBlockGaussian <: LinSysVecRowSelect
+mutable struct LinSysBlkRowGaussSampler <: LinSysBlkRowSampler
     blockSize::Int64
     sketchMatrix::Union{AbstractMatrix, Nothing}
     scaling::Float64
 end
 
-LinSysVecRowBlockGaussian(blockSize) = LinSysVecRowBlockGaussian(blockSize, nothing, 0.0)
-LinSysVecRowBlockGaussian() = LinSysVecRowBlockGaussian(2, nothing, 0.0)
+LinSysBlkRowGaussSampler(blockSize) = LinSysBlkRowGaussSampler(blockSize, nothing, 0.0)
+LinSysBlkRowGaussSampler() = LinSysBlkRowGaussSampler(2, nothing, 0.0)
 
 # Common sample interface for linear systems
 function sample(
-    type::LinSysVecRowBlockGaussian,
+    type::LinSysBlkRowGaussSampler,
     A::AbstractArray,
     b::AbstractVector,
     x::AbstractVector,
