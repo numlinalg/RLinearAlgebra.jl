@@ -24,7 +24,7 @@ where $\lambda$ is the width of the moving average window.
 
 
 This tracking technique can be used in RLinearAlgebra.jl with the log option
-`LSLogFullMA()` when defining the solver, with a default moving average width of 30.
+[`LSLogFullMA()`](@ref) when defining the solver, with a default moving average width of 30.
 ```julia
 using RLinearAlgebra
 
@@ -47,7 +47,7 @@ sol = rsolve(solver, A, b)
 ```
 ## Understanding how to use the estimator
 The user is able to choose their own width of the moving average by inputting 
-`lambda2=USER_WIDTH` as an option within `LSLogFullMA()`. Increasing the width
+`lambda2=USER_WIDTH` as an option within [`LSLogFullMA()`](@ref). Increasing the width
 will decrease the variability of the progress estimate and therefore is a suggested
 action when the matrix is poorly conditioned or has highly variable magnitude of row 
 norms. However, in most cases the default option of 30 should be  sufficient for reasonable tracking. 
@@ -56,16 +56,16 @@ In most cases, it is desirable to in fact use two widths for
 the moving average estimator because often at early iterations
 much of the observed variability in the residuals arises from the 
 fast convergence of the algorithm. As this variability is primarily because of convergence properties rather than randomness, it is undesirable to smooth this out. Thus, it makes 
-sense in this phase to use a smaller moving average width, $\lambda_1$, which should typically be set to 1 (the user can change using the option `lambda1=SMALLER_WIDTH` in `LSLogFullMA()`). Once the 
+sense in this phase to use a smaller moving average width, $\lambda_1$, which should typically be set to 1 (the user can change using the option `lambda1=SMALLER_WIDTH` in [`LSLogFullMA()`](@ref)). Once the 
 algorithm leaves this fast convergence phase it, then the wider moving average window should be used. This switch is determined to
 be the point where there is no longer monotonic decreases in the norm of the sketched residual. 
 
 If the user wants to compare the performance of the moving average of the sketched residuals to 
-that of the true residuals then it is possible to input the option `true_res=true` into `LSLogFullMA()`. This will 
+that of the true residuals then it is possible to input the option `true_res=true` into [`LSLogFullMA()`](@ref). This will 
 perform the same moving average tracking procedure, but use the true residual rather than the sketched one.
 
 Finally, if the user wants to get uncertainty sets for the sketched residual tracking they can use
-the function `get_uncertainty()`, whose use is demonstrated below. 
+the function [`get_uncertainty()`](@ref), whose use is demonstrated below. 
 For the uncertainty sets, the user can specify `alpha`, which indicates the probability that the moving average of the 
 true residuals falls within outputted interval. 
 
@@ -98,12 +98,12 @@ bounds = get_uncertainty(sol.log, alpha = .99)
 **Note:
 If the user is using a subset of identity type sampling method these uncertainty sets will perform conservatively
     because of a poor variance estimate. The user can reduce this conservativeness using the option $\eta=w$ in 
-    the `LSLogFullMA()` settings for the solver, where w is a positive real number that divides the estimated variance of the set.**
+    the [`LSLogFullMA()`](@ref) settings for the solver, where w is a positive real number that divides the estimated variance of the set.**
 
 ## Stopping
 In addition to being able to form the uncertainty sets, Pritchard and Patel also proposed a criterion for
 stopping when using the sketched moving average estimator. `RLinearAlgebra.jl` allows for the specification 
-these methods this can be done using `LSStopMA().` To understand the stopping criterion, it is valuable
+these methods this can be done using [`LSStopMA()`](@ref). To understand the stopping criterion, it is valuable
 to define some notation. If we allow $\rho_k^\lambda$ be the moving average of the true residuals, and 
 $\hat \rho_k^\lambda$ be the moving average of the sketched residuals then two types of errors can occur.  
 

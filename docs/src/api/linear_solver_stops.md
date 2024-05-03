@@ -5,18 +5,21 @@ Pages=["linear_solver_stops.md"]
 ```
 
 ## Abstract Types
+
 ```@docs
 LinSysStopCriterion
 ```
 
 ## Stopping Criteria
+
 ```@docs
 LSStopMaxIterations
 LSStopThreshold
 LSStopMA
 ```
 
-## Check Stopping Criterion Function
+## Stopping Function 
+
 ```@docs
-check_stop_criterion
-```
+RLinearAlgebra.check_stop_criterion(log::LinSysSolverLog, stop::LinSysStopCriterion) 
+```        
