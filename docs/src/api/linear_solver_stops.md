@@ -15,8 +15,3 @@ LSStopMaxIterations
 LSStopThreshold
 LSStopMA
 ```
-
-## Check Stopping Criterion Function
-```@docs
-RLinearAlgebra.check_stop_criterion
-```
