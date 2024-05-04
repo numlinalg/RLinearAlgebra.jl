@@ -14,6 +14,8 @@ A structure that specifies a stopping criterion that incoroporates the randomnes
     mistake. This is equivalent to stopping too early.
 - `chi1::Float64`, the probability that the stopping too late action occurs.
 - `chi2::Float64`, the probability that the stopping too early action occurs.
+# Constructors
+- Calling LSStopMA(iter) will specify the users desired maximum number of iterations, threshold = 1e-10, delta1 = .9, delta2 = 1.1, chi1 = 0.01, and chi2 = 0.01.
 """
 mutable struct LSStopMA <: LinSysStopCriterion
     max_iter::Int64
@@ -34,7 +36,7 @@ LSStopMA(iter;
 
 # Common interface for stopping criteria
 function check_stop_criterion(
-    log::LSLogFullMA,
+    log::LSLogMA,
     stop::LSStopMA
 )
     its = log.iterations
@@ -48,8 +50,8 @@ function check_stop_criterion(
     return (thresholdChecks || its == stop.max_iter ? true : false)
 end
 
-# Once the sigma2 is known function computest the threshold
-function iota_threshold(hist::LSLogFullMA, stop::LSStopMA)
+# Once the sigma2 is known function computes the threshold for stopping
+function iota_threshold(hist::LSLogMA, stop::LSStopMA)
     delta1 = stop.delta1
     delta2 = stop.delta2
     chi1 = stop.chi1
@@ -57,23 +59,23 @@ function iota_threshold(hist::LSLogFullMA, stop::LSStopMA)
     threshold = stop.threshold
     lambda = hist.ma_info.lambda
     # If the constants for the sub-Exponential distribution are not defined then define them
-    if typeof(hist.sigma2) <: Nothing
-        get_SE_constants!(hist, hist.sampler)
-    end
     
+    if typeof(hist.dist_info.sigma2) <: Nothing
+        get_SE_constants!(hist, hist.dist_info.sampler)
+    end
     #If there is an omega in the sub-Exponential distribution then skip that calculation 
-    if typeof(hist.omega) <: Nothing
+    if typeof(hist.dist_info.omega) <: Nothing
         # Compute the threshold bound in the case where there is no omega
         c = min((1 - delta1)^2 * threshold^2 / (2 * log(1/chi1)), (delta2 - 1)^2 * 
                 threshold^2 / (2 * log(1/chi2)))
-        c /= (hist.sigma2 * sqrt(hist.iota_hist[hist.iterations])) * (1 + log(lambda)) / lambda
+        c /= (hist.dist_info.sigma2 * sqrt(hist.iota_hist[hist.iterations])) * (1 + log(lambda)) / lambda
     else
         #compute error bound when there is an omega
-        siota = (hist.sigma2 * sqrt(hist.iota_hist[hist.iterations])) * (1 + log(lambda)) / lambda
+        siota = (hist.dist_info.sigma2 * sqrt(hist.iota_hist[hist.iterations])) * (1 + log(lambda)) / lambda
         min1 = min((1 - delta1)^2 * threshold^2 / (2 * log(1/chi1) * siota),
-                   lambda * (1 - delta1) * threshold / (2 * log(1/chi1) * hist.omega))
+                   lambda * (1 - delta1) * threshold / (2 * log(1/chi1) * hist.dist_info.omega))
         min2 = min((delta2 - 1)^2 * threshold^2 / (2 * log(1/chi2) * siota),
-                   lambda * (delta2 - 1) * threshold / (2 * log(1/chi2) * hist.omega))
+                   lambda * (delta2 - 1) * threshold / (2 * log(1/chi2) * hist.dist_info.omega))
         c = min(min1, min2) 
     end
 
@@ -81,46 +83,3 @@ function iota_threshold(hist::LSLogFullMA, stop::LSStopMA)
 
 end
 
-# Get the sub-Exponential constants for each of the samplers.
-# For the direct row samplers the constants will be just nrows^2 / (4 eta),
-# where eta is a user controlled parameter to tighten the variance bound.
-
-for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,LinSysVecRowPropToNormSampler,
-             LinSysVecRowSVSampler, LinSysVecRowUnidSampler,
-             LinSysVecRowOneRandCyclic, LinSysVecRowDistCyclic,
-             LinSysVecRowResidCyclic, LinSysVecRowMaxResidual,
-             LinSysVecRowRandCyclic,
-             LinSysVecRowMaxDistance)
-    @eval begin
-        function get_SE_constants!(log::LSLogFullMA, sampler::Type{$type})
-            log.sigma2 = log.max_dimension^2 / (4 * log.eta)
-        end
-
-    end
-
-end
-
-
-#Column subsetting methods have same constants as in row case
-for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
-    @eval begin
-        function get_SE_constants!(log::LSLogFullMA, sampler::Type{$type})
-            log.sigma2 = log.max_dimension^2 / (4 * log.eta)
-        end
-
-    end
-
-end
-
-# For row samplers with gaussian sampling we have sigma2 = 1/.2345 and omega = .1127
-for type in (LinSysVecRowGaussSampler, LinSysVecRowSparseGaussSampler)
-    @eval begin
-        function get_SE_constants!(log::LSLogFullMA, sampler::Type{$type})
-            log.sigma2 = 1 / (0.2345 * log.eta)
-            log.omega = .1127
-        end
-
-    end
-
-end
-# Need to implement this for the uniform sampling

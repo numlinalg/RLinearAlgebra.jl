@@ -15,14 +15,14 @@ iter = 1000
 sol_approximate = RLSSolver(
     LinSysVecRowRandCyclic(),   # Random Cyclic Sampling
     LinSysVecRowProjPO(),       # Partially Orthogonalized Row Projection, 5 vector memory
-    LSLogFullMA(),              # Full Moving Average Logger: maintains moving average of residual history
+    LSLogMA(),              # Full Moving Average Logger: maintains moving average of residual history
     LSStopMaxIterations(iter),  # Maximum iterations stopping criterion
     nothing                     # System solution
 )
 sol_exact = RLSSolver(
     LinSysVecRowRandCyclic(),   # Random Cyclic Sampling
     LinSysVecRowProjPO(),       # Partially Orthogonalized Row Projection, 5 vector memory
-    LSLogFullMA(true_res = true), # Full Moving Average Logger: maintains moving average of exact residual history
+    LSLogMA(true_res = true), # Full Moving Average Logger: maintains moving average of exact residual history
     LSStopMaxIterations(iter),  # Maximum iterations stopping criterion
     nothing                     # System solution
 )
@@ -43,8 +43,8 @@ plt = lineplot(1:length(bounds[2]),
 println(plt)
 
 
-plt = lineplot(1:length(bounds[2]), 
-               abs.(bounds[1] - sol_exact.log.resid_hist),
+plt = lineplot(2:length(bounds[2]), 
+               abs.(bounds[1][2:end] - sol_exact.log.resid_hist[2:end]),
                yscale = :log10,
                xlabel = "Iteration", 
                ylabel = "Estimate", 

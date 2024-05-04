@@ -18,7 +18,7 @@ LSLogOracle
 
 LSLogFull
 
-LSLogFullMA
+LSLogMA
 ```
 
 ## Log Function
@@ -32,4 +32,12 @@ RLinearAlgebra.log_update!(::Nothing,::LinSysSampler,::AbstractVector,::Tuple,
 
 ```@docs
 RLinearAlgebra.get_uncertainty(::LSLogFullMA; alpha = .05)
+```
+
+## Internal Data Structures
+
+```@docs
+MAInfo
+
+DistInfo
 ```
