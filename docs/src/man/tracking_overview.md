@@ -14,12 +14,12 @@ knowing the quality of the solution is integral for being able to make appropria
 These cost could be avoided by computing the sketched
 residual, i.e. $\|S A x - Sb\|_2^2$, but at the cost exact knowledge of 
 progress. To reduce this randomness Pritchard and Patel propose using 
-a moving average of the sketched residuals in "Solving, Tracking 
-and Stopping Streaming Linear Inverse Problems." Specifically they define
+a moving average of the sketched residuals in ["Solving, Tracking 
+and Stopping Streaming Linear Inverse Problems."](https://arxiv.org/abs/2201.05741) Specifically they define
 the progress estimator 
-$$
+$
     \hat \rho_k^\lambda = \sum_{i-\lambda +1}^k \frac{\|S_i A x - S_ib\|_2^2}{\lambda},
-$$  
+$  
 where $\lambda$ is the width of the moving average window. 
 
 
@@ -85,7 +85,7 @@ b = A * x;
 solver = RLSSolver(
     LinSysVecRowRandCyclic(),   # Random Cyclic Sampling
     LinSysVecRowProjStd(),      # Hyperplane projection
-    LSLogMA(lambda_2 = 100),# Full Logger: maintains moving average residual history
+    LSLogMA(lambda_2 = 100),    # Full Logger: maintains moving average residual history
     LSStopMaxIterations(200),   # Maximum iterations stopping criterion
     nothing                     # System solution (not solved yet)
 );
@@ -140,11 +140,11 @@ b = A * x;
 
 # Specify solver
 solver = RLSSolver(
-    LinSysVecRowRandCyclic(),   # Random Cyclic Sampling
-    LinSysVecRowProjStd(),      # Hyperplane projection
-    LSLogMA(lambda_2 = 100),# Full Logger: maintains moving average residual history
+    LinSysVecRowRandCyclic(),       # Random Cyclic Sampling
+    LinSysVecRowProjStd(),          # Hyperplane projection
+    LSLogMA(lambda_2 = 100),        # Full Logger: maintains moving average residual history
     LSStopMA(1000, upsilon=1e-3),   # Maximum iterations stopping criterion
-    nothing                     # System solution (not solved yet)
+    nothing                         # System solution (not solved yet)
 );
 
 # Solve the system

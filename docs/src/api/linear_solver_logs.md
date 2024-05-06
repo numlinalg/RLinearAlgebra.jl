@@ -24,8 +24,7 @@ LSLogMA
 ## Log Function
 
 ```@docs
-RLinearAlgebra.log_update!(::Nothing,::LinSysSampler,::AbstractVector,::Tuple,
-  ::Int64,::Any,::Any)
+RLinearAlgebra.log_update!(::Nothing,::LinSysSampler,::AbstractVector,::Tuple,::Int64,::Any,::Any)
 ```
 
 ## Log Specific Functions
@@ -40,4 +39,11 @@ RLinearAlgebra.get_uncertainty(::LSLogMA; alpha = .05)
 RLinearAlgebra.MAInfo
 
 RLinearAlgebra.DistInfo
+```
+
+## Internal Functions
+```@docs
+RLinearAlgebra.update_ma!
+
+RLinearAlgebra.get_SE_constants!
 ```
