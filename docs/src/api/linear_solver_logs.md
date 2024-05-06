@@ -37,7 +37,7 @@ RLinearAlgebra.get_uncertainty(::LSLogMA; alpha = .05)
 ## Internal Data Structures
 
 ```@docs
-MAInfo
+RLinearAlgebra.MAInfo
 
-DistInfo
+RLinearAlgebra.DistInfo
 ```
