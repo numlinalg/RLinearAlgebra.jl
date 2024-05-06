@@ -34,3 +34,10 @@ RLinearAlgebra.log_update!(::Nothing,::LinSysSampler,::AbstractVector,::Tuple,
 RLinearAlgebra.get_uncertainty(::LSLogMA; alpha = .05)
 ```
 
+## Internal Data Structures
+
+```@docs
+MAInfo
+
+DistInfo
+```
