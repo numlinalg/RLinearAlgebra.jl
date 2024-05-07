@@ -83,3 +83,8 @@ LinSysBlkColRandCyclic
 RLinearAlgebra.sample(::Nothing,::AbstractArray,::AbstractVector,
     ::AbstractVector,::Int64)
 ```
+
+## Internal Functions
+```@docs
+RLinearAlgebra.update_sol!
+```

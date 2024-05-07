@@ -18,18 +18,32 @@ LSLogOracle
 
 LSLogFull
 
-LSLogFullMA
+LSLogMA
 ```
 
 ## Log Function
 
 ```@docs
-RLinearAlgebra.log_update!(::Nothing,::LinSysSampler,::AbstractVector,::Tuple,
-  ::Int64,::Any,::Any)
+RLinearAlgebra.log_update!(::Nothing,::LinSysSampler,::AbstractVector,::Tuple,::Int64,::Any,::Any)
 ```
 
 ## Log Specific Functions
 
 ```@docs
-RLinearAlgebra.get_uncertainty(::LSLogFullMA; alpha = .05)
+RLinearAlgebra.get_uncertainty(::LSLogMA; alpha = .05)
+```
+
+## Internal Data Structures
+
+```@docs
+RLinearAlgebra.MAInfo
+
+RLinearAlgebra.DistInfo
+```
+
+## Internal Functions
+```@docs
+RLinearAlgebra.update_ma!
+
+RLinearAlgebra.get_SE_constants!
 ```

@@ -97,31 +97,25 @@ mutable struct LSLogMA <: LinSysSolverLog
     dist_info::DistInfo
 end
 
-LSLogMA() = LSLogMA(
-                    1,
-                    MAInfo(1, 30, 1, false, 1, zeros(30)),
+LSLogMA(;
+        cr = 1, 
+        lambda1 = 1, 
+        lambda2 = 30, 
+        sigma2 = nothing, 
+        omega = nothing, 
+        eta = 1, 
+        true_res = false
+       ) = LSLogMA( cr,
+                    MAInfo(1, lambda2, 1, false, 1, zeros(lambda2)),
                     Float64[], 
                     Float64[], 
                     Int64[],
                     norm, 
                     -1, 
                     false,
-                    false,
-                    DistInfo(nothing, 0, 0, nothing, nothing, 1)
-                    )
-
-LSLogMA(;lambda1 = 1, lambda2 = 30, sigma2 = nothing, omega = nothing, eta = 1, true_res = false) = LSLogMA(
-                          1,
-                          MAInfo(1, lambda2, 1, false, 1, zeros(lambda2)),
-                          Float64[], 
-                          Float64[], 
-                          Int64[],
-                          norm, 
-                          -1, 
-                          false,
-                          true_res,
-                          DistInfo(nothing, 0, 0, sigma2, omega, eta) 
-                         )
+                    true_res,
+                    DistInfo(nothing, 0, 0, sigma2, omega, eta) 
+                  )
 
 #Function to update the moving average
 function log_update!(
@@ -138,17 +132,17 @@ function log_update!(
         if sum(supertype(typeof(sampler)) .<: [LinSysVecRowSampler, LinSysVecRowSketch, LinSysVecRowSelect]) > 1
             log.dist_info.max_dimension = size(A,1)
             log.dist_info.block_dimension = 1 
-        elseif sum(supertype(typeof(sampler)) .<: [LinSysBlkRowSampler, LinSysBlkRowSketch, LinSysBlkRowSelect])
+        elseif sum(supertype(typeof(sampler)) .<: [LinSysBlkRowSampler, LinSysBlkRowSketch, LinSysBlkRowSelect]) > 1
             log.dist_info.max_dimension = size(A,1)
             # For the block methods samp[3] is always the sketched residual, its length is block size
-            log.dist_info.block_dimension = length(samp[3])
+            log.dist_info.block_dimension = sampler.blockSize 
         elseif sum(supertype(typeof(sampler)) .<: [LinSysVecColSampler, LinSysVecColSketch, LinSysVecColSelect]) > 1
             log.dist_info.max_dimension = size(A,1)
             log.dist_info.block_dimension = 1 
         else
             log.dist_info.max_dimension = size(A,1)
             # For the block methods samp[3] is always the sketched residual, its length is block size
-            log.dist_info.block_dimension = length(samp[3])
+            log.dist_info.block_dimension = sampler.blockSize
         end
         
         log.dist_info.sampler = typeof(sampler)  
@@ -171,13 +165,13 @@ function log_update!(
     end
     # Check if MA is in lambda1 or lambda2 regime
     if ma_info.flag
-        update_ma!(log, ma_info, res, ma_info.lambda2, iter)
+        update_ma!(log, res, ma_info.lambda2, iter)
     else
         #Check if we can switch between lambda1 and lambda2 regime
         if res < ma_info.res_window[ma_info.idx]
-            update_ma!(log, ma_info, res, ma_info.lambda1, iter)
+            update_ma!(log, res, ma_info.lambda1, iter)
         else
-            update_ma!(log, ma_info, res, ma_info.lambda1, iter)
+            update_ma!(log, res, ma_info.lambda1, iter)
             ma_info.flag = true 
         end
 
@@ -185,12 +179,29 @@ function log_update!(
 
 
 end
+"""
+    update_ma!(
+        log::LSLogMA, 
+        res::Union{AbstractVector, Real}, 
+        lambda_base::Int64, 
+        iter::Int64
+    ) 
 
-# Update the moving average estimator requires the log variable, ma_info,
-# observed residual, and a lambda_base which corresponds to which lambda regime we are in. 
-function update_ma!(log::LSLogMA, ma_info::MAInfo, res::Union{AbstractVector, Real}, lambda_base::Int64, iter::Int64)
+Function that updates the moving average tracking statistic. This function is not exported and thus the user has no direct access. 
+
+# Inputs
+- `log::LSLogMA`, the moving average log structure.
+- `res::Union{AbstractVector, Real}, the residual for the current iteration. This could be sketeched or full residual depending on the inputs when creating the log structor.
+-`lambda_base::Int64`, which lambda, between lambda1 and lambda2, is currently being used.
+-`iter::Int64`, the current iteration.
+
+# Outputs
+Performs and inplace update of the log datatype.
+"""
+function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base::Int64, iter::Int64)
     accum = 0
     accum2 = 0
+    ma_info = log.ma_info
     ma_info.idx = ma_info.idx < ma_info.lambda2 ? ma_info.idx + 1 : 1
     ma_info.res_window[ma_info.idx] = res
     #Check if entire storage buffer can be used
@@ -284,11 +295,23 @@ function get_uncertainty(hist::LSLogMA; alpha = .95)
 
 end
 
-# Get the sub-Exponential constants for each of the samplers.
-# For the direct row samplers the constants will be just nrows^2 / (4 eta),
-# where eta is a user controlled parameter to tighten the variance bound.
+"""
+    get_SE_constants!(log::LSLogMA, sampler::Type{T<:LinSysSampler})
 
-for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,LinSysVecRowPropToNormSampler,
+A function that returns a default set of sub-Exponential constants for each sampling method. This function is not exported and thus the user does not have direct access to it. 
+
+# Inputs 
+- `log::LSLogMA`, the log containing al the tracking information.
+- `sampler::Type{LinSysSampler}`, the type of sampler being used.
+
+# Outputs
+Performs an inplace update of the sub-Exponential constants for the log.
+"""
+function get_SE_constants!(log::LSLogMA, sampler::Type{T}) where T<:LinSysSampler
+    return nothing
+end
+
+for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
              LinSysVecRowSVSampler, LinSysVecRowUnidSampler,
              LinSysVecRowOneRandCyclic, LinSysVecRowDistCyclic,
              LinSysVecRowResidCyclic, LinSysVecRowMaxResidual,

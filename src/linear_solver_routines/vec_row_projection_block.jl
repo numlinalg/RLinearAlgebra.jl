@@ -11,8 +11,8 @@ A mutable structure that represents a standard block row projection method.
 # Fields
 - `alpha::Float64`, a relaxation parameter that should be set between `0.0` and `2.0`
 - `update::Union{Nothing, AbstractArray}` - A buffer for storing update.
-Calling `LinSysBlkRowProj()` defaults the relaxatoin parameter to `1.0`.
 
+Calling `LinSysBlkRowProj()` defaults the relaxatoin parameter to `1.0`.
 """
 mutable struct LinSysBlkRowProj <: LinSysBlkRowProjection 
     α::Float64

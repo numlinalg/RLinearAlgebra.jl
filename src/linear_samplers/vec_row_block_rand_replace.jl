@@ -1,5 +1,5 @@
 """
-    LinSysVecRowBlockRandReplace <: LinSysBlkRowSampler 
+    LinSysBlkRowReplace <: LinSysBlkRowSampler 
 
 A mutable structure with fields to handle randomly subset block sampling with replacement, also known as
 vanilla block randomized kaczmarz. 
@@ -8,7 +8,7 @@ vanilla block randomized kaczmarz.
 - `blockSize::Int64` - Specifies the size of each block.
 - `block::Vector{Int64}` - The list of all the rows in each block.
 
-Calling `LinSysVecColBlockRandReplace()` defaults to setting `blockSize` to 2. The `sample`
+Calling `LinSysBlkRowReplace()` defaults to setting `blockSize` to 2. The `sample`
 function will handle the re-initialization of the fields once the system is provided.
 """
 mutable struct LinSysBlkRowReplace <: LinSysBlkRowSampler
@@ -16,7 +16,6 @@ mutable struct LinSysBlkRowReplace <: LinSysBlkRowSampler
     block::Vector{Int64}
 end
 
-LinSysBlkRowReplace(blockSize, constantBlock) = LinSysBlkRowReplace(blockSize, Int64[])
 LinSysBlkRowReplace(blockSize) = LinSysBlkRowReplace(blockSize, Int64[])
 LinSysBlkRowReplace() = LinSysBlkRowReplace(2, Int64[])
 

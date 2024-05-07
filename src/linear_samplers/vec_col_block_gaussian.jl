@@ -43,7 +43,3 @@ function sample(
     return type.sketchMatrix, SA, grad, res
 end
 
-#Function to update the solution 
-function update_sol!(x::AbstractVector, update::AbstractVector, S::Matrix{Float64}, α::Real)
-    x .-= α .* S * update
-end

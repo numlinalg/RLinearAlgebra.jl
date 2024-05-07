@@ -12,7 +12,8 @@ A mutable structure that represents a standard block column projection method.
 - `alpha::Float64`, a relaxation parameter that should be set between `0.0` and `2.0`
 - `G::GentData`, a buffer to store important information related to the Gentleman's 
 incremental QR least squares solver.
-Calling `LinSysBlkColProj()` defaults the relaxatoin parameter to `1.0`.
+
+Calling the constructor `LinSysBlkColProj()` defaults the relaxation parameter to `1.0`.
 
 """
 mutable struct LinSysBlkColProj <: LinSysBlkColProjection 

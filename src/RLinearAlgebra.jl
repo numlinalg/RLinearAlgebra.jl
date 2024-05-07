@@ -76,7 +76,7 @@ export LinSysBlkColProj, BlockCoordinateDescent
 # Linear Solver Log Exports
 #*****************************************#
 export LinSysSolverLog
-export LSLogOracle, LSLogFull, LSLogFullMA
+export LSLogOracle, LSLogFull, LSLogMA
 export get_uncertainty
 #*****************************************#
 # Linear Solver Stopping Criteria Exports

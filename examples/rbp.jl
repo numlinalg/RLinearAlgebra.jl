@@ -15,7 +15,7 @@ iter = 1000
 sol = RLSSolver(
     LinSysBlkRowRandCyclic(4),          # Random Cyclic Sampling
     LinSysBlkRowProj(),                 # Block row projection 
-    LSLogFullMA(),                      # Full Moving Average Logger: maintains moving average of residual history
+    LSLogMA(),                          # Full Moving Average Logger: maintains moving average of residual history
     LSStopMaxIterations(iter),          # Maximum iterations stopping criterion
     nothing                             # System solution
 )
@@ -27,7 +27,7 @@ println(plt)
 sol = RLSSolver(
     LinSysBlkRowReplace(4),             # Random Cyclic Sampling
     LinSysBlkRowProj(),                 # Block row projection 
-    LSLogFullMA(),                      # Full Moving Average Logger: maintains moving average of residual history
+    LSLogMA(),                          # Full Moving Average Logger: maintains moving average of residual history
     LSStopMaxIterations(iter),          # Maximum iterations stopping criterion
     nothing                             # System solution
 )
@@ -40,7 +40,7 @@ println(plt)
 sol = RLSSolver(
     LinSysBlkRowGaussSampler(4),        # Block Gaussian Sampling
     LinSysBlkRowProj(),                 # Block row projection 
-    LSLogFullMA(),                      # Full Moving Average Logger: maintains moving average of residual history
+    LSLogMA(),                          # Full Moving Average Logger: maintains moving average of residual history
     LSStopMaxIterations(iter),          # Maximum iterations stopping criterion
     nothing                             # System solution
 )

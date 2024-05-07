@@ -89,7 +89,3 @@ function sample(
     return col_idx, AS, grad, res
 end
 
-#Function to update the solution 
-function update_sol!(x::AbstractVector, update::AbstractVector, col_idx::Vector{Int64}, α::Real)
-    x[col_idx] .-= α .* update
-end
