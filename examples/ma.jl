@@ -1,4 +1,3 @@
-
 using RLinearAlgebra
 using LinearAlgebra
 using UnicodePlots
@@ -15,14 +14,14 @@ iter = 1000
 sol_approximate = RLSSolver(
     LinSysVecRowRandCyclic(),   # Random Cyclic Sampling
     LinSysVecRowProjPO(),       # Partially Orthogonalized Row Projection, 5 vector memory
-    LSLogMA(),              # Full Moving Average Logger: maintains moving average of residual history
+    LSLogMA(),                  # Moving Average Logger: maintains moving average of residual history
     LSStopMaxIterations(iter),  # Maximum iterations stopping criterion
     nothing                     # System solution
 )
 sol_exact = RLSSolver(
     LinSysVecRowRandCyclic(),   # Random Cyclic Sampling
     LinSysVecRowProjPO(),       # Partially Orthogonalized Row Projection, 5 vector memory
-    LSLogMA(true_res = true), # Full Moving Average Logger: maintains moving average of exact residual history
+    LSLogMA(true_res = true),   # Moving Average Logger: maintains moving average of exact residual history
     LSStopMaxIterations(iter),  # Maximum iterations stopping criterion
     nothing                     # System solution
 )
