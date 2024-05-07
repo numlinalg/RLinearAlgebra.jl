@@ -67,14 +67,15 @@ export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
 # Linear Solver Log Exports
 #*****************************************#
 export LinSysSolverLog
-export LSLogOracle, LSLogFull
-
+export LSLogOracle, LSLogFull, LSLogMA
+export get_uncertainty
 #*****************************************#
 # Linear Solver Stopping Criteria Exports
 #*****************************************#
 export LinSysStopCriterion
 export LSStopMaxIterations
-
+export LSStopThreshold, LSStopMA 
+export iota_threshold
 #*****************************************#
 # Randomized Linear Solver Exports
 #*****************************************#
