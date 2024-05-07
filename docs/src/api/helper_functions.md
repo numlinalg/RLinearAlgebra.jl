@@ -14,10 +14,10 @@ RLinearAlgebra.GentData
 
 
 ### Solver
-```
+```@docs
 RLinearAlgebra.gentleman!
 RLinearAlgebra.ldiv!
 RLinearAlgebra.copyBlockFromMat!
-RLinearAlgebra.ResetGent
+RLinearAlgebra.resetGent!
 ```
 
