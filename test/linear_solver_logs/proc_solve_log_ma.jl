@@ -53,8 +53,8 @@ Random.seed!(1010)
             RLinearAlgebra.log_update!(log, sampler, x + (i+1)*(z-x), samp, i, A, b)
         end
         #compute sampled residuals
-        obs_res = [abs(dot(A[1,:],x + (i+1)*(z-x)) - b[1])^2 for i = 0:10]
-        obs_res2 = [abs(dot(A[1,:],x + (i+1)*(z-x)) - b[1])^4 for i = 0:10]
+        obs_res = 2 .* [abs(dot(A[1,:],x + (i+1)*(z-x)) - b[1])^2 for i = 0:10]
+        obs_res2 = 4 .* [abs(dot(A[1,:],x + (i+1)*(z-x)) - b[1])^4 for i = 0:10]
         @test length(log.resid_hist) == 11
         @test norm(log.resid_hist[2:11] - vcat(obs_res[2], 
                                          [(obs_res[i] + obs_res[i-1])/2 for i = 3:11])) < 1e2 * eps()

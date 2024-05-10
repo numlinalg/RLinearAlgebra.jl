@@ -38,6 +38,7 @@ A mutable structure that stores information about the sub-Exponential distributi
 - `omega::Union{Float64, Nothing}`, The exponential distrbution parameter, if not given is determined for sampling methods.
 - `eta::Float64`, A parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
   estimate. By default, this is set to one.
+- `scaling::Float64`, constant multiplied by norm to ensure expectation of block norms is the same as the full norm.
 """
 mutable struct DistInfo
     sampler::Union{DataType, Nothing}
@@ -46,6 +47,7 @@ mutable struct DistInfo
     sigma2::Union{Float64, Nothing}
     omega::Union{Float64, Nothing}
     eta::Float64
+    scaling::Float64
 end
 
 """
@@ -114,7 +116,7 @@ LSLogMA(;
                     -1, 
                     false,
                     true_res,
-                    DistInfo(nothing, 0, 0, sigma2, omega, eta) 
+                    DistInfo(nothing, 0, 0, sigma2, omega, eta, 0) 
                   )
 
 #Function to update the moving average
@@ -147,7 +149,7 @@ function log_update!(
         
         log.dist_info.sampler = typeof(sampler)  
     # If the constants for the sub-Exponential distribution are not defined then define them
-        if typeof(log.dist_info.sigma2) <: Nothing
+        if typeof(log.dist_info.sigma2) <: Nothing || log.dist_info.sigma2 == 0
             get_SE_constants!(log, log.dist_info.sampler)
         end
 
@@ -158,8 +160,10 @@ function log_update!(
     #Check if we want exact residuals computed
     if !log.true_res && iter > 0
         # Compute the current residual to second power to align with theory
-        res::Float64 = eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
-            log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2 
+        res::Float64 = log.dist_info.scaling *
+            (eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
+                                log.resid_norm(samp[3])^2 : 
+                                log.resid_norm(dot(samp[1], x) - samp[2])^2) 
     else 
         res = log.resid_norm(A * x - b)^2 
     end
@@ -305,7 +309,8 @@ A function that returns a default set of sub-Exponential constants for each samp
 - `sampler::Type{LinSysSampler}`, the type of sampler being used.
 
 # Outputs
-Performs an inplace update of the sub-Exponential constants for the log.
+Performs an inplace update of the sub-Exponential constants for the log. Additionally, updates the scaling constant to ensure expectation of 
+block norms is equal to true norm.
 """
 function get_SE_constants!(log::LSLogMA, sampler::Type{T}) where T<:LinSysSampler
     return nothing
@@ -320,6 +325,7 @@ for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
             log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
         end
 
     end
@@ -332,6 +338,7 @@ for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
             log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
         end
 
     end
