@@ -32,7 +32,7 @@ Random.seed!(1010)
         S, M, res, grad = RLinearAlgebra.sample(cyc, A, b, x, j)
         sgn = cyc.signs
         signs = [sgn[i] ? 1 : -1 for i in 1:8] 
-        Ab = ((Ap * Diagonal(signs)) * H .* scaling) * S
+        Ab = ((Ap * Diagonal(signs)) * H .* scaling) * cyc.Sketch
         @test norm(grad - Ab' * (A * x - b)) < eps() * 1e2
     end
 
@@ -54,7 +54,7 @@ Random.seed!(1010)
         S, M, res, grad = RLinearAlgebra.sample(cyc, A, b, x, j)
         sgn = cyc.signs
         signs = [sgn[i] ? 1 : -1 for i in 1:8]  
-        Ab = ((Ap * Diagonal(signs)) * H .* scaling) * S
+        Ab = ((Ap * Diagonal(signs)) * H .* scaling) * cyc.Sketch
         @test norm(grad - Ab' * (A * x - b)) < eps() * 1e2
     end
 
