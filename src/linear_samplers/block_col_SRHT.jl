@@ -79,7 +79,7 @@ function sample(
     # Residual of the linear system
     res = A * x - b
     grad = AS'res
-    H = hadamard(type.padded_size)
-    sgn = [type.signs[i] ? 1 : -1 for i in 1:type.padded_size]
-    return ((sgn .* type.hadamard) .* type.scaling)[:, type.block], AS, res, grad
+    H = hadamard(type.paddedSize)
+    sgn = [type.signs[i] ? 1 : -1 for i in 1:type.paddedSize]
+    return (Diagonal(sgn) * H)[:, type.block] .* type.scaling, AS, res, grad
 end

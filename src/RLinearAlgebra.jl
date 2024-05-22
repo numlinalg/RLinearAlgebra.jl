@@ -29,6 +29,8 @@ import Hadamard: hadamard
 import StatsBase: sample
 
 import SparseArrays: sprandn, SparseMatrixCSC
+
+import Hadamard: hadamard
 ###########################################
 # Exports
 ###########################################
