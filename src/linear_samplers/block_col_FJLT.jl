@@ -16,6 +16,8 @@ sampled.
 - `scaling::Float64`, storage for the scaling of the sketches.
 
 Calling `LinSysBlockColFJLT()` defaults to setting `sparsity` to .3 and the blocksize to 2.
+
+Nir Ailon and Bernard Chazelle. 2006. Approximate nearest neighbors and the fast Johnson-Lindenstrauss transform. In Proceedings of the thirty-eighth annual ACM symposium on Theory of Computing (STOC '06). Association for Computing Machinery, New York, NY, USA, 557–563. https://doi.org/10.1145/1132516.1132597
 """
 mutable struct LinSysBlockColFJLT <: LinSysBlkColSampler
     blockSize::Int64
