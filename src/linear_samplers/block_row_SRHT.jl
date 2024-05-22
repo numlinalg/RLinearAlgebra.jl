@@ -15,6 +15,8 @@ sampled.
 - `scaling::Float64`, storage for the scaling of the sketches.
 
 Calling `LinSysBlockRowSRHT()` defaults to setting `blockSize` to 2.
+
+Nir Ailon and Bernard Chazelle. 2006. Approximate nearest neighbors and the fast Johnson-Lindenstrauss transform. In Proceedings of the thirty-eighth annual ACM symposium on Theory of Computing (STOC '06). Association for Computing Machinery, New York, NY, USA, 557–563. https://doi.org/10.1145/1132516.1132597
 """
 mutable struct LinSysBlockRowSRHT <: LinSysBlkRowSampler
     blockSize::Int64
