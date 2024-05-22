@@ -24,6 +24,8 @@ module RLinearAlgebra
 using LinearAlgebra, Random, Distributions
 
 import StatsBase: sample
+
+import SparseArrays: sprandn, SparseMatrixCSC
 ###########################################
 # Exports
 ###########################################
@@ -44,10 +46,11 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
     LinSysVecRowPropToNormSampler, LinSysVecRowSVSampler, LinSysVecRowRandCyclic,
     LinSysVecRowUnidSampler, LinSysVecRowUnifSampler, LinSysVecRowGaussSampler,
     LinSysVecRowSparseUnifSampler, LinSysVecRowSparseGaussSampler, LinSysVecRowMaxResidual,
-    LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic, LinSysBlockRowSRHT
+    LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic, LinSysBlockRowSRHT,
+    LinSysBlockRowFJLT
 
 # Vector Column Samplers
-export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
+export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic, LinSysBlockColSRHT, LinSysBlockColFJLT
 
 #*****************************************#
 # Linear Solver Routine Exports
