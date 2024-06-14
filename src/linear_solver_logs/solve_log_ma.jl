@@ -38,6 +38,7 @@ A mutable structure that stores information about the sub-Exponential distributi
 - `omega::Union{Float64, Nothing}`, The exponential distrbution parameter, if not given is determined for sampling methods.
 - `eta::Float64`, A parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
   estimate. By default, this is set to one.
+- `scaling::Float64`, constant multiplied by norm to ensure expectation of block norms is the same as the full norm.
 """
 mutable struct DistInfo
     sampler::Union{DataType, Nothing}
@@ -46,6 +47,7 @@ mutable struct DistInfo
     sigma2::Union{Float64, Nothing}
     omega::Union{Float64, Nothing}
     eta::Float64
+    scaling::Float64
 end
 
 """
@@ -106,7 +108,7 @@ LSLogMA(;
         eta = 1, 
         true_res = false
        ) = LSLogMA( cr,
-                    MAInfo(1, lambda2, 1, false, 1, zeros(lambda2)),
+                    MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
                     Float64[], 
                     Float64[], 
                     Int64[],
@@ -114,7 +116,7 @@ LSLogMA(;
                     -1, 
                     false,
                     true_res,
-                    DistInfo(nothing, 0, 0, sigma2, omega, eta) 
+                    DistInfo(nothing, 0, 0, sigma2, omega, eta, 0) 
                   )
 
 #Function to update the moving average
@@ -147,7 +149,7 @@ function log_update!(
         
         log.dist_info.sampler = typeof(sampler)  
     # If the constants for the sub-Exponential distribution are not defined then define them
-        if typeof(log.dist_info.sigma2) <: Nothing
+        if typeof(log.dist_info.sigma2) <: Nothing || log.dist_info.sigma2 == 0
             get_SE_constants!(log, log.dist_info.sampler)
         end
 
@@ -158,8 +160,10 @@ function log_update!(
     #Check if we want exact residuals computed
     if !log.true_res && iter > 0
         # Compute the current residual to second power to align with theory
-        res::Float64 = eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
-            log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2 
+        res::Float64 = log.dist_info.scaling *
+            (eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
+                                log.resid_norm(samp[3])^2 : 
+                                log.resid_norm(dot(samp[1], x) - samp[2])^2) 
     else 
         res = log.resid_norm(A * x - b)^2 
     end
@@ -168,7 +172,7 @@ function log_update!(
         update_ma!(log, res, ma_info.lambda2, iter)
     else
         #Check if we can switch between lambda1 and lambda2 regime
-        if res < ma_info.res_window[ma_info.idx]
+        if iter == 0 || res <= ma_info.res_window[ma_info.idx] 
             update_ma!(log, res, ma_info.lambda1, iter)
         else
             update_ma!(log, res, ma_info.lambda1, iter)
@@ -205,13 +209,39 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
     ma_info.idx = ma_info.idx < ma_info.lambda2 ? ma_info.idx + 1 : 1
     ma_info.res_window[ma_info.idx] = res
     #Check if entire storage buffer can be used
-    if ma_info.lambda == lambda_base 
+    if ma_info.lambda == ma_info.lambda2 
         # Compute the moving average
         for i in 1:ma_info.lambda2
             accum += ma_info.res_window[i]
             accum2 += ma_info.res_window[i]^2
         end
        
+        if mod(iter, log.collection_rate) == 0 || iter == 0
+            push!(log.width_hist, ma_info.lambda)
+            push!(log.resid_hist, accum / ma_info.lambda) 
+            push!(log.iota_hist, accum2 / ma_info.lambda) 
+        end
+    
+    elseif ma_info.lambda == ma_info.lambda1 && !ma_info.flag
+        diff = ma_info.idx - ma_info.lambda
+        # Determine start point for first loop
+        startp1 = diff < 0 ? 1 : (diff + 1)
+
+        # Determine start and endpoints for second loop
+        startp2 = diff < 0 ? ma_info.lambda2 + diff + 1 : 2 
+        endp2 = diff < 0 ? ma_info.lambda2 : 1 
+        # Compute the moving average two loop setup required when lambda < lambda2
+        for i in startp1:ma_info.idx
+            accum += ma_info.res_window[i]
+            accum2 += ma_info.res_window[i]^2
+        end
+
+        for i in startp2:endp2
+            accum += ma_info.res_window[i]
+            accum2 += ma_info.res_window[i]^2
+        end
+
+        #Update the log variable with the information for this update
         if mod(iter, log.collection_rate) == 0 || iter == 0
             push!(log.width_hist, ma_info.lambda)
             push!(log.resid_hist, accum / ma_info.lambda) 
@@ -305,7 +335,8 @@ A function that returns a default set of sub-Exponential constants for each samp
 - `sampler::Type{LinSysSampler}`, the type of sampler being used.
 
 # Outputs
-Performs an inplace update of the sub-Exponential constants for the log.
+Performs an inplace update of the sub-Exponential constants for the log. Additionally, updates the scaling constant to ensure expectation of 
+block norms is equal to true norm.
 """
 function get_SE_constants!(log::LSLogMA, sampler::Type{T}) where T<:LinSysSampler
     return nothing
@@ -320,6 +351,7 @@ for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
             log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
         end
 
     end
@@ -332,6 +364,7 @@ for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
             log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
         end
 
     end
@@ -344,6 +377,7 @@ for type in (LinSysVecRowGaussSampler, LinSysVecRowSparseGaussSampler)
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
             log.dist_info.sigma2 = log.dist_info.block_dimension / (0.2345 * log.dist_info.eta)
             log.dist_info.omega = .1127
+            log.dist_info.scaling = 1.
         end
 
     end
