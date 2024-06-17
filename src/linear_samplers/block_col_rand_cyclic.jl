@@ -1,3 +1,4 @@
+# This code was written by Nathaniel Pritchard
 """
     LinSysBlkColRandCyclic <: LinSysBlkColSampler 
 

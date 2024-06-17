@@ -1,5 +1,5 @@
 # This file is pat of RLinearAlgebra.jl
-
+# This was written by Nathaniel Pritchard
 """
     LinSysBlkColProj <: LinSysBlkColProjection
 

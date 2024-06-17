@@ -1,3 +1,4 @@
+# This code was written by Nathaniel Pritchard
 """
     LinSysBlkColGaussSampler <: LinSysBlkColSampler 
 

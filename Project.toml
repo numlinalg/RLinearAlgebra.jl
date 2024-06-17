@@ -1,7 +1,7 @@
 name = "RLinearAlgebra"
 uuid = "da1d211a-c3bc-43b2-b5d0-ce83f16a0f3a"
 authors = ["Vivak Patel <vivak.patel@wisc.edu>", "Daniel Adrian Maldonado <maldonadod@anl.gov>"]
-version = "0.1.8"
+version = "0.1.9"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
