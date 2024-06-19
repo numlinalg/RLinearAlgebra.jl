@@ -65,7 +65,7 @@ If you are implementing a sketching method for the library, make sure you have c
 - [] Tag two people to review your pull request.
 ```
 
-## Linear Solver Routines
+## Solver Routines
 Here we a checklist to make new linear solvers routines. These should be routines that generate a solution or an update to a solution
 of a linear system using the sketched matrix information. They can be row sketching based, column sketching based, or both.
 ```
@@ -96,7 +96,7 @@ of a linear system using the sketched matrix information. They can be row sketch
 - [] Tag two people to review your pull request.
 ```
 
-## Linear Solver Logs
+## Solver Logs
 Here we include checklist for implementations of techniques for logging the progress of linear solvers.
  As an example these would be routines that log the residual of a linear solver.
 ```
