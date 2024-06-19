@@ -20,6 +20,11 @@ makedocs(
             "Linear Solver Logs" => "api/linear_solver_logs.md",
             "Linear Solver Stop Criteria" => "api/linear_solver_stops.md",
         ],
+        "Developers" => [
+            "Contributing" => "dev/contributing.md"
+            "Style Guide" => "dev/styleguide.md"
+            "Checklists" => "dev/checklists.md"
+        ],
     ]
 )
 
