@@ -19,6 +19,7 @@ makedocs(
             "Linear Subsolvers" => "api/linear_solver_routines.md",
             "Linear Solver Logs" => "api/linear_solver_logs.md",
             "Linear Solver Stop Criteria" => "api/linear_solver_stops.md",
+            "Low Rank Approximations" => "api/low_rank_approximations.md",
         ],
     ]
 )
