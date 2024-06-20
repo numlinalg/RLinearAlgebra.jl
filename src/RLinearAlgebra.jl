@@ -85,7 +85,7 @@ export RLSSolver, rsolve, rsolve!
 ###########################################
 # Low Rank Approximation Exports
 ###########################################
-export RangeFinderMethod, IntDecompMethod, NystromMethod
+export ApproxMethod, RangeFinderMethod, IntDecompMethod, NystromMethod
 
 # Rangefinder methods
 

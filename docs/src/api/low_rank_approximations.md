@@ -1,4 +1,4 @@
-# Linear Subsolvers
+# Low Rank Approximations
 
 ```@contents
 Pages=["low_rank_approximations.md"]
