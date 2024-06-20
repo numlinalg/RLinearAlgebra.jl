@@ -14,7 +14,7 @@ See Mert Pilanci and Martin J. Wainwright. "Iterative Hessian Sketch:
 
 # Fields
 
-- `A::AbstractArray` is the coefficient matrix for the linear system.
+- `A::AbstractArray` is the coefficient matrix for the linear system. Required as we need to compute the full residual.
 - `y::AbstractVector` is the constant term (i.e., the linear system is Ax=y).
 - `step::Union{AbstractVector, Nothing}` buffer array to hold solution of subproblem that provides update to x.
 - `btilde::Union{AbstractVector, Nothing}` buffer array to hold constant term in forming the subproblem to compute `step`.
@@ -48,7 +48,9 @@ function rsubsolve!(
     # form sub-linear system and solve 
     m = size(samp[1])[1]    
     type.btilde .= m .* ((type.A)'*(type.y - type.A*x))
-    LinearAlgebra.ldiv!(type.step,lq(samp[2]'*samp[2]),type.btilde)
+    _,R = qr(samp[2])
+    type.step .= R'\type.btilde
+    type.step .= R\type.step
 
     # update current iterate
     x .= x .+ type.step
