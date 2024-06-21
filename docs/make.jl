@@ -11,6 +11,7 @@ makedocs(
         "Home" => "index.md",
         "Manual" => [
             "Consistent Linear Systems" => "man/cls_overview.md",
+            "Tracking" => "man/tracking_overview.md"
         ],
         "API Reference" => [
             "Randomized Linear Solvers" => "api/linear_rsolve.md",

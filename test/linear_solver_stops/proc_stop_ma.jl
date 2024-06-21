@@ -10,11 +10,12 @@ using Test, RLinearAlgebra
     @test supertype(LSStopMA) == LinSysStopCriterion
 
     # Verify check_stop_criterion functionality
-    log = LSLogFullMA()
+    log = LSLogMA()
     stop = LSStopMA(2, 1e-10, 1.1, .9, .01, .01)
     log.resid_hist = [1, 1, 1]
     log.iota_hist = [1, 1, 1]
-    log.max_dimension = 100
+    log.dist_info.max_dimension = 100
+    log.dist_info.sampler = LinSysVecRowDetermCyclic
 
     log.iterations = 0
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false
@@ -28,7 +29,7 @@ using Test, RLinearAlgebra
     #Verify threshold stopping
     log.resid_hist = [1, 1e-11, 1e-11]
     log.iota_hist = [1, 1e-11, 1e-32]
-    log.sigma2 = 1
+    log.dist_info.sigma2 = 1
     log.ma_info.lambda = 15
     stop = LSStopMA(4, 1e-10, 1.1, .9, .01, .01)
 

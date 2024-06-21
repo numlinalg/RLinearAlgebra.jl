@@ -50,7 +50,20 @@ function check_stop_criterion(
     return (thresholdChecks || its == stop.max_iter ? true : false)
 end
 
-# Once the sigma2 is known function computes the threshold for stopping
+"""
+    iota_threshold(hist::LSLogMA, stop::LSStopMA)
+
+Function that computes the stopping criterion using the sub-Exponential distribution from the `LSLogMA`, and the stopping criterion information in `LSSopMA`. This function is not exported and thus not directly callable by the user.
+
+# Inputs
+- `hist::LSLogMA`, the log information for the moving average tracking.
+- `stop::LSStopMA`, the stopping information for the stopping criterion.
+
+# Ouputs
+Returns the stoppping criterion value.
+
+Pritchard, Nathaniel, and Vivak Patel. "Solving, Tracking and Stopping Streaming Linear Inverse Problems." arXiv preprint arXiv:2201.05741 (2024).
+"""
 function iota_threshold(hist::LSLogMA, stop::LSStopMA)
     delta1 = stop.delta1
     delta2 = stop.delta2
