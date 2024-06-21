@@ -106,7 +106,7 @@ end
 ############################################
 # Inner Loop Linear Solvers
 ############################################
-include("helper_functions/Gentlemans_House.jl")
+include("linear_solver_routines/inner_block_solving_routines/Gentlemans_House.jl")
 #############################################
 # Vector Row Projection Solvers
 #############################################
