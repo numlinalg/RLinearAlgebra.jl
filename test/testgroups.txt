@@ -40,3 +40,4 @@ linear_solver_stops/proc_stop_max_iter
 linear_solver_stops/proc_stop_ma
 linear_solver_stops/proc_stop_thres
 proc_linear_rsolve
+linear_samplers/sampler_helpers/proc_hadamard
