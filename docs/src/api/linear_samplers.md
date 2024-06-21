@@ -49,6 +49,13 @@ LinSysVecRowMaxDistance
 
 LinSysVecRowDistCyclic
 ```
+## Block Vector Row Samplers
+
+```@docs
+LinSysBlockRowFJLT
+
+LinSysBlockRowSRHT
+```
 
 ## Vector Column Samplers
 
@@ -56,6 +63,14 @@ LinSysVecRowDistCyclic
 LinSysVecColDetermCyclic
 
 LinSysVecColOneRandCyclic
+```
+
+## Block Vector Col Samplers
+
+```@docs
+LinSysBlockColFJLT
+
+LinSysBlockColSRHT
 ```
 
 ## Sample Function

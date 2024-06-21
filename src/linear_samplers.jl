@@ -141,6 +141,8 @@ include("linear_samplers/vec_row_uniform.jl")
 include("linear_samplers/vec_row_gaussian.jl")
 include("linear_samplers/vec_row_uniform_sparse.jl")
 include("linear_samplers/vec_row_gaussian_sparse.jl")
+include("linear_samplers/block_row_SRHT.jl")
+include("linear_samplers/block_row_FJLT.jl")
 #include("linear_samplers/vec_row_uniform_sym_sparse.jl")
 #include("linear_samplers/vec_row_uniform_sym.jl")
 
@@ -161,6 +163,13 @@ include("linear_samplers/vec_col_one_rand_cyclic.jl")
 # Non-adaptive Sampling (with replacement)
 #Leventhal-Lewis (non-symmetric)
 
+# Non-adaptive Sketching
+include("linear_samplers/block_col_SRHT.jl")
+include("linear_samplers/block_col_FJLT.jl")
+#############################################
+# Fast Transforms
+#############################################
+include("linear_samplers/sampler_helpers/hadamard.jl")
 #############################################
 # Block Row Sampler/Sketch/Selector
 #############################################
