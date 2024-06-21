@@ -48,6 +48,7 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 
+export LinSysBlkColGaussSampler
 #*****************************************#
 # Linear Solver Routine Exports
 #*****************************************#
@@ -81,7 +82,28 @@ export iota_threshold
 #*****************************************#
 export RLSSolver, rsolve, rsolve!
 
+###########################################
+# Low Rank Approximation Exports
+###########################################
+export ApproxMethod, RangeFinderMethod, IntDecompMethod, NystromMethod
 
+# Rangefinder methods
+
+# Interpolatory decomposition methods
+
+# Nystrom methods
+
+# Function to perform the approximation
+export approximate
+
+
+###########################################
+# Low Rank Approximation Error Exports
+###########################################
+export ApproxErrorMethod, RangeFinderError
+
+# Function to perform the error computation
+export error_approximate!
 ###########################################
 # Source File Inclusions
 ###########################################
@@ -92,6 +114,7 @@ include("linear_solver_routines.jl")
 include("linear_solver_logs.jl")
 include("linear_solver_stops.jl")
 include("linear_rsolve.jl")
-
+include("low_rank_approx.jl")
+include("low_rank_approx_error.jl")
 
 end # module
