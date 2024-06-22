@@ -1,4 +1,3 @@
-# This code was Written by Nathaniel Pritchard
 """
     LinSysVecBlkColReplace <: LinSysBlkColSampler 
 

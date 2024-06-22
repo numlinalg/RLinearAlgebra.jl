@@ -7,7 +7,7 @@ A mutable structure with fields to handle Guassian column sketching.
 # Fields
 - `blockSize::Int64` - Specifies the size of each block.
 - `sketchMatrix::Union{AbstractMatrix, Nothing}` - The buffer for storing the Gaussian sketching matrix.
-- `scaling::Float64` - The variance of the sketch, is set to be s/n.
+- `scaling::Float64` - The variance of the sketch, is set to be blockSize/numberOfColumns.
 
 Calling `LinSysBlkColGaussSampler()` defaults to setting `blockSize` to 2.
 """
