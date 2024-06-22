@@ -40,10 +40,11 @@ function rsubsolve!(
     # samp[4] is the residual of the system A * x - b
     if iter == 1
         m,p = size(samp[2])
-        # If there are less than 100000 rows the Gent blocks are m otherwise m/10
-        rowBlockSize = m < 100000 ? m : min(div(m, 10), 100000)
+        # If there are less than 10000 rows, m < 10000, perform gentlemans with block size m otherwise keep the block size 
+        # less than 10000
+        rowBlockSize = m < 10000 ? m : min(div(m, 10), 10000)
         # Gentleman's will not use more than 10000 rows as a block 
-        type.G = Gent(samp[2], min(rowBlockSize, 10000))
+        type.G = Gent(samp[2], rowBlockSize)
         type.update = Array{typeof(samp[2][1])}(undef, p)
     end
     type.G.A = samp[2]

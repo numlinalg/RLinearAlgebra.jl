@@ -1,5 +1,4 @@
 # This file is pat of RLinearAlgebra.jl
-# This code was written by Nathaniel Pritchard
 """
     LinSysBlkRowProj <: LinSysBlkRowProjection
 
@@ -34,11 +33,13 @@ function rsubsolve!(
     # samp[2] is the sketched matrix A
     # samp[3] is the residual of system in A * samp[1], (samp[1] * A * x - b)
     if iter == 1
+        # get the dimensions to allocate the update vector
         p,n = size(samp[2])
         type.update = Array{typeof(samp[2][1])}(undef, n)
     end
+    # Reset the update vector 
     fill!(type.update, 0)
-    LinearAlgebra.ldiv!(type.update, lq(samp[2]), samp[3])
-    x .-= type.update
+    ldiv!(type.update, lq(samp[2]), samp[3])
+    x .-= type.alpha .* type.update
     return nothing
 end

@@ -94,7 +94,7 @@ Function that takes the allocated `GentData` structure to solve
 the least squares problem \$\\min_x \\|A x-b\\|_2^2\$. The function
 overwrites `x` with the solution.
 """
-function ldiv!(x::AbstractVector, G::GentData, b::AbstractVector)
+function LinearAlgebra.ldiv!(x::AbstractVector, G::GentData, b::AbstractVector)
     m,n = size(G.A)
     bsize = G.bsize
     remb = rem(m, bsize)
