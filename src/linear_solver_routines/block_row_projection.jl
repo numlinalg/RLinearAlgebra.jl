@@ -40,6 +40,6 @@ function rsubsolve!(
     # Reset the update vector 
     fill!(type.update, 0)
     ldiv!(type.update, lq(samp[2]), samp[3])
-    x .-= type.alpha .* type.update
+    x .-= type.α .* type.update
     return nothing
 end
