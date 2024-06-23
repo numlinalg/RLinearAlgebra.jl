@@ -81,5 +81,5 @@ function sample(
     grad = AS'res
     H = hadamard(type.paddedSize)
     sgn = [type.signs[i] ? 1 : -1 for i in 1:type.paddedSize]
-    return (Diagonal(sgn) * H)[:, type.block] .* type.scaling, AS, res, grad
+    return [sgn .* type.scaling, type.block], AS, res, grad
 end
