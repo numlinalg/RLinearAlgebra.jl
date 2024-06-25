@@ -139,7 +139,6 @@ function LinearAlgebra.mul!(y::AbstractVector, Sampler::LinSysBlkColRandCyclic, 
     m,s = size(Sampler.AS)
     @assert s == size(x,1) "Right-hand array, x, must match sampling dimension"
     @assert m == size(y,1) "Left-hand array, y, row dimension of block"
-    @views axpby!(α, x, β, y[Sampler.S])
     for i in 1:s
         temp = y[Sampler.S[i]] * β
         y[Sampler.S[i]] += x[i] * α
