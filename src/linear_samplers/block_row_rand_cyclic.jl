@@ -1,34 +1,39 @@
-# This code was Written by Nathaniel Pritchard
+# This code is part of RLinearAlgebra.jl 
 """
     LinSysBlkRowRandCyclic <: LinSysBlkRowSampler
 
-A mutable structure with fields to handle randomly permuted block sampling. Can allow for fixed
-blocks or blocks whose entries are randomly permuted. After each cycle, a new random ordering is
+A mutable structure with fields to handle randomly permuted block sampling. User can input a list of
+indices representing the blocks, otherwise the blocks will just be
+created sequentially. After each cycle, a new random ordering is
 created. If the last block would be smaller than the others, rows from a previous block are 
 added to keep all blocks the same size.
 
 # Fields
-- `blockSize::Int64` - Specifies the size of each block.
-- `constantBlock::Bool` - A variable specifying if the user would like for the rows to be randomly
-permuted. 
-- `nBlocks::Int64` - Variable that contains the number of blocks overall.
-- `order::Vector{Int64}` - The order that the blocks will be used to generate updates.
-- `blocks::Vector{Int64}` - The list of all the row in each block.
+- `blockSize::Int64`, Specifies the size of each block.
+- `nBlocks::Int64`, Variable that contains the number of blocks overall.
+- `order::Union{Vector{Int64}, Nothing}`, The order that the blocks will be used to generate updates.
+- `blocks::Union{Vector{Int64}, Nothing}`, The list of all the row in each block, will default to sequential order.
+- `S::Union{Vector{Int64}, Nothing}`, The indices sampled from the current block.
+- `SA::Union{AbstractMatrix, Nothing}`, The row block corresponding to this iteration's sampled indices.
+- `res::Union{AbstractVector, Nothing}`, The row block residual.
 
-Calling `LinSysVecColBlockRandCyclic()` defaults to setting `blockSize` to 2 and `constantBlock` to true. The `sample`
+Calling `LinSysVecRowBlockRandCyclic()` defaults to setting `blockSize` to 2 and `blocks` to sequential order. The `sample`
 function will handle the re-initialization of the fields once the system is provided.
+
+!!! Note:
+For computational reasons all blocks will be forced to be the same size. This is done by determining how many rows are required for the last block to be the same size as the others and pulling that many rows from the second to last block.
 """
 mutable struct LinSysBlkRowRandCyclic <: LinSysBlkRowSampler
     blockSize::Int64
-    constantBlock::Bool
     nBlocks::Int64
-    order::Vector{Int64}
-    blocks::Vector{Int64}
+    blocks::Union{Vector{Int64}, Nothing}
+    order::Union{Vector{Int64}, Nothing}
+    S::Union{Vector{Int64}, Nothing}
+    SA::Union{AbstractMatrix, Nothing}
+    res::Union{AbstractVector, Nothing}
 end
 
-LinSysBlkRowRandCyclic(blockSize, constantBlock) = LinSysBlkRowRandCyclic(blockSize, constantBlock, 1, Int64[], Int64[])
-LinSysBlkRowRandCyclic(blockSize) = LinSysBlkRowRandCyclic(blockSize, true, 1, Int64[], Int64[])
-LinSysBlkRowRandCyclic() = LinSysBlkRowRandCyclic(2, true, 1,  Int64[], Int64[])
+LinSysBlkRowRandCyclic(;blockSize=2, blocks=nothing) = LinSysBlkRowRandCyclic(blockSize, 1, blocks, nothing, nothing, nothing, nothing)
 
 # Common sample interface for linear systems
 function sample(
@@ -39,51 +44,72 @@ function sample(
     iter::Int64
 )
     if iter == 1
-        m, n = size(A)
-        # Determine number of blocks
-        type.nBlocks = div(m, type.blockSize) + (rem(m, type.blockSize) == 0 ? 0 : 1)
-        blockIdxs = type.blockSize * type.nBlocks
-        lastBlockStart = blockIdxs - type.blockSize + 1 
-        type.blocks = Vector{Int64}(undef, blockIdxs)
-        # Block definitions
-        if type.constantBlock
-            type.blocks[1:lastBlockStart - 1] .= collect(1:lastBlockStart - 1)
-            if rem(n, type.blockSize) == 0
-                type.blocks[lastBlockStart:blockIdxs] .= collect(lastBlockStart:m)
-            else
-                # maintain size of last block using last blockSize rows 
-                type.blocks[lastBlockStart:blockIdxs] .= collect(vcat(m - type.blockSize + 1:lastBlockStart - 1, lastBlockStart:m))
-            end
-        
-        else
-            # If non-constant blocks randomly permute rows
-            if rem(n, type.blockSize) == 0
-                type.blocks .= randperm(m)
-            else
-                # maintain size of last block using last blockSize rows
-                type.blocks[1:m] .= randperm(m)
-                type.blocks[m:m + type.blockSize] .= type.blocks[type.blockSize]
-            end
-
+        m,n = size(A)
+        init_blocks_cyclic!(type, m)
+        # Allocate vector for block indices
+        if typeof(type.S) <: Nothing
+            type.S = Vector{Int64}(undef, type.blockSize)
         end
 
-        # Allocate the order the blocks will be sampled in
-        type.order = randperm(type.nBlocks)
-            
+        # Allocate the blocks for storing sketched matrix
+        if typeof(type.SA) <: Nothing
+            T = eltype(A)
+            type.SA = Matrix{T}(undef, type.blockSize, n)
+        end
+
+        # Allocate residual vector
+        if typeof(type.res) <: Nothing
+            T = eltype(A)
+            type.res = Vector{T}(undef, type.blockSize)
+        end
+   
     end
+
     # So that iteration 1 corresponds to bIndx 1 use iter - 1 
     bIndx = rem(iter - 1, type.nBlocks) + 1
     # Reshuffle blocks
     if bIndx == 1
-        type.order = randperm(type.nBlocks)
+        randperm!(type.order)
     end
 
     block = type.order[bIndx] 
-    row_idx = type.blocks[type.blockSize * (block - 1) + 1:type.blockSize * block]
-    SA = A[row_idx, :]
-    Sb = b[row_idx]
+    copyto!(type.S, type.blocks[type.blockSize * (block - 1) + 1:type.blockSize * block])
+    copyto!(type.SA, A[type.S, :])
+    # residual initialized to b vector of current block
+    copyto!(type.res, b[type.S])
     # Residual of the linear system
-    res = SA * x - Sb
+    mul!(type.res, type.SA, x, 1.0, -1.0)
+    # return the sampler, the sketched matrix, the block residual
+    return type, type.SA, type.res
+end
 
-    return row_idx, SA, res
+# Implement mul functions that apply the sketching matrix to vectors and matrices
+function *(Sampler::LinSysBlkRowRandCyclic, x::AbstractVector)
+    return x[Sampler.S]
+end
+
+function *(Sampler::LinSysBlkRowRandCyclic, A::AbstractMatrix)
+    return A[Sampler.S, :]
+end
+
+# Performs Sx = S * x
+function LinearAlgebra.mul!(Sx::AbstractVector, Sampler::LinSysBlkRowRandCyclic, x::AbstractVector)
+    # Copy the entries of y corresponding to the current block over to the vector x
+    copyto!(Sx, x[Sampler.S])
+end
+
+# Performs SA = S * A
+function LinearAlgebra.mul!(SA::AbstractMatrix, Sampler::LinSysBlkRowRandCyclic, A::AbstractMatrix)
+    # Copy the entries of y corresponding to the current block over to the vector x
+    copyto!(SA, A[Sampler.S, :])
+end
+
+# Performs Sb = β * Sb + α * S * x
+function LinearAlgebra.mul!(Sb::AbstractVector, Sampler::LinSysBlkRowRandCyclic, x::AbstractVector, α::Number, β::Number)
+    axpby!(α, x[Sampler.S], β, Sb)
+end
+
+# Performs SA = β * SA + α * S * A
+function LinearAlgebra.mul!(SA::AbstractMatrix, Sampler::LinSysBlkRowRandCyclic, A::AbstractMatrix, α::Number, β::Number)
+    axpby!(α, A[Sampler.S, :], β, SA)
 end

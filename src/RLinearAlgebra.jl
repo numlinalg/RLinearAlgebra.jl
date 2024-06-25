@@ -22,8 +22,9 @@ module RLinearAlgebra
 ###########################################
 
 using LinearAlgebra, Random, Distributions
-
+import Base.:*
 import StatsBase: sample
+import LinearAlgebra: mul!
 ###########################################
 # Exports
 ###########################################
@@ -52,6 +53,10 @@ export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace
 #Vector Block Column Samplers
 export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace
+# Helper functions
+export init_blocks_cyclic!
+# Block multiplication
+export mul!
 #*****************************************#
 # Linear Solver Routine Exports
 #*****************************************#
@@ -71,7 +76,7 @@ export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
     LinSysVecColProjFO
 
 # Vector Block Column Projection
-export LinSysBlkColProj, BlockCoordinateDescent 
+export LinSysBlkColProj, BlockCoordinateDescent, mul!
 #*****************************************#
 # Linear Solver Log Exports
 #*****************************************#

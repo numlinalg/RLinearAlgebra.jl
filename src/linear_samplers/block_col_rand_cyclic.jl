@@ -2,33 +2,42 @@
 """
     LinSysBlkColRandCyclic <: LinSysBlkColSampler 
 
-A mutable structure with fields to handle randomly permuted block sampling. Can allow for fixed
-blocks or blocks whose entries are randomly permuted. After each cycle, a new random ordering is
+A mutable structure with fields to handle randomly permuted block sampling. Allows user to input an ordered
+list of indices, which represents the blocks, if no list is provided the blocks are generated using 
+sequential index ordering. After each cycle, a new random ordering is
 created. If the last block would be smaller than the others, columns from a previous block are 
 added to keep all blocks the same size.
 
 # Fields
-- `blockSize::Int64` - Specifies the size of each block.
-- `constantBlock::Bool` - A variable specifying if the user would like for the columns to be randomly
-permuted. 
-- `nBlocks::Int64` - Variable that contains the number of blocks overall.
-- `order::Vector{Int64}` - The order that the blocks will be used to generate updates.
-- `blocks::Vector{Int64}` - The list of all the columns in each block.
+- `blockSize::Int64`, Specifies the size of each block.
+- `nBlocks::Int64`, Variable that contains the number of blocks overall.
+- `order::Vector{Int64}`, The order that the blocks will be used to generate updates.
+- `blocks::Vector{Int64}`, The list of all columns indices ordered by block.
+- `S::Union{Vector{Int64}, Nothing}`, The indicies in the sampled block.
+- `AS::Union{AbstractMatrix, Nothing}`, The sampled columns of the matrix.
+- `res::Union{AbstractVector, Nothing}`, The full residual.
+- `grad::Union{AbstractVector, Nothing}`, The sketched gradient of the least squares problem.
 
-Calling `LinSysBlkColRandCyclic()` defaults to setting `blockSize` to 2 and `constantBlock` to true. The `sample`
+
+Calling `LinSysBlkColRandCyclic()` defaults to setting `blockSize` to 2 and `blocks` to sequential order. The `sample`
 function will handle the re-initialization of the fields once the system is provided.
+
+!!! Note:
+For computational reasons all blocks will be forced to be the same size. This is done by determining how many columns are required for the last block to be full and pulling that many columns from the second to last block.
 """
 mutable struct LinSysBlkColRandCyclic <: LinSysBlkColSampler 
     blockSize::Int64
-    constantBlock::Bool
     nBlocks::Int64
-    order::Vector{Int64}
-    blocks::Vector{Int64}
+    order::Union{Vector{Int64}, Nothing}
+    blocks::Union{Vector{Int64}, Nothing}
+    S::Union{Vector{Int64}, Nothing}
+    AS::Union{AbstractMatrix, Nothing}
+    res::Union{AbstractVector, Nothing}
+    grad::Union{AbstractVector, Nothing}
 end
 
-LinSysBlkColRandCyclic(blockSize, constantBlock) = LinSysBlkColRandCyclic(blockSize, constantBlock, 1, Int64[], Int64[])
-LinSysBlkColRandCyclic(blockSize) = LinSysBlkColRandCyclic(blockSize, true, 1, Int64[], Int64[])
-LinSysBlkColRandCyclic() = LinSysBlkColRandCyclic(2, true, 1,  Int64[], Int64[])
+LinSysBlkColRandCyclic(;blockSize=2, blocks=nothing) = LinSysBlkColRandCyclic(blockSize, 1, blocks, nothing, nothing, nothing, nothing, nothing)
+
 
 # Common sample interface for linear systems
 function sample(
@@ -39,37 +48,31 @@ function sample(
     iter::Int64
 )
     if iter == 1
-        m, n = size(A)
-        # Determine number of blocks
-        type.nBlocks = div(n, type.blockSize) + (rem(n, type.blockSize) == 0 ? 0 : 1)
-        blockIdxs = type.blockSize * type.nBlocks
-        lastBlockStart = blockIdxs - type.blockSize + 1 
-        type.blocks = Vector{Int64}(undef, blockIdxs)
-        # Block definitions
-        if type.constantBlock
-            type.blocks[1:lastBlockStart - 1] .= collect(1:lastBlockStart - 1)
-            if rem(n, type.blockSize) == 0
-                type.blocks[lastBlockStart:blockIdxs] .= collect(lastBlockStart:n)
-            else
-                # maintain size of last block using last blockSize columns
-                type.blocks[lastBlockStart:blockIdxs] .= collect(vcat(n - type.blockSize + 1:lastBlockStart - 1, lastBlockStart:n))
-            end
-        
-        else
-            # If non-constant blocks randomly permute columns
-            if rem(n, type.blockSize) == 0
-                type.blocks .= randperm(n)
-            else
-                # maintain size of last block using last blockSize columns
-                type.blocks[1:n] .= randperm(n)
-                type.blocks[n:n + type.blockSize] .= type.blocks[type.blockSize]
-            end
-
+        m,n = size(A)
+        init_blocks_cyclic!(type, n)
+        # Allocate vector for block indices
+        if typeof(type.S) <: Nothing
+            type.S = Vector{Int64}(undef, type.blockSize)
         end
 
-        # Allocate the order the blocks will be sampled in
-        type.order = randperm(type.nBlocks)
-            
+        # Allocate the blocks for storing sketched matrix
+        if typeof(type.AS) <: Nothing
+            T = eltype(A)
+            type.AS = Matrix{T}(undef, m, type.blockSize)
+        end
+
+        # Allocate residual 
+        if typeof(type.grad) <: Nothing
+            T = eltype(A)
+            type.res = A * x - b 
+        end
+
+        # Allocate block gradient vector
+        if typeof(type.grad) <: Nothing
+            T = eltype(A)
+            type.grad = Vector{T}(undef, type.blockSize)
+        end
+
     end
     # So that iteration 1 corresponds to bIndx 1 use iter - 1 
     bIndx = rem(iter - 1, type.nBlocks) + 1
@@ -79,14 +82,72 @@ function sample(
     end
 
     block = type.order[bIndx] 
-    col_idx = type.blocks[type.blockSize * (block - 1) + 1:type.blockSize * block]
-    AS = A[:, col_idx]
+    copyto!(type.S, type.blocks[type.blockSize * (block - 1) + 1:type.blockSize * block])
+    copyto!(type.AS, A[type.S, :])
 
     # Residual of the linear system
-    res = A * x - b
+    mul!(type.res, A, x, -1, 1)  
     # Normal equation residual in the Sketched Block
-    grad = AS' * (A * x - b)
+    mul!(type.grad, transpose(type.AS), type.res, 1., 0.)
 
-    return col_idx, AS, grad, res
+    return type, type.AS, type.grad, type.res
 end
 
+
+# Implement mul functions that apply the sketching matrix to vectors and matrices
+function *(Sampler::LinSysBlkColRandCyclic, x::AbstractVector)
+    @assert !(typeof(Sampler.AS) <: Nothing) "You need to call the sample function first"
+    m,s = size(Sampler.AS)
+    @assert size(x,1) == s "Your vector is not the same size as your sampling matrix"
+    out = zeros(eltype(x), m)
+    @views copyto!(out[Sampler.S], x)
+    return out 
+end
+
+function *(A::AbstractMatrix, Sampler::LinSysBlkColRandCyclic)
+    @assert !(typeof(Sampler.AS) <: Nothing) "You need to call the sample function first"
+    n = size(A,2)
+    @assert size(A,2) >= maximum(Sampler.blocks) "A does not have a large enough column dimension" 
+    return A[:, Sampler.S] 
+end
+
+# Performs Sx = S * x
+function LinearAlgebra.mul!(Sx::AbstractVector, Sampler::LinSysBlkColRandCyclic, x::AbstractVector)
+    @assert !(typeof(Sampler.AS) <: Nothing) "You need to call the sample function first"
+    m,s = size(Sampler.AS)
+    @assert s == size(x,1) "Right-hand array, x, must match sampling dimension"
+    @assert m == size(Sx,1) "Left-hand array, Sx, row dimension of block"
+    # Copy the entries of y corresponding to the current block over to the vector x
+    fill!(Sx, zero(eltype(Sx)))
+    @views copyto!(Sx[Sampler.S], x)
+end
+
+# Performs SA = S * A
+function LinearAlgebra.mul!(AS::AbstractMatrix, Sampler::LinSysBlkColRandCyclic, A::AbstractMatrix)
+    @assert !(typeof(Sampler.AS) <: Nothing) "You need to call the sample function first"
+    m,s = size(Sampler.AS)
+    n = size(A,2)
+    @assert s == size(AS, 2) "Column dimesion of left-hand matrix, AS, must match sampling dimension"
+    @assert size(A,2) >= maximum(Sampler.blocks) "Right hand matrix, A, does not have a large enough column dimension" 
+    # Copy the entries of y corresponding to the current block over to the vector x
+    @views copyto!(AS, A[:, Sampler.S])
+end
+
+# Performs Sb = β * Sb + α * S * x and is used to update the solution vector in Least Squares solver
+function LinearAlgebra.mul!(y::AbstractVector, Sampler::LinSysBlkColRandCyclic, x::AbstractVector, α::Number, β::Number)
+    @assert !(typeof(Sampler.AS) <: Nothing) "You need to call the sample function first"
+    m,s = size(Sampler.AS)
+    @assert s == size(x,1) "Right-hand array, x, must match sampling dimension"
+    @assert m == size(y,1) "Left-hand array, y, row dimension of block"
+    @views axpby!(α, x, β, y[Sampler.S])
+end
+
+# Performs AS = β * AS + α * A * S
+function LinearAlgebra.mul!(AS::AbstractMatrix, Sampler::LinSysBlkColRandCyclic, A::AbstractMatrix, α::Number, β::Number)
+    @assert !(typeof(Sampler.AS) <: Nothing) "You need to call the sample function first"
+    m,s = size(Sampler.AS)
+    n = size(A,2)
+    @assert s == size(AS, 2) "Column dimesion of left-hand matrix, AS, must match sampling dimension"
+    @assert size(A,2) >= maximum(Sampler.blocks) "Right hand matrix, A, does not have a large enough column dimension" 
+    axpby!(α, A[:, Sampler.S], β, AS)
+end

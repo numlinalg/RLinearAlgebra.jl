@@ -86,5 +86,5 @@ RLinearAlgebra.sample(::Nothing,::AbstractArray,::AbstractVector,
 
 ## Internal Functions
 ```@docs
-RLinearAlgebra.update_sol!
+init_blocks_cyclic!
 ```

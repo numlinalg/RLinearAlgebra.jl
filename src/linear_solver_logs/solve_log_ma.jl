@@ -158,7 +158,7 @@ function log_update!(
     #Check if we want exact residuals computed
     if !log.true_res && iter > 0
         # Compute the current residual to second power to align with theory
-        res::Float64 = eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
+        res::Float64 = typeof(samp[1]) <: LinSysBlkColSampler || typeof(samp[1]) <: LinSysBlkRowSampler ? 
             log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2 
     else 
         res = log.resid_norm(A * x - b)^2 
