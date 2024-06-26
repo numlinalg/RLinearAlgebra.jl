@@ -6,7 +6,7 @@ A mutable structure with fields to handle randomly permuted block sampling. Afte
 random ordering is created. 
 
 # Fields
-- `nBlocks::Int64` - Variable that contains the number of blocks overall.
+- `n_blocks::Int64` - Variable that contains the number of blocks overall.
 - `order::Vector{Int64}` - The order that the blocks will be used to generate updates.
 - `blocks::Vector{Vector{Int64}}` - The vector containing all the groupings of column indices.
 
@@ -14,12 +14,12 @@ Calling `LinSysBlkColRandCyclic()` defaults to setting `nBlocks` to 2. The `samp
 function will handle the re-initialization of the fields once the system is provided.
 """
 mutable struct LinSysBlkColRandCyclic <: LinSysBlkColSampler 
-    nBlocks::Int64
+    n_blocks::Int64
     order::Union{Vector{Int64}, Nothing}
     blocks::Union{Vector{Vector{Int64}}, Nothing}
 end
 
-LinSysBlkColRandCyclic(;nBlocks = 2, blocks = nothing) = LinSysBlkColRandCyclic(nBlocks, nothing, blocks)
+LinSysBlkColRandCyclic(;n_blocks = 2, blocks = nothing) = LinSysBlkColRandCyclic(n_blocks, nothing, blocks)
 
 # Common sample interface for linear systems
 function sample(
@@ -31,17 +31,16 @@ function sample(
 )
     m, n = size(A)
     if iter == 1
-        m,n = size(A)
         init_blocks_cyclic!(type, n) 
     end
-    # So that iteration 1 corresponds to bIndx 1 use iter - 1 
-    bIndx = rem(iter - 1, type.nBlocks) + 1
+    # Use iter - 1 to ensure first iteration gives bIndx 1
+    b_idx = rem(iter - 1, type.n_blocks) + 1
     # Reshuffle blocks
-    if bIndx == 1
-        type.order = randperm(type.nBlocks)
+    if b_idx == 1
+        type.order = randperm(type.n_blocks)
     end
 
-    block = type.order[bIndx] 
+    block = type.order[b_idx] 
     col_idx = type.blocks[block]
     AS = A[:, col_idx]
 
@@ -51,7 +50,7 @@ function sample(
     grad = AS' * (A * x - b)
     
     bsize = size(col_idx, 1)
-    # Define sketching matrix
+    # Create sketching matrix
     S = zeros(n, bsize)
     [S[col_idx[i], i] = 1 for i in 1:bsize]
     

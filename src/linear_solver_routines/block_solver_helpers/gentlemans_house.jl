@@ -72,6 +72,7 @@ function gentleman!(G::GentData)
 
     end
 
+    return nothing
 end
 
 #Function that zeros the gentleman's memory
@@ -85,6 +86,7 @@ function reset_gent!(G::GentData)
     S = eltype(G)
     fill!(G.B, zero(S))
     fill!(G.v, zero(S))
+    return nothing
 end
 
 #Least squares solver for Gentleman's
@@ -144,5 +146,5 @@ function copy_block_from_mat!(B::AbstractMatrix, A::AbstractMatrix, b::AbstractV
     for j in 1:l
         B[j + offset, n] = b[index[j]]
     end
-
+    return nothing
 end

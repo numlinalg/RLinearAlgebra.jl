@@ -6,20 +6,20 @@ A mutable structure with fields to handle randomly permuted block sampling. Afte
 a new random ordering is created. 
 
 # Fields
-- `nBlocks::Int64` - Variable that contains the number of blocks overall.
+- `n_blocks::Int64` - Variable that contains the number of blocks overall.
 - `order::Union{Vector{Int64}, Nothing}` - The order that the blocks will be used to generate updates.
 - `blocks::Union{Vector{Vector{Int64}}, Nothing}` - The list of all the row in each block.
 
-Calling `LinSysVecColBlockRandCyclic()` defaults to setting `nBlocks` to 2.  The `sample`
+Calling `LinSysVecColBlockRandCyclic()` defaults to setting `n_blocks` to 2.  The `sample`
 function will handle the re-initialization of the fields once the system is provided.
 """
 mutable struct LinSysBlkRowRandCyclic <: LinSysBlkRowSampler
-    nBlocks::Int64
+    n_blocks::Int64
     order::Union{Vector{Int64}, Nothing}
     blocks::Union{Vector{Vector{Int64}}, Nothing}
 end
 
-LinSysBlkRowRandCyclic(;nBlocks=2, blocks = nothing) = LinSysBlkRowRandCyclic(nBlocks, nothing, blocks)
+LinSysBlkRowRandCyclic(;n_blocks=2, blocks = nothing) = LinSysBlkRowRandCyclic(n_blocks, nothing, blocks)
 
 # Common sample interface for linear systems
 function sample(
@@ -35,10 +35,10 @@ function sample(
     end
 
     # So that iteration 1 corresponds to bIndx 1 use iter - 1 
-    bIndx = rem(iter - 1, type.nBlocks) + 1
+    bIndx = rem(iter - 1, type.n_blocks) + 1
     # Reshuffle blocks
     if bIndx == 1
-        type.order = randperm(type.nBlocks)
+        type.order = randperm(type.n_blocks)
     end
 
     block = type.order[bIndx] 
@@ -50,7 +50,7 @@ function sample(
     res = SA * x - Sb
     # Define sketching matrix
     S = zeros(bsize, m)
-    [S[i ,row_idx[i]] = 1 for i in 1:bsize]
+    [S[i, row_idx[i]] = 1 for i in 1:bsize]
 
     return S, SA, res
 end
