@@ -3,7 +3,7 @@
 
 module ProceduralTestLSBCRandCyclic
 
-using Test, RLinearAlgebra, Random
+using Test, RLinearAlgebra, Random, LinearAlgebra
 
 Random.seed!(1010)
 
@@ -26,8 +26,7 @@ Random.seed!(1010)
     for j = 2:length(cyc.order)
         v, M, grad, res = RLinearAlgebra.sample(cyc, A, b, x, j)
         block_num = order[j]
-        @test v[1] == block[(block_num - 1) * 2 + 1]
-        @test v[2] == block[(block_num - 1) * 2 + 2]
+        @test v == Matrix{Float64}(I, 6, 6)[:, block[(block_num - 1) * 2 + 1]]
     end
 
 

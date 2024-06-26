@@ -25,7 +25,7 @@ Random.seed!(1010)
 
     for j = 2:3
         v, M, grad, res = RLinearAlgebra.sample(cyc, A, b, x, j)
-        @test norm(grad - A[:, v]'res) < eps() * 1e2
+        @test norm(grad - v' * A'res) < eps() * 1e2
     end
 
 

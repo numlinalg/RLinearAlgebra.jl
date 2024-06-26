@@ -34,11 +34,13 @@ function sample(
 
     m = size(A,1)
     #Sample the indices using the sample function from StatsBase
-    type.block .= sample(1:m, type.blockSize, replace = false) 
+    type.block .= randperm(m)[1:type.blockSize] 
     SA = A[type.block, :]
     Sb = b[type.block]
     # Residual of the linear system
     res = SA * x - Sb
+    S = zeros(type.blockSize, m)
+    [S[i, type.block[i]] = 1 for i in 1:type.blockSize]
 
-    return type.block, SA, res
+    return S, SA, res
 end

@@ -1,34 +1,25 @@
-# This code was Written by Nathaniel Pritchard
+# This file is part of RLinearAlgebra.jl 
 """
     LinSysBlkRowRandCyclic <: LinSysBlkRowSampler
 
-A mutable structure with fields to handle randomly permuted block sampling. Can allow for fixed
-blocks or blocks whose entries are randomly permuted. After each cycle, a new random ordering is
-created. If the last block would be smaller than the others, rows from a previous block are 
-added to keep all blocks the same size.
+A mutable structure with fields to handle randomly permuted block sampling. After each cycle, 
+a new random ordering is created. 
 
 # Fields
-- `blockSize::Int64` - Specifies the size of each block.
-- `constantBlock::Bool` - A variable specifying if the user would like for the rows to be randomly
-permuted. 
 - `nBlocks::Int64` - Variable that contains the number of blocks overall.
-- `order::Vector{Int64}` - The order that the blocks will be used to generate updates.
-- `blocks::Vector{Int64}` - The list of all the row in each block.
+- `order::Union{Vector{Int64}, Nothing}` - The order that the blocks will be used to generate updates.
+- `blocks::Union{Vector{Vector{Int64}}, Nothing}` - The list of all the row in each block.
 
-Calling `LinSysVecColBlockRandCyclic()` defaults to setting `blockSize` to 2 and `constantBlock` to true. The `sample`
+Calling `LinSysVecColBlockRandCyclic()` defaults to setting `nBlocks` to 2.  The `sample`
 function will handle the re-initialization of the fields once the system is provided.
 """
 mutable struct LinSysBlkRowRandCyclic <: LinSysBlkRowSampler
-    blockSize::Int64
-    constantBlock::Bool
     nBlocks::Int64
-    order::Vector{Int64}
-    blocks::Vector{Int64}
+    order::Union{Vector{Int64}, Nothing}
+    blocks::Union{Vector{Vector{Int64}}, Nothing}
 end
 
-LinSysBlkRowRandCyclic(blockSize, constantBlock) = LinSysBlkRowRandCyclic(blockSize, constantBlock, 1, Int64[], Int64[])
-LinSysBlkRowRandCyclic(blockSize) = LinSysBlkRowRandCyclic(blockSize, true, 1, Int64[], Int64[])
-LinSysBlkRowRandCyclic() = LinSysBlkRowRandCyclic(2, true, 1,  Int64[], Int64[])
+LinSysBlkRowRandCyclic(;nBlocks=2, blocks = nothing) = LinSysBlkRowRandCyclic(nBlocks, nothing, blocks)
 
 # Common sample interface for linear systems
 function sample(
@@ -38,39 +29,11 @@ function sample(
     x::AbstractVector,
     iter::Int64
 )
+    m, n = size(A)
     if iter == 1
-        m, n = size(A)
-        # Determine number of blocks
-        type.nBlocks = div(m, type.blockSize) + (rem(m, type.blockSize) == 0 ? 0 : 1)
-        blockIdxs = type.blockSize * type.nBlocks
-        lastBlockStart = blockIdxs - type.blockSize + 1 
-        type.blocks = Vector{Int64}(undef, blockIdxs)
-        # Block definitions
-        if type.constantBlock
-            type.blocks[1:lastBlockStart - 1] .= collect(1:lastBlockStart - 1)
-            if rem(n, type.blockSize) == 0
-                type.blocks[lastBlockStart:blockIdxs] .= collect(lastBlockStart:m)
-            else
-                # maintain size of last block using last blockSize rows 
-                type.blocks[lastBlockStart:blockIdxs] .= collect(vcat(m - type.blockSize + 1:lastBlockStart - 1, lastBlockStart:m))
-            end
-        
-        else
-            # If non-constant blocks randomly permute rows
-            if rem(n, type.blockSize) == 0
-                type.blocks .= randperm(m)
-            else
-                # maintain size of last block using last blockSize rows
-                type.blocks[1:m] .= randperm(m)
-                type.blocks[m:m + type.blockSize] .= type.blocks[type.blockSize]
-            end
-
-        end
-
-        # Allocate the order the blocks will be sampled in
-        type.order = randperm(type.nBlocks)
-            
+        init_blocks_cyclic!(type, m) 
     end
+
     # So that iteration 1 corresponds to bIndx 1 use iter - 1 
     bIndx = rem(iter - 1, type.nBlocks) + 1
     # Reshuffle blocks
@@ -79,11 +42,15 @@ function sample(
     end
 
     block = type.order[bIndx] 
-    row_idx = type.blocks[type.blockSize * (block - 1) + 1:type.blockSize * block]
+    row_idx = type.blocks[block]
     SA = A[row_idx, :]
     Sb = b[row_idx]
+    bsize = size(row_idx,1)
     # Residual of the linear system
     res = SA * x - Sb
+    # Define sketching matrix
+    S = zeros(bsize, m)
+    [S[i ,row_idx[i]] = 1 for i in 1:bsize]
 
-    return row_idx, SA, res
+    return S, SA, res
 end

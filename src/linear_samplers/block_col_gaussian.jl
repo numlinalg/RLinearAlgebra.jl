@@ -34,7 +34,9 @@ function sample(
         type.sketchMatrix = Matrix{Float64}(undef, n, type.blockSize) 
     end
 
+    # Generate new sketch
     randn!(type.sketchMatrix)
+    # Scale the matrix so it has expectation 1 when applied to unit vector
     type.sketchMatrix .*= type.scaling
     SA = A * type.sketchMatrix
     # Residual of the linear system

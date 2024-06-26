@@ -30,11 +30,15 @@ function sample(
 )
     if iter == 1
         m, n = size(A)
+        # Compute scaling for matrix
         type.scaling = sqrt(type.blockSize / m)
+        # Allocate for the sketching matrix
         type.sketchMatrix = Matrix{Float64}(undef, type.blockSize, m) 
     end
-
+    
+    # Fill the allocated matrix with N(0,1) entries
     randn!(type.sketchMatrix)
+    # Scale the matrix to ensure it has expectation 1 when applied to unit vector
     type.sketchMatrix .*= type.scaling
     SA = type.sketchMatrix * A
     Sb = type.sketchMatrix * b

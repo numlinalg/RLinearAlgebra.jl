@@ -33,11 +33,13 @@ function sample(
     
     n = size(A, 2)
     #Sample the indices using the sample function from StatsBase
-    type.block .= sample(1:n, type.blockSize, replace = false) 
+    type.block = randperm(n)[1:type.blockSize] 
     AS = A[:, type.block]
     res = A * x - b
     # Normal equation residual in the Sketched Block
     grad = AS' * (A * x - b)
+    S = zeros(n, type.blockSize)
+    [S[type.block[i], i] = 1 for i in 1:type.blockSize]
 
-    return type.block, AS, grad, res
+    return S, AS, grad, res
 end

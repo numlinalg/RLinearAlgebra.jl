@@ -1,6 +1,6 @@
 # This file is pat of RLinearAlgebra.jl
 """
-    LinSysBlkRowProj <: LinSysBlkRowProjection
+    LinSysBlkRowLQ <: LinSysBlkRowProjection
 
 A mutable structure that represents a standard block row projection method.
 
@@ -13,18 +13,18 @@ A mutable structure that represents a standard block row projection method.
 
 Calling `LinSysBlkRowProj()` defaults the relaxatoin parameter to `1.0`.
 """
-mutable struct LinSysBlkRowProj <: LinSysBlkRowProjection 
+mutable struct LinSysBlkRowLQ <: LinSysBlkRowProjection 
     α::Float64
     update::Union{Nothing, AbstractArray}
 end
-LinSysBlkRowProj(α) = LinSysBlkRowProj(α, nothing)
+LinSysBlkRowLQ(α) = LinSysBlkRowLQ(α, nothing)
 
-LinSysBlkRowProj() = LinSysBlkRowProj(1.0, nothing)
+LinSysBlkRowLQ() = LinSysBlkRowLQ(1.0, nothing)
 
-BlockKaczmarz = LinSysBlkRowProj
+BlockKaczmarz = LinSysBlkRowLQ
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
-    type::LinSysBlkRowProj,
+    type::LinSysBlkRowLQ,
     x::AbstractVector,
     samp::Tuple{U,V,W} where {U<:Union{AbstractVector,AbstractMatrix},V<:AbstractArray,W<:AbstractVector},
     iter::Int64,
@@ -40,6 +40,6 @@ function rsubsolve!(
     # Reset the update vector 
     fill!(type.update, 0)
     ldiv!(type.update, lq(samp[2]), samp[3])
-    x .-= type.α .* type.update
+    x .-= type.α * type.update
     return nothing
 end

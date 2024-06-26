@@ -1,14 +1,14 @@
 # This file is part of RLinearAlgebra.jl
 # This file was written by Nathaniel Pritchard
 
-module ProceduralTestLSBCProjStd
+module ProceduralTestLSBCLQ
 
 using Test, RLinearAlgebra, LinearAlgebra, Random
 
-@testset "LSBC Projection Block -- Procedural" begin
+@testset "LSBC Projection Block LQ -- Procedural" begin
     # Supertype and aliases
-    @test supertype(LinSysBlkRowProj) == LinSysBlkRowProjection 
-    @test BlockKaczmarz == LinSysBlkRowProj
+    @test supertype(LinSysBlkRowLQ) == LinSysBlkRowProjection 
+    @test BlockKaczmarz == LinSysBlkRowLQ
 
     # Verify that the residual projection is zero
     Random.seed!(1010)
@@ -17,7 +17,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     x = rand(5)
     b = A * x
 
-    rsub = LinSysBlkRowProj()
+    rsub = LinSysBlkRowLQ()
     for i = 1:5
         @test let
             # Initialization of iteration
@@ -31,7 +31,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
             RLinearAlgebra.rsubsolve!(rsub, z, (e, A[e,:], (A[e, :] * z - b[e])), i)
             #Comparison solver
             zc .-= A[e, :]' * pinv(A[e, :] * A[e, :]') * (A[e, :] * zc - b[e])
-            norm(z - zc) < eps()*1e2
+            norm(z - zc) < eps() * 1e2
         end
     end
 end

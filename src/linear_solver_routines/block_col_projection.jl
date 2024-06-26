@@ -1,7 +1,7 @@
 # This file is pat of RLinearAlgebra.jl
 # This was written by Nathaniel Pritchard
 """
-    LinSysBlkColProj <: LinSysBlkColProjection
+    LinSysBlkColGent <: LinSysBlkColProjection
 
 A mutable structure that represents a standard block column projection method.
 
@@ -16,20 +16,20 @@ incremental QR least squares solver.
 Calling the constructor `LinSysBlkColProj()` defaults the relaxation parameter to `1.0`.
 
 """
-mutable struct LinSysBlkColProj <: LinSysBlkColProjection 
+mutable struct LinSysBlkColGent <: LinSysBlkColProjection 
     α::Float64
     G::Union{Nothing, GentData}
     update::Union{Nothing, AbstractArray}
 end
-LinSysBlkColProj(α) = LinSysBlkColProj(α, nothing, nothing)
+LinSysBlkColGent(α) = LinSysBlkColGent(α, nothing, nothing)
 
-LinSysBlkColProj() = LinSysBlkColProj(1.0, nothing, nothing)
+LinSysBlkColGent() = LinSysBlkColGent(1.0, nothing, nothing)
 
-BlockCoordinateDescent = LinSysBlkColProj
+BlockCoordinateDescent = LinSysBlkColGent
 
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
-    type::LinSysBlkColProj,
+    type::LinSysBlkColGent,
     x::AbstractVector,
     samp::Tuple{U,V,W,X} where {U<:Union{AbstractVector,AbstractMatrix},V<:AbstractArray,W<:AbstractVector,X<:AbstractVector},
     iter::Int64,
@@ -49,7 +49,7 @@ function rsubsolve!(
     end
     type.G.A = samp[2]
     ldiv!(type.update, type.G, samp[4])
-    update_sol!(x, type.update, samp[1], type.α)
+    x .-= type.α * samp[1] * type.update
 
     return nothing
 end

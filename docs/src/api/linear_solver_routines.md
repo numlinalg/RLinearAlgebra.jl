@@ -18,10 +18,6 @@ LinSysBlkRowProjection
 LinSysBlkColProjection
 
 LinSysPreconKrylov
-
-LinSysBlkRowProj
-
-LinSysBlkColProj
 ```
 
 ## Vector Row Solvers
@@ -46,18 +42,34 @@ LinSysVecColProjFO
 
 ## Block Row Solver
 
-```
-LinSysBlkRowProj
+```@docs
+LinSysBlkRowLQ
 ```
 
 ## Block Column Solver
 
+```@docs
+LinSysBlkColGent
 ```
-LinSysBlkColProj
+## Solving Routine
+```@docs
+RLinearAlgebra.rsubsolve!
 ```
 
-## Subsolver Function
+## Gentleman's Solver for Least Squares
+
+### Data Structure
 
 ```@docs
-RLinearAlgebra.rsubsolve!(::Nothing,::AbstractVector,::Tuple,::Int64)
+RLinearAlgebra.GentData
 ```
+
+
+### Solver
+```@docs
+RLinearAlgebra.gentleman!
+RLinearAlgebra.ldiv!
+RLinearAlgebra.copyBlockFromMat!
+RLinearAlgebra.resetGent!
+```
+

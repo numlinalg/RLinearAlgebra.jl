@@ -123,48 +123,6 @@ function sample(
     return nothing
 end
 
-"""
-    update_sol!(
-        x::AbstractVector, 
-        update::AbstractVector, 
-        Sketch::Union{Vector{Int64}, AbstractMatrix}, 
-        α::Real
-    )
-
-For the block column samplers, this is the function to map the low dimension update into the original
-    solution space. In particular for update \$u_{k+1}\$ found from a lower dimensional least squares problem, 
-    this function performs the operation, \$x_{k+1} = x_k - \\alpha S_{k+1} u_{k+1}\$. This function is not exported and 
-    thus the user will not have direct access to this function. 
-
-# Inputs:
-- `x::AbstractVector`, the current iterate to be updated.
-- `update::AbstractVector`, the lower dimensional update.
-- `Sketch::Union{Vector{Int64}, AbstractMatrix}`, the sketching matrix \$S\$, could be a vector if approach is 
-    a column subsetting approach.
-- `α::Real`, a relaxation parameter.
-
-# Outputs:
-Returns an updated solution according to \$x_{k+1} = x_k - α S_{k+1} u_{k+1}\$. 
-"""
-function update_sol!(
-        x::AbstractVector, 
-        update::AbstractVector, 
-        Sketch::AbstractArray, 
-        α::Real
-    )
-    return nothing
-end
-
-# Version when column blocks are subsets of columns of matrix
-function update_sol!(x::AbstractVector, update::AbstractVector, Sketch::Vector{Int64}, α::Real)
-    x[Sketch] .-= α .* update
-end
-
-# Version when matrix is used for sketching
-function update_sol!(x::AbstractVector, update::AbstractVector, S::Matrix{Float64}, α::Real)
-    x .-= α .* S * update
-end
-
 #############################################
 # Vector Row Sampler/Sketch/Selector
 #############################################
@@ -220,7 +178,10 @@ include("linear_samplers/block_col_rand_replace.jl")
 #############################################
 # Wishlist
 
-
+#############################################
+# Sampler Helper Functions
+#############################################
+include("linear_samplers/linear_sampler_helpers/helpers_cyclic.jl")
 #############################################
 # Export Statements
 #############################################

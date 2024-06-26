@@ -25,7 +25,7 @@ Random.seed!(1010)
 
     for j = 2:5
         v, M, res = RLinearAlgebra.sample(cyc, A, b, x, j)
-        @test norm(res - (A[v, :] * x - b[v])) < eps() * 1e2
+        @test norm(res - (v * A * x - v * b)) < eps() * 1e2
     end
 
 

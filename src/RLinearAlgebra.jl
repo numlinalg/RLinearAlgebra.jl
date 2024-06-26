@@ -23,7 +23,6 @@ module RLinearAlgebra
 
 using LinearAlgebra, Random, Distributions
 
-import StatsBase: sample
 ###########################################
 # Exports
 ###########################################
@@ -64,14 +63,14 @@ export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
 export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjFO
 
 # Vector Block Row Projection
-export LinSysBlkRowProj, BlockKaczmarz
+export LinSysBlkRowLQ, BlockKaczmarz
 
 # Vector Column Projection
 export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
     LinSysVecColProjFO
 
 # Vector Block Column Projection
-export LinSysBlkColProj, BlockCoordinateDescent 
+export LinSysBlkColGent, BlockCoordinateDescent 
 #*****************************************#
 # Linear Solver Log Exports
 #*****************************************#
