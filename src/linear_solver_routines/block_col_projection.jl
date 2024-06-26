@@ -44,7 +44,7 @@ function rsubsolve!(
         # less than 10000
         rowBlockSize = m < 10000 ? m : min(div(m, 10), 10000)
         # Gentleman's will not use more than 10000 rows as a block 
-        type.G = Gent(samp[2], rowBlockSize)
+        type.G = GentData(samp[2], rowBlockSize)
         type.update = Array{typeof(samp[2][1])}(undef, p)
     end
     type.G.A = samp[2]

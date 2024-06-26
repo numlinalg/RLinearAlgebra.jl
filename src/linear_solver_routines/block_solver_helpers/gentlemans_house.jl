@@ -34,7 +34,7 @@ end
 Base.eltype(::GentData{S, M, V}) where {S, M, V} = S
 
 # Constructor for Gent data structure
-function Gent(A::AbstractMatrix, bsize::Int64)
+function GentData(A::AbstractMatrix, bsize::Int64)
     S = eltype(A)
     m,n = size(A)
     B = zeros(S, n + bsize + 1, n + 1)
@@ -81,7 +81,7 @@ end
 Function that sets all the allocated memory of
 `GentData` to zero.
 """
-function resetGent!(G::GentData)
+function reset_gent!(G::GentData)
     S = eltype(G)
     fill!(G.B, zero(S))
     fill!(G.v, zero(S))
@@ -105,7 +105,7 @@ function LinearAlgebra.ldiv!(x::AbstractVector, G::GentData, b::AbstractVector)
     for i in 1:nblocks
         # Do not use an index greater than m
         index = (i - 1) * bsize + 1: min(i * bsize, m)
-        copyBlockFromMat!(G.B, G.A, b, index)
+        copy_block_from_mat!(G.B, G.A, b, index)
         # Check if you are in the last block in which case zero all rows 
         # that no data was moved to
         if index[end] < i * bsize
@@ -117,7 +117,7 @@ function LinearAlgebra.ldiv!(x::AbstractVector, G::GentData, b::AbstractVector)
 
     # Solve Upper triangular system 
     LinearAlgebra.ldiv!(x, G.R, G.tab)
-    resetGent!(G)
+    reset_gent!(G)
     return nothing 
 
 end
@@ -129,7 +129,7 @@ end
 Function that updates matrix `B` with the entries at indicies `index` of the `A` matrix and `b` constant vector of the linear 
 system.
 """
-function copyBlockFromMat!(B::AbstractMatrix, A::AbstractMatrix, b::AbstractVector, index::Union{UnitRange{Int64}, Vector{Int64}})
+function copy_block_from_mat!(B::AbstractMatrix, A::AbstractMatrix, b::AbstractVector, index::Union{UnitRange{Int64}, Vector{Int64}})
     m, n = size(B)
     l = length(index)
     # The upper triangular part is n by n

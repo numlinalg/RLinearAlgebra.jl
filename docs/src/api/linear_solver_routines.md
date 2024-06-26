@@ -69,7 +69,7 @@ RLinearAlgebra.GentData
 ```@docs
 RLinearAlgebra.gentleman!
 RLinearAlgebra.ldiv!
-RLinearAlgebra.copyBlockFromMat!
-RLinearAlgebra.resetGent!
+RLinearAlgebra.copy_block_from_mat!
+RLinearAlgebra.reset_gent!
 ```
 
