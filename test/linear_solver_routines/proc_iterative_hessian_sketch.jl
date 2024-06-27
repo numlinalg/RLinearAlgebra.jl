@@ -40,7 +40,8 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     @test length(rsub.step) == 5
 
     # check to make sure that the inner problem is solved correctly
-    @test norm(A'*S'*S*A*rsub.step - size(S)[1]*A'*(b-A*zeros(5)) ) < 1e-11
+    _,R=qr(S*A)
+    @test norm(R'*R*rsub.step - size(S)[1]*A'*(b-A*zeros(5)) ) < 1e-11
 
     # check update is correct
     @test x0 == zeros(5) + rsub.step
