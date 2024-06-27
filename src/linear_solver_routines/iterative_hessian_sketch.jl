@@ -25,7 +25,6 @@ mutable struct IterativeHessianSketch <: LinSysSolveRoutine
     step::Union{AbstractVector, Nothing}
     btilde::Union{AbstractVector, Nothing}
 end
-# TODO: Default constructor.
 
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
@@ -39,18 +38,30 @@ function rsubsolve!(
     # samp[3] is the residual of the sketched system
 
     # initialize buffer arrays
+    m = size(samp[1])[1] # sketch size
     if iter == 1
-        p = size(x)[1]
-        type.step = Array{typeof(samp[2][1])}(undef, p) 
-        type.btilde = Array{typeof(samp[2][1])}(undef, p)
+        d = size(x)[1]
+        type.step = Array{typeof(samp[2][1])}(undef, d) 
+        type.btilde = Array{typeof(samp[2][1])}(undef, d)
+        if m < d
+            @warn "Sketch matrix might be too small for a sensible inner problem solution!"
+        end
     end
 
     # form sub-linear system and solve 
-    m = size(samp[1])[1]    
     type.btilde .= m .* ((type.A)'*(type.b - type.A*x))
-    _,R = qr(samp[2])
-    type.step .= R'\type.btilde
-    type.step .= R\type.step
+    if m >= size(samp[2])[2]
+        _,R = qr(samp[2])
+        type.step .= R'\type.btilde
+        type.step .= R\type.step
+    else
+        try
+            LinearAlgebra.ldiv!(type.step, qr(samp[2]'*samp[2]), type.btilde)
+        catch
+            type.step .= zeros(size(x)[1])
+            @warn "Encountered error in LinearAlgebra.ldiv!, no update applied!"
+        end
+    end
 
     # update current iterate
     x .= x .+ type.step
