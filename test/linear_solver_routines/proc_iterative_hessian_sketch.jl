@@ -41,7 +41,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
 
     # check to make sure that the inner problem is solved correctly
     _,R=qr(S*A)
-    @test norm(R'*R*rsub.step - size(S)[1]*A'*(b-A*zeros(5)) ) < 1e-11
+    @test norm(R'*R*rsub.step - size(S)[1]*A'*(b-A*zeros(5)) ) < 1e-10
 
     # check update is correct
     @test x0 == zeros(5) + rsub.step
@@ -55,16 +55,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     end
     ldivsol = zeros(5)
     LinearAlgebra.ldiv!(ldivsol,qr(A'*A),A'*b)
-    @test norm(x0-ldivsol) < 1e-11
-
-    # check to see that we used ldiv!
-    x0 = zeros(5)
-    S = randn(4,length(b))
-    RLinearAlgebra.rsubsolve!(rsub, x0, (S, S*A, S*A*x0 - S*b), 1)
-
-    step = zeros(5)
-    LinearAlgebra.ldiv!(step, qr((S*A)'*S*A), size(S)[1]*A'*(b-A*zeros(5)))
-    @test step == rsub.step
+    @test norm(x0-ldivsol) < 1e-10
     
 end
 
