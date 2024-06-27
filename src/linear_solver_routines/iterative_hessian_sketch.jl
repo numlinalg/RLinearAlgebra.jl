@@ -59,7 +59,7 @@ function rsubsolve!(
             LinearAlgebra.ldiv!(type.step, qr(samp[2]'*samp[2]), type.btilde)
         catch
             type.step .= zeros(size(x)[1])
-            @warn "Encountered error in LinearAlgebra.ldiv!, no update applied!"
+            @warn "Sketch size might be too small. Encountered error in LinearAlgebra.ldiv!, no update applied!"
         end
     end
 
