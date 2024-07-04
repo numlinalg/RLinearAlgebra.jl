@@ -48,9 +48,6 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 
-# Block Row Samples
-export LinSysVecBlockGaussSampler
-
 #*****************************************#
 # Linear Solver Routine Exports
 #*****************************************#
