@@ -43,14 +43,16 @@ function rsubsolve!(
         d = size(x)[1]
         type.step = Array{typeof(samp[2][1])}(undef, d) 
         type.btilde = Array{typeof(samp[2][1])}(undef, d)
-        if m < d
+
+        # sketch matrix will not have full column rank
+        if m < d 
             @warn "Sketch matrix might be too small for a sensible inner problem solution!"
         end
     end
 
     # form sub-linear system and solve 
     type.btilde .= m .* ((type.A)'*(type.b - type.A*x))
-    if m >= size(samp[2])[2]
+    if m >= size(samp[2])[2] # nrow >= ncol for SA
         _,R = qr(samp[2])
         type.step .= R'\type.btilde
         type.step .= R\type.step

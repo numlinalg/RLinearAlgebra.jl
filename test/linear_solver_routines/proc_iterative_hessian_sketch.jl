@@ -42,21 +42,20 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     @test length(rsub.btilde) == 5
     @test length(rsub.step) == 5
 
-    # check to make sure that the inner problem is solved correctly
+    # test to make sure rsub.btilde is correctly initialized.
+    @test size(S)[1]*A'*(b-A*zeros(5)) ≈ rsub.btilde
+
+    # check to make sure that the inner problem is solved correctly (correct step)
     _,R=qr(S*A)
     @test norm(R'*R*rsub.step - size(S)[1]*A'*(b-A*zeros(5)) ) < 1e-10
 
     # check update is correct
     @test x0 == zeros(5) + rsub.step
-
-    # test to make sure rsub.btilde is correctly initialized.
-    @test size(S)[1]*A'*(b-A*zeros(5)) ≈ rsub.btilde
     ##########################
     ##########################
 
     ########################## Test one step of the algorithm when values step and btilde
     ########################## are not set as intended. 
-    # TODO: test step,btilde are supplied by the user
     btilde_random = randn(123)
     step_random = randn(123)
     rsub = IterativeHessianSketch(A,b,step_random,btilde_random)    
@@ -76,15 +75,15 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     @test length(rsub.btilde) == 5
     @test length(rsub.step) == 5
 
-    # check to make sure that the inner problem is solved correctly
+    # test to make sure rsub.btilde is correctly initialized.
+    @test size(S)[1]*A'*(b-A*zeros(5)) ≈ rsub.btilde 
+    
+    # check to make sure that the inner problem is solved correctly (correct step)
     _,R=qr(S*A)
     @test norm(R'*R*rsub.step - size(S)[1]*A'*(b-A*zeros(5)) ) < 1e-10
 
     # check update is correct
     @test x0 == zeros(5) + rsub.step
-
-    # test to make sure rsub.btilde is correctly initialized.
-    @test size(S)[1]*A'*(b-A*zeros(5)) ≈ rsub.btilde 
     ##########################
     ##########################
 
