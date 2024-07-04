@@ -21,8 +21,8 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     b = A * x
 
     
-    ########################## Test one iteration of the algorithm initialized as intended
-    ##########################
+    ########################## Test one iteration of the algorithm initialized as intended.
+    ########################## Sketch size is >= number of columns in A.
     rsub = IterativeHessianSketch(A,b,nothing,nothing) # btilde, step
 
     # verify correct assignment
@@ -55,7 +55,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     ##########################
 
     ########################## Test one step of the algorithm when values step and btilde
-    ########################## are not set as intended. 
+    ########################## are not set as intended. Sketch size >= number of columns in A.
     btilde_random = randn(123)
     step_random = randn(123)
     rsub = IterativeHessianSketch(A,b,step_random,btilde_random)    
@@ -87,6 +87,8 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     ##########################
     ##########################
 
+    ########################## Sketch size >= number of columns
+    ##########################
     # check final solutions
     rsub = IterativeHessianSketch(A,b,nothing,nothing)
     x0 = zeros(5)
@@ -97,6 +99,29 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     ldivsol = zeros(5)
     LinearAlgebra.ldiv!(ldivsol,qr(A'*A),A'*b)
     @test norm(x0-ldivsol) < 1e-10
+    ##########################
+    ##########################
+
+    ########################## One iteration of the algorithm when sketch size < number of columns
+    ##########################
+    rsub = IterativeHessianSketch(A,b,nothing,nothing) # btilde, step
+
+    # one step of the algorithm
+    x0 = zeros(5)
+    S = randn(1,length(b))
+    RLinearAlgebra.rsubsolve!(rsub, x0, (S, S*A, S*A*x0 - S*b), 1)
+
+    step_buffer = zeros(5)
+    try
+        LinearAlgebra.ldiv!(step_buffer, qr((S*A)'*(S*A)), size(S)[1]*A'*(b-A*zeros(5)) )
+    catch
+        step_buffer = zeros(5)
+        print("\n")
+    end
+    @test step_buffer ≈ rsub.step
+    @test x0 == zeros(5) +  rsub.step
+    ##########################
+    ##########################
     
 end
 
