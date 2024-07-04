@@ -104,7 +104,7 @@ function rsubsolve!(
     return nothing
 end
 ############################################
-# Inner Loop Linear Solvers
+# Linear Solvers Helpers
 ############################################
 include("linear_solver_routines/block_solver_helpers/gentlemans_house.jl")
 #############################################
@@ -139,7 +139,6 @@ include("linear_solver_routines/block_col_projection.jl")
 # Precondition Krylov Solvers
 #############################################
 #Blendenpik
-
 
 
 #############################################

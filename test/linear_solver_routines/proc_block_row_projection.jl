@@ -16,7 +16,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     A = rand(10,5)
     x = rand(5)
     b = A * x
-
+    tr = zeros(5)
     rsub = LinSysBlkRowLQ()
     for i = 1:5
         @test let

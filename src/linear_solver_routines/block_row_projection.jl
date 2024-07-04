@@ -9,13 +9,13 @@ A mutable structure that represents a standard block row projection method.
 
 # Fields
 - `alpha::Float64`, a relaxation parameter that should be set between `0.0` and `2.0`
-- `update::Union{Nothing, AbstractArray}` - A buffer for storing update.
+- `update::Union{Nothing, AbstractArray}`, a buffer for storing update.
 
-Calling `LinSysBlkRowProj()` defaults the relaxatoin parameter to `1.0`.
+Calling `LinSysBlkRowProj()` defaults the relaxation parameter to `1.0`.
 """
 mutable struct LinSysBlkRowLQ <: LinSysBlkRowProjection 
     α::Float64
-    update::Union{Nothing, AbstractArray}
+    update::Union{Nothing, Vector{Float64}}
 end
 LinSysBlkRowLQ(α) = LinSysBlkRowLQ(α, nothing)
 
@@ -37,9 +37,9 @@ function rsubsolve!(
         p,n = size(samp[2])
         type.update = Array{typeof(samp[2][1])}(undef, n)
     end
-    # Reset the update vector 
-    fill!(type.update, 0)
-    ldiv!(type.update, lq(samp[2]), samp[3])
+    fill!(type.update, 0.0)
+    # Solve the underdetemined system 
+    LinearAlgebra.ldiv!(type.update, factorize(samp[2]), samp[3])
     x .-= type.α * type.update
     return nothing
 end
