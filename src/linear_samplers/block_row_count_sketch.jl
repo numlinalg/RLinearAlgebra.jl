@@ -26,7 +26,7 @@ Calling `LinSysBlockRowCountSketch()` defaults to `LinSysBlockRowCountSketch(1)`
 mutable struct LinSysBlkRowCountSketch <: LinSysVecRowSelect 
     size::Int64
 end
-LinSysBlockRowCountSketch() = LinSysBlockRowCountSketch(1) 
+LinSysBlockRowCountSketch() = LinSysBlkRowCountSketch(1) 
 
 # Common sample interface for linear systems
 function sample(
