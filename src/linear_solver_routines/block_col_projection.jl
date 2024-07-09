@@ -1,18 +1,28 @@
-# This file is pat of RLinearAlgebra.jl
+# This file is part of RLinearAlgebra.jl
 """
     LinSysBlkColGent <: LinSysBlkColProjection
 
-A mutable structure that represents a standard block column projection method.
+A mutable structure that represents a standard block column projection method that projections 
+a previous iterate onto the columnspace of an inputted block. This method can be viewed as 
+a generalization to block coordinate descent. The updates to this are computed
+using Gentleman's Algorithm.
+
+For more information on Gentleman's see:
+Miller, Alan J. “Algorithm AS 274: Least Squares Routines to Supplement Those of Gentleman.” 
+Journal of the Royal Statistical Society. Series C (Applied Statistics), 
+vol. 41, no. 2, 1992, pp. 458–78. JSTOR, https://doi.org/10.2307/2347583. Accessed 8 July 2024.
 
 # Aliases
 - `BlockCoordinateDescent`
 
 # Fields
-- `alpha::Float64`, a relaxation parameter that should be set between `0.0` and `2.0`
+- `α::Float64`, a relaxation parameter that should be set between `0.0` and `2.0`
 - `gent::GentData`, a buffer to store important information related to the Gentleman's 
 incremental QR least squares solver.
 - `update::Union{Nothing, AbstractArray}`, a buffer for storing update.
-- `rowsize::Int64`, the maximum size of the Gentleman's row blocks. By defaul this is set to 10,000.
+- `rowsize::Int64`, the upper limit on the size of the row blocks in Gentleman's. By default this is set to 10000.
+
+# Constructors
 Calling the constructor `LinSysBlkColProj()` defaults the relaxation parameter to `1.0`.
 """
 mutable struct LinSysBlkColGent <: LinSysBlkColProjection 
@@ -38,13 +48,14 @@ function rsubsolve!(
     # samp[4] is the residual of the system A * x - b
     if iter == 1
         m,p = size(samp[2])
-        # If there are less than 10000 rows, m < 10000, perform gentlemans with block size m otherwise keep the block size 
-        # less than 10000
+        # If m < type.rowsize rows, perform gentlemans with block size type.rowsize otherwise keep the block size 
+        # less than type.rowsize
         brow_size = m < type.rowsize ? m : min(div(m, 10), type.rowsize)
         # Gentleman's will not use more than 10000 rows as a block 
         type.gent = GentData(samp[2], brow_size)
         type.update = Array{typeof(samp[2][1])}(undef, p)
     end
+
     type.gent.A = samp[2]
     LinearAlgebra.ldiv!(type.update, type.gent, samp[4])
     x .-= type.α * samp[1] * type.update

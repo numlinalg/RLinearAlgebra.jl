@@ -51,25 +51,9 @@ LinSysBlkRowLQ
 ```@docs
 LinSysBlkColGent
 ```
+
 ## Solving Routine
+
 ```@docs
 RLinearAlgebra.rsubsolve!
 ```
-
-## Gentleman's Solver for Least Squares
-
-### Data Structure
-
-```@docs
-RLinearAlgebra.GentData
-```
-
-
-### Solver
-```@docs
-RLinearAlgebra.gentleman!
-RLinearAlgebra.ldiv!
-RLinearAlgebra.copy_block_from_mat!
-RLinearAlgebra.reset_gent!
-```
-

@@ -2,13 +2,15 @@
 """
     LinSysBlkColGaussSampler <: LinSysBlkColSampler 
 
-A mutable structure with fields to handle Guassian column sketching. 
+A mutable structure with fields to handle Guassian column sketching where a Gaussian matrix
+is multiplied by the matrix `A` from the right.
 
 # Fields
 - `block_size::Int64` - Specifies the size of each block.
 - `sketch_matrix::Union{AbstractMatrix, Nothing}` - The buffer for storing the Gaussian sketching matrix.
-- `scaling::Float64` - The variance of the sketch, is set to be block_size/numberOfColumns.
+- `scaling::Float64` - The standard deviation of the sketch, is set to be sqrt(block_size/numberOfColumns).
 
+# Constructors
 Calling `LinSysBlkColGaussSampler()` defaults to setting `block_size` to 2.
 """
 mutable struct LinSysBlkColGaussSampler <: LinSysBlkColSampler 
@@ -17,8 +19,8 @@ mutable struct LinSysBlkColGaussSampler <: LinSysBlkColSampler
     scaling::Float64
 end
 
-LinSysBlkColGaussSampler(block_size) = LinSysBlkColGaussSampler(block_size, nothing, 0.)
-LinSysBlkColGaussSampler() = LinSysBlkColGaussSampler(2, nothing, 0.)
+LinSysBlkColGaussSampler(block_size) = LinSysBlkColGaussSampler(block_size, nothing, 0.0)
+LinSysBlkColGaussSampler() = LinSysBlkColGaussSampler(2, nothing, 0.0)
 
 # Common sample interface for linear systems
 function sample(
@@ -31,6 +33,7 @@ function sample(
     m, n = size(A)
     if iter == 1
         @assert type.block_size <= n "Block size must be less than col dimension"
+        # Scaling the matrix so it has expectation 1 when applied to unit vector
         type.scaling = sqrt(type.block_size / n)
         type.sketch_matrix = Matrix{Float64}(undef, n, type.block_size) 
     end

@@ -21,9 +21,21 @@ function init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRand
             type.blocks[type.n_blocks] = collect((type.n_blocks - 1) * bsize + 1 : (type.n_blocks - 1) * bsize + last_bsize)   
         else
             @assert typeof(type.blocks) <: Vector{Vector{Int64}} "Your blocks must be entered as a 
-            vector containing vectors of block indices"
+            vector containing vectors of block indices represented as integers"
             type.n_blocks = size(type.blocks, 1)
-            @assert sum(size(type.blocks,1) .> dim) == 0 "Your blocks should be smaller than the dimension of the system"
+            # Perform a check if all indices are used
+            uniq_vals = unique(sort(reduce(vcat, type.blocks)))
+            unused = false
+            for i in 1:type.n_blocks
+                # Check if each index is included in the vector
+                unused = !(i in uniq_vals)
+                if unused
+                    @warn "Not all possible indices are used in these blocks!"
+                    break
+                end
+
+            end
+
         end
 
         # Allocate the order the blocks will be sampled in

@@ -50,7 +50,9 @@ function sample(
     res = SA * x - Sb
     # Define sketching matrix
     S = zeros(bsize, m)
-    [S[i, row_idx[i]] = 1 for i in 1:bsize]
+    for i in 1:bsize
+        S[i, row_idx[i]] = 1
+    end
 
     return S, SA, res
 end

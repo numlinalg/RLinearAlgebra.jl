@@ -1,17 +1,18 @@
-# This is a file in RLinearAlgebra.jl
+# This is file part of RLinearAlgebra.jl
 """
     LinSysBlkColRandCyclic <: LinSysBlkColSampler 
 
-A mutable structure with fields to handle randomly permuted block sampling. After each cycle, a new
-random ordering is created. 
+A mutable structure with fields to handle randomly permuted block sampling. After all blocks are called, a new random ordering is created. 
 
 # Fields
-- `n_blocks::Int64` - Variable that contains the number of blocks overall.
-- `order::Vector{Int64}` - The order that the blocks will be used to generate updates.
-- `blocks::Vector{Vector{Int64}}` - The vector containing all the groupings of column indices.
+- `n_blocks::Int64`, Variable that contains the number of blocks overall.
+- `order::Vector{Int64}`, The order that the blocks will be used to generate updates.
+- `blocks::Vector{Vector{Int64}}`, The vector containing all the groupings of column indices.
 
-Calling `LinSysBlkColRandCyclic()` defaults to setting `nBlocks` to 2. The `sample`
-function will handle the re-initialization of the fields once the system is provided.
+# Constructors
+Calling `LinSysBlkColRandCyclic()` defaults to setting `n_blocks` to 2 and `blocks` to be sequentially ordered. 
+These values can be changed using the respective keyword arguments.
+The `sample` function will handle the re-initialization of the fields once the system is provided.
 """
 mutable struct LinSysBlkColRandCyclic <: LinSysBlkColSampler 
     n_blocks::Int64
@@ -31,9 +32,10 @@ function sample(
 )
     m, n = size(A)
     if iter == 1
+        # Allocate space for blocks and intialize cycle
         init_blocks_cyclic!(type, n) 
     end
-    # Use iter - 1 to ensure first iteration gives bIndx 1
+    # Use iter - 1 to ensure first iteration gives b_idx 1
     b_idx = rem(iter - 1, type.n_blocks) + 1
     # Reshuffle blocks
     if b_idx == 1
@@ -52,7 +54,9 @@ function sample(
     bsize = size(col_idx, 1)
     # Create sketching matrix
     S = zeros(n, bsize)
-    [S[col_idx[i], i] = 1 for i in 1:bsize]
+    for i in 1:bsize
+        S[col_idx[i], i] = 1
+    end
     
     return S, AS, grad, res
 end

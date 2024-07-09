@@ -8,9 +8,10 @@ A mutable structure that represents a standard block row projection method.
 - `BlockKaczmarz`
 
 # Fields
-- `alpha::Float64`, a relaxation parameter that should be set between `0.0` and `2.0`
+- `α::Float64`, a relaxation parameter that should be set between `0.0` and `2.0`
 - `update::Union{Nothing, AbstractArray}`, a buffer for storing update.
 
+# Constructors
 Calling `LinSysBlkRowProj()` defaults the relaxation parameter to `1.0`.
 """
 mutable struct LinSysBlkRowLQ <: LinSysBlkRowProjection 
@@ -22,6 +23,7 @@ LinSysBlkRowLQ(α) = LinSysBlkRowLQ(α, nothing)
 LinSysBlkRowLQ() = LinSysBlkRowLQ(1.0, nothing)
 
 BlockKaczmarz = LinSysBlkRowLQ
+
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
     type::LinSysBlkRowLQ,
@@ -37,6 +39,7 @@ function rsubsolve!(
         p,n = size(samp[2])
         type.update = Array{typeof(samp[2][1])}(undef, n)
     end
+
     fill!(type.update, 0.0)
     # Solve the underdetemined system 
     LinearAlgebra.ldiv!(type.update, factorize(samp[2]), samp[3])

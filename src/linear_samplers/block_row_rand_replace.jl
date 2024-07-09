@@ -1,14 +1,18 @@
-# This code was Written by Nathaniel Pritchard
+# This code is part of RLinearAlgebra
 """
     LinSysBlkRowReplace <: LinSysBlkRowSampler 
 
-A mutable structure with fields to handle randomly subset block sampling with replacement, also known as
-vanilla block randomized kaczmarz. 
+A mutable structure with fields to store information for a sampling method that
+forms a new block by uniformly sampling rows of `A` without replacement, 
+also known as vanilla block randomized Kaczmarz. 
+
+Necoara, Ion. “Faster Randomized Block Kaczmarz Algorithms.” SIAM J. Matrix Anal. Appl. 40 (2019): 1425-1452.
 
 # Fields
 - `block_size::Int64` - Specifies the size of each block.
 - `block::Vector{Int64}` - The list of all the rows in each block.
 
+# Constructors
 Calling `LinSysBlkRowReplace()` defaults to setting `block_size` to 2. The `sample`
 function will handle the re-initialization of the fields once the system is provided.
 """
