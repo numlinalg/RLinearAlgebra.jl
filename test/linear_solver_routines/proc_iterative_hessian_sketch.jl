@@ -113,7 +113,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
 
     step_buffer = zeros(5)
     try
-        LinearAlgebra.ldiv!(step_buffer, qr((S*A)'*(S*A)), size(S)[1]*A'*(b-A*zeros(5)) )
+        LinearAlgebra.ldiv!(step_buffer, cholesky((S*A)'*(S*A)), size(S)[1]*A'*(b-A*zeros(5)) )
     catch
         step_buffer = zeros(5)
         print("\n")
