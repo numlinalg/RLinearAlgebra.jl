@@ -21,8 +21,7 @@ mutable struct LinSysBlkRowReplace <: LinSysBlkRowSampler
     block::Vector{Int64}
 end
 
-LinSysBlkRowReplace(block_size) = LinSysBlkRowReplace(block_size, Int64[])
-LinSysBlkRowReplace() = LinSysBlkRowReplace(2, Int64[])
+LinSysBlkRowReplace(;block_size = 2) = LinSysBlkRowReplace(block_size, Int64[])
 
 # Common sample interface for linear systems
 function sample(

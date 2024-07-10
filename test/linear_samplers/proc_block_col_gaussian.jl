@@ -1,5 +1,4 @@
 # This file is part of RLinearAlgebra.jl
-# This file was written by Nathaniel Pritchard  
 
 module ProceduralTestLSBCGaussSampler
 

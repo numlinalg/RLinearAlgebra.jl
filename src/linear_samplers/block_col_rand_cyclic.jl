@@ -2,7 +2,8 @@
 """
     LinSysBlkColRandCyclic <: LinSysBlkColSampler 
 
-A mutable structure with fields to handle randomly permuted block sampling. After all blocks are called, a new random ordering is created. 
+A mutable structure with fields to handle randomly permuted block sampling. 
+After all blocks are called, a new random ordering is created. 
 
 # Fields
 - `n_blocks::Int64`, Variable that contains the number of blocks overall.
@@ -11,7 +12,7 @@ A mutable structure with fields to handle randomly permuted block sampling. Afte
 
 # Constructors
 Calling `LinSysBlkColRandCyclic()` defaults to setting `n_blocks` to 2 and `blocks` to be sequentially ordered. 
-These values can be changed using the respective keyword arguments.
+These values can be changed using the respective keyword arguments. 
 The `sample` function will handle the re-initialization of the fields once the system is provided.
 """
 mutable struct LinSysBlkColRandCyclic <: LinSysBlkColSampler 

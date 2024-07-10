@@ -18,8 +18,7 @@ mutable struct LinSysBlkColReplace <: LinSysBlkColSampler
     block::Vector{Int64}
 end
 
-LinSysBlkColReplace(block_size) = LinSysBlkColReplace(block_size, Int64[])
-LinSysBlkColReplace() = LinSysBlkColReplace(2, Int64[])
+LinSysBlkColReplace(;block_size=2) = LinSysBlkColReplace(block_size, Int64[])
 
 # Common sample interface for linear systems
 function sample(
