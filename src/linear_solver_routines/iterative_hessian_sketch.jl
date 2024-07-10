@@ -75,6 +75,5 @@ function rsubsolve!(
 
     # update current iterate
     x .= x .+ type.step
-
     return nothing
 end
