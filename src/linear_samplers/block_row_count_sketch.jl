@@ -11,30 +11,35 @@
     LinSysBlkRowCountSketch <: LinSysVecRowSelect
 
 An mutable structure with one field that indicates the sketch size, and
-represents the CountSketch algorithm. The assumption is that A is fully known (that is not in a streaming context).
+represents the CountSketch algorithm. The assumption is that `A`` is fully known (that is, 
+the sampling procedure is not used in a streaming context).
 
-See Kenneth Clarkson and David Woodruff. "Low Rank Approximation and Regression in Input Sparsity Time"
+See Kenneth L. Clarkson and David P. Woodruff. 2017. 
+    "Low-Rank Approximation and Regression in Input Sparsity Time."
+    J. ACM 63, 6, Article 54 (February 2017), 45 pages. 
+    https://doi.org/10.1145/3019134
 
 # Fields
 
-- `size::Int64` is the number of rows in the sketch matrix.
+- `blockSize::Int64`, is the number of rows in `SA`.
+- `labels::Union{Array{Int64},Nothing}`, buffer array that stores data for sketching. 
+- `signs::Union{Array{Int64},Nothing}`, buffer array that stores data for sketching.
+- `S::Union{Matrix{Int64},Nothing}`, buffer matrix for storing sketched matrix.
 
-Calling `LinSysBlockRowCountSketch()` defaults to `LinSysBlockRowCountSketch(1)`.
+Calling `LinSysBlockRowCountSketch(blockSize)` defaults to `LinSysBlockRowCountSketch(blockSize, nothing, nothing, nothing)`.
 """
 
-# constructor for CountSketch; requires the size of the sketch; default 1.
 mutable struct LinSysBlkRowCountSketch <: LinSysVecRowSelect 
-    size::Int64
-    labels::Union{Array{Int64},Nothing}
-    signs::Union{Array{Int64},Nothing}
-    S::Union{Matrix{Int64},Nothing}
+    blockSize::Int64
+    labels::Union{Array{Int64}, Nothing}
+    signs::Union{Array{Int64}, Nothing}
+    S::Union{Matrix{Int64}, Nothing}
 end
 
-function LinSysBlkRowCountSketch(size::Int64)
-    return LinSysBlkRowCountSketch(size,nothing,nothing,nothing)
+# Additional constructors for LinSysBlkRowCountSketch
+function LinSysBlkRowCountSketch(blockSize::Int64)
+    return LinSysBlkRowCountSketch(blockSize, nothing, nothing, nothing)
 end
-
-LinSysBlkRowCountSketch() = LinSysBlkRowCountSketch(1)
 
 # Common sample interface for linear systems
 function sample(
@@ -45,33 +50,32 @@ function sample(
     iter::Int64
 )
 
-    # size checking
+    # blockSize checking and initialization of memory
     n = size(A)[1]
     if iter == 1
-        if type.size <= 0
-            throw("Sketch size is 0 or negative!")
+        if type.blockSize <= 0
+            throw("blockSize is 0 or negative!")
         end
-        type.S = Matrix{Int64}(undef,type.size,n)
-        type.labels = Array{Int64}(undef,n)
-        type.signs = Array{Int64}(undef,n) 
+        type.S = Matrix{Int64}(undef, type.blockSize, n)
+        type.labels = Array{Int64}(undef, n)
+        type.signs = Array{Int64}(undef, n) 
     end
 
-    # Assign labels to rows and potential sign flip
-    # TODO: More efficient implementation using hash tables?
+    # Assign labels to rows and generate possible flip signs
     fill!(type.S, 0)  
-    rand!(type.labels, 1:type.size) 
-    rand!(type.signs, [-1,1]) 
+    rand!(type.labels, 1:type.blockSize) 
+    rand!(type.signs, [-1,1])
+    
+    # form sketching matrix
     @inbounds for j in 1:n
-        type.S[abs(type.labels[j]),j] = type.signs[j]
+        type.S[type.labels[j], j] = type.signs[j]
     end
     
     # sketched matrix
-    SA = type.S*A
+    SA = type.S * A
 
-    # residual of sketched system
-    res = SA*x - type.S*b
+    # residual of sketched linear system
+    res = SA * x - type.S * b
 
-    return type.S,SA,res
+    return type.S, SA, res
 end
-
-# TODO: sparse matrix implementation?
