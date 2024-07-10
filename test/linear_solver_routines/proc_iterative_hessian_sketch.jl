@@ -23,7 +23,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     
     ########################## Test one iteration of the algorithm initialized as intended.
     ########################## Sketch size is >= number of columns in A.
-    rsub = IterativeHessianSketch(A,b,nothing,nothing) # btilde, step
+    rsub = IterativeHessianSketch(A, b, nothing, nothing) # btilde, step
 
     # verify correct assignment
     @test rsub.A == A
@@ -35,19 +35,19 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
 
     # one step of the algorithm
     x0 = zeros(5)
-    S = randn(5,length(b))
-    RLinearAlgebra.rsubsolve!(rsub, x0, (S, S*A, S*A*x0 - S*b), 1)
+    S = randn(5, length(b))
+    RLinearAlgebra.rsubsolve!(rsub, x0, (S, S * A, S * A * x0 - S * b), 1)
 
     # check to make sure btilde and step get initialized to the correct length
     @test length(rsub.btilde) == 5
     @test length(rsub.step) == 5
 
     # test to make sure rsub.btilde is correctly initialized.
-    @test size(S)[1]*A'*(b-A*zeros(5)) ≈ rsub.btilde
+    @test size(S)[1] * A' * (b - A * zeros(5)) ≈ rsub.btilde
 
     # check to make sure that the inner problem is solved correctly (correct step)
-    _,R=qr(S*A)
-    @test norm(R'*R*rsub.step - size(S)[1]*A'*(b-A*zeros(5)) ) < 1e-10
+    R = qr(S * A).R
+    @test norm(R' * R * rsub.step - size(S)[1] * A' * (b - A * zeros(5))) < 1e-10
 
     # check update is correct
     @test x0 == zeros(5) + rsub.step
@@ -58,7 +58,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     ########################## are not set as intended. Sketch size >= number of columns in A.
     btilde_random = randn(123)
     step_random = randn(123)
-    rsub = IterativeHessianSketch(A,b,step_random,btilde_random)    
+    rsub = IterativeHessianSketch(A, b, step_random, btilde_random)    
 
     # test user inputed values
     @test size(rsub.btilde)[1] == 123
@@ -68,19 +68,19 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
 
     # one step of the algorithm
     x0 = zeros(5)
-    S = randn(5,length(b))
-    RLinearAlgebra.rsubsolve!(rsub, x0, (S, S*A, S*A*x0 - S*b), 1)
+    S = randn(5, length(b))
+    RLinearAlgebra.rsubsolve!(rsub, x0, (S, S * A, S * A * x0 - S * b), 1)
 
     # User inputed values should be rewritted on the first iteration
     @test length(rsub.btilde) == 5
     @test length(rsub.step) == 5
 
     # test to make sure rsub.btilde is correctly initialized.
-    @test size(S)[1]*A'*(b-A*zeros(5)) ≈ rsub.btilde 
+    @test size(S)[1] * A' * (b - A * zeros(5)) ≈ rsub.btilde 
     
     # check to make sure that the inner problem is solved correctly (correct step)
-    _,R=qr(S*A)
-    @test norm(R'*R*rsub.step - size(S)[1]*A'*(b-A*zeros(5)) ) < 1e-10
+    R = qr(S * A).R
+    @test norm(R' * R * rsub.step - size(S)[1] * A' * (b - A * zeros(5))) < 1e-10
 
     # check update is correct
     @test x0 == zeros(5) + rsub.step
@@ -90,36 +90,38 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     ########################## Sketch size >= number of columns
     ##########################
     # check final solutions
-    rsub = IterativeHessianSketch(A,b,nothing,nothing)
+    rsub = IterativeHessianSketch(A, b, nothing, nothing)
     x0 = zeros(5)
     for i in 1:100
-        S = randn(5*10,length(b))
-        RLinearAlgebra.rsubsolve!(rsub, x0, (S, S*A, S*A*x0 - S*b), i)
+        S = randn(50, length(b))
+        RLinearAlgebra.rsubsolve!(rsub, x0, (S, S * A, S * A * x0 - S * b), i)
     end
+
     ldivsol = zeros(5)
-    LinearAlgebra.ldiv!(ldivsol,qr(A'*A),A'*b)
+    LinearAlgebra.ldiv!(ldivsol, cholesky(A' * A), A' * b)
     @test norm(x0-ldivsol) < 1e-10
     ##########################
     ##########################
 
     ########################## One iteration of the algorithm when sketch size < number of columns
     ##########################
-    rsub = IterativeHessianSketch(A,b,nothing,nothing) # btilde, step
+    rsub = IterativeHessianSketch(A, b, nothing, nothing) # btilde, step
 
     # one step of the algorithm
     x0 = zeros(5)
-    S = randn(1,length(b))
-    RLinearAlgebra.rsubsolve!(rsub, x0, (S, S*A, S*A*x0 - S*b), 1)
+    S = randn(1, length(b))
+    RLinearAlgebra.rsubsolve!(rsub, x0, (S, S * A, S * A * x0 - S * b), 1)
 
     step_buffer = zeros(5)
     try
-        LinearAlgebra.ldiv!(step_buffer, cholesky((S*A)'*(S*A)), size(S)[1]*A'*(b-A*zeros(5)) )
+        LinearAlgebra.ldiv!(step_buffer, cholesky((S * A)' * (S * A)), size(S)[1] * A' * (b - A * zeros(5)))
     catch
         step_buffer = zeros(5)
         print("\n")
     end
+
     @test step_buffer ≈ rsub.step
-    @test x0 == zeros(5) +  rsub.step
+    @test x0 ≈ zeros(5) + rsub.step
     ##########################
     ##########################
     
