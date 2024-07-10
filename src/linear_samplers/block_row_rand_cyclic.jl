@@ -2,16 +2,18 @@
 """
     LinSysBlkRowRandCyclic <: LinSysBlkRowSampler
 
-A mutable structure with fields to handle randomly permuted block sampling. After each cycle, 
+A mutable structure with fields to handle randomly permuted block sampling. After all blocks are called, 
 a new random ordering is created. 
 
 # Fields
-- `n_blocks::Int64` - Variable that contains the number of blocks overall.
-- `order::Union{Vector{Int64}, Nothing}` - The order that the blocks will be used to generate updates.
-- `blocks::Union{Vector{Vector{Int64}}, Nothing}` - The list of all the row in each block.
+- `n_blocks::Int64`, Variable that contains the number of blocks overall.
+- `order::Union{Vector{Int64}, Nothing}`, The order that the blocks will be used to generate updates.
+- `blocks::Union{Vector{Vector{Int64}}, Nothing}`, The list of all the row in each block.
 
-Calling `LinSysVecColBlockRandCyclic()` defaults to setting `n_blocks` to 2.  The `sample`
-function will handle the re-initialization of the fields once the system is provided.
+# Constructors
+Calling `LinSysBlkColRandCyclic()` defaults to setting `n_blocks` to 2 and `blocks` to be sequentially ordered. 
+These values can be changed using the respective keyword arguments.
+The `sample` function will handle the re-initialization of the fields once the system is provided.
 """
 mutable struct LinSysBlkRowRandCyclic <: LinSysBlkRowSampler
     n_blocks::Int64
@@ -31,6 +33,7 @@ function sample(
 )
     m, n = size(A)
     if iter == 1
+        # Allocate space for blocks and intialize cycle
         init_blocks_cyclic!(type, m) 
     end
 

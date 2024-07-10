@@ -1,4 +1,4 @@
-# This file is pat of RLinearAlgebra.jl
+# This file is part of RLinearAlgebra.jl
 """
     LinSysBlkRowLQ <: LinSysBlkRowProjection
 

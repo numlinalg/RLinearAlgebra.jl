@@ -1,10 +1,11 @@
+# This file is part of RLinearAlgebra.jl
 """
-    init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRandCyclic}, dim)
+    init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRandCyclic}, dim::Int64)
 
 This function intializes the `blockSize`, `n_blocks`, and `order` values for the `LinSysBlkColRandCyclic` and `LinSysBlkRowRandCyclic` data structures. If a set of blocks is already defined by the user then it checks it the vector specifying the blocks is the same as n_blocks * BlockSize, if it is not it appends the necessary number of indicies from the second to last block to the final block. If the blocks are not premade, it simply allocates blocks in sequential order.
 
 """
-function init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRandCyclic}, dim)
+function init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRandCyclic}, dim::Int64)
         @assert type.n_blocks < dim "The number of blocks can be no more than the dimension"
         # If the user has not specified any blocks then allocate blocks sequentially keeping all blocks the same size
         if typeof(type.blocks) <: Nothing

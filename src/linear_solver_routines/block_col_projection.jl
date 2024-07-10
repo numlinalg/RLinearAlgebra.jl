@@ -2,7 +2,7 @@
 """
     LinSysBlkColGent <: LinSysBlkColProjection
 
-A mutable structure that represents a standard block column projection method that projections 
+A mutable structure that represents a standard block column projection method that projects 
 a previous iterate onto the columnspace of an inputted block. This method can be viewed as 
 a generalization to block coordinate descent. The updates to this are computed
 using Gentleman's Algorithm.
@@ -10,7 +10,7 @@ using Gentleman's Algorithm.
 For more information on Gentleman's see:
 Miller, Alan J. “Algorithm AS 274: Least Squares Routines to Supplement Those of Gentleman.” 
 Journal of the Royal Statistical Society. Series C (Applied Statistics), 
-vol. 41, no. 2, 1992, pp. 458–78. JSTOR, https://doi.org/10.2307/2347583. Accessed 8 July 2024.
+vol. 41, no. 2, 1992, pp. 458–78. JSTOR, https://doi.org/10.2307/2347583. 
 
 # Aliases
 - `BlockCoordinateDescent`
@@ -51,8 +51,8 @@ function rsubsolve!(
         # If m < type.rowsize rows, perform gentlemans with block size type.rowsize otherwise keep the block size 
         # less than type.rowsize
         brow_size = m < type.rowsize ? m : min(div(m, 10), type.rowsize)
-        # Gentleman's will not use more than 10000 rows as a block 
-        type.gent = GentData(samp[2], brow_size)
+        # Gentleman's will not use more than type.rowsize rows as a block 
+        type.gent = GentData(samp[2], min(brow_size, type.rowsize))
         type.update = Array{typeof(samp[2][1])}(undef, p)
     end
 

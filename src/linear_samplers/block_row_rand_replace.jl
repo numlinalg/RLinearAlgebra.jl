@@ -9,8 +9,8 @@ also known as vanilla block randomized Kaczmarz.
 Necoara, Ion. “Faster Randomized Block Kaczmarz Algorithms.” SIAM J. Matrix Anal. Appl. 40 (2019): 1425-1452.
 
 # Fields
-- `block_size::Int64` - Specifies the size of each block.
-- `block::Vector{Int64}` - The list of all the rows in each block.
+- `block_size::Int64`, Specifies the size of each block.
+- `block::Vector{Int64}`, The list of all the rows in each block.
 
 # Constructors
 Calling `LinSysBlkRowReplace()` defaults to setting `block_size` to 2. The `sample`
@@ -45,7 +45,9 @@ function sample(
     # Residual of the linear system
     res = SA * x - Sb
     S = zeros(type.block_size, m)
-    [S[i, type.block[i]] = 1 for i in 1:type.block_size]
+    for i in 1:type.block_size
+        S[i, type.block[i]] = 1
+    end
 
     return S, SA, res
 end
