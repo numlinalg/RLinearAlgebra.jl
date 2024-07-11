@@ -40,6 +40,7 @@ function GentData(A::AbstractMatrix, bsize::Int64)
     S = eltype(A)
     m, n = size(A)
     B = zeros(S, n + bsize + 1, n + 1)
+    @assert bsize >= 1 "bsize must be at least 1."
     R = @views UpperTriangular(B[1:n, 1:n])
     tab = @views B[1:n, n + 1]
     v = zeros(n + 1) #zeros(n + bsize + 1)
@@ -67,8 +68,8 @@ function gentleman!(G::GentData)
     # Perform qr decomposition on B
     LAPACK.geqrf!(B,v)
     # Zero out the everything in the lower triangular part
-    for i = 1:n
-        for j = (i+1):m
+    for i in 1:n
+        for j in (i+1):m
             @inbounds B[j,i] = 0
         end
 
@@ -138,6 +139,7 @@ function copy_block_from_mat!(B::AbstractMatrix, A::AbstractMatrix, b::AbstractV
     l = length(index)
     # The upper triangular part is n by n
     offset = n
+    # Copy entries from matrix to the block
     for i in 1:n-1
         for j in 1:l
             B[j + offset, i] = A[index[j], i]
@@ -145,6 +147,7 @@ function copy_block_from_mat!(B::AbstractMatrix, A::AbstractMatrix, b::AbstractV
 
     end
 
+    # Copy the constant vector for the correspoding rows
     for j in 1:l
         B[j + offset, n] = b[index[j]]
     end
