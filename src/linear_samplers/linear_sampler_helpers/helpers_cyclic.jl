@@ -14,11 +14,12 @@ function init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRand
         if typeof(type.blocks) <: Nothing
             @assert type.n_blocks < dim "Number of blocks must be less than number of indices"
             bsize = div(dim, type.n_blocks)
-            # If the remainder of the block size is zero then all blocks same size otherwise last block size remainder
+            # If the remainder of the block size is zero then all blocks same size
+            # otherwise last block is larger to include remaining entries with bsize
             remainder = rem(dim, bsize)
             last_bsize = remainder == 0 ? bsize : remainder + bsize 
             type.blocks = Vector{Vector{Int64}}(undef, type.n_blocks)
-            #Allocate the block indices sequentially to all but last block
+            #Allocate the block indices sequentially to all but last block which has different size
             for i in 1:(type.n_blocks-1)
                 type.blocks[i] = collect((i - 1) * bsize + 1:i * bsize) 
             end
@@ -32,7 +33,7 @@ function init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRand
             # Perform a check if all indices are used
             uniq_vals = Set(reduce(vcat, type.blocks))
             poss_vals = Set(1:dim)
-            miss_vals = setdiff(uniq_vals, poss_vals)
+            miss_vals = setdiff(poss_vals, uniq_vals)
             unused = !isempty(miss_vals)
             if unused
                 @warn "Indices $miss_vals are unused in your blocks"
