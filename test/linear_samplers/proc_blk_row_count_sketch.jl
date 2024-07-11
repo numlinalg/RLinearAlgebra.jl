@@ -39,11 +39,17 @@ Random.seed!(1010)
     A = randn(10, 5)
     b = randn(10)
 
-    # initialize sampler
+    # initialize sampler with blockSize 6
     sampler = LinSysBlkRowCountSketch(6)
 
     # initial iteration
-    S,SA,res=RLinearAlgebra.sample(sampler, A, b, zeros(5), 1)
+    x0 = zeros(5)
+    S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+
+    # test if buffer arrays are initialized to the correct sizes
+    @test size(sampler.labels)[1] == 10
+    @test size(sampler.signs)[1] == 10
+    @test size(sampler.S) == (6, 10)
 
     # test if sketch sizes are correct
     @test size(S) == (6, 10)
@@ -51,10 +57,9 @@ Random.seed!(1010)
 
     # test if reported sketch matrix and sketched residual are correct
     @test norm(SA - S * A) < eps() * 1e2
-    @test norm(res - (S * A * zeros(5) - S * b)) < eps() * 1e2
+    @test norm(res - (S * A * x0 - S * b)) < eps() * 1e2
 
     # Test if returned sketch matrix has correct structure
-    @test typeof(S) == Matrix{Int64}
     for j in 1:10
         # sum elements in each column should be one (corresponding to one label for each row of `A`)
         s = 0
@@ -64,7 +69,21 @@ Random.seed!(1010)
         @test s == 1 
     end
 
-end
+    # test if method throws an error for blockSize <= 0 if iter == 1
+    try
+        sampler = LinSysBlkRowCountSketch(0)
+        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+    catch e
+        @test isa(e, DomainError)
+    end
+
+    try
+        sampler = LinSysBlkRowCountSketch(-1)
+        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+    catch e
+        @test isa(e, DomainError)
+    end
 
 end # End module
 
+end

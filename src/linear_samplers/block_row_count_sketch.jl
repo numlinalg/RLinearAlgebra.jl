@@ -10,9 +10,8 @@
 """
     LinSysBlkRowCountSketch <: LinSysVecRowSelect
 
-An mutable structure with one field that indicates the sketch size, and
-represents the CountSketch algorithm. The assumption is that `A`` is fully known (that is, 
-the sampling procedure is not used in a streaming context).
+An mutable structure that represents the CountSketch algorithm. 
+The assumption is that `A` is fully known (that is, the sampling procedure is not used in a streaming context).
 
 See Kenneth L. Clarkson and David P. Woodruff. 2017. 
     "Low-Rank Approximation and Regression in Input Sparsity Time."
@@ -21,10 +20,10 @@ See Kenneth L. Clarkson and David P. Woodruff. 2017.
 
 # Fields
 
-- `blockSize::Int64`, is the number of rows in `SA`.
-- `labels::Union{Array{Int64},Nothing}`, buffer array that stores data for sketching. 
-- `signs::Union{Array{Int64},Nothing}`, buffer array that stores data for sketching.
-- `S::Union{Matrix{Int64},Nothing}`, buffer matrix for storing sketched matrix.
+- `blockSize::Int64`, is the number of rows in the sketched matrix `S * A`.
+- `labels::Union{Array{Int64},Nothing}`, buffer array for data used in the `sample` method. 
+- `signs::Union{Array{Int64},Nothing}`, buffer array for data used in the `sample` method.
+- `S::Union{Matrix{Int64},Nothing}`, buffer matrix for storing the sampling matrix `S`.
 
 Calling `LinSysBlockRowCountSketch(blockSize)` defaults to `LinSysBlockRowCountSketch(blockSize, nothing, nothing, nothing)`.
 """
@@ -36,7 +35,7 @@ mutable struct LinSysBlkRowCountSketch <: LinSysVecRowSelect
     S::Union{Matrix{Int64}, Nothing}
 end
 
-# Additional constructors for LinSysBlkRowCountSketch
+# Additional constructor for LinSysBlkRowCountSketch
 function LinSysBlkRowCountSketch(blockSize::Int64)
     return LinSysBlkRowCountSketch(blockSize, nothing, nothing, nothing)
 end
@@ -54,14 +53,19 @@ function sample(
     n = size(A)[1]
     if iter == 1
         if type.blockSize <= 0
-            throw("blockSize is 0 or negative!")
+            throw(DomainError("blockSize is 0 or negative!")) 
         end
+        
+        if type.blockSize > n
+            @warn("blockSize is larger than the number of rows in A!")
+        end
+
         type.S = Matrix{Int64}(undef, type.blockSize, n)
         type.labels = Array{Int64}(undef, n)
         type.signs = Array{Int64}(undef, n) 
     end
 
-    # Assign labels to rows and generate possible flip signs
+    # Assign labels to rows and generate possible sign flips
     fill!(type.S, 0)  
     rand!(type.labels, 1:type.blockSize) 
     rand!(type.signs, [-1,1])
@@ -71,10 +75,10 @@ function sample(
         type.S[type.labels[j], j] = type.signs[j]
     end
     
-    # sketched matrix
+    # form sketched matrix `S * A`
     SA = type.S * A
 
-    # residual of sketched linear system
+    # form sketched residual
     res = SA * x - type.S * b
 
     return type.S, SA, res
