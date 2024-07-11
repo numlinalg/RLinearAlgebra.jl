@@ -15,12 +15,14 @@ to the rows of `A` that were brought to `B` are stored.
 - `v::V`, a buffer vector.
 - `bsize::Int64`, the number of rows transported to `B` at each iteration.
 
-Calling `Gent(A, bsize)` will allocate a `B` matrix with the n + 1 columns and 
-n + bsize + 1 rows where n is the number of columns of A. It also allocates a 
-buffer vector `v` with n + 1 entries. Finally, it takes a view of the upper
+Calling `Gent(A, bsize)` will allocate a `B` matrix with the `n + 1` columns and 
+`n + bsize + 1` rows where n is the number of columns of A. It also allocates a 
+buffer vector `v` with `n + 1` entries. Finally, it takes a view of the upper
 triangular part of `B[1:n, 1:n]` and a view of the last column of `B`.
 
-Miller, Alan J. "Algorithm AS 274: Least squares routines to supplement those of Gentleman." Applied Statistics (1992): 458-478.
+Miller, Alan J. “Algorithm AS 274: Least Squares Routines to Supplement Those of Gentleman.” 
+Journal of the Royal Statistical Society. Series C (Applied Statistics), vol. 41, no. 2, 1992, 
+pp. 458–78. JSTOR, https://doi.org/10.2307/2347583. Accessed 11 July 2024.
 """
 mutable struct GentData{S, M<:Matrix{S}, V<:Vector{S}}
     A::M 
@@ -36,7 +38,7 @@ Base.eltype(::GentData{S, M, V}) where {S, M, V} = S
 # Constructor for Gent data structure
 function GentData(A::AbstractMatrix, bsize::Int64)
     S = eltype(A)
-    m,n = size(A)
+    m, n = size(A)
     B = zeros(S, n + bsize + 1, n + 1)
     R = @views UpperTriangular(B[1:n, 1:n])
     tab = @views B[1:n, n + 1]

@@ -48,11 +48,15 @@ function rsubsolve!(
     # samp[4] is the residual of the system A * x - b
     if iter == 1
         m,p = size(samp[2])
+        if 
         # If m < type.rowsize rows, perform gentlemans with block size type.rowsize otherwise keep the block size 
-        # less than type.rowsize
-        brow_size = m < type.rowsize ? m : min(div(m, 10), type.rowsize)
+        # less than type.rowsize plus the upper triangular block of dimension p
+        brow_size = p + (m < type.rowsize ? m : min(div(m, 10), type.rowsize))
+        if brow_size * p > 134217728
+            @warn "The Gentleman's block is larger than 1GB; this could be too large for your computer."
+        end
         # Gentleman's will not use more than type.rowsize rows as a block 
-        type.gent = GentData(samp[2], min(brow_size, type.rowsize))
+        type.gent = GentData(samp[2], brow_size)
         type.update = Array{typeof(samp[2][1])}(undef, p)
     end
 
