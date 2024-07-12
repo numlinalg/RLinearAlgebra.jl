@@ -59,6 +59,7 @@ LinSysVecColOneRandCyclic
 ```
 
 ## Block Vector Row Samplers
+
 ```@docs
 LinSysBlkRowCountSketch
 ```
