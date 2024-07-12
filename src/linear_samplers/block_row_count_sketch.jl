@@ -10,7 +10,7 @@
 """
     LinSysBlkRowCountSketch <: LinSysVecRowSelect
 
-An mutable structure that represents the CountSketch algorithm. 
+A mutable structure that represents the CountSketch algorithm. 
 The assumption is that `A` is fully known (that is, the sampling procedure is not used in a streaming context).
 
 See Kenneth L. Clarkson and David P. Woodruff. 2017. 
@@ -21,23 +21,23 @@ See Kenneth L. Clarkson and David P. Woodruff. 2017.
 # Fields
 
 - `blockSize::Int64`, is the number of rows in the sketched matrix `S * A`.
-- `labels::Union{Array{Int64},Nothing}`, buffer array for data used in the `sample` method. 
-- `signs::Union{Array{Int64},Nothing}`, buffer array for data used in the `sample` method.
 - `S::Union{Matrix{Int64},Nothing}`, buffer matrix for storing the sampling matrix `S`.
+- `signs::Union{Vector{Int64},Nothing}`, buffer vector for storing data used in `sample`
 
-Calling `LinSysBlockRowCountSketch(blockSize)` defaults to `LinSysBlockRowCountSketch(blockSize, nothing, nothing, nothing)`.
+Calling `LinSysBlockRowCountSketch(blockSize)` defaults to `LinSysBlockRowCountSketch(blockSize, nothing, nothing)`.
+
+Remark: Current implementation does not take advantage of sparse matrix data structures or operations.
 """
 
 mutable struct LinSysBlkRowCountSketch <: LinSysVecRowSelect 
     blockSize::Int64
-    labels::Union{Array{Int64}, Nothing}
-    signs::Union{Array{Int64}, Nothing}
     S::Union{Matrix{Int64}, Nothing}
+    signs::Union{Vector{Int64},Nothing}
 end
 
 # Additional constructor for LinSysBlkRowCountSketch
 function LinSysBlkRowCountSketch(blockSize::Int64)
-    return LinSysBlkRowCountSketch(blockSize, nothing, nothing, nothing)
+    return LinSysBlkRowCountSketch(blockSize, nothing, nothing)
 end
 
 # Common sample interface for linear systems
@@ -60,19 +60,16 @@ function sample(
             @warn("blockSize is larger than the number of rows in A!")
         end
 
+        # initializations
         type.S = Matrix{Int64}(undef, type.blockSize, n)
-        type.labels = Array{Int64}(undef, n)
-        type.signs = Array{Int64}(undef, n) 
+        type.signs = [-1, 1]
     end
 
-    # Assign labels to rows and generate possible sign flips
-    fill!(type.S, 0)  
-    rand!(type.labels, 1:type.blockSize) 
-    rand!(type.signs, [-1,1])
-    
     # form sketching matrix
+    fill!(type.S, 0)  
     @inbounds for j in 1:n
-        type.S[type.labels[j], j] = type.signs[j]
+        # assign labels to rows and possible sign flips 
+        type.S[rand(1:type.blockSize),j] = rand(type.signs)
     end
     
     # form sketched matrix `S * A`
