@@ -10,7 +10,7 @@
 """
     LinSysBlkRowCountSketch <: LinSysVecRowSelect
 
-A mutable structure that represents the CountSketch algorithm. 
+AN mutable structure that represents the CountSketch algorithm. 
 The assumption is that `A` is fully known (that is, the sampling procedure is not used in a streaming context).
 
 See Kenneth L. Clarkson and David P. Woodruff. 2017. 
@@ -28,7 +28,6 @@ Calling `LinSysBlockRowCountSketch(blockSize)` defaults to `LinSysBlockRowCountS
 
 Remark: Current implementation does not take advantage of sparse matrix data structures or operations.
 """
-
 mutable struct LinSysBlkRowCountSketch <: LinSysVecRowSelect 
     blockSize::Int64
     S::Union{Matrix{Int64}, Nothing}
