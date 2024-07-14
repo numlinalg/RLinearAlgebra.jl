@@ -62,6 +62,10 @@ LinSysVecColOneRandCyclic
 
 ```@docs
 LinSysBlkRowCountSketch
+
+LinSysBlkColSelectWoReplacement
+
+LinSysBlkRowSelectWoReplacement
 ```
 
 ## Sample Function
