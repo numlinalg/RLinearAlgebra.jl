@@ -48,6 +48,7 @@ export LinSysBlkRowCountSketch, LinSysBlkRowSelectWoReplacement
 
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
+export LinSysBlkColSelectWoReplacement
 
 #*****************************************#
 # Linear Solver Routine Exports
