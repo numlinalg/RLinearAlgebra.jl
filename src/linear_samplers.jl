@@ -142,6 +142,7 @@ include("linear_samplers/vec_row_gaussian.jl")
 include("linear_samplers/vec_row_uniform_sparse.jl")
 include("linear_samplers/vec_row_gaussian_sparse.jl")
 include("linear_samplers/block_row_count_sketch.jl")
+include("linear_samplers/block_row_sample_wo_replacement.jl")
 #include("linear_samplers/vec_row_uniform_sym_sparse.jl")
 #include("linear_samplers/vec_row_uniform_sym.jl")
 
