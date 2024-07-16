@@ -10,7 +10,7 @@
 """
     LinSysBlkRowCountSketch <: LinSysVecRowSelect
 
-AN mutable structure that represents the CountSketch algorithm. 
+A mutable structure that represents the CountSketch algorithm. 
 The assumption is that `A` is fully known (that is, the sampling procedure is not used in a streaming context).
 
 See Kenneth L. Clarkson and David P. Woodruff. 2017. 
@@ -20,24 +20,30 @@ See Kenneth L. Clarkson and David P. Woodruff. 2017.
 
 # Fields
 
-- `blockSize::Int64`, is the number of rows in the sketched matrix `S * A`.
+- `block_size::Int64`, is the number of rows in the sketched matrix `S * A`.
 - `S::Union{Matrix{Int64},Nothing}`, buffer matrix for storing the sampling matrix `S`.
 - `signs::Union{Vector{Int64},Nothing}`, buffer vector for storing data used in `sample`
 
-Calling `LinSysBlockRowCountSketch(blockSize)` defaults to `LinSysBlockRowCountSketch(blockSize, nothing, nothing)`.
+Additional Constructors:
+
+Calling `LinSysBlockRowCountSketch(block_size)` defaults to `LinSysBlockRowCountSketch(block_size, nothing, nothing)`.
+Calling `LinSysBlockRowCountSketch()` defaults to `LinSysBlockRowCountSketch(2, nothing, nothing)`. 
 
 Remark: Current implementation does not take advantage of sparse matrix data structures or operations.
 """
 mutable struct LinSysBlkRowCountSketch <: LinSysVecRowSelect 
-    blockSize::Int64
+    block_size::Int64
     S::Union{Matrix{Int64}, Nothing}
     signs::Union{Vector{Int64},Nothing}
 end
 
-# Additional constructor for LinSysBlkRowCountSketch
-function LinSysBlkRowCountSketch(blockSize::Int64)
-    return LinSysBlkRowCountSketch(blockSize, nothing, nothing)
+# Additional constructor for LinSysBlkRowCountSketch to specify just block_size
+function LinSysBlkRowCountSketch(block_size::Int64)
+    return LinSysBlkRowCountSketch(block_size, nothing, nothing)
 end
+
+# Default constructor for LinSysBlkRowCountSketch
+LinSysBlkRowCountSketch() = LinSysBlkRowCountSketch(2, nothing, nothing)
 
 # Common sample interface for linear systems
 function sample(
@@ -48,19 +54,19 @@ function sample(
     iter::Int64
 )
 
-    # blockSize checking and initialization of memory
+    # block_size checking and initialization of memory
     n = size(A)[1]
     if iter == 1
-        if type.blockSize <= 0
-            throw(DomainError("blockSize is 0 or negative!")) 
+        if type.block_size <= 0
+            throw(DomainError("block_size is 0 or negative!")) 
         end
         
-        if type.blockSize > n
-            @warn("blockSize is larger than the number of rows in A!")
+        if type.block_size > n
+            @warn("block_size is larger than the number of rows in A!")
         end
 
         # initializations
-        type.S = Matrix{Int64}(undef, type.blockSize, n)
+        type.S = Matrix{Int64}(undef, type.block_size, n)
         type.signs = [-1, 1]
     end
 
@@ -68,7 +74,7 @@ function sample(
     fill!(type.S, 0)  
     @inbounds for j in 1:n
         # assign labels to rows and possible sign flips 
-        type.S[rand(1:type.blockSize),j] = rand(type.signs)
+        type.S[rand(1:type.block_size),j] = rand(type.signs)
     end
     
     # form sketched matrix `S * A`
