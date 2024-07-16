@@ -16,50 +16,41 @@ arbitrary weight/probability vector.
 
 # Fields
 
-- `blockSize::Int64`, number of rows sampled (i.e., number of rows in `S * A`)
+- `block_size::Int64`, number of rows sampled (i.e., number of rows in `S * A`)
 - `probability::Union{Weights, Vector{Float64}, Nothing}`, probability vector that is used to sample without replacement. Weights for each row of `A` when sampling.
-- `population::Union{Vector{Int64}, Nothing}`, if number of rows are known, it is a vector containing the elements in the set {1,...,n}.
-- `rowsSampled::Union{Vector{Int64}, Nothing}`, buffer array to hold index of rows sampled from `A`.
-- `S::Union{Matrix{Int64}, Nothing}`, buffer array to hold sketched matrix.
+- `population::Union{Vector{Int64}, Nothing}`, buffer array for data used in `sample`.
+- `rows_sampled::Union{Vector{Int64}, Nothing}`, buffer array to hold index of rows sampled from `A`.
+- `S::Union{Matrix{Int64}, Nothing}`, buffer array to hold sketched matrix `S`.
 
-Calling `LinSysBlkRowSelectWoReplacement()` defaults to `LinSysBlkRowSelectWoReplacement(1, nothing, nothing, nothing, nothing)`.
+Calling `LinSysBlkRowSelectWoReplacement()` defaults to `LinSysBlkRowSelectWoReplacement(2, nothing, nothing, nothing, nothing)`.
 
-Three other constructors are provided besides the full one.
-
-- `LinSysBlkRowSelectWoReplacement(blockSize::Int64, probability::Union{Weights, Vector{Float64}}, population::Vector{Int64})`
-- `LinSysBlkRowSelectWoReplacement(blockSize::Int64, probability::Union{Weights,Vector{Float64}})`
-- `LinSysBlkRowSelectWoReplacement(blockSize::Int64)` 
+An additional constructor is provided with keyword arguments `block_size, probability, population`.
 """
 mutable struct LinSysBlkRowSelectWoReplacement <: LinSysVecRowSelect
-    blockSize::Int64
+    block_size::Int64
     probability::Union{Weights, Vector{Float64}, Nothing}
     population::Union{Vector{Int64}, Nothing}
-    rowsSampled::Union{Vector{Int64}, Nothing}
+    rows_sampled::Union{Vector{Int64}, Nothing}
     S::Union{Matrix{Int64}, Nothing}
 end
 
-# TODO: Constructors
-function LinSysBlkRowSelectWoReplacement(blockSize::Int64, probability::Union{Weights, Vector{Float64}}, population::Vector{Int64})
-    if isa(probability, Weights)
-        return LinSysBlkRowSelectWoReplacement(blockSize, probability, population, nothing)
-    else
-        return LinSysBlkRowSelectWoReplacement(blockSize, Weights(probability), population, nothing) 
+# TODO: additional error checking
+
+# Additional constructors
+function LinSysBlkRowSelectWoReplacement(;block_size=2, probability=nothing)
+    # perform type conversion
+    if isa(probability, Vector)
+        if sum(probability) != 1 || sum(probability .>= 0) != size(probability)[1]
+            throw(DomainError("probability does not sum to 1, or elements of probability are not all non-negative"))
+        end
+        probability = Weights(probability)
     end
+
+    # return struct
+    return LinSysBlkRowSelectWoReplacement(block_size, probability, nothing, nothing, nothing)
 end
 
-function LinSysBlkRowSelectWoReplacement(blockSize::Int64, probability::Union{Weights,Vector{Float64}})
-    if isa(probability, Weights)
-        return LinSysBlkRowSelectWoReplacement(blockSize, probability, nothing, nothing)
-    else
-        return LinSysBlkRowSelectWoReplacement(blockSize, Weights(probability), nothing, nothing) 
-    end
-end
-
-function LinSysBlkRowSelectWoReplacement(blockSize::Int64)
-    return LinSysBlkRowSelectWoReplacement(blockSize, nothing, nothing, nothing, nothing)
-end
-
-LinSysBlkRowSelectWoReplacement() = LinSysBlkRowSelectWoReplacement(1)
+# TODO: additional error checking
 
 # Common sample interface for linear systems
 function sample(
@@ -70,48 +61,46 @@ function sample(
     iter::Int64
 )
 
-    # blockSize checking and initialization of memory
-    n = size(A)[1]
+    # block_size checking and initialization of memory
+    nrow = size(A)[1]
     if iter == 1
-        if type.blockSize <= 0
-            throw(DomainError("blockSize is 0 or negative!")) 
+        if type.block_size <= 0
+            throw(DomainError("block_size is 0 or negative!")) 
         end
         
-        if type.blockSize > n
-            throw(DomainError("blockSize is larger than the number of rows in A! Cannot select this amount without replacement!"))
+        if type.block_size > nrow
+            throw(DomainError("block_size is larger than the number of rows in A! Cannot select this amount without replacement!"))
         end
 
         # initialization buffer arrays
-        type.S = Matrix{Int64}(undef, type.blockSize, n)
-        type.rowsSampled = Vector{Int64}(undef, type.blockSize)
+        type.S = Matrix{Int64}(undef, type.block_size, nrow)
+        type.rows_sampled = Vector{Int64}(undef, type.block_size)
 
         # check struct data and initialize
         if isnothing(type.probability)
-            type.probability = Weights(repeat([1/n],outer=n))
-        elseif isa(type.probability,Vector)
-            if sum(type.probability) != 1
-                throw(DomainError("Weights do not sum to one!"))
+            type.probability = Weights(repeat([1/nrow], outer=nrow))
+        elseif isa(type.probability, Vector) 
+            if sum(type.probability) != 1 || sum(probability .>= 0) != size(probability)[1]
+                throw(DomainError("probability does not sum to 1, or elements of probability are not all non-negative"))
             end
             type.probability = Weights(type.probability)
         end
         
-        if isnothing(type.population)
-            type.population = [i for i in 1:n]
-        end
+        type.population = collect(1:nrow)
     end
 
     # Form the sketched matrix S
     fill!(type.S, 0)
-    StatsBase.sample!(type.population, type.probability, type.rowsSampled, replace = false, ordered = false)
-    for j in 1:type.blockSize
-        type.S[j, type.rowsSampled[j]] = 1
+    StatsBase.sample!(type.population, type.probability, type.rows_sampled, replace = false, ordered = false) # sample rows wo replacement
+    @inbounds for j in 1:type.block_size
+        type.S[j, type.rows_sampled[j]] = 1
     end
 
     # form sketched matrix `S * A`
-    SA = A[type.rowsSampled, :]
+    SA = A[type.rows_sampled, :]
 
     # form sketched residual
-    res = SA * x - b[type.rowsSampled, :]
+    res = SA * x - b[type.rows_sampled, :]
 
     return type.S, SA, res
 end
