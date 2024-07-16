@@ -21,7 +21,7 @@ module RLinearAlgebra
 # Dependencies
 ###########################################
 
-using LinearAlgebra, Random, Distributions, StatsBase
+using LinearAlgebra, Random, Distributions
 
 ###########################################
 # Exports
@@ -44,7 +44,7 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
     LinSysVecRowUnidSampler, LinSysVecRowUnifSampler, LinSysVecRowGaussSampler,
     LinSysVecRowSparseUnifSampler, LinSysVecRowSparseGaussSampler, LinSysVecRowMaxResidual,
     LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic
-export LinSysBlkRowCountSketch, LinSysBlkRowSelectWoReplacement 
+export LinSysBlkRowCountSketch
 
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
