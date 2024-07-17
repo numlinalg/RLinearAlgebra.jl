@@ -34,7 +34,7 @@ function sample(
     if iter == 1
         @assert type.block_size <= n "Block size must be less than col dimension"
         # Scaling the matrix so it has expectation 1 when applied to unit vector
-        type.scaling = sqrt(type.block_size / n)
+        type.scaling = sqrt(1 / type.block_size)
         type.sketch_matrix = Matrix{Float64}(undef, n, type.block_size) 
     end
 
