@@ -62,8 +62,8 @@ Random.seed!(1010)
 
     # check initializations
     @test size(sampler.S) == (size(A)[2], block_size)
-    @test size(sampler.col_sampled) == (block_size,)
-    @test sampler.probability == repeat([1/size(A)[2]], outer=size(A)[2]) && isa(sampler.probability, Weights)
+    @test size(sampler.col_sampled) == (block_size, )
+    @test sampler.probability == repeat([1/size(A)[2]], outer = size(A)[2]) && isa(sampler.probability, Weights)
     @test sampler.population == collect(1:size(A)[2])
 
     # check output
@@ -77,13 +77,13 @@ Random.seed!(1010)
     @test norm(res - (A * x0 - b)) < eps() * 1e2
     @test norm(grad - (S' * A' * (A * x0 - b))) < eps() * 1e2
 
-    # check that sketched matrix has structure
+    # check that sketched matrix has correct structure
     flag_row = true
     for j in 1:size(S)[2]
         # each col should have only one 1 as this corresponds to selecting a row
-        sum_to_one = sum(S[:,j]) == 1
-        non_negative = sum(S[:,j] .>= 0) == size(A)[2]
-        correct_position = (S[sampler.col_sampled[j],j] == 1)
+        sum_to_one = sum(S[:, j]) == 1
+        non_negative = sum(S[:, j] .>= 0) == size(A)[2]
+        correct_position = (S[sampler.col_sampled[j], j] == 1)
         flag_row = flag_row && (sum_to_one && non_negative && correct_position)
     end
     @test flag_row
@@ -91,8 +91,8 @@ Random.seed!(1010)
     flag_col = true
     for i in 1:size(S)[1]
         # each row should only have one 1 or all 0 as we sample w.o. replacement
-        sum_to_one = sum(S[i,:]) == 1 || sum(S[i,:]) == 0
-        non_negative = sum(S[i,:] .>= 0) == block_size
+        sum_to_one = sum(S[i, :]) == 1 || sum(S[i, :]) == 0
+        non_negative = sum(S[i, :] .>= 0) == block_size
         flag_col = flag_col && (sum_to_one && non_negative)
     end
     @test flag_col
@@ -110,35 +110,40 @@ Random.seed!(1010)
     sampler = LinSysBlkColSelectWoReplacement(block_size = block_size, probability = probability)
     
     # sample
-    S,SA,res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+    S, AS, res, grad = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+
+    # check probability initializations
+    @test size(sampler.S) == (size(A)[2], block_size)
+    @test size(sampler.col_sampled) == (block_size, )
+    @test isa(sampler.probability, Weights)
+    @test sampler.population == collect(1:size(A)[2])
 
     # check that no rows greater than 20 were sampled
     @test sum(sampler.col_sampled .<= 20) == length(sampler.col_sampled)
 
     # test error checking in keyword constructor
-
     # weights do not add to 1.
     try
-        sampler = LinSysBlkColSelectWoReplacement(block_size=2, probability = [1., 1.])
-        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+        sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = [1., 1.])
+        output = RLinearAlgebra.sample(sampler, A, b, x0, 1)
     catch e
         @test isa(e, DomainError)
     end
 
     # weights are not non-negative
     try
-        sampler = LinSysBlkColSelectWoReplacement(block_size=2, probability = [2., -1.])
-        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+        sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = [2., -1.])
+        output = RLinearAlgebra.sample(sampler, A, b, x0, 1)
     catch e
         @test isa(e, DomainError)
     end
 
     # weights do not form a valid distribution over cols
     try
-        ncol = size(A)[2]-50
-        probability = Weights(repeat([1/ncol], outer=ncol))
+        ncol = size(A)[2] - 50
+        probability = Weights(repeat([1/ncol], outer = ncol)) # a vector of length 50
         sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = probability)
-        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+        output = RLinearAlgebra.sample(sampler, A, b, x0, 1)
     catch e
         @test isa(e, DimensionMismatch)
     end
@@ -147,13 +152,57 @@ Random.seed!(1010)
     try
         ncol = size(A)[2]
         probability = Weights(repeat([0.], outer = ncol))
-        probability[1] = 1.
+        probability[1] = 1. # only one non-zero probability but block_size > 1
         sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = probability)
-        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+        output = RLinearAlgebra.sample(sampler, A, b, x0, 1)
     catch e
-        @test size(probability)[1] == size(A)[2] # ignores the first dim mismatch
+        @test size(probability)[1] == size(A)[2] # ignores the first dim mismatch error
         @test isa(e, DimensionMismatch)
     end
+
+    # initialize sampler with arbitrary values
+    block_size = 10
+    sampler = LinSysBlkColSelectWoReplacement(block_size, nothing, collect(1:10000), collect(1:10000), ones(10000,10000))
+    
+    # first iteration
+    sample_sketch = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+
+    # check initializations
+    @test size(sampler.S) == (size(A)[2], block_size)
+    @test size(sampler.col_sampled) == (block_size, )
+    @test sampler.probability == repeat([1/size(A)[2]], outer = size(A)[2]) && isa(sampler.probability, Weights)
+    @test sampler.population == collect(1:size(A)[2])
+
+    # check output
+    @test length(sample_sketch) == 4
+    S, AS, res, grad = sample_sketch[1], sample_sketch[2], sample_sketch[3], sample_sketch[4]
+
+    # check sketched matrix and residual is correct
+    @test norm(AS - A * S) < eps() * 1e2
+    @test norm(AS - A[:, sampler.col_sampled]) < eps() * 1e2
+    @test norm(A * S - A[:, sampler.col_sampled]) < eps() * 1e2
+    @test norm(res - (A * x0 - b)) < eps() * 1e2
+    @test norm(grad - (S' * A' * (A * x0 - b))) < eps() * 1e2
+
+    # check that sketched matrix has correct structure
+    flag_row = true
+    for j in 1:size(S)[2]
+        # each col should have only one 1 as this corresponds to selecting a row
+        sum_to_one = sum(S[:, j]) == 1
+        non_negative = sum(S[:, j] .>= 0) == size(A)[2]
+        correct_position = (S[sampler.col_sampled[j], j] == 1)
+        flag_row = flag_row && (sum_to_one && non_negative && correct_position)
+    end
+    @test flag_row
+
+    flag_col = true
+    for i in 1:size(S)[1]
+        # each row should only have one 1 or all 0 as we sample w.o. replacement
+        sum_to_one = sum(S[i, :]) == 1 || sum(S[i, :]) == 0
+        non_negative = sum(S[i, :] .>= 0) == block_size
+        flag_col = flag_col && (sum_to_one && non_negative)
+    end
+    @test flag_col
 
     ####################
     ####################

@@ -11,14 +11,14 @@
 """
     LinSysBlkRowSelectWoReplacement <: LinSysVecRowSelect
 
-A mutable struct that represents sampling rows without replacement using an
+A mutable struct that represents sampling rows from `A` without replacement using an
 arbitrary weight/probability vector.
 
 # Fields
 
-- `block_size::Int64`, number of rows sampled (i.e., number of rows in `S * A`)
-- `probability::Union{Weights, Vector{Float64}, Nothing}`, probability vector that is used to sample without replacement. Weights for each row of `A` when sampling.
-- `population::Union{Vector{Int64}, Nothing}`, buffer array for data used in `sample`.
+- `block_size::Int64`, number of rows sampled (i.e., number of rows in `S * A`).
+- `probability::Union{Weights, Vector{Float64}, Nothing}`, probability vector that is used to sample without replacement. Requirements are that the probabilities sum to 1, are non-negative, `probabilities` has the same length as number of rows in `A`, and `probability` has at least as many positive entries as `block_size`. If `probability` is unspecified in the constructor, `sample` will default to a uniform distribution over rows of `A`.
+- `population::Union{Vector{Int64}, Nothing}`, buffer array to hold `collect(1:size(A)[1])` used in `sample`.
 - `rows_sampled::Union{Vector{Int64}, Nothing}`, buffer array to hold index of rows sampled from `A`.
 - `S::Union{Matrix{Int64}, Nothing}`, buffer array to hold sketched matrix `S`.
 
@@ -64,17 +64,17 @@ function sample(
 
         # check struct data and initialize
         if isnothing(type.probability)
-            type.probability = Weights(repeat([1/nrow], outer=nrow))
+            type.probability = Weights(repeat([1/nrow], outer = nrow))
         elseif isa(type.probability, Vector) || isa(type.probability, Weights)
             # check that probability is a valid distribution on the rows 
             if sum(type.probability) != 1
-                throw(DomainError("probability does not sum to 1!"))
+                throw(DomainError("Elements of probability do not sum to 1!"))
             elseif sum(type.probability .>= 0) != size(type.probability)[1]
                 throw(DomainError("Not all probabilities are non-negative in probability!")) 
             elseif size(type.probability)[1] != size(A)[1]
-                throw(DimensionMismatch("probability vector is smaller than the number of rows!"))
+                throw(DimensionMismatch("Length of probability vector is smaller than the number of rows in A!"))
             elseif sum(type.probability .> 0) < type.block_size
-                throw(DimensionMismatch("Not enough non-zero probabilities in probability to select the required number of blocks!"))
+                throw(DimensionMismatch("Not enough non-zero probabilities in probability to select the required number of rows!"))
             end
             
             # type conversion if necessary
@@ -87,7 +87,7 @@ function sample(
         type.population = collect(1:nrow)
     end
 
-    # Form the sketched matrix S
+    # form the sketched matrix S
     fill!(type.S, 0)
     StatsBase.sample!(type.population, type.probability, type.rows_sampled, replace = false, ordered = false) # sample rows wo replacement
     @inbounds for j in 1:type.block_size
