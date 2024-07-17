@@ -94,7 +94,7 @@ export ApproxMethod, RangeFinderMethod, IntDecompMethod, NystromMethod
 # Nystrom methods
 
 # Function to perform the approximation
-export approximate
+export rapproximate
 
 
 ###########################################
