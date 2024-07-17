@@ -34,5 +34,5 @@ NystromMethod
 ## Approximate Function
 
 ```@docs
-RLinearAlgebra.approximate(::T where T<:ApproxMethod, ::AbstractArray)
+RLinearAlgebra.rapproximate(::T where T<:ApproxMethod, ::AbstractArray)
 ```
