@@ -16,50 +16,29 @@ arbitrary weight/probability vector.
 
 # Fields
 
-- `blockSize::Int64`, number of columns sampled (i.e., number of columns in `S * A`)
+- `block_size::Int64`, number of columns sampled (i.e., number of columns in `S * A`)
 - `probability::Union{Weights, Vector{Float64}, Nothing}`, probability vector that is used to sample without replacement. Weights for each column of `A` when sampling.
 - `population::Union{Vector{Int64}, Nothing}`, if number of columns are known, it is a vector containing the elements in the set {1,...,number of columns of `A`}.
-- `rowsSampled::Union{Vector{Int64}, Nothing}`, buffer array to hold index of columns sampled from `A`.
+- `col_sampled::Union{Vector{Int64}, Nothing}`, buffer array to hold index of columns sampled from `A`.
 - `S::Union{Matrix{Int64}, Nothing}`, buffer array to hold sketched matrix.
 
-Calling `LinSysBlkColSelectWoReplacement()` defaults to `LinSysBlkColSelectWoReplacement(1, nothing, nothing, nothing, nothing)`.
+Calling `LinSysBlkColSelectWoReplacement()` defaults to `LinSysBlkColSelectWoReplacement(2, nothing, nothing, nothing, nothing)`.
 
-Three other constructors are provided besides the full one.
-
-- `LinSysBlkColSelectWoReplacement(blockSize::Int64, probability::Union{Weights, Vector{Float64}}, population::Vector{Int64})`
-- `LinSysBlkColSelectWoReplacement(blockSize::Int64, probability::Union{Weights,Vector{Float64}})`
-- `LinSysBlkColSelectWoReplacement(blockSize::Int64)` 
+An additional constructor is provided with the keyword arguments `block_size` and `probability`
 """
 mutable struct LinSysBlkColSelectWoReplacement <: LinSysVecColSelect
-    blockSize::Int64
+    block_size::Int64
     probability::Union{Weights, Vector{Float64}, Nothing}
     population::Union{Vector{Int64}, Nothing}
-    colSampled::Union{Vector{Int64}, Nothing}
+    col_sampled::Union{Vector{Int64}, Nothing}
     S::Union{Matrix{Int64}, Nothing}
 end
 
-# TODO: Constructors
-function LinSysBlkColSelectWoReplacement(blockSize::Int64, probability::Union{Weights, Vector{Float64}}, population::Vector{Int64})
-    if isa(probability, Weights)
-        return LinSysBlkColSelectWoReplacement(blockSize, probability, population, nothing)
-    else
-        return LinSysBlkColSelectWoReplacement(blockSize, Weights(probability), population, nothing) 
-    end
+function LinSysBlkColSelectWoReplacement(;block_size = 2, probability = nothing)
+    return LinSysBlkColSelectWoReplacement(block_size, probability, nothing, nothing, nothing)
 end
 
-function LinSysBlkColSelectWoReplacement(blockSize::Int64, probability::Union{Weights,Vector{Float64}})
-    if isa(probability, Weights)
-        return LinSysBlkColSelectWoReplacement(blockSize, probability, nothing, nothing)
-    else
-        return LinSysBlkColSelectWoReplacement(blockSize, Weights(probability), nothing, nothing) 
-    end
-end
-
-function LinSysBlkColSelectWoReplacement(blockSize::Int64)
-    return LinSysBlkColSelectWoReplacement(blockSize, nothing, nothing, nothing, nothing)
-end
-
-LinSysBlkColSelectWoReplacement() = LinSysBlkColSelectWoReplacement(1)
+LinSysBlkColSelectWoReplacement() = LinSysBlkColSelectWoReplacement(block_size = 2)
 
 # Common sample interface for linear systems
 function sample(
@@ -70,52 +49,60 @@ function sample(
     iter::Int64
 )
 
-    # blockSize checking and initialization of memory
-    d = size(A)[2]
+    # block_size checking and initialization of memory
+    ncol = size(A)[2]
     if iter == 1
-        if type.blockSize <= 0
-            throw(DomainError("blockSize is 0 or negative!")) 
+        if type.block_size <= 0
+            throw(DomainError("block_size is 0 or negative!")) 
         end
         
-        if type.blockSize > d
-            throw(DomainError("blockSize is larger than the number of columns in A! Cannot select this amount without replacement!"))
+        if type.block_size > ncol
+            throw(DomainError("block_size is larger than the number of columns in A! Cannot select this amount without replacement!"))
         end
 
         # initialization buffer arrays
-        type.S = Matrix{Int64}(undef, d, type.blockSize)
-        type.colSampled = Vector{Int64}(undef, type.blockSize)
+        type.S = Matrix{Int64}(undef, ncol, type.block_size)
+        type.col_sampled = Vector{Int64}(undef, type.block_size)
 
         # check struct data and initialize
         if isnothing(type.probability)
-            type.probability = Weights(repeat([1/d],outer=d))
-        elseif isa(type.probability,Vector)
+            type.probability = Weights(repeat([1/ncol],outer=ncol))
+        elseif isa(type.probability, Vector) || isa(type.probability, Weights)
+            # check that probability is a valid distribution on the rows
             if sum(type.probability) != 1
                 throw(DomainError("Weights do not sum to one!"))
-            elseif len(type.probability) != d
-                throw(DomainError("Not all columns of weights. Add weights to probability."))
+            elseif sum(type.probability .>= 0) != size(type.probability)[1]
+                throw(DomainError("Not all probabilities are non-negative in probability!"))
+            elseif size(type.probability)[1] != size(A)[2]
+                throw(DimensionMismatch("probability vector is smaller than the number of columns!"))
+            elseif sum(type.probability .> 0) < type.block_size
+                throw(DimensionMismatch("Not enough non-zero probabilities in probability to select the required number of blocks!"))
             end
-            type.probability = Weights(type.probability)
+            
+            # type conversion if necessary
+            if isa(type.probability, Vector)
+                type.probability = Weights(type.probability)
+            end
         end
         
-        if isnothing(type.population)
-            type.population = [i for i in 1:d]
-        end
+        # form the columns to sample from
+        type.population = collect(1:ncol)
     end
 
     # Form the sketched matrix S
     fill!(type.S, 0)
-    StatsBase.sample!(type.population, type.probability, type.colSampled, replace = false, ordered = false)
-    for j in 1:type.blockSize
-        type.S[type.colSampled[j],j] = 1
+    StatsBase.sample!(type.population, type.probability, type.col_sampled, replace = false, ordered = false)
+    @inbounds for j in 1:type.block_size
+        type.S[type.col_sampled[j],j] = 1
     end
 
     # form sketched matrix `S * A`
-    AS = A[:, type.colSampled] # dim n*blocksize
+    AS = A[:, type.col_sampled] # dim n*blocksize
 
     # form full residual
     res = A * x - b # dim n
 
-    # from sketched residual
+    # formm sketched residual
     grad = AS' * res
 
     return type.S, AS, res, grad

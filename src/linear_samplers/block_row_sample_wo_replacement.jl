@@ -24,7 +24,7 @@ arbitrary weight/probability vector.
 
 Calling `LinSysBlkRowSelectWoReplacement()` defaults to `LinSysBlkRowSelectWoReplacement(2, nothing, nothing, nothing, nothing)`.
 
-An additional constructor is provided with keyword arguments `block_size, probability, population`.
+An additional constructor is provided with keyword arguments `block_size` and `probability`.
 """
 mutable struct LinSysBlkRowSelectWoReplacement <: LinSysVecRowSelect
     block_size::Int64
@@ -34,23 +34,9 @@ mutable struct LinSysBlkRowSelectWoReplacement <: LinSysVecRowSelect
     S::Union{Matrix{Int64}, Nothing}
 end
 
-# TODO: additional error checking
-
-# Additional constructors
 function LinSysBlkRowSelectWoReplacement(;block_size=2, probability=nothing)
-    # perform type conversion
-    if isa(probability, Vector)
-        if sum(probability) != 1 || sum(probability .>= 0) != size(probability)[1]
-            throw(DomainError("probability does not sum to 1, or elements of probability are not all non-negative"))
-        end
-        probability = Weights(probability)
-    end
-
-    # return struct
     return LinSysBlkRowSelectWoReplacement(block_size, probability, nothing, nothing, nothing)
 end
-
-# TODO: additional error checking
 
 # Common sample interface for linear systems
 function sample(
@@ -79,13 +65,25 @@ function sample(
         # check struct data and initialize
         if isnothing(type.probability)
             type.probability = Weights(repeat([1/nrow], outer=nrow))
-        elseif isa(type.probability, Vector) 
-            if sum(type.probability) != 1 || sum(probability .>= 0) != size(probability)[1]
-                throw(DomainError("probability does not sum to 1, or elements of probability are not all non-negative"))
+        elseif isa(type.probability, Vector) || isa(type.probability, Weights)
+            # check that probability is a valid distribution on the rows 
+            if sum(type.probability) != 1
+                throw(DomainError("probability does not sum to 1!"))
+            elseif sum(type.probability .>= 0) != size(type.probability)[1]
+                throw(DomainError("Not all probabilities are non-negative in probability!")) 
+            elseif size(type.probability)[1] != size(A)[1]
+                throw(DimensionMismatch("probability vector is smaller than the number of rows!"))
+            elseif sum(type.probability .> 0) < type.block_size
+                throw(DimensionMismatch("Not enough non-zero probabilities in probability to select the required number of blocks!"))
             end
-            type.probability = Weights(type.probability)
+            
+            # type conversion if necessary
+            if isa(type.probability, Vector)
+                type.probability = Weights(type.probability)
+            end
         end
         
+        # form the rows to sample from
         type.population = collect(1:nrow)
     end
 

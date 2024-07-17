@@ -15,7 +15,6 @@ Random.seed!(1010)
     #####################
     # test constructors #
     #####################
-
     # full constructor
     sampler = LinSysBlkRowSelectWoReplacement(100, nothing, nothing, nothing, nothing)
     @test sampler.block_size == 100
@@ -42,22 +41,6 @@ Random.seed!(1010)
     @test sampler.block_size == 101
     @test sampler.probability == [.5, .5]
     @test isnothing(sampler.population) && isnothing(sampler.rows_sampled) && isnothing(sampler.S)
-
-    # test error checking in keyword constructor
-
-    # weights do not add to 1.
-    try
-        sampler = LinSysBlkRowSelectWoReplacement(block_size=101, probability = [1., 1.])
-    catch e
-        @test isa(e, DomainError)
-    end
-
-    # weights are not non-negative
-    try
-        sampler = LinSysBlkRowSelectWoReplacement(block_size=101, probability = [2., -1.])
-    catch e
-        @test isa(e, DomainError)
-    end
     #####################
     #####################
 
@@ -89,6 +72,8 @@ Random.seed!(1010)
 
     # check sketched matrix and residual is correct
     @test norm(SA - S * A) < eps() * 1e2
+    @test norm(SA - A[sampler.rows_sampled, :]) < eps() * 1e2
+    @test norm(S * A - A[sampler.rows_sampled, :]) < eps() * 1e2
     @test norm(res - (S * A * x0 - S * b)) < eps() * 1e2
 
     # check that sketched matrix has structure
@@ -127,8 +112,47 @@ Random.seed!(1010)
     S,SA,res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
 
     # check that no rows greater than 20 were sampled
-    print("hello")
     @test sum(sampler.rows_sampled .<= 20) == length(sampler.rows_sampled)
+
+    # test error checking in keyword constructor
+
+    # weights do not add to 1.
+    try
+        sampler = LinSysBlkRowSelectWoReplacement(block_size=2, probability = [1., 1.])
+        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+    catch e
+        @test isa(e, DomainError)
+    end
+
+    # weights are not non-negative
+    try
+        sampler = LinSysBlkRowSelectWoReplacement(block_size=2, probability = [2., -1.])
+        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+    catch e
+        @test isa(e, DomainError)
+    end
+
+    # weights do not form a valid distribution over rows
+    try
+        nrow = size(A)[1]-50
+        probability = Weights(repeat([1/nrow], outer=nrow))
+        sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = probability)
+        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+    catch e
+        @test isa(e, DimensionMismatch)
+    end
+
+    # not enough non-zero probabilities
+    try
+        nrow = size(A)[1]
+        probability = Weights(repeat([0.], outer = nrow))
+        probability[1] = 1.
+        sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = probability)
+        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
+    catch e
+        @test size(probability)[1] == size(A)[1] # ignores the first dim mismatch
+        @test isa(e, DimensionMismatch)
+    end
 
     ####################
     ####################
