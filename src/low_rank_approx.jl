@@ -59,7 +59,7 @@ of matrices using randomized techniques. This function edits the method data str
 but will also return the decomposition as well as an error metric representing the 
 decompositions quality, if an error technique is specified.
 """
-function approximate(
+function rapproximate(
     type::ApproxMethod,
     A::AbstractArray,
 )
