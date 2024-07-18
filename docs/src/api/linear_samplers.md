@@ -63,9 +63,13 @@ LinSysVecColOneRandCyclic
 ```@docs
 LinSysBlkRowCountSketch
 
-LinSysBlkColSelectWoReplacement
-
 LinSysBlkRowSelectWoReplacement
+```
+
+## Block Vector Column Samplers
+
+```@docs
+LinSysBlkColSelectWoReplacement
 ```
 
 ## Sample Function
