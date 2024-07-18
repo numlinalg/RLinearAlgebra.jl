@@ -17,7 +17,7 @@ arbitrary weight/probability vector.
 # Fields
 
 - `block_size::Int64`, number of rows sampled (i.e., number of rows in `S * A`).
-- `probability::Union{Weights, Vector{Float64}, Nothing}`, probability vector that is used to sample without replacement. Requirements are that the probabilities sum to 1, are non-negative, `probabilities` has the same length as number of rows in `A`, and `probability` has at least as many positive entries as `block_size`. If `probability` is unspecified in the constructor, `sample` will default to a uniform distribution over rows of `A`.
+- `probability::Union{Weights, Vector{Float64}, Nothing}`, vector that represents a probability distribution over the rows of `A`. Requirements are that the probabilities sum to 1, are non-negative, `probability` has the same length as number of rows in `A`, and `probability` has at least as many positive entries as `block_size`. If `probability` is unspecified in the constructor, `sample` will default to a uniform distribution over rows of `A`.
 - `population::Union{Vector{Int64}, Nothing}`, buffer array to hold `collect(1:size(A)[1])` used in `sample`.
 - `rows_sampled::Union{Vector{Int64}, Nothing}`, buffer array to hold index of rows sampled from `A`.
 - `S::Union{Matrix{Int64}, Nothing}`, buffer array to hold sketched matrix `S`.
@@ -47,9 +47,9 @@ function sample(
     iter::Int64
 )
 
-    # block_size checking and initialization of memory
-    nrow = size(A)[1]
+    # Error checking and initialization on first iteration
     if iter == 1
+        nrow = size(A)[1]
         if type.block_size <= 0
             throw(DomainError("block_size is 0 or negative!")) 
         end
@@ -62,7 +62,7 @@ function sample(
         type.S = Matrix{Int64}(undef, type.block_size, nrow)
         type.rows_sampled = Vector{Int64}(undef, type.block_size)
 
-        # check struct data and initialize
+        # error checking on probability vector, possible initialization and type conversion
         if isnothing(type.probability)
             type.probability = Weights(repeat([1/nrow], outer = nrow))
         elseif isa(type.probability, Vector) || isa(type.probability, Weights)
