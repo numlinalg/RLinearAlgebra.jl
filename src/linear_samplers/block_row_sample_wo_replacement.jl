@@ -67,7 +67,7 @@ function sample(
             type.probability = Weights(repeat([1/nrow], outer = nrow))
         elseif isa(type.probability, Vector) || isa(type.probability, Weights)
             # check that probability is a valid distribution on the rows 
-            if sum(type.probability) != 1
+            if !(sum(type.probability) ≈ 1)
                 throw(DomainError("Elements of probability do not sum to 1!"))
             elseif sum(type.probability .>= 0) != size(type.probability)[1]
                 throw(DomainError("Not all probabilities are non-negative in probability!")) 
