@@ -64,6 +64,12 @@ LinSysVecColOneRandCyclic
 LinSysBlkRowCountSketch
 ```
 
+## Block Vector Column Samplers
+
+```@docs
+LinSysBlkColCountSketch
+```
+
 ## Sample Function
 ```@docs
 RLinearAlgebra.sample(::Nothing,::AbstractArray,::AbstractVector,

@@ -28,3 +28,4 @@ proc_linear_solver_stops
 linear_solver_stops/proc_stop_max_iter
 proc_linear_rsolve
 linear_samplers/proc_block_row_count_sketch
+linear_samplers/proc_block_col_count_sketch

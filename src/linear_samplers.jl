@@ -169,6 +169,8 @@ include("linear_samplers/vec_col_one_rand_cyclic.jl")
 #############################################
 # Block Column Sampler/Sketch/Selector
 #############################################
+# Non-adaptive methods
+include("linear_samplers/block_col_count_sketch.jl")
 
 #############################################
 # Compositional Sampler/Sketch/Selector

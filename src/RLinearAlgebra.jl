@@ -48,6 +48,7 @@ export LinSysBlkRowCountSketch
 
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
+export LinSysBlkColCountSketch
 
 #*****************************************#
 # Linear Solver Routine Exports
