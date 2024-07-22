@@ -16,14 +16,12 @@ function getDistribution(
     nrow = size(Q)[1]
     
     # form distribution
-    distribution = zeros(size(A)[2])
-    d = 0
+    dist = zeros(nrow)
     for i in 1:nrow
-        d += norm(Q[i,:])
-        distribution[i] = norm(A[:,i])
+        dist[i] = norm(Q[i,:])
     end
-    distribution /= d
+    dist /= sum(dist)
 
-    return Weights(distribution)
+    return Weights(dist)
 
 end

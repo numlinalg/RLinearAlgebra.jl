@@ -15,11 +15,11 @@ function getDistribution(
     A::AbstractArray
 )
     ncol = size(A)[2]
-    distribution = zeros(ncol)
+    dist = zeros(ncol)
     for i in 1:ncol
-        distribution[i] = norm(A[:,i])^2
+        dist[i] = norm(A[:,i])^2
     end
-    distribution .= distribution ./ (norm(A)^2)
+    dist .= dist ./ (norm(A)^2)
 
-    return Weights(distribution)
+    return Weights(dist)
 end
