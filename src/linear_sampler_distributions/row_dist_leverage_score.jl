@@ -3,8 +3,12 @@
 # Purpose: Implement a distribution using Leverage Scores
 
 """
+    RowDistLeverageScore <: RowDistribution
+
+An immutable struct that represents a distribution over the rows of
+`A` that is initialized using the leverage scores.
 """
-struct RowDistLeverageScore end
+struct RowDistLeverageScore <: RowDistribution end
 
 function getDistribution(
     distribution::RowDistLeverageScore,
@@ -12,16 +16,16 @@ function getDistribution(
 )
 
     # compute QR decomposition
-    Q = Matrix(qr(A).Q)
-    nrow = size(Q)[1]
+    Q1 = Matrix(qr(A).Q)
+    nrow = size(Q1)[1]
     
-    # form distribution
+    # compute the leverage scores
     dist = zeros(nrow)
     for i in 1:nrow
-        dist[i] = norm(Q[i,:])^2
+        dist[i] = norm(Q1[i,:])^2
     end
+
+    # normalize and return
     dist /= sum(dist)
-
     return Weights(dist)
-
 end

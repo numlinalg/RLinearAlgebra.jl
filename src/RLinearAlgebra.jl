@@ -28,6 +28,20 @@ using LinearAlgebra, Random, Distributions, StatsBase
 ###########################################
 
 #*****************************************#
+# Distribution Explorts
+#*****************************************#
+
+# Abstract Types
+export LinSysSamplerDistribution
+export RowDistribution, RowDist
+export ColumnDistribution, ColDistribution, ColDist
+
+# Row distributions
+export RowDistFrobeniusNorm, RowDistLeverageScore, RowDistApproximateLeverageScores
+
+# Column distributions
+
+#*****************************************#
 # Linear Sampler Exports
 #*****************************************#
 
@@ -89,6 +103,7 @@ export RLSSolver, rsolve, rsolve!
 ###########################################
 
 include("tools.jl")
+include("linear_sampler_distributions.jl")
 include("linear_samplers.jl")
 include("linear_solver_routines.jl")
 include("linear_solver_logs.jl")
