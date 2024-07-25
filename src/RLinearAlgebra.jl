@@ -40,6 +40,8 @@ export ColumnDistribution, ColDistribution, ColDist
 export RowDistFrobeniusNorm, RowDistLeverageScore, RowDistApproximateLeverageScores
 
 # Column distributions
+export ColDistFrobeniusNorm, ColDistLeverageScore, 
+ColDistApproximateLeverageScores
 
 #*****************************************#
 # Linear Sampler Exports
