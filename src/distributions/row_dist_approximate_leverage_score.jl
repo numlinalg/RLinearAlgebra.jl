@@ -17,12 +17,12 @@ See Petros Drineas, Malik Magdon-Ismail, Michael W. Mahoney, David P. Woodruff.
 
 # Fields
 
-- `Π_1::AbstractArray`, sketch matrix of size (r1, size(A)[1]), where r1 is chosen by the user.
-- `Π_2::AbstractArray`, sketch matrix of size (size(A)[2], r2), where r2 is chosen by the user.
+- `Π_1::Union{Matrix{Float64}, Matrix{Int64}}`, sketch matrix of size (r1, size(A)[1]), where r1 is chosen by the user.
+- `Π_2::Union{Matrix{Float64}, Matrix{Int64}}`, sketch matrix of size (size(A)[2], r2), where r2 is chosen by the user.
 """
 struct RowDistApproximateLeverageScores <: RowDistribution 
-    Π_1::AbstractArray
-    Π_2::AbstractArray
+    Π_1::Union{Matrix{Float64}, Matrix{Int64}}
+    Π_2::Union{Matrix{Float64}, Matrix{Int64}}
 end
 
 # common interface
@@ -33,11 +33,12 @@ function getDistribution(
 
     # compute svd 
     # TODO: problem when sketch size smaller than number of columns since F.S can be at most r1 < size(A)[2]
-    dist = zeros(size(A)[1])
-    F = svd( distribution.Π_1 * A; full = true)
+    sketched_A = distribution.Π_1 * A 
+    F = svd( sketched_A; full = true)
     Ω = A * F.Vt' * Diagonal(F.S .^ (-1)) * distribution.Π_2
 
     # approximated leverage scores
+    dist = zeros(size(A)[1])
     @inbounds for i in 1:size(dist)[1]
         dist[i] = norm( @view Ω[i, :] )^2 # why is this taking so many allocation -> Nathaniel
     end

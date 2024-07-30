@@ -20,12 +20,12 @@ See Petros Drineas, , Malik Magdon-Ismail, Michael W. Mahoney, David P. Woodruff
 
 # Fields
 
-- `Π_1::AbstractArray`, sketch matrix of size (r1, size(A)[2]), where r1 is chosen by the user.
-- `Π_2::AbstractArray`, sketch matrix of size (size(A)[1], r2), where r2 is chosen by the user.
+- `Π_1::Union{Matrix{Float64}, Matrix{Int64}}`, sketch matrix of size (r1, size(A)[2]), where r1 is chosen by the user.
+- `Π_2::Union{Matrix{Float64}, Matrix{Int64}}`, sketch matrix of size (size(A)[1], r2), where r2 is chosen by the user.
 """
 struct ColDistApproximateLeverageScores <: ColDistribution
-    Π_1::AbstractArray
-    Π_2::AbstractArray
+    Π_1::Union{Matrix{Float64}, Matrix{Int64}}
+    Π_2::Union{Matrix{Float64}, Matrix{Int64}}
 end
 
 function getDistribution(
