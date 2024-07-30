@@ -10,7 +10,8 @@
     RowDistFrobeniusNorm <: RowDistribution
 
 An immutable struct that represents a row distribution initialized via
-the frobenius norm of `A`. More specifically, the probability of selecting row i, is norm(A[i,:])^2/norm(A)^2. Note that norm(A) == ||A||_F.
+the frobenius norm of `A`. More specifically, the probability of selecting row i, 
+is norm(A[i,:])^2/norm(A)^2. Note that norm(A) == ||A||_F.
 """
 struct RowDistFrobeniusNorm <: RowDistribution  end
 
@@ -23,7 +24,7 @@ function getDistribution(
     nrow = size(A)[1]
     dist = zeros(nrow)
     @inbounds for i in 1:nrow
-        dist[i] = norm(@view A[i,:])^2
+        dist[i] = norm(@view A[i, :])^2
     end
 
     # normalize distribution and return

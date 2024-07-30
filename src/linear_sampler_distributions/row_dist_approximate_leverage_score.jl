@@ -9,9 +9,10 @@
 """
     RowDistApproximateLeverageScores <: RowDistribution
 
-A immutable struct that represents a distribution over the rows using approximated leverage scores. The assumption is that A has full rank.
+An immutable struct that represents a distribution over the rows using approximated leverage scores. 
+The assumption is that A has full rank.
 
-See Petros Drineas, , Malik Magdon-Ismail, Michael W. Mahoney, David P. Woodruff. 
+See Petros Drineas, Malik Magdon-Ismail, Michael W. Mahoney, David P. Woodruff. 
 "Fast approximation of matrix coherence and statistical leverage." (2012).
 
 # Fields
@@ -31,15 +32,14 @@ function getDistribution(
 )
 
     # compute svd 
-    # TODO: problem when sketch size smaller than number of columns
+    # TODO: problem when sketch size smaller than number of columns since F.S can be at most r1 < size(A)[2]
+    dist = zeros(size(A)[1])
     F = svd( distribution.Π_1 * A; full = true)
     Ω = A * F.Vt' * Diagonal(F.S .^ (-1)) * distribution.Π_2
 
     # approximated leverage scores
-    n = size(Ω)[1]
-    dist = zeros(n)
-    @inbounds for i in 1:n
-        dist[i] = norm(@view Ω[i, :])^2
+    @inbounds for i in 1:size(dist)[1]
+        dist[i] = norm( @view Ω[i, :] )^2 # why is this taking so many allocation -> Nathaniel
     end
 
     # normalize and return

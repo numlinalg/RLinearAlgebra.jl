@@ -9,8 +9,11 @@
 """
     ColDistApproximateLeverageScores <: ColDistribution
 
-A immutable struct that represents a distribution over the columns using
-approximated leverage scores. The assumption is that A has full rank.
+An immutable struct that represents a distribution over the columns using
+approximated leverage scores. The assumption is that A' has full rank.
+
+This code is equivalent to src/linear_sampler_distributions/row_dist_approximate_leverage_score.jl
+except we apply the method to A'
 
 See Petros Drineas, , Malik Magdon-Ismail, Michael W. Mahoney, David P. Woodruff. 
 "Fast approximation of matrix coherence and statistical leverage." (2012).
@@ -31,8 +34,8 @@ function getDistribution(
 )
 
     # compute svd
-    F = svd(distribution.Π_1*A'; full=true) # TODO: do you need to compute the full distribution?
-    Ω = A'*F.Vt'*Diagonal(F.S .^ (-1))*distribution.Π_2
+    F = svd(distribution.Π_1 * A'; full=true) # TODO: do you need to compute the full distribution?
+    Ω = A' * F.Vt' * Diagonal(F.S .^ (-1)) * distribution.Π_2
 
     # approximated leverage scores
     n = size(Ω)[1]
@@ -42,6 +45,6 @@ function getDistribution(
     end
 
     # normalize and return
-    dist /= sum(dist)
+    dist ./= sum(dist)
     return dist
 end

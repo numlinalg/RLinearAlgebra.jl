@@ -22,7 +22,7 @@ function getDistribution(
 
     # compute QR decomposition of A'
     Q1 = Matrix(qr(A').Q) # get thin Q
-    nrow = size(A')[1]
+    nrow = size(Q1)[1]
     
     # compute the leverage scores
     dist = zeros(nrow)

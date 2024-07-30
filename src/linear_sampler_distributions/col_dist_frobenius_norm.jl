@@ -24,7 +24,7 @@ function getDistribution(
     ncol = size(A)[2]
     dist = zeros(ncol)
     @inbounds for i in 1:ncol
-        dist[i] = norm(@view A[:,i])^2
+        dist[i] = norm(@view A[:, i])^2
     end
 
     # normalize the distribution and return
