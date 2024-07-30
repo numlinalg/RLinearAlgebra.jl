@@ -32,7 +32,7 @@ using LinearAlgebra, Random, Distributions, StatsBase
 #*****************************************#
 
 # Abstract Types
-export LinSysSamplerDistribution
+export Distribution
 export RowDistribution, RowDist
 export ColumnDistribution, ColDistribution, ColDist
 
@@ -105,7 +105,7 @@ export RLSSolver, rsolve, rsolve!
 ###########################################
 
 include("tools.jl")
-include("linear_sampler_distributions.jl")
+include("distributions.jl")
 include("linear_samplers.jl")
 include("linear_solver_routines.jl")
 include("linear_solver_logs.jl")

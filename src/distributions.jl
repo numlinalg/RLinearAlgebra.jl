@@ -14,18 +14,14 @@
 ##############################################################################
 
 """
-    LinSysSamplerDistribution
+    Distribution
 
 Abstract supertype for distributions used in sampling and sketching components of a linear system.
-
-# Aliases
-- `LinSysSketchDistribution`
 """
-abstract type LinSysSamplerDistribution end
-LinSysSketchDistribution = LinSysSamplerDistribution
+abstract type Distribution end
 
 """
-    RowDistribution <: LinSysSamplerDistribution
+    RowDistribution <: Distribution
 
 Abstract supertype for distributions used in row sampling and row sketching
 of a linear system.
@@ -33,11 +29,11 @@ of a linear system.
 # Aliases
 - `RowDist`
 """
-abstract type RowDistribution <: LinSysSamplerDistribution end
+abstract type RowDistribution <: Distribution end
 RowDist = RowDistribution
 
 """
-    ColDistribution <: LinSysSamplerDistribution
+    ColDistribution <: Distribution
 
 Abstract supertype for distribution used in column sampling and column sketching of a linear system.
 
@@ -45,7 +41,7 @@ Abstract supertype for distribution used in column sampling and column sketching
 - `ColDistribution`
 - `ColDist`
 """
-abstract type ColumnDistribution <: LinSysSamplerDistribution end
+abstract type ColumnDistribution <: Distribution end
 ColDistribution = ColumnDistribution
 ColDist = ColumnDistribution
 
@@ -60,7 +56,7 @@ A common interface for specifying a distribution over the rows or columns
 of a matrix `A` that is part of a linear system. The argument `distribution` is
 used to specify a strategy for initializing a distribution.
 
-The value returned by `getDistribution` will depend on the subtype `LinSysSamplerDistribution` being used. 
+The value returned by `getDistribution` will depend on the subtype `Distribution` being used. 
 - For `T<:RowDistribution`, a `Weights` vector of size `size(A)[1]` is returned that represents a distribution over rows.
 - For `T<:ColDistribution`, a `Weights` vector of size `size(A)[2]` is returned that represents a distribution over columns. 
 """
@@ -76,9 +72,9 @@ end
 ###############################
 
 # Non-adaptive
-include("linear_sampler_distributions/row_dist_frobenius_norm.jl")
-include("linear_sampler_distributions/row_dist_leverage_score.jl")
-include("linear_sampler_distributions/row_dist_approximate_leverage_score.jl")
+include("distributions/row_dist_frobenius_norm.jl")
+include("distributions/row_dist_leverage_score.jl")
+include("distributions/row_dist_approximate_leverage_score.jl")
 
 
 ###############################
@@ -86,6 +82,6 @@ include("linear_sampler_distributions/row_dist_approximate_leverage_score.jl")
 ###############################
 
 # Non-adaptive
-include("linear_sampler_distributions/col_dist_frobenius_norm.jl")
-include("linear_sampler_distributions/col_dist_leverage_score.jl")
-include("linear_sampler_distributions/col_dist_approximate_leverage_score.jl")
+include("distributions/col_dist_frobenius_norm.jl")
+include("distributions/col_dist_leverage_score.jl")
+include("distributions/col_dist_approximate_leverage_score.jl")
