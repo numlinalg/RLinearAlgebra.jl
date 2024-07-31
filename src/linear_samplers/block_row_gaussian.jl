@@ -32,7 +32,10 @@ function sample(
 )
     m, n = size(A)
     if iter == 1
-        @assert type.block_size <= m "Block size must be less than row dimension"
+        @assert type.block_size > 0 "`block_size` must be positve."
+        if type.block_size > m
+            @warn "`block_size` should be less than row dimension"
+        end
         # Scaling value for the matrix so it has expectation 1 when applied to unit vector
         type.scaling = sqrt(1 / type.block_size)
         # Allocate for the sketching matrix

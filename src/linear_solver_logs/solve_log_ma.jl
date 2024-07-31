@@ -38,28 +38,28 @@ end
 """ 
     SEDistInfo
 
-A mutable structure that stores information about the sub-Exponential distribution.
+A mutable structure that stores information about the sub-Exponential family.
 
 # Fields
-- `sampler::Union{DataType, Nothing}`, the type of sampler being used.
-- `max_dimension::Int64`, the dimension that is being sampled.
-- `block_dimension::Int64`, the sampling dimension.
-- `sigma2::Union{Float64, Nothing}`, the variance parameter in the sub-Exponential distribution, 
-   if not given is determined for sampling method.
-- `omega::Union{Float64, Nothing}`, the exponential distrbution parameter, if not given is determined for sampling methods.
+- `sampler::Union{DataType, Nothing}`, the type of sampling method.
+- `dimension::Int64`, the dimension that of the space that is being sampled.
+- `block_dimension::Int64`, the dimension of the sample.
+- `sigma2::Union{Float64, Nothing}`, the variance parameter in the sub-Exponential family, 
+   if not specified by the user it is provided based on the sampling method.
+- `omega::Union{Float64, Nothing}`, the exponential distrbution parameter, if specified by the user, 
+   it is provided based on the sampling method.
 - `eta::Float64`, a parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
   estimate. By default, this is set to `1`.
 
 For more information see:
-Pritchard, Nathaniel, and Patel, Vivak. Solving, tracking and stopping streaming linear inverse problems. 
-Inverse Problems 40.8 Web. doi:10.1088/1361-6420/ad5583.
+- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
 
-Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
-Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024.
+- Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
+Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057 
 """
 mutable struct SEDistInfo
     sampler::Union{DataType, Nothing}
-    max_dimension::Int64
+    dimension::Int64
     block_dimension::Int64
     sigma2::Union{Float64, Nothing}
     omega::Union{Float64, Nothing}
@@ -75,42 +75,42 @@ The goal of this log is usually for all use cases as it acts as a cheap approxim
 full residual.
 
 For more information see:
-Pritchard, Nathaniel, and Patel, Vivak. Solving, tracking and stopping streaming linear inverse problems. 
-Inverse Problems 40.8 Web. doi:10.1088/1361-6420/ad5583.
+For more information see:
+- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
 
-Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
-Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024.
+- Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
+Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057 
 
 # Fields
-- `collection_rate::Int64`, the frequency with which to record information to append to the
-    remaining fields, starting with the initialization (i.e., iteration `0`).
-- `ma_info::MAInfo`, structure that holds information relevant only to moving average, 
-   like the two choices of moving average widths (`lambda1` and `lambda2`), the current moving average
-   width (`lambda`), a flag to indicate which moving average regime, between `lambda1` and `lambda2`, is 
-   being used, a vector containing the values to be averaged (`res_window`), and an indicator of where 
-   the next value should be placed (`idx`).
-- `resid_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy, 
-   typically the norm of residual or gradient of normal equations.
-- `iota_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy, 
-   typically the norm of residual or gradient of normal equations.
+- `collection_rate::Int64`, the frequency with which to record information about progress estimators 
+    to append to the remaining fields, starting with the initialization (i.e., iterate `0`).
+- `ma_info::MAInfo`, [`MAInfo`](@ref)
+- `resid_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy squared, 
+   typically the norm of residual or gradient of normal equations. It is collected at a rate 
+   specified by `collection_rate`.
+- `iota_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy
+   to the fourth power, typically the norm of residual or gradient of normal equations. This is used 
+   in part to approximate the variance of the estimator. It is collected at a rate specified by `collection_rate`.
 - `width_hist::Vector{Int64}`, data structure that contains the widths used in the moving average 
-   calculation at each iteration.
+   calculation. It is collected at a rate specified by `collection_rate`.
 - `resid_norm::Function`, a function that accepts a single vector argument and returns a
     scalar. Used to compute the residual size.
-- `iterations::Int64`, the number of iterations of the solver.
-- `converged::Bool`, a flag to indicate whether the system has converged by some measure.
+- `iterations::Int64`, the current iteration of the solver.
+- `converged::Bool`, a flag to indicate whether the system has converged by some measure. By default this
+  is set to false.
 - `true_res`, a boolean indicating if we want the true residual computed instead of approximate.
-- `dist_info::SEDistInfo`, a structure that stores information about the sub-Exponential distribution.
-  includes the parameter `sigma2`, which is the variance parameter of a sub-Exponential distribution,
-  and the parameter `omega`. This values have been approximated for many sampling methods; but the 
-  user can specify there own, if desired. The parameter `eta` can also be used to scale the default
-  parameters by having the variance be set to `sigma2/eta` and the other parameter be `omega/eta`.
+- `dist_info::SEDistInfo`, [`SEDistInfo`](@ref)
 
 # Constructors
-- Calling `LSLogMA()` sets `collection_rate = 1`,  `lambda1 = 1`,
-    `lambda2 = 30`, `resid_norm = norm` (Euclidean norm), `sigma2 = nothing`, `omega = nothing`,
-    `eta = 1`, and `true_res = false`. The user can specify their own values of `collection_rate`,
-    `lambda1`, `lambda2`, `sigma2`, `omega`, and `eta` using key word arguments as inputs into the constructor.
+- The keyword constructor is defined as 
+`LSLogMA(collection_rate = 1,
+        lambda1 = 1, 
+        lambda2 = 30, 
+        resid_norm = norm #(Euclidean norm), 
+        sigma2 = nothing, 
+        omega = nothing,
+        eta = 1, 
+        true_res = false)`
 """
 mutable struct LSLogMA <: LinSysSolverLog
     collection_rate::Int64
@@ -134,7 +134,7 @@ LSLogMA(;
         eta = 1, 
         true_res = false
        ) = LSLogMA( collection_rate,
-                    MAInfo(1, lambda2, 1, false, 1, zeros(lambda2)),
+                    MAInfo(lambda1, lambda2, 1, false, 1, zeros(lambda2)),
                     Float64[], 
                     Float64[], 
                     Int64[],
@@ -158,19 +158,19 @@ function log_update!(
     if iter == 0 
         # Check if it is a row or column method and record dimensions
         if supertype(typeof(sampler)) <: LinSysVecRowSampler
-            log.dist_info.max_dimension = size(A,1)
+            log.dist_info.dimension = size(A,1)
             log.dist_info.block_dimension = 1 
         elseif supertype(typeof(sampler)) <: LinSysBlkRowSampler
-            log.dist_info.max_dimension = size(A,1)
+            log.dist_info.dimension = size(A,1)
             # For the block methods samp[3] is always the sketched residual, its length is block size
-            log.dist_info.block_dimension = sampler.blockSize 
+            log.dist_info.block_dimension = sampler.block_size 
         elseif supertype(typeof(sampler)) <: LinSysVecColSampler
-            log.dist_info.max_dimension = size(A,1)
+            log.dist_info.dimension = size(A,1)
             log.dist_info.block_dimension = 1 
         else
-            log.dist_info.max_dimension = size(A,1)
+            log.dist_info.dimension = size(A,1)
             # For the block methods samp[3] is always the sketched residual, its length is block size
-            log.dist_info.block_dimension = sampler.blockSize
+            log.dist_info.block_dimension = sampler.block_size
         end
         
         log.dist_info.sampler = typeof(sampler)  
@@ -348,7 +348,7 @@ for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
              LinSysVecRowMaxDistance,)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
-            log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
         end
 
     end
@@ -360,7 +360,7 @@ end
 for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
-            log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
         end
 
     end

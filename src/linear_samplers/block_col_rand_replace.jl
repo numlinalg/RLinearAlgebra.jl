@@ -18,7 +18,9 @@ mutable struct LinSysBlkColReplace <: LinSysBlkColSampler
     block::Vector{Int64}
 end
 
-LinSysBlkColReplace(;block_size=2) = LinSysBlkColReplace(block_size, Int64[])
+LinSysBlkColReplace(;block_size=2) = LinSysBlkColReplace(
+                                        block_size, 
+                                        Int64[])
 
 # Common sample interface for linear systems
 function sample(
@@ -30,7 +32,8 @@ function sample(
 )
     n = size(A, 2)
     if iter == 1
-        @assert type.block_size <= n "Block size must be less than col dimension"
+        @assert type.block_size > 0 "`block_size` must be positve"
+        @assert type.block_size <= n "`block_size` must be less than col dimension"
         type.block = zeros(Int64, type.block_size)
     end
     
