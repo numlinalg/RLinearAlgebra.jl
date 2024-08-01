@@ -5,10 +5,10 @@
 
 """
 """
-struct DistFrobeniusNorm{T<:Direction} <: ParametricDistribution{T} end 
+struct DistFrobeniusNorm{T<:SketchDirection} <: ParametricDistribution{T} end 
 
 # constructor
-DistFrobeniusNorm(x::Type{T}) where T<:Direction = DistFrobeniusNorm{T}()
+DistFrobeniusNorm(x::Type{T}) where T<:SketchDirection = DistFrobeniusNorm{T}()
 
 function getDistributionParametric(
     distribution_type::DistFrobeniusNorm{T},

@@ -2,7 +2,7 @@
 # Author: Christian Varner
 # Purpose: Implementing a distribution using approximate leverage scores
 
-struct DistApproximateLeverageScore{T<:Direction} <: ParametricDistribution{T} 
+struct DistApproximateLeverageScore{T<:SketchDirection} <: ParametricDistribution{T} 
     Π_1::Union{Matrix{Float64}, Matrix{Int64}}
     Π_2::Union{Matrix{Float64}, Matrix{Int64}}
 end

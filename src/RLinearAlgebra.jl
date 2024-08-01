@@ -44,7 +44,7 @@ export ColDistFrobeniusNorm, ColDistLeverageScore,
 ColDistApproximateLeverageScores
 
 # Abstract Parametric Types
-export Direction, Left, Right
+export SketchDirection, Left, Right
 export ParametricDistribution
 
 # Distributions

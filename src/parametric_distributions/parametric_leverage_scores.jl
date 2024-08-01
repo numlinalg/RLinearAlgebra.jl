@@ -4,10 +4,10 @@
 
 """
 """
-struct DistLeverageScore{T<:Direction} <: ParametricDistribution{T} end
+struct DistLeverageScore{T<:SketchDirection} <: ParametricDistribution{T} end
 
 # constructor
-DistLeverageScore(x::Type{T}) where T<:Direction = DistLeverageScore{T}()
+DistLeverageScore(x::Type{T}) where T<:SketchDirection = DistLeverageScore{T}()
 
 # common interface
 function getDistributionParametric(
