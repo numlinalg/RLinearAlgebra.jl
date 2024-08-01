@@ -43,6 +43,13 @@ export RowDistFrobeniusNorm, RowDistLeverageScore, RowDistApproximateLeverageSco
 export ColDistFrobeniusNorm, ColDistLeverageScore, 
 ColDistApproximateLeverageScores
 
+# Abstract Parametric Types
+export Direction, Left, Right
+export ParametricDistribution
+
+# Distributions
+export DistFrobeniusNorm, DistLeverageScore, DistApproximateLeverageScore
+
 #*****************************************#
 # Linear Sampler Exports
 #*****************************************#
@@ -106,6 +113,7 @@ export RLSSolver, rsolve, rsolve!
 
 include("tools.jl")
 include("distributions.jl")
+include("distributions_parametric.jl")
 include("linear_samplers.jl")
 include("linear_solver_routines.jl")
 include("linear_solver_logs.jl")
