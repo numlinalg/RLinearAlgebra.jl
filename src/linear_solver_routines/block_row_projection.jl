@@ -40,7 +40,6 @@ function rsubsolve!(
         type.update = Array{typeof(samp[2][1])}(undef, n)
     end
 
-    fill!(type.update, 0.0)
     # Solve the underdetemined system 
     LinearAlgebra.ldiv!(type.update, factorize(samp[2]), samp[3])
     x .-= type.α * type.update

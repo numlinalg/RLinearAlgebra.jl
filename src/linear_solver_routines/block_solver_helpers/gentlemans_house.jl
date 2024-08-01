@@ -12,12 +12,13 @@ applied.
 - `R::UpperTriangular`, The upper triangular part of `B`.
 - `tab::SubArray`, the last column of `B` where the constant vector entries corresponding
 to the rows of `A` that were brought to `B` are stored.
-- `v::V`, a buffer vector.
+- `v::V`, a buffer vector that stores the scaling constants from the house holder reflections,
+see `LAPACK.geqrf!` in `LinearAlgebra` for more information.
 - `bsize::Int64`, the number of rows transported to `B` at each iteration.
 
 Calling `Gent(A, bsize)` will allocate a `B` matrix with the `n + 1` columns and 
 `n + bsize + 1` rows where n is the number of columns of A. It also allocates a 
-buffer vector `v` with `n + 1` entries. Finally, it takes a view of the upper
+buffer vector `v` with `n + 1` entries. Finally, it allocates a view of the upper
 triangular part of `B[1:n, 1:n]` and a view of the last column of `B`.
 
 Miller, Alan J. “Algorithm AS 274: Least Squares Routines to Supplement Those of Gentleman.” 
@@ -39,11 +40,16 @@ Base.eltype(::GentData{S, M, V}) where {S, M, V} = S
 function GentData(A::AbstractMatrix, bsize::Int64)
     S = eltype(A)
     m, n = size(A)
-    B = zeros(S, n + bsize + 1, n + 1)
+    if m < n
+        @warn "The Gentleman's solver is not designed for matrices
+        with more columns than rows"
+    end
     @assert bsize >= 1 "bsize must be at least 1."
+    B = zeros(S, n + bsize + 1, n + 1)
     R = @views UpperTriangular(B[1:n, 1:n])
     tab = @views B[1:n, n + 1]
-    v = zeros(n + 1) #zeros(n + bsize + 1)
+    # Vector to store the scalars returned by geqrf!
+    v = zeros(n + 1) 
     return GentData{S, Matrix{S}, Vector{S}}(A, B, R, tab, v, bsize)
 end
 
@@ -109,12 +115,12 @@ function LinearAlgebra.ldiv!(x::AbstractVector, G::GentData, b::AbstractVector)
     brows = n + bsize + 1
     for i in 1:nblocks
         # Do not use an index greater than m
-        index = (i - 1) * bsize + 1: min(i * bsize, m)
+        index = ((i - 1) * bsize + 1):min(i * bsize, m)
         copy_block_from_mat!(G.B, G.A, b, index)
         # Check if you are in the last block in which case zero all rows 
         # that no data was moved to
         if index[end] < i * bsize
-            fill!(view(G.B, (length(index) + 1) + n + 2:brows, :), zero(eltype(A)))
+            fill!(view(G.B, ((length(index) + 1) + n + 2):brows, :), zero(eltype(A)))
         end
 
         gentleman!(G)
@@ -131,8 +137,8 @@ end
 """
     copyBlockFromMat!(B::AbstractMatrix, A::AbstractMatrix, b::AbstractVector, index::Union{UnitRange{Int64}, Vector{Int64}})
 
-Function that updates matrix `B` with the entries at indicies `index` of the `A` matrix and `b` constant vector of the linear 
-system.
+Function that updates matrix `B` with the entries at indicies `index` corresponding to the rows of the `A` matrix and the 
+entries of the `b` constant vector of the linear system.
 """
 function copy_block_from_mat!(B::AbstractMatrix, A::AbstractMatrix, b::AbstractVector, index::Union{UnitRange{Int64}, Vector{Int64}})
     m, n = size(B)

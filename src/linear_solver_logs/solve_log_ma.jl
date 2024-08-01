@@ -20,10 +20,9 @@ A mutable structure that stores information relevant to the moving average of th
 - `res_window::Vector{Float64}`, the moving average buffer.
 
 For more information see:
-Pritchard, Nathaniel, and Patel, Vivak. Solving, tracking and stopping streaming linear inverse problems. 
+ - Pritchard, Nathaniel, and Patel, Vivak. Solving, tracking and stopping streaming linear inverse problems. 
 Inverse Problems 40.8 Web. doi:10.1088/1361-6420/ad5583.
-
-Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
+ - Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
 Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024.
 """
 mutable struct MAInfo
@@ -53,7 +52,6 @@ A mutable structure that stores information about the sub-Exponential family.
 
 For more information see:
 - Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
-
 - Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
 Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057 
 """
@@ -75,9 +73,7 @@ The goal of this log is usually for all use cases as it acts as a cheap approxim
 full residual.
 
 For more information see:
-For more information see:
 - Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
-
 - Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
 Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057 
 
@@ -86,19 +82,19 @@ Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantifica
     to append to the remaining fields, starting with the initialization (i.e., iterate `0`).
 - `ma_info::MAInfo`, [`MAInfo`](@ref)
 - `resid_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy squared, 
-   typically the norm of residual or gradient of normal equations. It is collected at a rate 
+   typically the norm of residual or gradient of normal equations, it is collected at a rate 
    specified by `collection_rate`.
 - `iota_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy
    to the fourth power, typically the norm of residual or gradient of normal equations. This is used 
-   in part to approximate the variance of the estimator. It is collected at a rate specified by `collection_rate`.
-- `width_hist::Vector{Int64}`, data structure that contains the widths used in the moving average 
-   calculation. It is collected at a rate specified by `collection_rate`.
+   in part to approximate the variance of the estimator, it is collected at a rate specified by `collection_rate`.
+- `width_hist::Vector{Int64}`, data structure that contains the widths of the moving average 
+   calculation, it is collected at a rate specified by `collection_rate`.
 - `resid_norm::Function`, a function that accepts a single vector argument and returns a
     scalar. Used to compute the residual size.
 - `iterations::Int64`, the current iteration of the solver.
 - `converged::Bool`, a flag to indicate whether the system has converged by some measure. By default this
   is set to false.
-- `true_res`, a boolean indicating if we want the true residual computed instead of approximate.
+- `true_res::Bool`, a boolean indicating if we want the true residual computed instead of approximate.
 - `dist_info::SEDistInfo`, [`SEDistInfo`](@ref)
 
 # Constructors
@@ -186,6 +182,7 @@ function log_update!(
     #Check if we want exact residuals computed
     if !log.true_res && iter > 0
         # Compute the current residual to second power to align with theory
+        # Check if it is one dimensional or block sampling method
         res::Float64 = eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
             log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2 
     else 
@@ -207,6 +204,7 @@ function log_update!(
 
 
 end
+
 """
     update_ma!(
         log::LSLogMA, 
@@ -219,9 +217,10 @@ Function that updates the moving average tracking statistic.
 
 # Inputs
 - `log::LSLogMA`, the moving average log structure.
-- `res::Union{AbstractVector, Real}, the residual for the current iteration. This could be sketeched or full residual depending on the inputs when creating the log structor.
--`lambda_base::Int64`, which lambda, between lambda1 and lambda2, is currently being used.
--`iter::Int64`, the current iteration.
+- `res::Union{AbstractVector, Real}, the residual for the current iteration. 
+    This could be sketeched or full residual depending on the inputs when creating the log structor.
+- `lambda_base::Int64`, which lambda, between lambda1 and lambda2, is currently being used.
+- `iter::Int64`, the current iteration.
 
 # Outputs
 Updates the log datatype and does not explicitly return anything.
@@ -320,7 +319,6 @@ function get_uncertainty(hist::LSLogMA; alpha = .95)
     end
 
     return (hist.resid_hist, upper, lower)  
-
 end
 
 """
