@@ -11,15 +11,9 @@ struct DistFrobeniusNorm{T<:SketchDirection} <: ParametricDistribution{T} end
 DistFrobeniusNorm(x::Type{T}) where T<:SketchDirection = DistFrobeniusNorm{T}()
 
 function getDistributionParametric(
-    distribution_type::DistFrobeniusNorm{T},
-    A::AbstractArray
-) where {T}
-
-    if T <: Left
-        B=A
-    elseif T <: Right
-        B=A'
-    end
+    distribution_type::DistFrobeniusNorm{<:SketchDirection},
+    B::AbstractArray
+)
 
     # get the norm of the rows of A
     dim = size(B)[1]

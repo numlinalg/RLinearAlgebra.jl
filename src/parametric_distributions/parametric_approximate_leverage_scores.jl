@@ -9,15 +9,9 @@ end
 
 # common interface
 function getDistributionParametric(
-    distribution::DistApproximateLeverageScore{T},
-    A::AbstractArray
-) where {T}
-
-    if T <: Left
-        B = A
-    elseif T <: Right
-        B = A'
-    end
+    distribution::DistApproximateLeverageScore{<:SketchDirection},
+    B::AbstractArray
+)
 
     # compute svd 
     # TODO: problem when sketch size smaller than number of columns since F.S can be at most r1 < size(A)[2]

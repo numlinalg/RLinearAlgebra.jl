@@ -36,8 +36,19 @@ end
 
 """
 """
+function initialize(dist::ParametricDistribution{T}, A::AbstractArray) where {T}
+    if T == Left
+        B = A
+    elseif T == Right
+        B = A'
+    end
+    return getDistributionParametric(dist, B)
+end
+
+"""
+"""
 function getDistributionParametric(
-    dist::ParametricDistribution{T},
+    dist::ParametricDistribution{<:SketchDirection},
     A::AbstractArray
 ) where {T}
     return nothing

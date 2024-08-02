@@ -11,16 +11,9 @@ DistLeverageScore(x::Type{T}) where T<:SketchDirection = DistLeverageScore{T}()
 
 # common interface
 function getDistributionParametric(
-    distribution::DistLeverageScore{T},
-    A::AbstractArray
-) where {T}
-
-    
-    if T <: Left
-        B = A
-    elseif T <: Right
-        B = A'
-    end
+    distribution::DistLeverageScore{<:SketchDirection},
+    B::AbstractArray
+)
 
     # compute QR decomposition
     Q1 = Matrix(qr(B).Q) # get thin Q
