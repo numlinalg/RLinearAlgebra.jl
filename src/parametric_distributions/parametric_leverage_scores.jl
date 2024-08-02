@@ -3,15 +3,27 @@
 # Purpose: Implementation of a distribution using leverage scores
 
 """
+    DistLeverageScore{T <: SketchDirection} <: Distribution{T}
+
+An immutable struct that represents a distribution created by using the leverage scores
+over the rows of a matrix `B`.
+
+See Petros Drineas, Malik Magdon-Ismail, Michael W. Mahoney, David P. Woodruff. 
+"Fast approximation of matrix coherence and statistical leverage." (2012).
+
+# Additional Constructors
+`DistLeverageScore(x::Type{T})`, is `DistLeverageScore{T}()` for `T <: SketchDirection`
+`DistLeverageScore(left::Bool)`, is `DistLeverageScore{Left}()` if `left == true`, otherwise `DistLeverageScore{Right}()`
 """
 struct DistLeverageScore{T<:SketchDirection} <: ParametricDistribution{T} end
 
 # constructor
-DistLeverageScore(x::Type{T}) where T<:SketchDirection = DistLeverageScore{T}()
+DistLeverageScore(x::Type{T}) where T <: SketchDirection = DistLeverageScore{T}()
+DistLeverageScore(left::Bool) = left ? DistLeverageScore{Left}() : DistLeverageScore{Right}()
 
 # common interface
 function getDistributionParametric(
-    distribution::DistLeverageScore{<:SketchDirection},
+    distribution_type::DistLeverageScore{<:SketchDirection},
     B::AbstractArray
 )
 

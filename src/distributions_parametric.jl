@@ -79,7 +79,7 @@ end
 
 """
     getDistribution(
-        dist::Distribution{<:SketchDirection},
+        distribution_type::Distribution{<:SketchDirection},
         B::AbstractArray
     )
 
@@ -88,7 +88,7 @@ A common interface responsible for creating a distribution over the rows of the 
 The output of this function will depend on `dist::Distribution`.
 """
 function getDistributionParametric(
-    dist::ParametricDistribution{<:SketchDirection},
+    distribution_type::ParametricDistribution{<:SketchDirection},
     B::AbstractArray
 )
 
