@@ -33,7 +33,7 @@ using LinearAlgebra, Random, Distributions, StatsBase
 
 # Abstract Parametric Types
 export SketchDirection, Left, Right
-export Distribution
+export Distribution, DistDefault
 
 # Distributions
 export DistFrobeniusNorm, DistLeverageScore, DistApproximateLeverageScore

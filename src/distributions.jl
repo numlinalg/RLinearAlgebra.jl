@@ -40,12 +40,51 @@ to left and right sketching of a matrix.
 abstract type Distribution{T <: SketchDirection} end
 
 """
+    Base.eltype(dist::Type{Distribution{T}})
+
+A method that returns the element-type `T` of a distribution type.
+"""
+function Base.eltype(dist::Type{ <: Distribution{T}}) where {T}
+    return T
+end
+
+"""
+    DistDefault{T <: SketchDirection}
+
+A mutable struct representing a default struct for a distribution.
+A common "interface" for structs. That is, at the very least
+a distribution saves a vector of weights in `dist`, and whether or not
+storage has already been initialized for `dist` in `initialized_storage`.
+"""
+mutable struct DistDefault{T <: SketchDirection} <: Distribution{T}
+    dist::Vector{Float64}
+    initialized_storage::Bool
+end
+
+"""
     Base.eltype(dist::Distribution{T}) 
 
 Function to return the element-type `T` of Distribution{T}.
 """
 function Base.eltype(dist::Distribution{T}) where {T}
     return T
+end
+
+"""
+    TODO: make two initialize functions, one that can take in just
+    a type of distribution, then calls a distConstructor method.
+
+    Another will take in a struct distribution and edit if necessary.
+
+    This will take advantage of multiple dispatching.
+"""
+function distConstructor(
+    distribution_type::Type{<:Distribution{T}};
+    dist = zeros(1),
+    initialized_storage = false
+  ) where {T}
+
+    return distribution_type(dist, initialized_storage)
 end
 
 """
@@ -64,7 +103,7 @@ function initialize!(
     
     # initialize buffer arrays for distribution if not already 
     if !distribution_type.initialized_storage
-        distribution_storage = Weights( zeros(size(A)[1]) )
+        distribution_storage = zeros(size(A)[1])
         distribution_type.dist = distribution_storage 
         distribution_type.initialized_storage = true
     end
@@ -89,7 +128,7 @@ function initialize!(
 
     # initialize buffer arrays for distribution if not already
     if !distribution_type.initialized_storage
-        distribution_storage = Weights( zeros(size(A)[2]) )
+        distribution_storage = zeros(size(A)[2])
         distribution_type.dist = distribution_storage
         distribution_type.initialized_storage = true
     end
