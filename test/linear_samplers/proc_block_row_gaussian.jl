@@ -26,7 +26,7 @@ Random.seed!(1010)
     end
     # Test blocksize must be greater than zero
     samp = LinSysBlkRowGaussSampler(-1)
-    @test_throws "`block_size` must be positve." RLinearAlgebra.sample(samp, A, b, x, 1)
+    @test_throws AssertionError("`block_size` must be positve.") RLinearAlgebra.sample(samp, A, b, x, 1)
     samp = LinSysBlkRowGaussSampler(11)
     @test_warn "`block_size` should be less than row dimension" RLinearAlgebra.sample(samp, A, b, x, 1)
     

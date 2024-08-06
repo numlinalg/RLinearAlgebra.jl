@@ -22,10 +22,10 @@ Random.seed!(1010)
     # Test assertions
     # Positivity test
     cyc = LinSysBlkRowReplace(block_size=-12)
-    @test_throws "`block_size` must be positive" RLinearAlgebra.sample(cyc, A, b, x, 1)
+    @test_throws AssertionError("`block_size` must be positive") RLinearAlgebra.sample(cyc, A, b, x, 1)
     # Less than matrix size test
     cyc = LinSysBlkRowReplace(block_size=12)
-    @test_throws "`block_size` must be less than row dimension" RLinearAlgebra.sample(cyc, A, b, x, 1)
+    @test_throws AssertionError("`block_size` must be less than row dimension") RLinearAlgebra.sample(cyc, A, b, x, 1)
 
 
     cyc = LinSysBlkRowReplace()

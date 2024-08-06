@@ -26,7 +26,7 @@ Random.seed!(1010)
     end
     # Test warnings and assertions
     samp = LinSysBlkColGaussSampler(-1)
-    @test_throws "`block_size` must be positive." RLinearAlgebra.sample(samp, A, b, x, 1)
+    @test_throws AssertionError("`block_size` must be positive.") RLinearAlgebra.sample(samp, A, b, x, 1)
     samp = LinSysBlkColGaussSampler(11)
     @test_warn "`block_size` shoould be less than col dimension." RLinearAlgebra.sample(samp, A, b, x, 1)
 

@@ -27,7 +27,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     @test A[1:3, :] == G.B[7:9, 1:5] 
     @test b[1:3] == G.B[7:9, 6]
     #Test for when less than 3 rows are copied
-    @test_throws "The block indices must be less than `block_size`." RLinearAlgebra.copy_block_from_mat!(G.B, A, b, 1:4)
+    @test_throws AssertionError("The block indices must be less than `block_size`.") RLinearAlgebra.copy_block_from_mat!(G.B, A, b, 1:4)
     @test A[1:3, :] == G.B[7:9, 1:5] 
     @test b[1:3] == G.B[7:9, 6]
     # Test everything below upper triangular portion
