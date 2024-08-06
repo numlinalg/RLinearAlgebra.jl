@@ -22,6 +22,18 @@ Random.seed!(1010)
     blk = LinSysBlkColRandCyclic(blocks = [[1; 2], [3; 4], [5]])
     RLinearAlgebra.init_blocks_cyclic!(blk, 5)
     @test blk.n_blocks == 3
+
+    # Test assertion  about positive blocks
+    blk.blocks = nothing
+    blk.n_blocks = -1
+    @test_throws "Number of blocks must be positive" RLinearAlgebra.init_blocks_cyclic!(blk, 5)
+    # Test warning  about too big block size
+    blk.n_blocks = 6 
+    @test_warn "Setting `n_blocks` to the dimension. No obvious way to set blocks when `n_blocks` is greater than dimension. If you would like to do so, create a `Vector{Vector{Int64}}` with each sub vector containing indices of a block." RLinearAlgebra.init_blocks_cyclic!(blk, 5)
+    # Test when missing indices in block 
+    blk = LinSysBlkColRandCyclic(blocks = [[1], [3; 4]])
+    @test_warn "Indices $(Set(2)) are unused in your blocks" RLinearAlgebra.init_blocks_cyclic!(blk, 4)
+
 end
 
 end

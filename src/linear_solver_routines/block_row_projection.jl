@@ -40,7 +40,7 @@ function rsubsolve!(
         type.update = Array{typeof(samp[2][1])}(undef, n)
     end
 
-    # Solve the underdetemined system 
+    # Solve the underdetemined system we assume `factorize` performs an LQ Decomp
     LinearAlgebra.ldiv!(type.update, factorize(samp[2]), samp[3])
     x .-= type.α * type.update
     return nothing

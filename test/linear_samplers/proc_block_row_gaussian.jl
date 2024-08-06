@@ -18,12 +18,18 @@ Random.seed!(1010)
     x = rand(10)
 
     samp = LinSysBlkRowGaussSampler()
+    for i in 1:5
+        S, SA, res  = RLinearAlgebra.sample(samp, A, b, x, i)
 
-    S, SA, res  = RLinearAlgebra.sample(samp, A, b, x, 1)
-
-    @test norm(SA - S * A) < eps() * 1e2
-    @test norm(res - (S * A * x - S * b)) < eps() * 1e2
-
+        @test norm(SA - S * A) < eps() * 1e2
+        @test norm(res - (S * A * x - S * b)) < eps() * 1e2
+    end
+    # Test blocksize must be greater than zero
+    samp = LinSysBlkRowGaussSampler(-1)
+    @test_throws "`block_size` must be positve." RLinearAlgebra.sample(samp, A, b, x, 1)
+    samp = LinSysBlkRowGaussSampler(11)
+    @test_warn "`block_size` should be less than row dimension" RLinearAlgebra.sample(samp, A, b, x, 1)
+    
 end
 
 end

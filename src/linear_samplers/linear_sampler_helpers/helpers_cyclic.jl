@@ -29,8 +29,6 @@ function init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRand
             # Place remaining entries in the last block
             type.blocks[type.n_blocks] = collect((type.n_blocks - 1) * bsize + 1:(type.n_blocks - 1) * bsize + last_bsize)   
         else
-            @assert typeof(type.blocks) <: Vector{Vector{Int64}} "Your blocks must be entered as a 
-            vector containing vectors of block indices represented as integers"
             type.n_blocks = size(type.blocks, 1)
             # Perform a check if all indices are used
             uniq_vals = Set(reduce(vcat, type.blocks))

@@ -32,9 +32,9 @@ function sample(
 )
     m, n = size(A)
     if iter == 1
-        @assert type.block_size > 0 "`block_size` must be positive"
+        @assert type.block_size > 0 "`block_size` must be positive."
         if type.block_size > n
-            @warn "`block_size` shoould be less than col dimension"
+            @warn "`block_size` shoould be less than col dimension."
         end
         # Scaling the matrix so it has expectation 1 when applied to unit vector
         type.scaling = sqrt(1 / type.block_size)

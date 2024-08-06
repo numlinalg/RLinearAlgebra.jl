@@ -34,5 +34,9 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
             norm(z - zc) < eps() * 1e2
         end
     end
+    # Test when user enters parameters they are used correctly
+    rsub = LinSysBlkColGent(α = 0.02, rowsize = 12)
+    @test rsub.α == 0.02
+    @test rsub.rowsize == 12
 end
 end # End module

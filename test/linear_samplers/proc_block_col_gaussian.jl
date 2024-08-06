@@ -17,13 +17,18 @@ Random.seed!(1010)
     x = rand(10)
 
     samp = LinSysBlkColGaussSampler()
+    for i in 1:5
+        S, AS, grad, res  = RLinearAlgebra.sample(samp, A, b, x, i)
 
-    S, AS, grad, res  = RLinearAlgebra.sample(samp, A, b, x, 1)
-
-    @test norm(AS - A * S) < eps() * 1e2
-    @test norm(res - (A * x - b)) < eps() * 1e2
-    @test norm(grad - S' * A' * (A * x - b)) < eps() * 1e2
-
+        @test norm(AS - A * S) < eps() * 1e2
+        @test norm(res - (A * x - b)) < eps() * 1e2
+        @test norm(grad - S' * A' * (A * x - b)) < eps() * 1e2
+    end
+    # Test warnings and assertions
+    samp = LinSysBlkColGaussSampler(-1)
+    @test_throws "`block_size` must be positive." RLinearAlgebra.sample(samp, A, b, x, 1)
+    samp = LinSysBlkColGaussSampler(11)
+    @test_warn "`block_size` shoould be less than col dimension." RLinearAlgebra.sample(samp, A, b, x, 1)
 
 end
 

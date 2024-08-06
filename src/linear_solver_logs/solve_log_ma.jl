@@ -45,7 +45,7 @@ A mutable structure that stores information about the sub-Exponential family.
 - `block_dimension::Int64`, the dimension of the sample.
 - `sigma2::Union{Float64, Nothing}`, the variance parameter in the sub-Exponential family, 
    if not specified by the user it is provided based on the sampling method.
-- `omega::Union{Float64, Nothing}`, the exponential distrbution parameter, if specified by the user, 
+- `omega::Union{Float64, Nothing}`, the exponential distrbution parameter, if not specified by the user, 
    it is provided based on the sampling method.
 - `eta::Float64`, a parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
   estimate. By default, this is set to `1`.
@@ -87,7 +87,7 @@ Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantifica
 - `iota_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy
    to the fourth power, typically the norm of residual or gradient of normal equations. This is used 
    in part to approximate the variance of the estimator, it is collected at a rate specified by `collection_rate`.
-- `width_hist::Vector{Int64}`, data structure that contains the widths of the moving average 
+- `lambda_hist::Vector{Int64}`, data structure that contains the lambdas, widths of the moving average,
    calculation, it is collected at a rate specified by `collection_rate`.
 - `resid_norm::Function`, a function that accepts a single vector argument and returns a
     scalar. Used to compute the residual size.
@@ -113,7 +113,7 @@ mutable struct LSLogMA <: LinSysSolverLog
     ma_info::MAInfo
     resid_hist::Vector{Float64}
     iota_hist::Vector{Float64}
-    width_hist::Vector{Int64}
+    lambda_hist::Vector{Int64}
     resid_norm::Function
     iterations::Int64
     converged::Bool
@@ -240,7 +240,7 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
         end
        
         if mod(iter, log.collection_rate) == 0 || iter == 0
-            push!(log.width_hist, ma_info.lambda)
+            push!(log.lambda_hist, ma_info.lambda)
             push!(log.resid_hist, accum / ma_info.lambda) 
             push!(log.iota_hist, accum2 / ma_info.lambda) 
         end
@@ -269,7 +269,7 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
 
         #Update the log variable with the information for this update
         if mod(iter, log.collection_rate) == 0 || iter == 0
-            push!(log.width_hist, ma_info.lambda)
+            push!(log.lambda_hist, ma_info.lambda)
             push!(log.resid_hist, accum / ma_info.lambda) 
             push!(log.iota_hist, accum2 / ma_info.lambda) 
         end
@@ -281,11 +281,11 @@ end
 
 #Function that will return rho and its uncertainty from a LSLogMA type 
 """
-    get_uncertainty(log::LSLogMA; alpha = .95)
+    get_uncertainty(log::LSLogMA; alpha = 0.05)
     
-A function that takes a LSLogMA type and a confidence level, `1 - alpha`, and returns a `(1 - alpha)`-credible intervals for for every rho in the log, specifically it returns a tuple with (rho, Upper bound, Lower bound).
+A function that takes a LSLogMA type and a confidence level, `alpha`, and returns a `(1-alpha)`-credible intervals for for every rho in the log, specifically it returns a tuple with (rho, Upper bound, Lower bound).
 """
-function get_uncertainty(hist::LSLogMA; alpha = .95)
+function get_uncertainty(hist::LSLogMA; alpha::Float64 = 0.05)
     lambda = hist.ma_info.lambda
     l = length(hist.iota_hist)
     upper = zeros(l)
@@ -296,7 +296,7 @@ function get_uncertainty(hist::LSLogMA; alpha = .95)
     end
     
     for i in 1:l
-        width = hist.width_hist[i]
+        width = hist.lambda_hist[i]
         iota = hist.iota_hist[i]
         rho = hist.resid_hist[i]
         #Define the variance term for the Gaussian part
@@ -304,13 +304,13 @@ function get_uncertainty(hist::LSLogMA; alpha = .95)
         #If there is an omega in the sub-Exponential distribution then skip that calculation 
         if typeof(hist.dist_info.omega) <: Nothing
             # Compute the threshold bound in the case where there is no omega
-            diffG = sqrt(cG * 2 * log(2/(1-alpha)))
+            diffG = sqrt(cG * 2 * log(2/(alpha)))
             upper[i] = rho + diffG
             lower[i] = rho - diffG
         else
             #compute error bound when there is an omega
-            diffG = sqrt(cG * 2 * log(2/(1-alpha)))
-            diffO = sqrt(iota) * 2 * log(2/(1-alpha)) * hist.dist_info.omega / (hist.dist_info.eta * width)
+            diffG = sqrt(cG * 2 * log(2/(alpha)))
+            diffO = sqrt(iota) * 2 * log(2/(alpha)) * hist.dist_info.omega / (hist.dist_info.eta * width)
             diffM = min(diffG, diffO)
             upper[i] = rho + diffG
             lower[i] = rho - diffG

@@ -26,9 +26,15 @@ Random.seed!(1010)
     for j = 2:length(cyc.order)
         v, M, res = RLinearAlgebra.sample(cyc, A, b, x, j)
         block_num = order[j]
-        @test v == Matrix{Float64}(I, 10, 10)[block[(block_num - 1) * 2 + 1], :]
+        @test v == Matrix{Float64}(I, 10, 10)[block[block_num], :]
     end
 
+    # Test the reshuffling
+    cyc = LinSysBlkColRandCyclic(n_blocks = 8)
+    v, M, grad, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
+    order = deepcopy(cyc.order)
+    RLinearAlgebra.sample(cyc, A, b, x, length(cyc.order) + 1)
+    @test cyc.order != order
 
 end
 

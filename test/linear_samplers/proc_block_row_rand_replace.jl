@@ -19,15 +19,23 @@ Random.seed!(1010)
     b = rand(10)
     x = rand(6)
 
-    cyc = LinSysBlkRowReplace()
+    # Test assertions
+    # Positivity test
+    cyc = LinSysBlkRowReplace(block_size=-12)
+    @test_throws "`block_size` must be positive" RLinearAlgebra.sample(cyc, A, b, x, 1)
+    # Less than matrix size test
+    cyc = LinSysBlkRowReplace(block_size=12)
+    @test_throws "`block_size` must be less than row dimension" RLinearAlgebra.sample(cyc, A, b, x, 1)
 
+
+    cyc = LinSysBlkRowReplace()
+    
     v, M, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
 
     for j = 2:5
         v, M, res = RLinearAlgebra.sample(cyc, A, b, x, j)
         @test norm(res - (v * A * x - v * b)) < eps() * 1e2
     end
-
 
 end
 

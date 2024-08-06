@@ -34,5 +34,8 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
             norm(z - zc) < eps() * 1e2
         end
     end
+    # Test user inputs
+    rsub = LinSysBlkRowLQ(0.01)
+    @test rsub.α == 0.01
 end
 end # End module

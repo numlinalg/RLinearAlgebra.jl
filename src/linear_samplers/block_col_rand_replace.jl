@@ -32,8 +32,8 @@ function sample(
 )
     n = size(A, 2)
     if iter == 1
-        @assert type.block_size > 0 "`block_size` must be positve"
-        @assert type.block_size <= n "`block_size` must be less than col dimension"
+        @assert type.block_size > 0 "`block_size` must be positive"
+        @assert type.block_size <= n "`block_size` must be less than column dimension"
         type.block = zeros(Int64, type.block_size)
     end
     

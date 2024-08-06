@@ -7,12 +7,11 @@ Gentleman's algorithm. This data structure is not exported and thus is not
 designed to be manipulated by the user.
 # Fields
 - `A::M`, The matrix to be solved.
-- `B::M`, The matrix that rows of `A` are brought to have QR decomposition
-applied.
+- `B::M`, The block of rows of `A` that are used to update the QR decomposition.
 - `R::UpperTriangular`, The upper triangular part of `B`.
 - `tab::SubArray`, the last column of `B` where the constant vector entries corresponding
 to the rows of `A` that were brought to `B` are stored.
-- `v::V`, a buffer vector that stores the scaling constants from the house holder reflections,
+- `v::V`, a buffer vector that stores the scaling constants from the Householder reflections,
 see `LAPACK.geqrf!` in `LinearAlgebra` for more information.
 - `bsize::Int64`, the number of rows transported to `B` at each iteration.
 
@@ -23,7 +22,7 @@ triangular part of `B[1:n, 1:n]` and a view of the last column of `B`.
 
 Miller, Alan J. “Algorithm AS 274: Least Squares Routines to Supplement Those of Gentleman.” 
 Journal of the Royal Statistical Society. Series C (Applied Statistics), vol. 41, no. 2, 1992, 
-pp. 458–78. JSTOR, https://doi.org/10.2307/2347583. Accessed 11 July 2024.
+pp. 458–78. JSTOR, https://doi.org/10.2307/2347583. 
 """
 mutable struct GentData{S, M<:Matrix{S}, V<:Vector{S}}
     A::M 
@@ -112,6 +111,7 @@ function LinearAlgebra.ldiv!(x::AbstractVector, G::GentData, b::AbstractVector)
     remb = rem(m, bsize)
     # Detemine how many blocks by dividing by bsize and adding one if there is a remainder
     nblocks = div(m, bsize) + (remb > 1 ? 1 : 0)
+    # This is for the matrix B to indcate how many rows are in that matrix.
     brows = n + bsize + 1
     for i in 1:nblocks
         # Do not use an index greater than m
@@ -120,6 +120,7 @@ function LinearAlgebra.ldiv!(x::AbstractVector, G::GentData, b::AbstractVector)
         # Check if you are in the last block in which case zero all rows 
         # that no data was moved to
         if index[end] < i * bsize
+            # must zero here because `geqrf!` stores the reflectors in the off diagonal piece
             fill!(view(G.B, ((length(index) + 1) + n + 2):brows, :), zero(eltype(A)))
         end
 
@@ -142,6 +143,7 @@ entries of the `b` constant vector of the linear system.
 """
 function copy_block_from_mat!(B::AbstractMatrix, A::AbstractMatrix, b::AbstractVector, index::Union{UnitRange{Int64}, Vector{Int64}})
     m, n = size(B)
+    @assert length(index) < size(B,1) - size(A,2) "The block indices must be less than `block_size`."
     l = length(index)
     # The upper triangular part is n by n
     offset = n
