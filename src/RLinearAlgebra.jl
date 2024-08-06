@@ -31,21 +31,9 @@ using LinearAlgebra, Random, Distributions, StatsBase
 # Distribution Explorts
 #*****************************************#
 
-# Abstract Types
-export Distribution
-export RowDistribution, RowDist
-export ColumnDistribution, ColDistribution, ColDist
-
-# Row distributions
-export RowDistFrobeniusNorm, RowDistLeverageScore, RowDistApproximateLeverageScores
-
-# Column distributions
-export ColDistFrobeniusNorm, ColDistLeverageScore, 
-ColDistApproximateLeverageScores
-
 # Abstract Parametric Types
 export SketchDirection, Left, Right
-export ParametricDistribution
+export Distribution
 
 # Distributions
 export DistFrobeniusNorm, DistLeverageScore, DistApproximateLeverageScore
@@ -113,7 +101,6 @@ export RLSSolver, rsolve, rsolve!
 
 include("tools.jl")
 include("distributions.jl")
-include("distributions_parametric.jl")
 include("linear_samplers.jl")
 include("linear_solver_routines.jl")
 include("linear_solver_logs.jl")

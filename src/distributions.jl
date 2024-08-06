@@ -1,3 +1,7 @@
+# Date: 08/01/2024
+# Author: Christian Varner
+# Purpose: Parametric types for distributions.
+
 ##############################################################################
 ## This file is part of RLinearAlgebra.jl
 ##
@@ -5,83 +9,117 @@
 ## over rows and columns of a matrix. 
 ##
 ## Contents
-## - Abstract Types
-## - `getDistribution` function documentation and interface.
-## - Row distribution
-## - Column distribution
+## - Abstract (parametric) Types
+## - `initialize!` function documentation and interface
+## - `getDistribution!` function documentation and interface.
 ## - Include statements
 ##
 ##############################################################################
 
 """
-    Distribution
-
-Abstract supertype for distributions used in sampling and sketching components of a linear system.
 """
-abstract type Distribution end
+abstract type SketchDirection end 
 
 """
-    RowDistribution <: Distribution
-
-Abstract supertype for distributions used in row sampling and row sketching
-of a linear system.
-
-# Aliases
-- `RowDist`
 """
-abstract type RowDistribution <: Distribution end
-RowDist = RowDistribution
+abstract type Left <: SketchDirection end # comes from rows
+rows = Left
 
 """
-    ColDistribution <: Distribution
-
-Abstract supertype for distribution used in column sampling and column sketching of a linear system.
-
-# Aliases
-- `ColDistribution`
-- `ColDist`
 """
-abstract type ColumnDistribution <: Distribution end
-ColDistribution = ColumnDistribution
-ColDist = ColumnDistribution
+abstract type Right <: SketchDirection end # comes from columns
+columns = Right
 
-##########################################
-# `getDistribution` function documentation
-##########################################
 """
-    getDistribution(distribution <: LinSysSamplerDistributions,
-                    A::AbstractArray)
+    Distribution{T <: SketchDirection}
 
-A common interface for specifying a distribution over the rows or columns
-of a matrix `A` that is part of a linear system. The argument `distribution` is
-used to specify a strategy for initializing a distribution.
-
-The value returned by `getDistribution` will depend on the subtype `Distribution` being used. 
-- For `T<:RowDistribution`, a `Weights` vector of size `size(A)[1]` is returned that represents a distribution over rows.
-- For `T<:ColDistribution`, a `Weights` vector of size `size(A)[2]` is returned that represents a distribution over columns. 
+Parametric type that represents a distribution over the rows when
+`T <: Left`, and over the columns when `T <: Right`. Corresponds
+to left and right sketching of a matrix.
 """
-function getDistribution(
-    distribution::Nothing,
-    A::AbstractArray
-)
-    return nothing
+abstract type Distribution{T <: SketchDirection} end
+
+"""
+    Base.eltype(dist::Distribution{T}) 
+
+Function to return the element-type `T` of Distribution{T}.
+"""
+function Base.eltype(dist::Distribution{T}) where {T}
+    return T
 end
 
-###############################
-# Row Distributions
-###############################
+"""
+    initialize!(
+    distribution_type::Distribution{Left}, 
+    A::AbstractArray
+) 
 
-# Non-adaptive
-include("distributions/row_dist_frobenius_norm.jl")
-include("distributions/row_dist_leverage_score.jl")
-include("distributions/row_dist_approximate_leverage_score.jl")
+A method for specifying a distribution over the rows of the matrix
+`A`. Calls the common interface method `getDistribution!`.
+"""
+function initialize!(
+    distribution_type::Distribution{Left}, 
+    A::AbstractArray
+) 
+    
+    # initialize buffer arrays for distribution if not already 
+    if !distribution_type.initialized_storage
+        distribution_storage = Weights( zeros(size(A)[1]) )
+        distribution_type.dist = distribution_storage 
+        distribution_type.initialized_storage = true
+    end
+
+    # get distribution
+    getDistribution!(distribution_type, A)
+end
+
+"""
+    initialize!(
+    distribution_type::Distribution{Right},
+    A::AbstractArray
+)
+
+A method for specifying a distribution over the columns of the matrix
+`A`. Calls the common interface method `getDistribution!`.
+"""
+function initialize!(
+    distribution_type::Distribution{Right},
+    A::AbstractArray
+)
+
+    # initialize buffer arrays for distribution if not already
+    if !distribution_type.initialized_storage
+        distribution_storage = Weights( zeros(size(A)[2]) )
+        distribution_type.dist = distribution_storage
+        distribution_type.initialized_storage = true
+    end
+
+    # get distribution
+    getDistribution!(distribution_type, A')
+end
+
+"""
+    getDistribution!(
+        distribution_type::Distribution{<:SketchDirection},
+        B::AbstractArray
+    )
+
+A common interface responsible for creating a distribution over the rows of the matrix B.
+The method modifies the struct distribution_type.
+
+The output of this function will depend on `dist::Distribution`.
+"""
+function getDistribution!(
+    distribution_type::Distribution{<:SketchDirection},
+    B::AbstractArray
+)
+
+end
 
 
 ###############################
-# Column Distributions
+# Distribution Imports
 ###############################
-
-# Non-adaptive
-include("distributions/col_dist_frobenius_norm.jl")
-include("distributions/col_dist_leverage_score.jl")
-include("distributions/col_dist_approximate_leverage_score.jl")
+include("distributions/frobenius_norm.jl")
+include("distributions/leverage_scores.jl")
+include("distributions/approximate_leverage_scores.jl")

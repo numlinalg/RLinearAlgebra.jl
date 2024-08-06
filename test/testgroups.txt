@@ -30,5 +30,3 @@ proc_linear_rsolve
 linear_samplers/proc_block_row_count_sketch
 linear_samplers/proc_block_col_sample_wo_replacement
 linear_samplers/proc_block_row_sample_wo_replacement
-distributions/proc_col_dist_frobenius_norm
-distributions/proc_row_dist_frobenius_norm
