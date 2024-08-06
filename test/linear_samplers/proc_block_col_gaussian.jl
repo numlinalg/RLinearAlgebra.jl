@@ -28,7 +28,7 @@ Random.seed!(1010)
     samp = LinSysBlkColGaussSampler(-1)
     @test_throws AssertionError("`block_size` must be positive.") RLinearAlgebra.sample(samp, A, b, x, 1)
     samp = LinSysBlkColGaussSampler(11)
-    @test_warn "`block_size` shoould be less than col dimension." RLinearAlgebra.sample(samp, A, b, x, 1)
+    @test_logs (:warn, "`block_size` shoould be less than col dimension.") RLinearAlgebra.sample(samp, A, b, x, 1)
 
 end
 
