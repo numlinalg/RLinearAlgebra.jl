@@ -82,14 +82,27 @@ function constructor(
     distribution_type::Type{<:Distribution{T}},
     A::AbstractArray 
   ) where {T}
-    if T == Left
-        dist = zeros(size(A))[1]
-    elseif T == Right
-        dist = zeros(size(A))[2]
-    end
-    
+    dist = zeros(size(A)[1])  
     initialized_storage = true
     return distribution_type(dist, initialized_storage)
+end
+
+"""
+"""
+function initialize(
+  distribution_type::Type{<:Distribution{T}},
+  A::AbstractArray
+  ) where {T}
+  if T == Left
+    B = A
+  elseif T == Right
+    B = A'
+  end
+  
+  # if specific struct is not passed, use the default constructor method
+  distribution_struct = constructor(distribution_type, B)
+  getDistribution!(distribution_struct, B)
+  return distribution_struct
 end
 
 """

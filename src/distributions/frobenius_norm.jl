@@ -19,11 +19,6 @@ mutable struct DistFrobeniusNorm{T <: SketchDirection} <: Distribution{T}
     initialized_storage::Bool
 end 
 
-# constructors
-function DistFrobeniusNorm(x::Type{T}; dist = zeros(1), flag = false) where T 
-    return DistFrobeniusNorm{T}(dist, flag)
-end
-
 # common interface
 function getDistribution!(
     distribution_type::DistFrobeniusNorm{<:SketchDirection},

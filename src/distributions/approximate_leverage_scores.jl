@@ -26,14 +26,14 @@ mutable struct DistApproximateLeverageScore{T <: SketchDirection} <: Distributio
 end
 
 # constructors
-function DistApproximateLeverageScore(
-    sketch_direction::Type{T},
-    Π_1::Union{Matrix{Float64}, Matrix{Int64}}, 
-    Π_2::Union{Matrix{Float64}, Matrix{Int64}};
-    dist = zeros(1),
-    flag = false
-) where T
-    return DistApproximateLeverageScore{T}(Π_1, Π_2, dist, flag)
+function constructor(
+  distribution_type::Type{DistApproximateLeverageScore{T}},
+  A::AbstractArray
+  ) where {T}
+    dist = zeros(size(A)[1])
+    Π_1 = randn(size(A)[1], size(A)[1])
+    Π_2 = randn(size(A)[2], size(A)[2])
+    return distribution_type(Π_1, Π_2, dist, true)
 end
 
 # common interface

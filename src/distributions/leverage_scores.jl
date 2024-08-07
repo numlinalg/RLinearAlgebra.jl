@@ -21,11 +21,6 @@ mutable struct DistLeverageScore{T<:SketchDirection} <: Distribution{T}
     initialized_storage::Bool
 end
 
-# constructor
-function DistLeverageScore(x::Type{T}; dist = zeros(1), flag = false) where T
-  return DistLeverageScore{T}(dist, flag)
-end
-
 # common interface
 function getDistribution!(
     distribution_type::DistLeverageScore{<:SketchDirection},
