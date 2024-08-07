@@ -78,12 +78,17 @@ end
 
     This will take advantage of multiple dispatching.
 """
-function distConstructor(
-    distribution_type::Type{<:Distribution{T}};
-    dist = zeros(1),
-    initialized_storage = false
+function constructor(
+    distribution_type::Type{<:Distribution{T}},
+    A::AbstractArray 
   ) where {T}
-
+    if T == Left
+        dist = zeros(size(A))[1]
+    elseif T == Right
+        dist = zeros(size(A))[2]
+    end
+    
+    initialized_storage = true
     return distribution_type(dist, initialized_storage)
 end
 

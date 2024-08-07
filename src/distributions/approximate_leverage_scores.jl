@@ -31,9 +31,9 @@ function DistApproximateLeverageScore(
     Π_1::Union{Matrix{Float64}, Matrix{Int64}}, 
     Π_2::Union{Matrix{Float64}, Matrix{Int64}};
     dist = zeros(1),
-    initialized = false
+    flag = false
 ) where T
-    return DistApproximateLeverageScore{T}(Π_1, Π_2, dist, initialized)
+    return DistApproximateLeverageScore{T}(Π_1, Π_2, dist, flag)
 end
 
 # common interface
