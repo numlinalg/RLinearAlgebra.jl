@@ -71,28 +71,6 @@ function Base.eltype(dist::Distribution{T}) where {T}
 end
 
 """
-    TODO: make two initialize functions, one that can take in just
-    a type of distribution, then calls a distConstructor method.
-
-    Another will take in a struct distribution and edit if necessary.
-
-    This will take advantage of multiple dispatching.
-"""
-function constructor(
-    distribution_type::Type{<:Distribution{T}},
-    A::AbstractArray 
-  ) where {T}
-    if T == Left
-        dist = zeros(size(A))[1]
-    elseif T == Right
-        dist = zeros(size(A))[2]
-    end
-    
-    initialized_storage = true
-    return distribution_type(dist, initialized_storage)
-end
-
-"""
     initialize!(
     distribution_type::Distribution{Left}, 
     A::AbstractArray
