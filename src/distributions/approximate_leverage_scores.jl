@@ -53,7 +53,7 @@ function getDistribution!(
     Ω = B * F.Vt' * Diagonal(F.S .^ (-1)) * distribution_type.Π_2
 
     # approximated leverage scores
-    @inbounds for i in 1:size(distribution_type.dist)[1]
+    for i in 1:size(distribution_type.dist)[1]
         distribution_type.dist[i] = norm( @view Ω[i, :] )^2 # why is this taking so many allocation -> Nathaniel
     end
 

@@ -32,7 +32,7 @@ function getDistribution!(
 
     # get the norm of the rows of B
     dim = size(B)[1]
-    @inbounds for i in 1:dim
+    for i in 1:dim
         distribution_type.dist[i] = norm(@view B[i, :])^2
     end
 

@@ -37,7 +37,7 @@ function getDistribution!(
     dim = size(Q1)[1]
     
     # compute the leverage scores
-    @inbounds for i in 1:dim
+    for i in 1:dim
         distribution_type.dist[i] = norm(@view Q1[i, :])^2
     end
 
