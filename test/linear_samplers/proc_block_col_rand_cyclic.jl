@@ -30,7 +30,7 @@ Random.seed!(1010)
     end
 
     # Test the reshuffling
-    cyc = LinSysBlkColRandCyclic(n_blocks = 8)
+    cyc = LinSysBlkColRandCyclic(n_blocks = 6)
     v, M, grad, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
     order = deepcopy(cyc.order)
     RLinearAlgebra.sample(cyc, A, b, x, length(cyc.order) + 1)
