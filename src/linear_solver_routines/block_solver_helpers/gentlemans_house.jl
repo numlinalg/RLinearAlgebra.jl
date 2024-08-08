@@ -6,9 +6,9 @@ This is a preallocated data structure for solving least squares problems with
 Gentleman's algorithm. This data structure is not exported and thus is not 
 designed to be manipulated by the user.
 # Fields
-- `A::M`, The matrix to be solved.
-- `B::M`, The block of rows of `A` that are used to update the QR decomposition.
-- `R::UpperTriangular`, The upper triangular part of `B`.
+- `A::M`, the matrix to be solved.
+- `B::M`, the block of rows of `A` that are used to update the QR decomposition.
+- `R::UpperTriangular`, the upper triangular part of `B`.
 - `tab::SubArray`, the last column of `B` where the constant vector entries corresponding
 to the rows of `A` that were brought to `B` are stored.
 - `v::V`, a buffer vector that stores the scaling constants from the Householder reflections,
@@ -59,7 +59,7 @@ A function that updates the `GenData` structure with the Gentleman's
 algorithm applied to a single row block of `A`.
 
 # Inputs
-- `G::GentData`, A data structure with the information to be updated
+- `G::GentData`, a data structure with the information to be updated
 by an iteration of Gentlemans.
 
 # Output
