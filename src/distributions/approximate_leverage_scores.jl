@@ -45,6 +45,8 @@ function getDistribution!(
     # error checking
     if size(distribution_type.Π_1)[1] < size(B)[2]
         throw(BoundsError("The dimension of the left sketching matrix Pi_1 is too small!"))
+    elseif size(B)[1] <= size(B)[2]
+        throw(DomainError("Number of observations is the same as parameters in A!"))
     end
 
     # compute svd  

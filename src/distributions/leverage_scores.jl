@@ -23,7 +23,7 @@ end
 
 # constructor
 function DistLeverageScore(x::Type{T}; dist = zeros(1), flag = false) where T
-  return DistLeverageScore{T}(dist, flag)
+    return DistLeverageScore{T}(dist, flag)
 end
 
 # common interface
