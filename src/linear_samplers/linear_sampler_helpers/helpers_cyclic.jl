@@ -4,7 +4,7 @@
 
 This function intializes the `blockSize`, `n_blocks`, and `order` values for the `LinSysBlkColRandCyclic` 
 and `LinSysBlkRowRandCyclic` data structures. If a set of blocks is already defined by the user then it 
-warns the user which block indices are unused. If the blocks are not premade, it simply allocates blocks 
+warns the user which block indices are unused. If the blocks are not premade, it simply allocates block 
 indices sequentially with a size that is floor(`n_blocks/dim`).
 """
 function init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRandCyclic}, dim::Int64)
@@ -12,7 +12,7 @@ function init_blocks_cyclic!(type::Union{LinSysBlkColRandCyclic,LinSysBlkRowRand
         if typeof(type.blocks) <: Nothing
             @assert type.n_blocks > 0 "Number of blocks must be positive"
             if type.n_blocks > dim
-                @warn "Setting `n_blocks` to the dimension. No obvious way to set blocks when `n_blocks` is greater than dimension. If you would like to do so, create a `Vector{Vector{Int64}}` with each sub vector containing indices of a block."
+                @warn "Setting `n_blocks` to be equal to the dimension of the system. No obvious way to set blocks when `n_blocks` is greater than dimension. If you would like to do so, create a `Vector{Vector{Int64}}` with each sub vector containing indices of a block."
             end
             type.n_blocks = type.n_blocks <= dim ? type.n_blocks : dim
             bsize = div(dim, type.n_blocks)

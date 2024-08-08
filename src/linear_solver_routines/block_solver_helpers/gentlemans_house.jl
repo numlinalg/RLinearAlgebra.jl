@@ -120,7 +120,7 @@ function LinearAlgebra.ldiv!(x::AbstractVector, G::GentData, b::AbstractVector)
         # Check if you are in the last block in which case zero all rows 
         # that no data was moved to
         if index[end] < i * bsize
-            # must zero here because `geqrf!` stores the reflectors in the off diagonal piece
+            # must zero here because `geqrf!` stores the reflectors in the sub-diagonal piece
             fill!(view(G.B, ((length(index) + 1) + n + 2):brows, :), zero(eltype(A)))
         end
 

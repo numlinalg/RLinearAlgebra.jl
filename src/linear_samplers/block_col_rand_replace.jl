@@ -6,8 +6,8 @@ A mutable structure with fields to store information for a sampling method that
 forms a new block by uniformly sampling columns of `A` without replacement.
 
 # Fields
-- `block_size::Int64`, Specifies the size of each block.
-- `block::Vector{Int64}`, The list of all the rows in each block.
+- `block_size::Int64`, specifies the size of each block.
+- `block::Vector{Int64}`, the list of all the rows in each block.
 
 # Constructors
 Calling `LinSysBlkColReplace()` defaults to setting `block_size` to 2. The `sample`

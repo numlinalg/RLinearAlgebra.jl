@@ -13,8 +13,9 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     G = RLinearAlgebra.GentData(A, 3)
     # Check sizes of block matrix B 
     m, n = size(G.B)
-    # Should have row for each column and row in block and one more for residual
+    # m should  total columns in matrix plus rows in a block plus one for the residual
     @test m == 3 + 1 + 5
+    # n should be number of columns blus one for constant vector
     @test n == 5 + 1
 
     #Test block copy function 

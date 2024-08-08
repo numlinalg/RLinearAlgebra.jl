@@ -6,9 +6,9 @@ A mutable structure with fields to handle Guassian column sketching where a Gaus
 is multiplied by the matrix `A` from the right.
 
 # Fields
-- `block_size::Int64`, Specifies the size of each block.
-- `sketch_matrix::Union{AbstractMatrix, Nothing}`, The buffer for storing the Gaussian sketching matrix.
-- `scaling::Float64`, The standard deviation of the sketch, is set to be sqrt(block_size/numberOfColumns).
+- `block_size::Int64`, specifies the size of each block.
+- `sketch_matrix::Union{AbstractMatrix, Nothing}`, the buffer for storing the Gaussian sketching matrix.
+- `scaling::Float64`, the standard deviation of the sketch, is set to be sqrt(block_size/numberOfColumns).
 
 # Constructors
 Calling `LinSysBlkColGaussSampler()` defaults to setting `block_size` to 2.
