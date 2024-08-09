@@ -80,16 +80,18 @@ end
 """
 function constructor(
     distribution_type::Type{<:Distribution{T}},
-    A::AbstractArray 
+    B::AbstractArray 
   ) where {T}
-    dist = zeros(size(A)[1])  
+    dist = zeros(size(B)[1])  
     initialized_storage = true
     return distribution_type(dist, initialized_storage)
 end
 
 """
+TODO: Just a concept right now. Can make initialize! with T = Left,
+and T = Right
 """
-function initialize(
+function initialize!(
   distribution_type::Type{<:Distribution{T}},
   A::AbstractArray
   ) where {T}
