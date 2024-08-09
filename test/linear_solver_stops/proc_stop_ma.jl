@@ -14,7 +14,7 @@ using Test, RLinearAlgebra
     stop = LSStopMA(2, 1e-10, 1.1, .9, .01, .01)
     log.resid_hist = [1, 1, 1]
     log.iota_hist = [1, 1, 1]
-    log.dist_info.max_dimension = 100
+    log.dist_info.dimension = 100
     log.dist_info.sampler = LinSysVecRowDetermCyclic
 
     log.iterations = 0
