@@ -23,16 +23,16 @@ Random.seed!(1010)
         z = rand(2)
 
         sampler = LinSysVecRowOneRandCyclic()
-        log = LSLogMA()
+        logger = LSLogMA()
 
 
-        RLinearAlgebra.log_update!(log, sampler, z, (A[1,:],b[1]), 0, A, b)
+        RLinearAlgebra.log_update!(logger, sampler, z, (A[1,:],b[1]), 0, A, b)
 
-        @test length(log.resid_hist) == 1
-        @test log.resid_hist[1] == norm(A * z - b)^2
-        @test norm(log.iota_hist[1] - norm(A * z - b)^4) < 1e2 * eps()
-        @test log.iterations == 0
-        @test log.converged == false
+        @test length(logger.resid_hist) == 1
+        @test logger.resid_hist[1] == norm(A * z - b)^2
+        @test norm(logger.iota_hist[1] - norm(A * z - b)^4) < 1e2 * eps()
+        @test logger.iterations == 0
+        @test logger.converged == false
     end
 
     # Verify late moving average 
@@ -43,32 +43,32 @@ Random.seed!(1010)
         z = rand(2)
 
         sampler = LinSysVecRowOneRandCyclic()
-        log = LSLogMA(lambda2 = 2)
+        logger = LSLogMA(lambda2 = 2)
         samp = (A[1,:], b[1])
 
-        RLinearAlgebra.log_update!(log, sampler, z, (A[1,:],b[1]), 0, A, b)
+        RLinearAlgebra.log_update!(logger, sampler, z, (A[1,:],b[1]), 0, A, b)
         # Test moving average of log
         for i = 1:10
             samp = (A[1,:], b[1])
-            RLinearAlgebra.log_update!(log, sampler, x + (i+1)*(z-x), samp, i, A, b)
+            RLinearAlgebra.log_update!(logger, sampler, x + (i+1)*(z-x), samp, i, A, b)
         end
         #compute sampled residuals
         obs_res = 2 .* [abs(dot(A[1,:],x + (i+1)*(z-x)) - b[1])^2 for i = 0:10]
         obs_res2 = 4 .* [abs(dot(A[1,:],x + (i+1)*(z-x)) - b[1])^4 for i = 0:10]
-        @test length(log.resid_hist) == 11
-        @test norm(log.resid_hist[3:11] - vcat(obs_res[3], 
+        @test length(logger.resid_hist) == 11
+        @test norm(logger.resid_hist[3:11] - vcat(obs_res[3], 
                                          [(obs_res[i] + obs_res[i-1])/2 for i = 4:11])) < 1e2 * eps()
-        @test norm(log.iota_hist[3:11] - vcat(obs_res2[3], 
+        @test norm(logger.iota_hist[3:11] - vcat(obs_res2[3], 
                                         [(obs_res2[i] + obs_res2[i-1])/2 for i = 4:11])) < 1e2 * eps()
-        @test log.iterations == 10
-        @test log.converged == false
+        @test logger.iterations == 10
+        @test logger.converged == false
         
         #Test uncertainty set 
-        Uncertainty_set = get_uncertainty(log)
+        Uncertainty_set = get_uncertainty(logger)
         @test length(Uncertainty_set[1]) == 11
         #If you undo the steps of the interval calculation should be 1
-        @test norm((Uncertainty_set[2] - log.resid_hist) ./ sqrt.(2 * Base.log(2/.05) * log.iota_hist * 
-                    log.dist_info.sigma2 .* (1 .+ Base.log.(log.lambda_hist)) ./  log.lambda_hist) .- 1) < 1e2 * eps()
+        @test norm((Uncertainty_set[2] - logger.resid_hist) ./ sqrt.(2 * log(2/.05) * logger.iota_hist * 
+                    logger.dist_info.sigma2 .* (1 .+ log.(logger.lambda_hist)) ./  logger.lambda_hist) .- 1) < 1e2 * eps()
     end
     # Verify early moving average
     let
@@ -78,31 +78,31 @@ Random.seed!(1010)
         z = rand(2)
 
         sampler = LinSysVecRowOneRandCyclic()
-        log = LSLogMA(lambda1 = 2,
+        logger = LSLogMA(lambda1 = 2,
                      lambda2 = 10)
         samp = (A[1,:], b[1])
 
-        RLinearAlgebra.log_update!(log, sampler, z, (A[1,:],b[1]), 0, A, b)
-        # Test moving average of log when the residual only decreases
+        RLinearAlgebra.log_update!(logger, sampler, z, (A[1,:],b[1]), 0, A, b)
+        # Test moving average of log when the residual only decreases to not trigger switch
         for i = 1:10
             samp = (A[1,:], b[1])
-            RLinearAlgebra.log_update!(log, sampler, x + .3^(i+1)*(z-x), samp, i, A, b)
+            RLinearAlgebra.log_update!(logger, sampler, x + .3^(i+1)*(z-x), samp, i, A, b)
         end
         #compute sampled residuals
         obs_res = 2 .* [abs(dot(A[1,:],x + .3^(i+1)*(z-x)) - b[1])^2 for i = 0:10]
         obs_res2 = 4 .* [abs(dot(A[1,:],x + .3^(i+1)*(z-x)) - b[1])^4 for i = 0:10]
-        @test length(log.resid_hist) == 11
-        @test norm(log.resid_hist[3:11] - vcat( [(obs_res[i] + obs_res[i-1])/2 for i = 3:11])) < 1e2 * eps()
-        @test norm(log.iota_hist[3:11] - vcat( [(obs_res2[i] + obs_res2[i-1])/2 for i = 3:11])) < 1e2 * eps()
-        @test log.iterations == 10
-        @test log.converged == false
+        @test length(logger.resid_hist) == 11
+        @test norm(logger.resid_hist[3:11] - vcat( [(obs_res[i] + obs_res[i-1])/2 for i = 3:11])) < 1e2 * eps()
+        @test norm(logger.iota_hist[3:11] - vcat( [(obs_res2[i] + obs_res2[i-1])/2 for i = 3:11])) < 1e2 * eps()
+        @test logger.iterations == 10
+        @test logger.converged == false
         
         #Test uncertainty set 
-        Uncertainty_set = get_uncertainty(log)
+        Uncertainty_set = get_uncertainty(logger)
         @test length(Uncertainty_set[1]) == 11
         #If you undo the steps of the interval calculation should be 1
-        @test norm((Uncertainty_set[2] - log.resid_hist) ./ sqrt.(2 * Base.log(2/.05) * log.iota_hist * 
-                    log.dist_info.sigma2 .* (1 .+ Base.log.(log.width_hist)) ./  log.width_hist) .- 1) < 1e2 * eps()
+        @test norm((Uncertainty_set[2] - logger.resid_hist) ./ sqrt.(2 * log(2/.05) * logger.iota_hist * 
+                    logger.dist_info.sigma2 .* (1 .+ log.(logger.lambda_hist)) ./  logger.lambda_hist) .- 1) < 1e2 * eps()
     end
 end
 

@@ -130,7 +130,7 @@ LSLogMA(;
         omega = nothing, 
         eta = 1, 
         true_res = false
-       ) = LSLogMA( cr,
+       ) = LSLogMA( collection_rate,
                     MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
                     Float64[], 
                     Float64[], 
@@ -139,7 +139,7 @@ LSLogMA(;
                     -1, 
                     false,
                     true_res,
-                    SEDistInfo(nothing, 0, 0, sigma2, omega, eta, 0
+                    SEDistInfo(nothing, 0, 0, sigma2, omega, eta, 0)
                   )
 
 #Function to update the moving average
@@ -150,7 +150,7 @@ function log_update!(
     samp::Tuple,
     iter::Int64,
     A::AbstractArray,
-    b::AbstractVector
+    b::AbstractVector,
 )
     if iter == 0 
         # Check if it is a row or column method and record dimensions
@@ -184,8 +184,8 @@ function log_update!(
     if !log.true_res && iter > 0
         # Compute the current residual to second power to align with theory
         # Check if it is one dimensional or block sampling method
-        res::Float64 = eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
-            log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2 
+        res::Float64 = log.dist_info.scaling * (eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
+                                                log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2) 
     else 
         res = log.resid_norm(A * x - b)^2 
     end
@@ -268,7 +268,7 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
 
         #Update the log variable with the information for this update
         if mod(iter, log.collection_rate) == 0 || iter == 0
-            push!(log.width_hist, ma_info.lambda)
+            push!(log.lambda_hist, ma_info.lambda)
             push!(log.resid_hist, accum / ma_info.lambda) 
             push!(log.iota_hist, accum2 / ma_info.lambda) 
         end
@@ -375,8 +375,8 @@ for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
              LinSysVecRowMaxDistance,)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
-            log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
-            log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
+            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.scaling = log.dist_info.dimension / log.dist_info.block_dimension
         end
 
     end
@@ -388,8 +388,8 @@ end
 for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
-            log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
-            log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
+            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.scaling = log.dist_info.dimension / log.dist_info.block_dimension
         end
 
     end
