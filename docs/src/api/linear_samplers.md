@@ -62,6 +62,12 @@ LinSysVecColOneRandCyclic
 
 ```@docs
 LinSysBlkRowCountSketch
+
+LinSysBlkRowGaussSampler
+
+LinSysBlkRowReplace
+
+LinSysBlkRowRandCyclic
 ```
 
 ## Block Vector Col Samplers
