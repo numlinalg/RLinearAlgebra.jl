@@ -36,6 +36,7 @@ export SketchDirection, Left, Right
 export Distribution, DistDefault
 
 
+export DistFrobeniusNorm
 #*****************************************#
 # Linear Sampler Exports
 #*****************************************#

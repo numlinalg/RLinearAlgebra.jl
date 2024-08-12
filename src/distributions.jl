@@ -142,3 +142,4 @@ end
 ###############################
 # Distribution Imports
 ###############################
+include("distributions/frobenius_norm.jl")
