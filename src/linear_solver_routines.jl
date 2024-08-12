@@ -103,7 +103,10 @@ function rsubsolve!(
 )
     return nothing
 end
-
+############################################
+# Linear Solvers Helpers
+############################################
+include("linear_solver_routines/block_solver_helpers/gentlemans_house.jl")
 #############################################
 # Vector Row Projection Solvers
 #############################################
@@ -122,21 +125,20 @@ include("linear_solver_routines/vec_col_projection_fortho.jl")
 # Block Row Projection Solvers
 #############################################
 # Exact Solvers
-
+include("linear_solver_routines/block_row_projection.jl")
 # Approximate Solvers
 
 #############################################
 # Block Column Projection Solvers
 #############################################
 # Exact Solvers
-
+include("linear_solver_routines/block_col_projection.jl")
 # Approximate Solvers
 
 #############################################
 # Precondition Krylov Solvers
 #############################################
 #Blendenpik
-
 
 
 #############################################

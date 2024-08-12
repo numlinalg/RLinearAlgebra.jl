@@ -38,7 +38,7 @@ RLinearAlgebra.get_uncertainty(::LSLogMA; alpha = .05)
 ```@docs
 RLinearAlgebra.MAInfo
 
-RLinearAlgebra.DistInfo
+RLinearAlgebra.SEDistInfo
 ```
 
 ## Internal Functions

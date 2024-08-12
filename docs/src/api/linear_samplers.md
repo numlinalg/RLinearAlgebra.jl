@@ -64,16 +64,33 @@ LinSysVecColOneRandCyclic
 LinSysBlkRowCountSketch
 
 LinSysBlkRowSelectWoReplacement
+
+LinSysBlkRowGaussSampler
+
+LinSysBlkRowReplace
+
+LinSysBlkRowRandCyclic
 ```
 
-## Block Vector Column Samplers
+## Block Vector Col Samplers
 
 ```@docs
 LinSysBlkColSelectWoReplacement
+
+LinSysBlkColGaussSampler
+
+LinSysBlkColReplace
+
+LinSysBlkColRandCyclic
 ```
 
 ## Sample Function
 ```@docs
 RLinearAlgebra.sample(::Nothing,::AbstractArray,::AbstractVector,
     ::AbstractVector,::Int64)
+```
+
+## Internal Functions
+```@docs
+RLinearAlgebra.init_blocks_cyclic!
 ```
