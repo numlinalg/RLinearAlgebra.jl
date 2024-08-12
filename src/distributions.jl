@@ -142,6 +142,3 @@ end
 ###############################
 # Distribution Imports
 ###############################
-include("distributions/frobenius_norm.jl")
-include("distributions/leverage_scores.jl")
-include("distributions/approximate_leverage_scores.jl")

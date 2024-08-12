@@ -35,8 +35,6 @@ using LinearAlgebra, Random, Distributions, StatsBase
 export SketchDirection, Left, Right
 export Distribution, DistDefault
 
-# Distributions
-export DistFrobeniusNorm, DistLeverageScore, DistApproximateLeverageScore
 
 #*****************************************#
 # Linear Sampler Exports
