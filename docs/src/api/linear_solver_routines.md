@@ -40,8 +40,20 @@ LinSysVecColProjPO
 LinSysVecColProjFO
 ```
 
-## Subsolver Function
+## Block Row Solver
 
 ```@docs
-RLinearAlgebra.rsubsolve!(::Nothing,::AbstractVector,::Tuple,::Int64)
+LinSysBlkRowLQ
+```
+
+## Block Column Solver
+
+```@docs
+LinSysBlkColGent
+```
+
+## Solving Routine
+
+```@docs
+RLinearAlgebra.rsubsolve!
 ```
