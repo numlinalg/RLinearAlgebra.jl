@@ -44,3 +44,4 @@ linear_samplers/proc_block_row_count_sketch
 linear_samplers/proc_block_col_sample_wo_replacement
 linear_samplers/proc_block_row_sample_wo_replacement
 linear_samplers/proc_distribution.jl
+linear_samplers/distributions/proc_approximate_leverage_scores.jl

@@ -36,6 +36,8 @@ export SketchDirection, Left, Right
 export Distribution, DistDefault
 
 
+export DistApproximateLeverageScore
+
 #*****************************************#
 # Linear Sampler Exports
 #*****************************************#
