@@ -68,7 +68,7 @@ Random.seed!(1010)
         @test length(Uncertainty_set[1]) == 11
         #If you undo the steps of the interval calculation should be 1
         @test norm((Uncertainty_set[2] - log.resid_hist) ./ sqrt.(2 * Base.log(2/.05) * log.iota_hist * 
-                    log.dist_info.sigma2 .* (1 .+ Base.log.(log.width_hist)) ./  log.width_hist) .- 1) < 1e2 * eps()
+                    log.dist_info.sigma2 .* (1 .+ Base.log.(log.lambda_hist)) ./  log.lambda_hist) .- 1) < 1e2 * eps()
     end
 
 end
