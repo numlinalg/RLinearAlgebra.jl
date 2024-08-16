@@ -22,6 +22,8 @@ makedocs(
             ],
             "Linear Solver Logs" => "api/linear_solver_logs.md",
             "Linear Solver Stop Criteria" => "api/linear_solver_stops.md",
+            "Low Rank Approximations" => "api/low_rank_approximations.md",
+            "Low Rank Approximation Error Methods" => "api/low_rank_approximation_error.md",
         ],
     ]
 )
