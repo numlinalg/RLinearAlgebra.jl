@@ -16,7 +16,10 @@ makedocs(
         "API Reference" => [
             "Randomized Linear Solvers" => "api/linear_rsolve.md",
             "Linear Samplers" => "api/linear_samplers.md",
-            "Linear Subsolvers" => "api/linear_solver_routines.md",
+            "Linear Subsolvers" => [
+                "Main Solvers" => "api/linear_solver_routines.md",
+                "Solver Helpers" => "api/linear_solver_helpers.md",
+            ],
             "Linear Solver Logs" => "api/linear_solver_logs.md",
             "Linear Solver Stop Criteria" => "api/linear_solver_stops.md",
             "Low Rank Approximations" => "api/low_rank_approximations.md",
