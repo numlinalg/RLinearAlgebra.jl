@@ -81,7 +81,11 @@ function sample(
         type.block = zeros(Int64, type.block_size) 
     end
 
+<<<<<<< HEAD
     type.block .= randperm(type.padded_size)[1:type.block_size] 
+=======
+    type.block .= randperm(type.paddedSize)[1:type.blockSize] 
+>>>>>>> aefbf89 (Updated the dependency list)
     SA = type.Ap[type.block, :]
     Sb = type.bp[type.block]
     # Residual of the linear system
