@@ -65,16 +65,38 @@ LinSysVecColDetermCyclic
 LinSysVecColOneRandCyclic
 ```
 
-## Block Vector Col Samplers
+## Block Row Samplers
 
 ```@docs
+LinSysBlkRowGaussSampler
+
+LinSysBlkRowReplace
+
+LinSysBlkRowRandCyclic
+```
+
+## Block Col Samplers
+
+```@docs
+LinSysBlkColGaussSampler
+
+LinSysBlkColReplace
+
+LinSysBlkColRandCyclic
+
 LinSysBlockColFJLT
 
 LinSysBlockColSRHT
+
 ```
 
 ## Sample Function
 ```@docs
 RLinearAlgebra.sample(::Nothing,::AbstractArray,::AbstractVector,
     ::AbstractVector,::Int64)
+```
+
+## Internal Functions
+```@docs
+RLinearAlgebra.init_blocks_cyclic!
 ```

@@ -173,17 +173,24 @@ include("linear_samplers/sampler_helpers/hadamard.jl")
 #############################################
 # Block Row Sampler/Sketch/Selector
 #############################################
-
+include("linear_samplers/block_row_gaussian.jl")
+include("linear_samplers/block_row_rand_cyclic.jl")
+include("linear_samplers/block_row_rand_replace.jl")
 #############################################
 # Block Column Sampler/Sketch/Selector
 #############################################
-
+include("linear_samplers/block_col_rand_cyclic.jl")
+include("linear_samplers/block_col_gaussian.jl")
+include("linear_samplers/block_col_rand_replace.jl")
 #############################################
 # Compositional Sampler/Sketch/Selector
 #############################################
 # Wishlist
 
-
+#############################################
+# Sampler Helper Functions
+#############################################
+include("linear_samplers/linear_sampler_helpers/helpers_cyclic.jl")
 #############################################
 # Export Statements
 #############################################
