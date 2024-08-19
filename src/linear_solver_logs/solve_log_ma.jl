@@ -47,8 +47,8 @@ A mutable structure that stores information about the sub-Exponential family.
    if not specified by the user it is provided based on the sampling method.
 - `omega::Union{Float64, Nothing}`, the exponential distrbution parameter, if not specified by the user, 
    it is provided based on the sampling method.
-- `eta::Float64`, a parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
-  estimate. By default, this is set to `1`.
+- `eta::Float64`, a parameter for adjusting the conservativeness of the distribution, higher value means a less conservative estimate. By default, this is set to `1`.
+- `scaling::Float64`, a scaling parameter for the norm-squared of the sketched residual to ensure its expectation is the norm-squared of the residual.
 
 For more information see:
 - Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
@@ -185,7 +185,7 @@ function log_update!(
         # Compute the current residual to second power to align with theory
         # Check if it is one dimensional or block sampling method
         res::Float64 = log.dist_info.scaling * (eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
-                                                log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2) 
+                            log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2) 
     else 
         res = log.resid_norm(A * x - b)^2 
     end
@@ -194,7 +194,9 @@ function log_update!(
     if ma_info.flag
         update_ma!(log, res, ma_info.lambda2, iter)
     else
-        #Check if we can switch between lambda1 and lambda2 regime
+        # Check if we can switch between lambda1 and lambda2 regime
+        # If it is in the monotonic decreasing of the sketched residual then we are in a lambda1 regime
+        # otherwise we switch to the lambda2 regime which is indicated by the changing of the flag
         if iter == 0 || res <= ma_info.res_window[ma_info.idx] 
             update_ma!(log, res, ma_info.lambda1, iter)
         else
@@ -246,13 +248,19 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
             push!(log.resid_hist, accum / ma_info.lambda) 
             push!(log.iota_hist, accum2 / ma_info.lambda) 
         end
-    
+
+    # In the lambda1 regime we are not summing all the entries in the ma and must be careful
     elseif ma_info.lambda == ma_info.lambda1 && !ma_info.flag
         diff = ma_info.idx - ma_info.lambda
-        # Determine start point for first loop
+        # Because lambda1 is less than lambda2 and the index storing the new norm of the residual
+        # moves sequentially there could be an issue of summing at the end and the begining of the buffer.
+        # When lambda is greater than the index we will have to go to end of the buffer to get the remaining
+        # terms in the sum and add it to the terms summed from index 1 to current index. Otherwise we can 
+        # just start the sum lambda terms in front of the index
         startp1 = diff < 0 ? 1 : (diff + 1)
-
-        # Determine start and endpoints for second loop
+        # Since the index is less than the width, we must add the remianing terms to the sum summing the 
+        # terms starting at the end of the buffer-remaining terms to the length of the buffer. If this is not
+        # necessary we skip the second loop
         startp2 = diff < 0 ? ma_info.lambda2 + diff + 1 : 2 
         endp2 = diff < 0 ? ma_info.lambda2 : 1 
         # Compute the moving average two loop setup required when lambda < lambda2
