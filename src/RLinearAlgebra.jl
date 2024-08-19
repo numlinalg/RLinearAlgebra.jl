@@ -23,8 +23,6 @@ module RLinearAlgebra
 
 using LinearAlgebra, Random, Distributions
 
-import StatsBase: sample
-
 import SparseArrays: sprandn, SparseMatrixCSC
 
 import Hadamard: hadamard

@@ -75,7 +75,7 @@ function sample(
         type.block = zeros(Int64, type.blockSize) 
     end
 
-    type.block .= sample(1:type.paddedSize, type.blockSize, replace = false) 
+    type.block .= randperm(type.paddedSize)[1:type.blockSize] 
     SA = type.Ap[type.block, :]
     Sb = type.bp[type.block]
     # Residual of the linear system
