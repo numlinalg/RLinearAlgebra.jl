@@ -8,7 +8,6 @@ A mutable structure that stores information relevant to the moving average of th
 - `lambda1::Int64`, the width of the moving average during the fast convergence phase of the algorithm. 
   During this fast convergence phase, the majority of variation of the sketched estimator comes from 
   improvement in the solution and thus wide moving average windows inaccurately represent progress. 
-  By default this parameter is set to `1`.
 - `lambda2::Int64`, the width of the moving average in the slower convergence phase. In the slow convergence
   phase, each iterate differs from the previous one by a small amount and thus most of the observed variation
   arises from the randomness of the sketched progress estimator, which is best smoothed by a wide moving
@@ -92,7 +91,7 @@ Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantifica
    calculation, it is collected at a rate specified by `collection_rate`.
 - `resid_norm::Function`, a function that accepts a single vector argument and returns a
     scalar. Used to compute the residual size.
-- `iterations::Int64`, the current iteration of the solver.
+- `iteration::Int64`, the current iteration of the solver.
 - `converged::Bool`, a flag to indicate whether the system has converged by some measure. By default this
   is set to false.
 - `true_res::Bool`, a boolean indicating if we want the true residual computed instead of approximate.
@@ -116,7 +115,7 @@ mutable struct LSLogMA <: LinSysSolverLog
     iota_hist::Vector{Float64}
     lambda_hist::Vector{Int64}
     resid_norm::Function
-    iterations::Int64
+    iteration::Int64
     converged::Bool
     true_res::Bool
     dist_info::SEDistInfo
@@ -170,16 +169,15 @@ function log_update!(
             log.dist_info.block_dimension = sampler.block_size
         end
         
-        log.dist_info.sampler = typeof(sampler)  
-    # If the constants for the sub-Exponential distribution are not defined then define them
+        # If the constants for the sub-Exponential distribution are not defined then define them
         if typeof(log.dist_info.sigma2) <: Nothing || log.dist_info.sigma2 == 0
-            get_SE_constants!(log, log.dist_info.sampler)
+            get_SE_constants!(log, typeof(sampler))
         end
 
     end
 
     ma_info = log.ma_info
-    log.iterations = iter
+    log.iteration = iter
     #Check if we want exact residuals computed
     if !log.true_res && iter > 0
         # Compute the current residual to second power to align with theory
@@ -197,12 +195,10 @@ function log_update!(
         # Check if we can switch between lambda1 and lambda2 regime
         # If it is in the monotonic decreasing of the sketched residual then we are in a lambda1 regime
         # otherwise we switch to the lambda2 regime which is indicated by the changing of the flag
-        if iter == 0 || res <= ma_info.res_window[ma_info.idx] 
-            update_ma!(log, res, ma_info.lambda1, iter)
-        else
-            update_ma!(log, res, ma_info.lambda1, iter)
-            ma_info.flag = true 
-        end
+        # because update_ma changes res_window and ma_info.idx must check condition first
+        flag_cond = iter == 0 || res <= ma_info.res_window[ma_info.idx] 
+        update_ma!(log, res, ma_info.lambda1, iter)
+        ma_info.flag = flag_cond ? false : true
 
     end
 
@@ -328,7 +324,7 @@ function get_uncertainty(hist::LSLogMA; alpha::Float64 = 0.05)
     lower = zeros(l)
     # If the constants for the sub-Exponential distribution are not defined then define them
     if typeof(hist.dist_info.sigma2) <: Nothing
-        get_SE_constants!(hist, hist.dist_info.sampler)
+        throw(ArgumentError("The SE constants are empty, please set them in dist_info field of LSLogMA first."))
     end
     
     for i in 1:l

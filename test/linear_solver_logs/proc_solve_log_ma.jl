@@ -12,7 +12,7 @@ Random.seed!(1010)
     @test supertype(LSLogMA) == LinSysSolverLog
 
     # Verify Required Fields
-    @test :iterations in fieldnames(LSLogMA)
+    @test :iteration in fieldnames(LSLogMA)
     @test :converged in fieldnames(LSLogMA)
 
     # Verify log_update initialization
@@ -24,14 +24,14 @@ Random.seed!(1010)
 
         sampler = LinSysVecRowOneRandCyclic()
         logger = LSLogMA()
-
+        @test_throws ArgumentError("The SE constants are empty, please set them in dist_info field of LSLogMA first.") get_uncertainty(logger) 
 
         RLinearAlgebra.log_update!(logger, sampler, z, (A[1,:],b[1]), 0, A, b)
 
         @test length(logger.resid_hist) == 1
         @test logger.resid_hist[1] == norm(A * z - b)^2
         @test norm(logger.iota_hist[1] - norm(A * z - b)^4) < 1e2 * eps()
-        @test logger.iterations == 0
+        @test logger.iteration == 0
         @test logger.converged == false
     end
 
@@ -60,7 +60,7 @@ Random.seed!(1010)
                                          [(obs_res[i] + obs_res[i-1])/2 for i = 4:11])) < 1e2 * eps()
         @test norm(logger.iota_hist[3:11] - vcat(obs_res2[3], 
                                         [(obs_res2[i] + obs_res2[i-1])/2 for i = 4:11])) < 1e2 * eps()
-        @test logger.iterations == 10
+        @test logger.iteration == 10
         @test logger.converged == false
         
         #Test uncertainty set 
@@ -94,7 +94,7 @@ Random.seed!(1010)
         @test length(logger.resid_hist) == 11
         @test norm(logger.resid_hist[3:11] - vcat( [(obs_res[i] + obs_res[i-1])/2 for i = 3:11])) < 1e2 * eps()
         @test norm(logger.iota_hist[3:11] - vcat( [(obs_res2[i] + obs_res2[i-1])/2 for i = 3:11])) < 1e2 * eps()
-        @test logger.iterations == 10
+        @test logger.iteration == 10
         @test logger.converged == false
         
         #Test uncertainty set 
