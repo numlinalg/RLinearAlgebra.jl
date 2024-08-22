@@ -6,7 +6,10 @@
 """
     LinSysBlkRowSparseSign <: LinSysBlkRowSampler
 
-A mutable structure with a field to represent different sparse sign sketch matrices. 
+A mutable structure with a field to handle sparse sign row sketching where a sparse sign matrix
+is multiplied by the matrix `A` from the left. Methods implemented as mentioned in section 9.2 of "Martinsson P G, Tropp J A. 
+Randomized numerical linear algebra: Foundations and algorithms[J]. Acta Numerica, 
+2020, 29: 403-572.".
 
 # Fields
 - `block_size::Int64`, block_size represents the number of rows of sketch matrix.
@@ -22,11 +25,6 @@ A mutable structure with a field to represent different sparse sign sketch matri
     the sketch matrix. Using to store all the possible signs for each iteration.
 - `matrix_perm::Union{AbstractMatrix, Nothing}`, the buffer for storing the matrix we need to build 
     the sketch matrix. Using to store the positions of all non-zeros entries in the sketch matrix.
-
-
-Methods implemented as mentioned in section 9.2 of "Martinsson P G, Tropp J A. 
-Randomized numerical linear algebra: Foundations and algorithms[J]. Acta Numerica, 
-2020, 29: 403-572.".
 
 # Constructors
 Calling `LinSysBlkRowSparseSign()` defaults to set `block_size` to 8, and `sparsity` to min{d, 8}. 
