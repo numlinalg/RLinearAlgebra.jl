@@ -6,23 +6,30 @@
 """
     LinSysBlkRowSparseSign <: LinSysBlkRowSampler
 
-A mutable structure with a field to represent different sparse sign embeddings. 
+A mutable structure with a field to represent different sparse sign sketch matrices. 
 
 # Fields
-- `sparsity::Float64`, sparsity represents the sparsity of the embedding matrix. 
-Suppose the embedding matrix has dimension of d rows and n columns, the sparsity 
-in the reference book can be chosen from {2, 3, ..., d} which represents how many elements
-we want in each column.
+- `block_size::Int64`, block_size represents the number of rows of sketch matrix.
+- `sparsity::Float64`, sparsity represents the sparsity of the sketch matrix. 
+    Suppose the sketch matrix has dimension of d rows and n columns, the sparsity 
+    in the reference book can be chosen from {2, 3, ..., d} which represents how many elements
+    we want in each column.
+- `numsigns::Int64`, the buffer for storing how many signs we need to have for each 
+    column of sketch matrix, calculated by max(floor(sparsity * size(A,1)), 2).
+- `sketch_matrix::Union{AbstractMatrix, Nothing}`, the buffer for storing the Gaussian sketching matrix.
+- `scaling::Float64`, the standard deviation of the sketch, is set to be sqrt(n / numsigns).
+- `rand_sign_matrix::Union{AbstractMatrix, Nothing}`, the buffer for storing the matrix we need to build 
+    the sketch matrix. Using to store all the possible signs for each iteration.
+- `matrix_perm::Union{AbstractMatrix, Nothing}`, the buffer for storing the matrix we need to build 
+    the sketch matrix. Using to store the positions of all non-zeros entries in the sketch matrix.
 
-- `embedding_dim::Int64`, embedding dimension represents the dimension of output. Note 
-that, the output is residual, i.e. S*A*x - S*b.
 
 Methods implemented as mentioned in section 9.2 of "Martinsson P G, Tropp J A. 
 Randomized numerical linear algebra: Foundations and algorithms[J]. Acta Numerica, 
 2020, 29: 403-572.".
 
 # Constructors
-Calling `LinSysBlkRowSparseSign()` defaults to set `sparsity` to min{d, 8}. 
+Calling `LinSysBlkRowSparseSign()` defaults to set `block_size` to 8, and `sparsity` to min{d, 8}. 
 """
 
 mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
@@ -52,7 +59,7 @@ function sample(
     x::AbstractVector,
     iter::Int64
 )
-    # Embedding matrix has dimension d (a pre-identified number of rows) by n (matrix A's 
+    # sketch matrix has dimension d (a pre-identified number of rows) by n (matrix A's 
     # number of rows)
     d, n = type.block_size, size(A,1)
 
@@ -99,15 +106,15 @@ function sample(
     # Scale the sparse sign matrix with dimensions
     type.sketch_matrix .*=  type.scaling
 
-    # Matrix after random embedding
+    # Matrix after random sketch
     SA = type.sketch_matrix * A
     Sb = type.sketch_matrix * b
 
     # Residual
     res = SA * x - Sb
     
-    # Output random embedding matrix, the matrix after random embedding, 
-    # and the residual after random embedding
+    # Output random sketch matrix, the matrix after random sketch, 
+    # and the residual after random sketch
     return type.sketch_matrix, SA, res
 
 end
