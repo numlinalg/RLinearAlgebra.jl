@@ -26,12 +26,12 @@ Calling `LinSysBlkRowSparseSign()` defaults to set `sparsity` to min{d, 8}.
 """
 
 mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
-    block_size::Int64,
-    sparsity::Float64, 
-    numsigns::Int64,
-    sketch_matrix::Union{AbstractMatrix, Nothing},
+    block_size::Int64
+    sparsity::Float64
+    numsigns::Int64
+    sketch_matrix::Union{AbstractMatrix, Nothing}
     scaling::Float64
-    rand_sign_matrix::Union{AbstractMatrix, Nothing},
+    rand_sign_matrix::Union{AbstractMatrix, Nothing}
     matrix_perm::Union{AbstractMatrix, Nothing}
 end
 
