@@ -66,6 +66,8 @@ LinSysBlkRowGaussSampler
 LinSysBlkRowReplace
 
 LinSysBlkRowRandCyclic
+
+LinSysBlkRowSparseSign
 ```
 
 ## Block Vector Col Samplers
