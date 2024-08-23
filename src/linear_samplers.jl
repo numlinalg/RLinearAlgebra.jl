@@ -174,6 +174,7 @@ include("linear_samplers/block_row_sparse_sign.jl")
 include("linear_samplers/block_col_rand_cyclic.jl")
 include("linear_samplers/block_col_gaussian.jl")
 include("linear_samplers/block_col_rand_replace.jl")
+include("linear_samplers/block_col_sparse_sign.jl")
 #############################################
 # Compositional Sampler/Sketch/Selector
 #############################################

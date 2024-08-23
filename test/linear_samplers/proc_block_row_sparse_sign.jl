@@ -32,7 +32,8 @@ Random.seed!(1010)
 
      # Block size less than matrix size test
      SS = LinSysBlkRowSparseSign(block_size = 12)
-     @test_throws AssertionError("`block_size` must be less than row dimension") RLinearAlgebra.sample(SS, A, b, x, 1)
+     @test_logs (:warn, "`block_size` shoould be less than row dimension.") RLinearAlgebra.sample(SS, A, b, x, 1)
+     # @test_throws AssertionError("`block_size` must be less than row dimension") RLinearAlgebra.sample(SS, A, b, x, 1)
 
 
      SS = LinSysBlkRowSparseSign()

@@ -1,10 +1,10 @@
 # This file is part of RLinearAlgebra.jl
 
 """
-    LinSysBlkRowSparseSign <: LinSysBlkRowSampler
+    LinSysBlkColSparseSign <: LinSysBlkColSampler
 
-A mutable structure with fields to handle sparse sign row sketching where a sparse sign matrix
-is multiplied by the matrix `A` from the left. Methods are implemented as mentioned in section 9.2 
+A mutable structure with fields to handle sparse sign column sketching where a sparse sign matrix
+is multiplied by the matrix `A'` from the left. Methods are implemented as mentioned in section 9.2 
 of "Martinsson P. G., Tropp J. A. Randomized numerical linear algebra: Foundations and algorithms." 
 Acta Numerica, 2020, 29: 403-572.
 
@@ -23,10 +23,10 @@ Acta Numerica, 2020, 29: 403-572.
   entries in the sketch matrix.
 
 # Constructors
-- `LinSysBlkRowSparseSign()` defaults to setting `block_size` to 8 and `sparsity` to `min(d, 8)`.
+- `LinSysBlkColSparseSign()` defaults to setting `block_size` to 8 and `sparsity` to `min(d, 8)`.
 """
 
-mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
+mutable struct LinSysBlkColSparseSign <: LinSysBlkColSampler
     block_size::Int64
     sparsity::Float64
     numsigns::Int64
@@ -36,31 +36,31 @@ mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
     matrix_perm::Union{AbstractMatrix, Nothing}
 end
 
-LinSysBlkRowSparseSign(block_size, sparsity) = LinSysBlkRowSparseSign(block_size, sparsity, 0,
+LinSysBlkColSparseSign(block_size, sparsity) = LinSysBlkColSparseSign(block_size, sparsity, 0,
     nothing, 0.0, nothing, nothing)
-LinSysBlkRowSparseSign(block_size) = LinSysBlkRowSparseSign(block_size, -12345.0, 0, nothing, 
+LinSysBlkColSparseSign(block_size) = LinSysBlkColSparseSign(block_size, -12345.0, 0, nothing, 
     0.0, nothing, nothing)
-LinSysBlkRowSparseSign(;sparsity) = LinSysBlkRowSparseSign(8, sparsity, 0, nothing, 0.0, 
+LinSysBlkColSparseSign(;sparsity) = LinSysBlkColSparseSign(8, sparsity, 0, nothing, 0.0, 
     nothing, nothing)
-LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, -12345.0, 0, nothing, 0.0, nothing, 
+LinSysBlkColSparseSign() = LinSysBlkColSparseSign(8, -12345.0, 0, nothing, 0.0, nothing, 
     nothing)
 
 # Common sample interface for linear systems
 function sample(
-    type::LinSysBlkRowSparseSign,
+    type::LinSysBlkColSparseSign,
     A::AbstractArray,
     b::AbstractVector,
     x::AbstractVector,
     iter::Int64
 )
     # sketch matrix has dimension d (a pre-identified number of rows) by n (matrix A's 
-    # number of rows)
-    d, n = type.block_size, size(A,1)
+    # number of Columns)
+    d, n = type.block_size, size(A,2)
 
     if iter == 1
         @assert type.block_size > 0 "`block_size` must be positve."
         if type.block_size > n
-            @warn "`block_size` should be less than or equal to row dimension"
+            @warn "`block_size` should be less than or equal to column dimension"
         end
 
         # In default, we should sample min{d, 8} signs for each column.
@@ -91,26 +91,26 @@ function sample(
     type.rand_sign_matrix = ifelse.(rand(d, n) .> 0.5, 1, -1)  
 
     # Random permutation for choosing sparse signs
-    type.matrix_perm = sort(hcat([randperm(d) for _ in 1:n]...)[1:type.numsigns , :], dims = 1)
+    type.matrix_perm =  sort(hcat([randperm(d) for _ in 1:n]...)[1:type.numsigns , :], dims = 1)
     # Make the position is suit for the whole matrix rand_sign_matrix
     type.matrix_perm .+= (d * (0:size(type.rand_sign_matrix, 2) - 1))'
     
     # Assign corresponding positions' value to S
     type.sketch_matrix[type.matrix_perm] = type.rand_sign_matrix[type.matrix_perm]
     # Scale the sparse sign matrix with dimensions
-    type.sketch_matrix .*=  type.scaling
+    type.sketch_matrix .*= type.scaling
 
     # Matrix after random sketch
-    SA = type.sketch_matrix * A
-    Sb = type.sketch_matrix * b
+    AS = A * type.sketch_matrix'
 
-    # Residual
-    res = SA * x - Sb
+    # Residual of the linear system
+    res = A * x - b
+
+    # Normal equation residual in the Sketched Block
+    grad = AS' * res
     
-    # Output random sketch matrix, the matrix after random sketch, 
-    # and the residual after random sketch
-    return type.sketch_matrix, SA, res
+    return type.sketch_matrix', AS, grad, res
 
 end
 
-# export LinSysBlkRowSparseSign
+# export LinSysBlkColSparseSign

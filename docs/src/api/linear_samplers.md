@@ -78,6 +78,8 @@ LinSysBlkColGaussSampler
 LinSysBlkColReplace
 
 LinSysBlkColRandCyclic
+
+LinSysBlkColSparseSign
 ```
 
 ## Sample Function
