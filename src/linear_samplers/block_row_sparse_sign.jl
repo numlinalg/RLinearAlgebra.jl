@@ -3,22 +3,27 @@
 """
     LinSysBlkRowSparseSign <: LinSysBlkRowSampler
 
-A mutable structure with a field to handle sparse sign row sketching where a sparse sign matrix
-is multiplied by the matrix `A` from the left. Methods implemented as mentioned in section 9.2 of "Martinsson P G, Tropp J A. 
-Randomized numerical linear algebra: Foundations and algorithms[J]. Acta Numerica, 
-2020, 29: 403-572.".
+A mutable structure with fields to handle sparse sign row sketching where a sparse sign matrix
+is multiplied by the matrix `A` from the left. Methods are implemented as mentioned in section 9.2 
+of "Martinsson P. G., Tropp J. A. Randomized numerical linear algebra: Foundations and algorithms." 
+Acta Numerica, 2020, 29: 403-572.
 
 # Fields
-- `block_size::Int64`: block_size represents the number of rows of sketch matrix.
-- `sparsity::Float64`: sparsity represents the sparsity of the sketch matrix. Suppose the sketch matrix has dimension of d rows and n columns, the sparsity in the reference book can be chosen from {2, 3, ..., d} which represents how many elements we want in each column.
-- `numsigns::Int64`: the buffer for storing how many signs we need to have for each column of sketch matrix, calculated by max(floor(sparsity * size(A,1)), 2).
-- `sketch_matrix::Union{AbstractMatrix, Nothing}`: the buffer for storing the Gaussian sketching matrix.
-- `scaling::Float64`: the standard deviation of the sketch, is set to be sqrt(n / numsigns).
-- `rand_sign_matrix::Union{AbstractMatrix, Nothing}`: the buffer for storing the matrix we need to build the sketch matrix. Using to store all the possible signs for each iteration.
-- `matrix_perm::Union{AbstractMatrix, Nothing}`: the buffer for storing the matrix we need to build the sketch matrix. Using to store the positions of all non-zeros entries in the sketch matrix.
+- `block_size::Int64`: Represents the number of rows in the sketch matrix.
+- `sparsity::Float64`: Represents the sparsity of the sketch matrix. Suppose the sketch matrix 
+  has dimensions of `d` rows and `n` columns; the sparsity, as described in the reference book, 
+  can be chosen from `{2, 3, ..., d}`, representing the number of elements we want in each column.
+- `numsigns::Int64`: Buffer for storing how many signs we need to have for each column of the 
+  sketch matrix, calculated by `max(floor(sparsity * size(A, 1)), 2)`.
+- `sketch_matrix::Union{AbstractMatrix, Nothing}`: Buffer for storing the Gaussian sketching matrix.
+- `scaling::Float64`: The standard deviation of the sketch, set to `sqrt(n / numsigns)`.
+- `rand_sign_matrix::Union{AbstractMatrix, Nothing}`: Buffer for storing the matrix used to build 
+  the sketch matrix. It stores all possible signs for each iteration.
+- `matrix_perm::Union{AbstractMatrix, Nothing}`: Buffer for storing the positions of all non-zero 
+  entries in the sketch matrix.
 
 # Constructors
-- `LinSysBlkRowSparseSign()` defaults to set `block_size` to 8, and `sparsity` to min{d, 8}. 
+- `LinSysBlkRowSparseSign()` defaults to setting `block_size` to 8 and `sparsity` to `min(d, 8)`.
 """
 
 mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
