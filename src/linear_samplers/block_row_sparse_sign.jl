@@ -11,39 +11,31 @@ Acta Numerica, 2020, 29: 403-572.
 # Fields
 - `block_size::Int64`: Represents the number of rows in the sketch matrix.
 - `sparsity::Float64`: Represents the sparsity of the sketch matrix. Suppose the sketch matrix 
-  has dimensions of `d` rows and `n` columns; the sparsity, as described in the reference book, 
-  can be chosen from `{2, 3, ..., d}`, representing the number of elements we want in each column.
-- `numsigns::Int64`: Buffer for storing how many signs we need to have for each column of the 
-  sketch matrix, calculated by `max(floor(sparsity * size(A, 1)), 2)`.
+    has dimensions of `d` rows and `n` columns; the sparsity, as described in the reference book, 
+    can be chosen from `{2, 3, ..., d}`, representing the number of elements we want in each column.
 - `sketch_matrix::Union{AbstractMatrix, Nothing}`: Buffer for storing the Gaussian sketching matrix.
-- `scaling::Float64`: The standard deviation of the sketch, set to `sqrt(n / numsigns)`.
-- `rand_sign_matrix::Union{AbstractMatrix, Nothing}`: Buffer for storing the matrix used to build 
-  the sketch matrix. It stores all possible signs for each iteration.
-- `matrix_perm::Union{AbstractMatrix, Nothing}`: Buffer for storing the positions of all non-zero 
-  entries in the sketch matrix.
+- `numsigns::Int64`: Storing how many signs we need to have for each column of the 
+    sketch matrix, calculated only in the first iteration by `max(floor(sparsity * size(A, 1)), 2)`.
+- `scaling::Float64`: The standard deviation of the sketch, set to `sqrt(n / numsigns)`, calculated 
+    only in the first iteration.
 
 # Constructors
 - `LinSysBlkRowSparseSign()` defaults to setting `block_size` to 8 and `sparsity` to `min(d, 8)`.
 """
-
 mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
     block_size::Int64
     sparsity::Float64
-    numsigns::Int64
     sketch_matrix::Union{AbstractMatrix, Nothing}
+    numsigns::Int64
     scaling::Float64
-    rand_sign_matrix::Union{AbstractMatrix, Nothing}
-    matrix_perm::Union{AbstractMatrix, Nothing}
 end
 
-LinSysBlkRowSparseSign(block_size, sparsity) = LinSysBlkRowSparseSign(block_size, sparsity, 0,
-    nothing, 0.0, nothing, nothing)
-LinSysBlkRowSparseSign(block_size) = LinSysBlkRowSparseSign(block_size, -12345.0, 0, nothing, 
-    0.0, nothing, nothing)
-LinSysBlkRowSparseSign(;sparsity) = LinSysBlkRowSparseSign(8, sparsity, 0, nothing, 0.0, 
-    nothing, nothing)
-LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, -12345.0, 0, nothing, 0.0, nothing, 
-    nothing)
+LinSysBlkRowSparseSign(block_size, sparsity) = LinSysBlkRowSparseSign(block_size, sparsity,
+    nothing, 0, 0.0)
+LinSysBlkRowSparseSign(block_size) = LinSysBlkRowSparseSign(block_size, -12345.0, nothing, 0, 
+    0.0)
+LinSysBlkRowSparseSign(;sparsity) = LinSysBlkRowSparseSign(8, sparsity, nothing, 0, 0.0)
+LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, -12345.0, nothing, 0, 0.0)
 
 # Common sample interface for linear systems
 function sample(
@@ -79,24 +71,19 @@ function sample(
 
         # Initialize the sparse sign matrix and assign values to iter
         type.sketch_matrix = zeros(Int64, d, n)
-
-        # Allocate for the rand_sign_matrix
-        type.rand_sign_matrix = Matrix{Int64}(undef, d, n) 
-
-        # Allocate for the permutation matrix
-        type.matrix_perm = Matrix{Int64}(undef, type.numsigns, n) 
     end
 
-    # Create a random matrix with 1 and -1
-    type.rand_sign_matrix = ifelse.(rand(d, n) .> 0.5, 1, -1)  
+    # Fill the sketch matrix with 1 and -1
+    type.sketch_matrix = ifelse.(rand(d, n) .> 0.5, 1, -1)  
 
-    # Random permutation for choosing sparse signs
-    type.matrix_perm = sort(hcat([randperm(d) for _ in 1:n]...)[1:type.numsigns , :], dims = 1)
-    # Make the position is suit for the whole matrix rand_sign_matrix
-    type.matrix_perm .+= (d * (0:size(type.rand_sign_matrix, 2) - 1))'
-    
-    # Assign corresponding positions' value to S
-    type.sketch_matrix[type.matrix_perm] = type.rand_sign_matrix[type.matrix_perm]
+    # Each column we want to have d - type.numsigns non-zero terms
+    if d != type.numsigns
+        for i in 1:n
+            row_perm = randperm(d)[1:(d - type.numsigns)]
+            type.sketch_matrix[row_perm, i] = 0
+        end
+    end
+
     # Scale the sparse sign matrix with dimensions
     type.sketch_matrix .*=  type.scaling
 
