@@ -51,17 +51,17 @@ function sample(
 )
     if iter == 1
         m, n = size(A)
-        type.paddedSize = m
         # If matrix is not a power of 2 then pad the rows
         if rem(log(2, m), 1) != 0
-            type.paddedSize = Int64(2^(div(log(2, m),1) + 1)) 
+            type.paddedSize = Int64(2^(div(log(2, m), 1) + 1)) 
             # Find nearest power 2 and allocate
             type.Ap = zeros(type.paddedSize, n)
             type.bp = zeros(type.paddedSize)
             # Pad matrix and constant vector
-            type.Ap[1:m, :] .= A
-            type.bp[1:m] .= b
+            @views type.Ap[1:m, :] .= A
+            @views type.bp[1:m] .= b
         else
+            type.paddedSize = m
             type.Ap = A
             type.bp = b
         end
