@@ -61,8 +61,8 @@ function sample(
             type.Ap = zeros(type.padded_size, n)
             type.bp = zeros(type.padded_size)
             # Pad matrix and constant vector
-            type.Ap[1:m, :] .= A
-            type.bp[1:m] .= b
+            @views type.Ap[1:m, :] .= A
+            @views type.bp[1:m] .= b
         else
             type.padded_size = m
             type.Ap = A

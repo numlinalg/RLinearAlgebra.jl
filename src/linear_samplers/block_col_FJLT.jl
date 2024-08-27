@@ -60,7 +60,7 @@ function sample(
             # Find nearest power 2 and allocate
             type.Ap = zeros(m, type.padded_size)
             # Pad matrix and constant vector
-            type.Ap[:, 1:n] .= A
+            @views type.Ap[:, 1:n] .= A
         else
             type.padded_size = n
             type.Ap = A
