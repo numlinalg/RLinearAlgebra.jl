@@ -3,7 +3,12 @@ module ProceduralFWHT
 
     @testset "Fast Walsh Hadamard Transform" begin
         Random.seed!(1010)
-    
+        
+        # Test vector of size 9 for error
+        x = rand(9)
+        @test_throws AssertionError("Size of vector must be power of 2.") RLinearAlgebra.fwht!(x)
+
+        
         # Generate test vector of size 8
         x = rand(8)
         xc = deepcopy(x)
