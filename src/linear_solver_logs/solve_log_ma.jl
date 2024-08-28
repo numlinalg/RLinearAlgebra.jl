@@ -75,28 +75,27 @@ end
 """
     LSLogMA <: LinSysSolverLog
 
-A mutable structure that stores information about a randomized linear solver's behavior.
-The log assumes that only a random block of full linear system is available for processing. 
-The goal of this log is usually for all use cases as it acts as a cheap approximation of the 
-full residual.
+A mutable structure that stores information for tracking a randomized linear solver's 
+    progress.
+    The log assumes that the entire linear system is **not** available for processing. 
+
 
 # Fields
 - `collection_rate::Int64`, the frequency with which to record information about progress estimators 
     to append to the remaining fields, starting with the initialization (i.e., iterate `0`).
 - `ma_info::MAInfo`, [`MAInfo`](@ref)
-- `resid_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy squared, 
-   typically the norm of residual or gradient of normal equations, it is collected at a rate 
-   specified by `collection_rate`.
-- `iota_hist::Vector{Float64}`, a structure that contains the moving average of the error proxy
-   to the fourth power, typically the norm of residual or gradient of normal equations. This is used 
-   in part to approximate the variance of the estimator, it is collected at a rate specified by `collection_rate`.
-- `lambda_hist::Vector{Int64}`, data structure that contains the lambdas, widths of the moving average,
-   calculation, it is collected at a rate specified by `collection_rate`.
-- `resid_norm::Function`, a function that accepts a single vector argument and returns a
-    scalar. Used to compute the residual size.
+- `resid_hist::Vector{Float64}`, contains an estimate of the progress of the randomized
+    solver. These values are stored at iterates specified by `collection_rate`.
+- `iota_hist::Vector{Float64}`, contains an estimate used for calculating the variability
+    of the progress estimators. These values are stored at iterates specified by
+    `collection_rate`.
+- `lambda_hist::Vector{Int64}`, contains the widths of the moving average.
+   These values are stored at iterates specified by `collection_rate`.
+- `resid_norm::Function`, the desired `norm` used. The default constructor sets this to the 
+    Euclidean norm. 
 - `iteration::Int64`, the current iteration of the solver.
-- `converged::Bool`, a flag to indicate whether the system has converged by some measure. By default this
-  is set to false.
+- `converged::Bool`, a flag to indicate whether the system has converged by some measure. 
+    By default this is `false`.
 - `true_res::Bool`, a boolean indicating if we want the true residual computed instead of approximate.
 - `dist_info::SEDistInfo`, [`SEDistInfo`](@ref)
 
