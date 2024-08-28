@@ -19,10 +19,11 @@ A mutable structure that stores information relevant to the moving average of th
 - `res_window::Vector{Float64}`, the moving average buffer.
 
 For more information see:
- - Pritchard, Nathaniel, and Patel, Vivak. Solving, tracking and stopping streaming linear inverse problems. 
-Inverse Problems 40.8 Web. doi:10.1088/1361-6420/ad5583.
- - Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
-Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024.
+- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear 
+inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
+- Pritchard, Nathaniel, and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative 
+Least Squares Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertainty 
+Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057
 """
 mutable struct MAInfo
     lambda1::Int64
@@ -50,9 +51,11 @@ A mutable structure that stores information about the sub-Exponential family.
 - `scaling::Float64`, a scaling parameter for the norm-squared of the sketched residual to ensure its expectation is the norm-squared of the residual.
 
 For more information see:
-- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
-- Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
-Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057 
+- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear 
+inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
+- Pritchard, Nathaniel, and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative 
+Least Squares Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertainty 
+Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057
 """
 mutable struct SEDistInfo
     sampler::Union{DataType, Nothing}
