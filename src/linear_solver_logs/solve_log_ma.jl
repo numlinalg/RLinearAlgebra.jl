@@ -14,7 +14,7 @@ A mutable structure that stores information relevant to the moving average of th
   average width.
 - `lambda::Int64`, the width of the moving average at the current iteration. This value is not controlled by
   the user. 
-- `flag::Bool`, a boolean indicating which phase we are in, a value of `true` indicates second phase. 
+- `flag::Bool`, a boolean indicating which phase we are in, a value of `true` indicates slow convergence phase. 
 - `idx::Int64`, the index indcating what value should be replaced in the moving average buffer.
 - `res_window::Vector{Float64}`, the moving average buffer.
 
