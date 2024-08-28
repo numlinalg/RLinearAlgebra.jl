@@ -11,7 +11,7 @@ A mutable structure that stores information relevant to the moving average of th
 - `lambda2::Int64`, the width of the moving average in the slower convergence phase. In the slow convergence
   phase, each iterate differs from the previous one by a small amount and thus most of the observed variation
   arises from the randomness of the sketched progress estimator, which is best smoothed by a wide moving
-  average width. By default this parameter is set to `30`.
+  average width.
 - `lambda::Int64`, the width of the moving average at the current iteration. This value is not controlled by
   the user. 
 - `flag::Bool`, a boolean indicating which phase we are in, a value of `true` indicates second phase. 
