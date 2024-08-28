@@ -25,17 +25,24 @@ Random.seed!(1010)
         sampler = LinSysVecRowOneRandCyclic()
         logger = LSLogMA()
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> f9088aa (Updated default metric for get uncertainty)
 
         # Test the error message on the get_uncertainty function
         @test_throws ArgumentError("The SE constants are empty, please set them in dist_info field of LSLogMA first.") get_uncertainty(logger) 
         # Test warning message in default SEconstant look up
+<<<<<<< HEAD
 =======
         @test_throws ArgumentError("The SE constants are empty, please set them in dist_info field of LSLogMA first.") get_uncertainty(logger) 
 >>>>>>> 93056cf (removed sampler lines from code)
+=======
+>>>>>>> f9088aa (Updated default metric for get uncertainty)
 
         RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
 
         @test length(logger.resid_hist) == 1
+<<<<<<< HEAD
 <<<<<<< HEAD
         @test norm(logger.resid_hist[1] - 2 * norm(dot(A[1, :], z) - b[1])^2) < 1e2 * eps()
         @test norm(logger.iota_hist[1] - 4 * norm(dot(A[1, :], z) - b[1])^4) < 1e2 * eps()
@@ -43,14 +50,23 @@ Random.seed!(1010)
         @test logger.resid_hist[1] == norm(A * z - b)^2
         @test norm(logger.iota_hist[1] - norm(A * z - b)^4) < 1e2 * eps()
 >>>>>>> 93056cf (removed sampler lines from code)
+=======
+        @test norm(logger.resid_hist[1] - 2 * norm(dot(A[1, :], z) - b[1])^2) < 1e2 * eps()
+        @test norm(logger.iota_hist[1] - 4 * norm(dot(A[1, :], z) - b[1])^4) < 1e2 * eps()
+>>>>>>> f9088aa (Updated default metric for get uncertainty)
         @test logger.iteration == 0
         @test logger.converged == false
         
         struct MadeUpSampler <: LinSysSampler  
         end
+<<<<<<< HEAD
 
         @test_logs (:warn, "No constants defined for method of type Main.ProceduralTestLSLogMA.MadeUpSampler. By default we set sigma2 to 1 and scaling to 1.") RLinearAlgebra.get_SE_constants!(logger, MadeUpSampler)
         @test_throws ArgumentError("`sampler` is not of type `LinSysBlkColSampler`, `LinSysVecColSampler`, `LinSysBlkRowSampler`, or `LinSysVecRowSampler`") RLinearAlgebra.log_update!(logger, MadeUpSampler(), z, (A[1, :], b[1]), 0, A, b)
+=======
+        @test_logs (:warn, "No constants defined for method of type Main.ProceduralTestLSLogMA.MadeUpSampler. By default we set sigma2 to 1 and scaling to 1.") RLinearAlgebra.get_SE_constants!(logger, MadeUpSampler)
+
+>>>>>>> f9088aa (Updated default metric for get uncertainty)
     end
 
     # Verify late moving average 
