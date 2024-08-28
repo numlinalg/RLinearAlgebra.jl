@@ -20,10 +20,10 @@ A mutable structure that stores information relevant to the moving average of th
 
 For more information see:
 - Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear 
-inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
+    inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
 - Pritchard, Nathaniel, and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative 
-Least Squares Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertainty 
-Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057
+    Least Squares Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertainty 
+    Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057
 """
 mutable struct MAInfo
     lambda1::Int64
@@ -57,10 +57,10 @@ in the sub-Exponential family.
 
 For more information see:
 - Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear 
-inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
+    inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
 - Pritchard, Nathaniel, and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative 
-Least Squares Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertainty 
-Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057
+    Least Squares Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertainty 
+    Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057
 """
 mutable struct SEDistInfo
     sampler::Union{DataType, Nothing}
@@ -79,11 +79,6 @@ A mutable structure that stores information about a randomized linear solver's b
 The log assumes that only a random block of full linear system is available for processing. 
 The goal of this log is usually for all use cases as it acts as a cheap approximation of the 
 full residual.
-
-For more information see:
-- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
-- Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
-Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057 
 
 # Fields
 - `collection_rate::Int64`, the frequency with which to record information about progress estimators 
@@ -115,6 +110,13 @@ Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantifica
         omega = nothing,
         eta = 1, 
         true_res = false)`
+
+For more information see:
+- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear 
+    inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
+- Pritchard, Nathaniel, and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative 
+    Least Squares Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertainty 
+    Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057
 """
 mutable struct LSLogMA <: LinSysSolverLog
     collection_rate::Int64
