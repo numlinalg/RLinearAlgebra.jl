@@ -96,7 +96,6 @@ A mutable structure that stores information for tracking a randomized linear sol
 - `iteration::Int64`, the current iteration of the solver.
 - `converged::Bool`, a flag to indicate whether the system has converged by some measure. 
     By default this is `false`.
-- `true_res::Bool`, a boolean indicating if we want the true residual computed instead of approximate.
 - `dist_info::SEDistInfo`, [`SEDistInfo`](@ref)
 
 # Constructors
@@ -108,7 +107,7 @@ A mutable structure that stores information for tracking a randomized linear sol
         sigma2 = nothing, 
         omega = nothing,
         eta = 1, 
-        true_res = false)`
+        )`
 
 For more information see:
 - Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear 
@@ -126,7 +125,6 @@ mutable struct LSLogMA <: LinSysSolverLog
     resid_norm::Function
     iteration::Int64
     converged::Bool
-    true_res::Bool
     dist_info::SEDistInfo
 end
 
@@ -137,7 +135,6 @@ LSLogMA(;
         sigma2 = nothing, 
         omega = nothing, 
         eta = 1, 
-        true_res = false
        ) = LSLogMA( collection_rate,
                     MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
                     Float64[], 
@@ -146,7 +143,6 @@ LSLogMA(;
                     norm, 
                     -1, 
                     false,
-                    true_res,
                     SEDistInfo(nothing, 0, 0, sigma2, omega, eta, 0)
                   )
 
@@ -182,20 +178,15 @@ function log_update!(
         if typeof(log.dist_info.sigma2) <: Nothing || log.dist_info.sigma2 == 0
             get_SE_constants!(log, typeof(sampler))
         end
-
+        
     end
 
     ma_info = log.ma_info
     log.iteration = iter
-    #Check if we want exact residuals computed
-    if !log.true_res && iter > 0
-        # Compute the current residual to second power to align with theory
-        # Check if it is one dimensional or block sampling method
-        res::Float64 = log.dist_info.scaling * (eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
-                            log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2) 
-    else 
-        res = log.resid_norm(A * x - b)^2 
-    end
+    # Compute the current residual to second power to align with theory
+    # Check if it is one dimensional or block sampling method
+    res::Float64 = log.dist_info.scaling * (eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
+                       log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2) 
   
     # Check if MA is in lambda1 or lambda2 regime
     if ma_info.flag
@@ -238,7 +229,7 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
     accum = 0
     accum2 = 0
     ma_info = log.ma_info
-    ma_info.idx = ma_info.idx < ma_info.lambda2 ? ma_info.idx + 1 : 1
+    ma_info.idx = ma_info.idx < ma_info.lambda2 && iter != 0 ? ma_info.idx + 1 : 1
     ma_info.res_window[ma_info.idx] = res
     #Check if entire storage buffer can be used
     if ma_info.lambda == ma_info.lambda2 
@@ -374,10 +365,12 @@ This function is not exported and thus the user does not have direct access to i
 
 # Outputs
 Performs an inplace update of the sub-Exponential constants for the log. Additionally, updates the scaling constant to ensure expectation of 
-block norms is equal to true norm.
+block norms is equal to true norm. If default is not a defined a warning is returned that sigma2 is set 1 and scaling is set to 1. 
 """
 function get_SE_constants!(log::LSLogMA, sampler::Type{T}) where T<:LinSysSampler
-    return nothing
+        @warn "No constants defined for method of type $sampler. By default we set sigma2 to 1 and scaling to 1."
+        log.dist_info.sigma2 = 1
+        log.dist_info.scaling = 1 
 end
 
 for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,

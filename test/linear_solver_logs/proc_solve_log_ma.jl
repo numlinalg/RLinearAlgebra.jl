@@ -24,15 +24,23 @@ Random.seed!(1010)
 
         sampler = LinSysVecRowOneRandCyclic()
         logger = LSLogMA()
-        @test_throws ArgumentError("The SE constants are empty, please set them in dist_info field of LSLogMA first.") get_uncertainty(logger) 
 
-        RLinearAlgebra.log_update!(logger, sampler, z, (A[1,:],b[1]), 0, A, b)
+        # Test the error message on the get_uncertainty function
+        @test_throws ArgumentError("The SE constants are empty, please set them in dist_info field of LSLogMA first.") get_uncertainty(logger) 
+        # Test warning message in default SEconstant look up
+
+        RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
 
         @test length(logger.resid_hist) == 1
-        @test logger.resid_hist[1] == norm(A * z - b)^2
-        @test norm(logger.iota_hist[1] - norm(A * z - b)^4) < 1e2 * eps()
+        @test norm(logger.resid_hist[1] - 2 * norm(dot(A[1, :], z) - b[1])^2) < 1e2 * eps()
+        @test norm(logger.iota_hist[1] - 4 * norm(dot(A[1, :], z) - b[1])^4) < 1e2 * eps()
         @test logger.iteration == 0
         @test logger.converged == false
+        
+        struct MadeUpSampler <: LinSysSampler  
+        end
+        @test_logs (:warn, "No constants defined for method of type Main.ProceduralTestLSLogMA.MadeUpSampler. By default we set sigma2 to 1 and scaling to 1.") RLinearAlgebra.get_SE_constants!(logger, MadeUpSampler)
+
     end
 
     # Verify late moving average 
@@ -104,6 +112,10 @@ Random.seed!(1010)
         @test norm((Uncertainty_set[2] - logger.resid_hist) ./ sqrt.(2 * log(2/.05) * logger.iota_hist * 
                     logger.dist_info.sigma2 .* (1 .+ log.(logger.lambda_hist)) ./  logger.lambda_hist) .- 1) < 1e2 * eps()
     end
+    
+   
+
+
 end
 
 end # End Module
