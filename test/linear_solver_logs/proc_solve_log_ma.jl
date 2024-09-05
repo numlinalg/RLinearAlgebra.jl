@@ -39,8 +39,9 @@ Random.seed!(1010)
         
         struct MadeUpSampler <: LinSysSampler  
         end
-        @test_logs (:warn, "No constants defined for method of type Main.ProceduralTestLSLogMA.MadeUpSampler. By default we set sigma2 to 1 and scaling to 1.") RLinearAlgebra.get_SE_constants!(logger, MadeUpSampler)
 
+        @test_logs (:warn, "No constants defined for method of type Main.ProceduralTestLSLogMA.MadeUpSampler. By default we set sigma2 to 1 and scaling to 1.") RLinearAlgebra.get_SE_constants!(logger, MadeUpSampler)
+        @test_throws ArgumentError("`sampler` is not of type `LinSysBlkColSampler`, `LinSysVecColSampler`, `LinSysBlkRowSampler`, or `LinSysVecRowSampler`") RLinearAlgebra.log_update!(logger, MadeUpSampler(), z, (A[1, :], b[1]), 0, A, b)
     end
 
     # Verify late moving average 

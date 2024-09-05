@@ -46,10 +46,10 @@ in the sub-Exponential family.
 - `block_dimension::Int64`, the dimension of the sample.
 - `sigma2::Union{Float64, Nothing}`, the variance parameter in the sub-Exponential family. 
     If not specified by the user, a value is selected from a table based on the `sampler`. 
-    If the `sampler` is not in the table, then ?.
+    If the `sampler` is not in the table, then `sigma2` is set to `1`.
 - `omega::Union{Float64, Nothing}`, the exponential distrbution parameter. If not specified 
     by the user, a value is selected from a table based on the `sampler`.
-    If the `sampler` is not in the table, then ?.
+    If the `sampler` is not in the table, then `omega` is set to `1`.
 - `eta::Float64`, a parameter for adjusting the conservativeness of the distribution, higher 
     value means a less conservative estimate. A recommended value is `1`.
 - `scaling::Float64`, a scaling parameter for the norm-squared of the sketched residual to 
@@ -158,20 +158,19 @@ function log_update!(
 )
     if iter == 0 
         # Check if it is a row or column method and record dimensions
+        log.dist_info.dimension = size(A,1)
         if supertype(typeof(sampler)) <: LinSysVecRowSampler
-            log.dist_info.dimension = size(A,1)
             log.dist_info.block_dimension = 1 
         elseif supertype(typeof(sampler)) <: LinSysBlkRowSampler
-            log.dist_info.dimension = size(A,1)
             # For the block methods samp[3] is always the sketched residual, its length is block size
             log.dist_info.block_dimension = sampler.block_size 
         elseif supertype(typeof(sampler)) <: LinSysVecColSampler
-            log.dist_info.dimension = size(A,1)
             log.dist_info.block_dimension = 1 
-        else
-            log.dist_info.dimension = size(A,1)
+        elseif supertype(typeof(sampler)) <: LinSysBlkColSampler
             # For the block methods samp[3] is always the sketched residual, its length is block size
             log.dist_info.block_dimension = sampler.block_size
+        else
+            throw(ArgumentError("`sampler` is not of type `LinSysBlkColSampler`, `LinSysVecColSampler`, `LinSysBlkRowSampler`, or `LinSysVecRowSampler`"))
         end
         
         # If the constants for the sub-Exponential distribution are not defined then define them
@@ -195,10 +194,10 @@ function log_update!(
         # Check if we can switch between lambda1 and lambda2 regime
         # If it is in the monotonic decreasing of the sketched residual then we are in a lambda1 regime
         # otherwise we switch to the lambda2 regime which is indicated by the changing of the flag
-        # because update_ma changes res_window and ma_info.idx must check condition first
+        # because update_ma changes res_window and ma_info.idx we must check condition first
         flag_cond = iter == 0 || res <= ma_info.res_window[ma_info.idx] 
         update_ma!(log, res, ma_info.lambda1, iter)
-        ma_info.flag = flag_cond ? false : true
+        ma_info.flag = !flag_cond
 
     end
 
@@ -217,8 +216,7 @@ Function that updates the moving average tracking statistic.
 
 # Inputs
 - `log::LSLogMA`, the moving average log structure.
-- `res::Union{AbstractVector, Real}, the residual for the current iteration. 
-    This could be sketeched or full residual depending on the inputs when creating the log structor.
+- `res::Union{AbstractVector, Real}`, the sketched residual for the current iteration. 
 - `lambda_base::Int64`, which lambda, between lambda1 and lambda2, is currently being used.
 - `iter::Int64`, the current iteration.
 
@@ -226,7 +224,9 @@ Function that updates the moving average tracking statistic.
 Updates the log datatype and does not explicitly return anything.
 """
 function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base::Int64, iter::Int64)
+    # Variable to store the sum of the terms for rho
     accum = 0
+    # Variable to store the sum of the terms for iota 
     accum2 = 0
     ma_info = log.ma_info
     ma_info.idx = ma_info.idx < ma_info.lambda2 && iter != 0 ? ma_info.idx + 1 : 1
@@ -245,48 +245,20 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
             push!(log.iota_hist, accum2 / ma_info.lambda) 
         end
 
-    # In the lambda1 regime we are not summing all the entries in the ma and must be careful
-    elseif ma_info.lambda == ma_info.lambda1 && !ma_info.flag
-        diff = ma_info.idx - ma_info.lambda
-        # Because lambda1 is less than lambda2 and the index storing the new norm of the residual
-        # moves sequentially there could be an issue of summing at the end and the begining of the buffer.
-        # When lambda is greater than the index we will have to go to end of the buffer to get the remaining
-        # terms in the sum and add it to the terms summed from index 1 to current index. Otherwise we can 
-        # just start the sum lambda terms in front of the index
-        startp1 = diff < 0 ? 1 : (diff + 1)
-        # Since the index is less than the width, we must add the remianing terms to the sum summing the 
-        # terms starting at the end of the buffer-remaining terms to the length of the buffer. If this is not
-        # necessary we skip the second loop
-        startp2 = diff < 0 ? ma_info.lambda2 + diff + 1 : 2 
-        endp2 = diff < 0 ? ma_info.lambda2 : 1 
-        # Compute the moving average two loop setup required when lambda < lambda2
-        for i in startp1:ma_info.idx
-            accum += ma_info.res_window[i]
-            accum2 += ma_info.res_window[i]^2
-        end
-
-        for i in startp2:endp2
-            accum += ma_info.res_window[i]
-            accum2 += ma_info.res_window[i]^2
-        end
-
-        #Update the log variable with the information for this update
-        if mod(iter, log.collection_rate) == 0 || iter == 0
-            push!(log.lambda_hist, ma_info.lambda)
-            push!(log.resid_hist, accum / ma_info.lambda) 
-            push!(log.iota_hist, accum2 / ma_info.lambda) 
-        end
-
     else
-        # Get the difference between the start and current lambda
+        # Consider the case when lambda <= lambda1 or  lambda1 < lambda < lambda2
         diff = ma_info.idx - ma_info.lambda
-        
-        # Determine start point for first loop
+        # Because the storage of the residual is based dependent on lambda2 and 
+        # we want to sum only the previous lamdda terms we could have a situation
+        # where we want the first `idx` terms of the buffer and the last `diff`
+        # terms of the buffer. Doing this requires two loops
+        # If `diff` is negative there idx is not far enough into the buffer and
+        # two sums will be needed
         startp1 = diff < 0 ? 1 : (diff + 1)
         
-        # Determine start and endpoints for second loop
-        startp2 = diff > 0 ? 2 : lambda_base + diff + 1  
-        endp2 = diff > 0 ? 1 : lambda_base
+        # Assuming that the width of the buffer is lambda2 
+        startp2 = diff < 0 ? ma_info.lambda2 + diff + 1 : 2 
+        endp2 = diff < 0 ? ma_info.lambda2 : 1
 
         # Compute the moving average two loop setup required when lambda < lambda2
         for i in startp1:ma_info.idx
@@ -306,7 +278,7 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
             push!(log.iota_hist, accum2 / ma_info.lambda) 
         end
         
-        ma_info.lambda += 1
+        ma_info.lambda += ma_info.lambda < lambda_base ? 1 : 0
     end
 
 end
@@ -315,7 +287,8 @@ end
 """
     get_uncertainty(log::LSLogMA; alpha = 0.05)
     
-A function that takes a LSLogMA type and a confidence level, `alpha`, and returns a `(1-alpha)`-credible intervals for for every rho in the log, specifically it returns a tuple with (rho, Upper bound, Lower bound).
+A function that takes a LSLogMA type and a confidence level, `alpha`, and returns a `(1-alpha)`-credible intervals 
+for every `rho` in the `log`, specifically it returns a tuple with (rho, Upper bound, Lower bound).
 """
 function get_uncertainty(hist::LSLogMA; alpha::Float64 = 0.05)
     lambda = hist.ma_info.lambda
@@ -343,9 +316,9 @@ function get_uncertainty(hist::LSLogMA; alpha::Float64 = 0.05)
             #compute error bound when there is an omega
             diffG = sqrt(cG * 2 * log(2/(alpha)))
             diffO = sqrt(iota) * 2 * log(2/(alpha)) * hist.dist_info.omega / (hist.dist_info.eta * width)
-            diffM = min(diffG, diffO)
-            upper[i] = rho + diffG
-            lower[i] = rho - diffG
+            diffM = max(diffG, diffO)
+            upper[i] = rho + diffM
+            lower[i] = rho - diffM
         end
         
     end
@@ -360,7 +333,7 @@ A function that returns a default set of sub-Exponential constants for each samp
 This function is not exported and thus the user does not have direct access to it. 
 
 # Inputs 
-- `log::LSLogMA`, the log containing al the tracking information.
+- `log::LSLogMA`, the log containing all the tracking information.
 - `sampler::Type{LinSysSampler}`, the type of sampler being used.
 
 # Outputs
