@@ -18,13 +18,14 @@ https://arxiv.org/abs/2302.07466.
 - `b::AbstractVector`, constant vector for linear system.
 - `k::Int`, number of iterations to do (size of Krylov Subspace).
 """
-function arnoldi!(
+function arnoldi_solver!(
     x::AbstractVector,
     A::AbstractMatrix,
     b::AbstractVector,
     k::Int
 )
 
+    # helper function to form and solve the linear system
     function solve_linear_system!(
         x::AbstractVector, 
         beta::Float64, 
@@ -38,24 +39,27 @@ function arnoldi!(
         x .+= V[:, 1:k] * z
     end
 
+    # initialization of storage and initial residual
     r0 = b - A * x 
     beta = norm(r0)
     V = zeros(size(A)[1], k+1)
-    V[:, 1] = r0 / beta
-
     H = zeros(k+1, k+1)
 
+    V[:, 1] = r0 / beta 
     for j in 1:k
+        # next vector to add to basis
         z = A * V[:, j]
-        for i in 1:j
-            H[i,j] = dot(V[:, i], z)
-            z = z - H[i,j] * V[:, i]
-        end
-        #z = z - V[:, 1:j] * H[1:j, j]
+
+        # orthogonalization constants
+        H[1:j, j] = V[:, 1:j]' * z
+
+        # orthogonalize and update basis
+        z = z - V[:, 1:j] * H[1:j, j]
         H[j+1,j] = norm(z)
         V[:,j+1] = z / H[j+1,j]
     end
 
+    # solve linear system
     solve_linear_system!(x, beta, H, V, k)
     return H, V
 end

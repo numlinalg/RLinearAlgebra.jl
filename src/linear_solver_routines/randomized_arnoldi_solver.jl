@@ -21,14 +21,14 @@ https://arxiv.org/abs/2302.07466.
 - `sketch_matrix::Union{AbstractMatrix, Nothing}` (Optional; Default value `nothing`) 
 """
 function randomized_arnoldi_solver!(
-    x::AbstractVector,
-    A::AbstractMatrix,
-    b::AbstractVector,
-    k::Int; # max iteration limit 
+    x::AbstractVector,                                      # initial guess - will be overwritten
+    A::AbstractMatrix,                                      # coefficient matrix
+    b::AbstractVector,                                      # constant vector
+    k::Int;                                                 # max iteration limit 
     sketch_matrix::Union{AbstractMatrix, Nothing} = nothing # should this just be a method
 )
 
-    # helper function to set up and solve the linear system
+    # helper function to set up and solve linear system
     function solve_linear_system!(
         x::AbstractVector, 
         beta::Float64, 
@@ -69,12 +69,14 @@ function randomized_arnoldi_solver!(
 
     # main loop
     for j in 1:k
+        # get vector to be added to basis
         z = A * V[:, j]
         p = sketch_matrix * z
-        for i in 1:j
-            H[i,j] = dot(S[:, i], p)
-            p = p - H[i,j] * S[:, i]
-        end
+
+        # orthogonalizing constants
+        H[1:j, j] = S[:, 1:j]' * p
+
+        # orthogonalize (in sketch space) and update current basis
         z = z - V[:, 1:j] * H[1:j, j]
         s_prime = sketch_matrix * z
         H[j+1, j] = norm(s_prime)
@@ -82,6 +84,7 @@ function randomized_arnoldi_solver!(
         S[:, j+1] = s_prime / H[j+1, j]
     end
 
+    # solve the resulting linear system and return H, V, S for debugging purposes
     solve_linear_system!(x, beta, H, V, k)
     return H, V, S
 end
