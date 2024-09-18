@@ -70,7 +70,7 @@ export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
     LinSysVecColProjFO
 
 # Vector Block Column Projection
-export LinSysBlkColGent, BlockCoordinateDescent 
+export LinSysBlkColGent, LinSysBlkColGentAccel, BlockCoordinateDescent 
 #*****************************************#
 # Linear Solver Log Exports
 #*****************************************#
