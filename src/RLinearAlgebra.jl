@@ -21,7 +21,7 @@ module RLinearAlgebra
 # Dependencies
 ###########################################
 
-using LinearAlgebra, Random, Distributions
+using LinearAlgebra, Random, Distributions, StatsBase
 
 ###########################################
 # Exports
@@ -44,13 +44,14 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
     LinSysVecRowUnidSampler, LinSysVecRowUnifSampler, LinSysVecRowGaussSampler,
     LinSysVecRowSparseUnifSampler, LinSysVecRowSparseGaussSampler, LinSysVecRowMaxResidual,
     LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic
+export LinSysBlkRowCountSketch, LinSysBlkRowSelectWoReplacement
 
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 #Vector Block Row Samplers
-export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace
+export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace, LinSysBlkRowCountSketch, LinSysBlkRowSelectWoReplacement
 #Vector Block Column Samplers
-export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace
+export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace, LinSysBlkColSelectWoReplacement
 #*****************************************#
 # Linear Solver Routine Exports
 #*****************************************#
