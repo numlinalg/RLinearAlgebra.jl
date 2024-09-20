@@ -25,10 +25,10 @@ function randomized_arnoldi_solver!(
     A::AbstractMatrix,                                      # coefficient matrix
     b::AbstractVector,                                      # constant vector
     k::Int;                                                 # max iteration limit 
-    sketch_matrix::Union{AbstractMatrix, Nothing} = nothing # should this just be a method
+    sketch_matrix::Union{AbstractMatrix, Nothing} = nothing # optional sketch matrix
 )
 
-    # helper function to set up and solve linear system
+    # helper function to set up and solve linear system after main iteration
     function solve_linear_system!(
         x::AbstractVector, 
         beta::Float64, 
@@ -47,33 +47,33 @@ function randomized_arnoldi_solver!(
         throw(DomainError("Matrix A is not square."))
     end
 
-    # check to see if sketch_matrix is initialized
+    # check to see if sketch_matrix is initialized correctly; otherwise, create a gaussian matrix
     if isnothing(sketch_matrix)
-        # create a guassian matrix with size suggested by theory
         sketch_matrix = randn(k * cond(A), size(A)[1])
+    elseif size(sketch_matrix)[1] < k
+        @warn("Embedding space smaller then number of iterations. Possible trouble with forming sketched basis. Caution advised.")
     end
 
-    # initalizations
-    r0 = b - A * x 
+    # initializations -- important quantities
+    r0 = b - A * x                      
     sketch_r0 = sketch_matrix * r0
     beta = norm(sketch_r0)
 
-    # storage
+    # initializations -- storage
     V = zeros(size(A)[1], k+1)              # Approximate basis for krylov space
     S = zeros(size(sketch_matrix)[1], k+1)  # Sketched basis for krylov space
     H = zeros(k+1, k+1)                     # Normalizing coefficients
-    z = zeros(size(A)[1])                   # buffer array for adding a vector to V
     d = zeros(size(A)[1])                   # buffer array for making z orthogonal
     s_prime = zeros(size(sketch_matrix)[1]) # buffer array for sketched basis vector
 
-    # initialization
+    # initial basis vectors
     V[:, 1] .= r0 ./ beta
     S[:, 1] .= sketch_r0 ./ beta
 
     # main loop
-    for j in 1:k
+    for j in 1:k 
         # get vector to be added to basis
-        #z = A * @view V[:, j]
+        z = view(V, :, j+1)
         mul!( z, A, view(V, :, j) )
 
         # orthogonalizing constants
@@ -81,15 +81,14 @@ function randomized_arnoldi_solver!(
         buffer = view(H, 1:j, j)
         mul!(buffer, view(S, :, 1:j)', s_prime)
 
-        #buffer = view(S, :, 1:j)' * sketch_matrix * z
-
         # orthogonalize (in sketch space) and update current basis
         mul!( d, view(V, :, 1:j), view(H, 1:j, j) )
         z .-= d
+        
+        # update our H, approximate basis V, and sketched basis S
         mul!(s_prime, sketch_matrix, z)
-        #s_prime = sketch_matrix * z
         H[j+1, j] = norm(s_prime)
-        V[:, j+1] .= z ./ H[j+1, j]
+        z ./= H[j+1, j]
         S[:, j+1] .= s_prime ./ H[j+1, j]
     end
 
