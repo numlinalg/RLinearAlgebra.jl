@@ -54,34 +54,43 @@ function randomized_arnoldi_solver!(
     end
 
     # initalizations
-    r0         = b - A * x 
-    sketch_r0  = sketch_matrix * r0
-    beta       = norm(sketch_r0)
+    r0 = b - A * x 
+    sketch_r0 = sketch_matrix * r0
+    beta = norm(sketch_r0)
 
     # storage
-    V = zeros(size(A)[1], k+1)
-    S = zeros(size(sketch_matrix)[1], k+1)
-    H = zeros(k+1, k+1)
+    V = zeros(size(A)[1], k+1)              # Approximate basis for krylov space
+    S = zeros(size(sketch_matrix)[1], k+1)  # Sketched basis for krylov space
+    H = zeros(k+1, k+1)                     # Normalizing coefficients
+    z = zeros(size(A)[1])                   # buffer array for adding a vector to V
+    d = zeros(size(A)[1])                   # buffer array for making z orthogonal
+    s_prime = zeros(size(sketch_matrix)[1]) # buffer array for sketched basis vector
 
     # initialization
-    V[:, 1] = r0 / beta
-    S[:, 1] = sketch_r0 / beta
+    V[:, 1] .= r0 ./ beta
+    S[:, 1] .= sketch_r0 ./ beta
 
     # main loop
     for j in 1:k
         # get vector to be added to basis
-        z = A * V[:, j]
-        p = sketch_matrix * z
+        #z = A * @view V[:, j]
+        mul!( z, A, view(V, :, j) )
 
         # orthogonalizing constants
-        H[1:j, j] = S[:, 1:j]' * p
+        mul!( s_prime, sketch_matrix, z )
+        buffer = view(H, 1:j, j)
+        mul!(buffer, view(S, :, 1:j)', s_prime)
+
+        #buffer = view(S, :, 1:j)' * sketch_matrix * z
 
         # orthogonalize (in sketch space) and update current basis
-        z = z - V[:, 1:j] * H[1:j, j]
-        s_prime = sketch_matrix * z
+        mul!( d, view(V, :, 1:j), view(H, 1:j, j) )
+        z .-= d
+        mul!(s_prime, sketch_matrix, z)
+        #s_prime = sketch_matrix * z
         H[j+1, j] = norm(s_prime)
-        V[:, j+1] = z / H[j+1, j]
-        S[:, j+1] = s_prime / H[j+1, j]
+        V[:, j+1] .= z ./ H[j+1, j]
+        S[:, j+1] .= s_prime ./ H[j+1, j]
     end
 
     # solve the resulting linear system and return H, V, S for debugging purposes
