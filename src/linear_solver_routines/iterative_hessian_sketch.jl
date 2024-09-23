@@ -14,8 +14,8 @@ See Mert Pilanci and Martin J. Wainwright. "Iterative Hessian Sketch:
 
 # Fields
 
-- `A::AbstractArray`, is the coefficient matrix for the linear system. Required as we need to compute the full residual.
-- `b::AbstractVector`, is the constant term (i.e., the linear system is Ax=b). Required as we need to compute the full residual.
+- `A::AbstractArray`, the coefficient matrix for the linear system. Required as we need to compute the full residual.
+- `b::AbstractVector`, the constant term (i.e., the linear system is Ax=b). Required as we need to compute the full residual.
 - `step::Union{AbstractVector, Nothing}`, buffer array to hold solution of subproblem that provides update to x.
 - `btilde::Union{AbstractVector, Nothing}`, buffer array to hold constant term in forming the subproblem to compute `step`.
 """
@@ -27,14 +27,14 @@ mutable struct IterativeHessianSketch <: LinSysSolveRoutine
 end
 
 function IterativeHessianSketch(A::AbstractArray, b::AbstractVector)
-    return IterativeHessianSketch(A,b,nothing,nothing)
+    return IterativeHessianSketch(A, b, nothing, nothing)
 end
 
 # Common rsubsolve interface for linear systems
 function rsubsolve!(
     type::IterativeHessianSketch,
     x::AbstractVector,
-    samp::Tuple{U,V,W} where {U<:AbstractArray,V<:AbstractArray,W<:AbstractVector},
+    samp::Tuple{U,V,W} where {U<:AbstractArray, V<:AbstractArray, W<:AbstractVector},
     iter::Int64
 )
     # samp[1] is the search direction
@@ -50,7 +50,7 @@ function rsubsolve!(
 
         # sketch matrix will not have full column rank
         if m < d 
-            @warn "The sampler's blockSize might be too small for a sensible inner problem solution!"
+            @warn "The sampler's block_size might be too small for a sensible inner problem solution."
         end
 
     end
@@ -59,18 +59,16 @@ function rsubsolve!(
     type.btilde .= m * ((type.A)' * (type.b - type.A * x))
 
     # Check if QR decomposition can be used on the sketched matrix SA to solve sub-linear system
-    if m >= size(samp[2])[2]
+    d = size(samp[2])[2] 
+    if m >= d
         R = qr(samp[2]).R
         type.step .= R' \ type.btilde
         type.step .= R \ type.step
-    else # if QR cannot be done, form full sketched Hessian and try to solve
-        try
-            LinearAlgebra.ldiv!(type.step, cholesky(samp[2]' * samp[2]), type.btilde)
-        catch
-            type.step .= zeros(size(x)[1])
-            @warn "The sampler's blockSize might be too small. Encountered error in LinearAlgebra.ldiv!, no update applied!"
+    else # if QR cannot be done, form full sketched Hessian and use back solve -> d by d system
+        if iter == 1
+            @warn "The sampler's block_size is too small for theory to hold. Trying to solve linear system anyway."
         end
-
+        type.step .= (samp[2]' * samp[2]) \ type.btilde
     end
 
     # update current iterate

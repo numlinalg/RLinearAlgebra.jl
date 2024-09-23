@@ -60,10 +60,10 @@ export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
     LinSysBlkRowProjection, LinSysBlkColProjection, LinSysPreconKrylov
 
 # Vector Row Projection
-export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjFO, IterativeHessianSketch
+export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjFO
 
 # Vector Block Row Projection
-export LinSysBlkRowLQ, BlockKaczmarz
+export LinSysBlkRowLQ, BlockKaczmarz, IterativeHessianSketch
 
 # Vector Column Projection
 export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
