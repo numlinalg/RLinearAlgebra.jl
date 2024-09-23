@@ -113,12 +113,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     RLinearAlgebra.rsubsolve!(rsub, x0, (S, S * A, S * A * x0 - S * b), 1)
 
     step_buffer = zeros(5)
-    try
-        LinearAlgebra.ldiv!(step_buffer, cholesky((S * A)' * (S * A)), size(S)[1] * A' * (b - A * zeros(5)))
-    catch
-        step_buffer = zeros(5)
-        print("\n")
-    end
+    step_buffer .= ((S * A)' * (S * A)) \ (size(S)[1] * A' * (b - A * zeros(5))) 
 
     @test step_buffer ≈ rsub.step
     @test x0 ≈ zeros(5) + rsub.step

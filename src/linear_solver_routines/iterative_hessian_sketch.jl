@@ -64,7 +64,7 @@ function rsubsolve!(
         R = qr(samp[2]).R
         type.step .= R' \ type.btilde
         type.step .= R \ type.step
-    else # if QR cannot be done, form full sketched Hessian and use back solve -> d by d system
+    else # if QR cannot be done, form full sketched Hessian and use back solve
         if iter == 1
             @warn "The sampler's block_size is too small for theory to hold. Trying to solve linear system anyway."
         end
