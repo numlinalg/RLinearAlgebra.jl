@@ -50,7 +50,7 @@ function rsubsolve!(
 
         # sketch matrix will not have full column rank
         if m < d 
-            @warn "The sampler's block_size might be too small for a sensible inner problem solution."
+            @warn "The sampler's block_size might be too small for sensible inner problem solution. Algorithm will continue by solving the least squares problem instead (Caution: No theory)."
         end
 
     end
@@ -64,11 +64,14 @@ function rsubsolve!(
         R = qr(samp[2]).R
         type.step .= R' \ type.btilde
         type.step .= R \ type.step
-    else # if QR cannot be done, form full sketched Hessian and use back solve
-        if iter == 1
-            @warn "The sampler's block_size is too small for theory to hold. Trying to solve linear system anyway."
-        end
-        type.step .= (samp[2]' * samp[2]) \ type.btilde
+    else 
+        # SA might not full rank, apply More-Penrose inverse
+        # Solving Q R R' Q x = b; b = type.btilde
+        Q, R = qr(samp[2]')
+        type.step .= Q' * type.btilde # R R' Q' x = Q' * b
+        type.step .= R \ type.step    # Solve R z = Q' * b, z = R' Q' x
+        type.step .= R' \ type.step   # Solve R' y = z, y = Q' x
+        type.step .= Q * type.step    # Solve Q' * x = y
     end
 
     # update current iterate

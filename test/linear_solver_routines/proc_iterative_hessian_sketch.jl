@@ -113,9 +113,10 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     RLinearAlgebra.rsubsolve!(rsub, x0, (S, S * A, S * A * x0 - S * b), 1)
 
     step_buffer = zeros(5)
-    step_buffer .= ((S * A)' * (S * A)) \ (size(S)[1] * A' * (b - A * zeros(5))) 
+    B = (S*A)' * (S * A) 
+    b = (size(S)[1] * A' * (b - A * zeros(5)))
 
-    @test step_buffer ≈ rsub.step
+    @test norm(B' * B * rsub.step - B' * b) < eps() * 1e2
     @test x0 ≈ zeros(5) + rsub.step
     ##########################
     ##########################
