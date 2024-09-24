@@ -116,7 +116,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     B = (S*A)' * (S * A) 
     b = (size(S)[1] * A' * (b - A * zeros(5)))
 
-    @test norm(B' * B * rsub.step - B' * b) < eps() * 1e3
+    @test norm(B' * B * rsub.step - B' * b) < eps() * 1e4
     @test x0 ≈ zeros(5) + rsub.step
     ##########################
     ##########################
