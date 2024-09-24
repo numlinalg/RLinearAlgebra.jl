@@ -65,7 +65,7 @@ function rsubsolve!(
         type.step .= R' \ type.btilde
         type.step .= R \ type.step
     else 
-        # SA might not full rank, apply More-Penrose inverse
+        # AS * SA might not full rank, apply More-Penrose inverse
         # Solving Q R R' Q x = b; b = type.btilde
         Q, R = qr(samp[2]')
         type.step .= Q' * type.btilde # R R' Q' x = Q' * b
