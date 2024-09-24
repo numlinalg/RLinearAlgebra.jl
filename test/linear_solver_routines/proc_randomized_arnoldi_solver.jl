@@ -22,7 +22,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     # run randomized arnoldi iteration -- sketch matrix provided
     k = 5
     sketch_matrix = randn(5, 10) # refered to as Ω in comments
-    H, V, S = RLinearAlgebra.randomized_arnoldi_solver!(x0, A, b, k, sketch_matrix = sketch_matrix)
+    H, V, S = randomized_arnoldi!(x0, A, b, k, sketch_matrix = sketch_matrix)
 
     # gather common matrices
     Vk = V[:, 1:k]

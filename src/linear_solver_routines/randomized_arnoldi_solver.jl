@@ -5,7 +5,7 @@
 # by Timsit, Grigori, Balabanov.
 
 """
-    randomized_arnoldi_solver!(x, A, b, k; sketch_matrix)
+    randomized_arnoldi!(x, A, b, k; sketch_matrix)
 
 Find an approximate solution of the linear system using the randomized arnoldi iteration.
 This method was introduced in the following paper
@@ -20,7 +20,7 @@ https://arxiv.org/abs/2302.07466.
 - `k::Int`, number of iterations to do (size of Krylov Subspace).
 - `sketch_matrix::Union{AbstractMatrix, Nothing}` (Optional; Default value `nothing`) 
 """
-function randomized_arnoldi_solver!(
+function randomized_arnoldi!(
     x::AbstractVector,                                      # initial guess - will be overwritten
     A::AbstractMatrix,                                      # coefficient matrix
     b::AbstractVector,                                      # constant vector

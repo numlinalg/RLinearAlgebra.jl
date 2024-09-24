@@ -3,7 +3,7 @@
 # Purpose: Implement deterministic solver.
 
 """
-    arnoldi_solver!(x, A, b, k)
+    arnoldi!(x, A, b, k)
 
 Finds an approximate solution to the linear system `Ax = b` by doing an Arnoldi Iteration
 to build an orthonormal basis for the Krylov Subspace of size `k`. 
@@ -19,7 +19,7 @@ https://arxiv.org/abs/2302.07466.
 - `b::AbstractVector`, constant vector for linear system.
 - `k::Int`, number of iterations to do (size of Krylov Subspace).
 """
-function arnoldi_solver!(
+function arnoldi!(
     x::AbstractVector,
     A::AbstractMatrix,
     b::AbstractVector,
