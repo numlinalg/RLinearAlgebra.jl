@@ -1,7 +1,7 @@
 
 # This file is part of RLinearAlgebra.jl
 
-module ProceduralTestLSBRReplace
+module ProceduralTestLSBRSRHT
 
 using Test, RLinearAlgebra, Random, Hadamard
 
@@ -9,7 +9,7 @@ import LinearAlgebra: norm
 
 Random.seed!(1010)
 
-@testset "LSBR Random Sampling with Replacement -- Procedural" begin
+@testset "LSBR SRHT -- Procedural" begin
 
     # Verify appropriate super type
     @test supertype(LinSysBlockRowSRHT) == LinSysBlkRowSampler
