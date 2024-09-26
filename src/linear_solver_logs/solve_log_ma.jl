@@ -40,22 +40,6 @@ end
 A mutable structure that stores information about the sub-Exponential family.
 
 # Fields
-<<<<<<< HEAD
-- `sampler::Union{DataType, Nothing}`, the type of sampling method.
-- `dimension::Int64`, the dimension that of the space that is being sampled.
-- `block_dimension::Int64`, the dimension of the sample.
-- `sigma2::Union{Float64, Nothing}`, the variance parameter in the sub-Exponential family, 
-   if not specified by the user it is provided based on the sampling method.
-- `omega::Union{Float64, Nothing}`, the exponential distrbution parameter, if not specified by the user, 
-   it is provided based on the sampling method.
-- `eta::Float64`, a parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
-  estimate. By default, this is set to `1`.
-
-For more information see:
-- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
-- Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
-Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057 
-=======
 - `sampler::Union{DataType, Nothing}`, The type of sampler being used.
 - `max_dimension::Int64`, The dimension that is being sampled.
 - `block_dimension::Int64`, The sampling dimension.
@@ -65,7 +49,11 @@ Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantifica
 - `eta::Float64`, A parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
   estimate. By default, this is set to one.
 - `scaling::Float64`, constant multiplied by norm to ensure expectation of block norms is the same as the full norm.
->>>>>>> 44a288b (Corrected Scaling issue so now sketched block expectation is same as true block)
+
+For more information see:
+- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
+- Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
+Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057 
 """
 mutable struct SEDistInfo
     sampler::Union{DataType, Nothing}
