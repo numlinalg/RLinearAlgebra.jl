@@ -40,9 +40,6 @@ linear_solver_stops/proc_stop_max_iter
 linear_solver_stops/proc_stop_ma
 linear_solver_stops/proc_stop_thres
 proc_linear_rsolve
-<<<<<<< HEAD
 proc_low_rank_approximations
 linear_solver_routines/proc_iterative_hessian_sketch
-=======
 linear_samplers/sampler_helpers/proc_hadamard
->>>>>>> 6d7d809 (removed helper function folder and moved hadamard to sampler_helper)
