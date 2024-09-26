@@ -7,7 +7,7 @@ sampled.
 
 # Fields
 - `blockSize::Int64`, the size of the sketching dimension
-- `sparsity::Float64`, the sparsity of the sampling matrix
+- `sparsity::Float64`, the sparsity of the sampling matrix, should be between 0 and 1
 - `paddedSize::Int64`, the size of the matrix when padded
 - `Sketch::Union{SparseMatrixCSC, Nothing}`, storage for sparse sketching matrix 
 - `Ap::Union{AbstractMatrix, Nothing}`, storage for padded matrix
@@ -57,7 +57,7 @@ function sample(
             # Find nearest power 2 and allocate
             type.Ap = zeros(m, type.paddedSize)
             # Pad matrix and constant vector
-            @views type.Ap[:, 1:n] .= A
+            type.Ap[:, 1:n] .= A
         else
             type.paddedSize = n
             type.Ap = A
@@ -67,7 +67,8 @@ function sample(
         type.signs = bitrand(type.paddedSize)
         # Apply FWHT to padded matrix and vector
         for i = 1:m
-            @views fwht!(type.Ap[i, :], signs = type.signs, scaling = type.scaling)
+            Av = view(type.Ap, i, :)
+            @views fwht!(Av, signs = type.signs, scaling = type.scaling)
         end
         
     end
@@ -76,7 +77,7 @@ function sample(
     AS = type.Ap * type.Sketch
     # Residual of the linear system
     res = A * x - b
-    grad = AS'res
+    grad = AS' * res
     H = hadamard(type.paddedSize)
     sgn = [type.signs[i] ? 1 : -1 for i in 1:type.paddedSize]
     return [sgn, type.Sketch .* type.scaling], AS, res, grad
