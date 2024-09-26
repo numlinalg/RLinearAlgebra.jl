@@ -40,6 +40,7 @@ end
 A mutable structure that stores information about the sub-Exponential family.
 
 # Fields
+<<<<<<< HEAD
 - `sampler::Union{DataType, Nothing}`, The type of sampler being used.
 - `max_dimension::Int64`, The dimension that is being sampled.
 - `block_dimension::Int64`, The sampling dimension.
@@ -49,6 +50,17 @@ A mutable structure that stores information about the sub-Exponential family.
 - `eta::Float64`, A parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
   estimate. By default, this is set to one.
 - `scaling::Float64`, constant multiplied by norm to ensure expectation of block norms is the same as the full norm.
+=======
+- `sampler::Union{DataType, Nothing}`, the type of sampling method.
+- `dimension::Int64`, the dimension that of the space that is being sampled.
+- `block_dimension::Int64`, the dimension of the sample.
+- `sigma2::Union{Float64, Nothing}`, the variance parameter in the sub-Exponential family, 
+   if not specified by the user it is provided based on the sampling method.
+- `omega::Union{Float64, Nothing}`, the exponential distrbution parameter, if not specified by the user, 
+   it is provided based on the sampling method.
+- `eta::Float64`, a parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
+  estimate. By default, this is set to `1`.
+>>>>>>> 362520c (Reverted unecessary files to master)
 
 For more information see:
 - Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
@@ -62,7 +74,10 @@ mutable struct SEDistInfo
     sigma2::Union{Float64, Nothing}
     omega::Union{Float64, Nothing}
     eta::Float64
+<<<<<<< HEAD
     scaling::Float64
+=======
+>>>>>>> 362520c (Reverted unecessary files to master)
 end
 
 """
@@ -130,8 +145,13 @@ LSLogMA(;
         omega = nothing, 
         eta = 1, 
         true_res = false
+<<<<<<< HEAD
        ) = LSLogMA( cr,
                     MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
+=======
+       ) = LSLogMA( collection_rate,
+                    MAInfo(lambda1, lambda2, 1, false, 1, zeros(lambda2)),
+>>>>>>> 362520c (Reverted unecessary files to master)
                     Float64[], 
                     Float64[], 
                     Int64[],
@@ -139,7 +159,11 @@ LSLogMA(;
                     -1, 
                     false,
                     true_res,
+<<<<<<< HEAD
                     DistInfo(nothing, 0, 0, sigma2, omega, eta, 0) 
+=======
+                    SEDistInfo(nothing, 0, 0, sigma2, omega, eta) 
+>>>>>>> 362520c (Reverted unecessary files to master)
                   )
 
 #Function to update the moving average
@@ -172,7 +196,11 @@ function log_update!(
         
         log.dist_info.sampler = typeof(sampler)  
     # If the constants for the sub-Exponential distribution are not defined then define them
+<<<<<<< HEAD
         if typeof(log.dist_info.sigma2) <: Nothing || log.dist_info.sigma2 == 0
+=======
+        if typeof(log.dist_info.sigma2) <: Nothing
+>>>>>>> 362520c (Reverted unecessary files to master)
             get_SE_constants!(log, log.dist_info.sampler)
         end
 
@@ -183,10 +211,16 @@ function log_update!(
     #Check if we want exact residuals computed
     if !log.true_res && iter > 0
         # Compute the current residual to second power to align with theory
+<<<<<<< HEAD
         res::Float64 = log.dist_info.scaling *
             (eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
                                 log.resid_norm(samp[3])^2 : 
                                 log.resid_norm(dot(samp[1], x) - samp[2])^2) 
+=======
+        # Check if it is one dimensional or block sampling method
+        res::Float64 = eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
+            log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2 
+>>>>>>> 362520c (Reverted unecessary files to master)
     else 
         res = log.resid_norm(A * x - b)^2 
     end
@@ -195,7 +229,11 @@ function log_update!(
         update_ma!(log, res, ma_info.lambda2, iter)
     else
         #Check if we can switch between lambda1 and lambda2 regime
+<<<<<<< HEAD
         if iter == 0 || res <= ma_info.res_window[ma_info.idx] 
+=======
+        if res < ma_info.res_window[ma_info.idx]
+>>>>>>> 362520c (Reverted unecessary files to master)
             update_ma!(log, res, ma_info.lambda1, iter)
         else
             update_ma!(log, res, ma_info.lambda1, iter)
@@ -234,7 +272,11 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
     ma_info.idx = ma_info.idx < ma_info.lambda2 ? ma_info.idx + 1 : 1
     ma_info.res_window[ma_info.idx] = res
     #Check if entire storage buffer can be used
+<<<<<<< HEAD
     if ma_info.lambda == ma_info.lambda2 
+=======
+    if ma_info.lambda == lambda_base 
+>>>>>>> 362520c (Reverted unecessary files to master)
         # Compute the moving average
         for i in 1:ma_info.lambda2
             accum += ma_info.res_window[i]
@@ -246,6 +288,7 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
             push!(log.resid_hist, accum / ma_info.lambda) 
             push!(log.iota_hist, accum2 / ma_info.lambda) 
         end
+<<<<<<< HEAD
     
     elseif ma_info.lambda == ma_info.lambda1 && !ma_info.flag
         diff = ma_info.idx - ma_info.lambda
@@ -272,6 +315,8 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
             push!(log.resid_hist, accum / ma_info.lambda) 
             push!(log.iota_hist, accum2 / ma_info.lambda) 
         end
+=======
+>>>>>>> 362520c (Reverted unecessary files to master)
 
     else
         # Get the difference between the start and current lambda
@@ -360,8 +405,12 @@ This function is not exported and thus the user does not have direct access to i
 - `sampler::Type{LinSysSampler}`, the type of sampler being used.
 
 # Outputs
+<<<<<<< HEAD
 Performs an inplace update of the sub-Exponential constants for the log. Additionally, updates the scaling constant to ensure expectation of 
 block norms is equal to true norm.
+=======
+Performs an inplace update of the sub-Exponential constants for the log.
+>>>>>>> 362520c (Reverted unecessary files to master)
 """
 function get_SE_constants!(log::LSLogMA, sampler::Type{T}) where T<:LinSysSampler
     return nothing
@@ -375,8 +424,12 @@ for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
              LinSysVecRowMaxDistance,)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
+<<<<<<< HEAD
             log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
             log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
+=======
+            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+>>>>>>> 362520c (Reverted unecessary files to master)
         end
 
     end
@@ -388,8 +441,12 @@ end
 for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
+<<<<<<< HEAD
             log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
             log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
+=======
+            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+>>>>>>> 362520c (Reverted unecessary files to master)
         end
 
     end
@@ -402,7 +459,10 @@ for type in (LinSysVecRowGaussSampler, LinSysVecRowSparseGaussSampler)
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
             log.dist_info.sigma2 = log.dist_info.block_dimension / (0.2345 * log.dist_info.eta)
             log.dist_info.omega = .1127
+<<<<<<< HEAD
             log.dist_info.scaling = 1.
+=======
+>>>>>>> 362520c (Reverted unecessary files to master)
         end
 
     end

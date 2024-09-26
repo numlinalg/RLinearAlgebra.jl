@@ -35,7 +35,7 @@ Random.seed!(1010)
         @test log.converged == false
     end
 
-    # Verify late moving average 
+    # Verify moving average 
     let
         A = rand(2,2)
         x = rand(2)
