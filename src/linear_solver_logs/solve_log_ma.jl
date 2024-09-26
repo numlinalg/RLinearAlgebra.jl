@@ -40,6 +40,7 @@ end
 A mutable structure that stores information about the sub-Exponential family.
 
 # Fields
+<<<<<<< HEAD
 - `sampler::Union{DataType, Nothing}`, the type of sampling method.
 - `dimension::Int64`, the dimension that of the space that is being sampled.
 - `block_dimension::Int64`, the dimension of the sample.
@@ -54,6 +55,17 @@ For more information see:
 - Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
 - Pritchard, Nathaniel and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative Least Squares 
 Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertain. Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057 
+=======
+- `sampler::Union{DataType, Nothing}`, The type of sampler being used.
+- `max_dimension::Int64`, The dimension that is being sampled.
+- `block_dimension::Int64`, The sampling dimension.
+- `sigma2::Union{Float64, Nothing}`, The variance parameter in the sub-Exponential distribution, 
+   if not given is determined for sampling method.
+- `omega::Union{Float64, Nothing}`, The exponential distrbution parameter, if not given is determined for sampling methods.
+- `eta::Float64`, A parameter for adjusting the conservativeness of the distribution, higher value means a less conservative
+  estimate. By default, this is set to one.
+- `scaling::Float64`, constant multiplied by norm to ensure expectation of block norms is the same as the full norm.
+>>>>>>> 44a288b (Corrected Scaling issue so now sketched block expectation is same as true block)
 """
 mutable struct SEDistInfo
     sampler::Union{DataType, Nothing}
@@ -62,6 +74,7 @@ mutable struct SEDistInfo
     sigma2::Union{Float64, Nothing}
     omega::Union{Float64, Nothing}
     eta::Float64
+    scaling::Float64
 end
 
 """
@@ -138,7 +151,7 @@ LSLogMA(;
                     -1, 
                     false,
                     true_res,
-                    SEDistInfo(nothing, 0, 0, sigma2, omega, eta) 
+                    DistInfo(nothing, 0, 0, sigma2, omega, eta, 0) 
                   )
 
 #Function to update the moving average
@@ -171,7 +184,7 @@ function log_update!(
         
         log.dist_info.sampler = typeof(sampler)  
     # If the constants for the sub-Exponential distribution are not defined then define them
-        if typeof(log.dist_info.sigma2) <: Nothing
+        if typeof(log.dist_info.sigma2) <: Nothing || log.dist_info.sigma2 == 0
             get_SE_constants!(log, log.dist_info.sampler)
         end
 
@@ -182,9 +195,10 @@ function log_update!(
     #Check if we want exact residuals computed
     if !log.true_res && iter > 0
         # Compute the current residual to second power to align with theory
-        # Check if it is one dimensional or block sampling method
-        res::Float64 = eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
-            log.resid_norm(samp[3])^2 : log.resid_norm(dot(samp[1], x) - samp[2])^2 
+        res::Float64 = log.dist_info.scaling *
+            (eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 
+                                log.resid_norm(samp[3])^2 : 
+                                log.resid_norm(dot(samp[1], x) - samp[2])^2) 
     else 
         res = log.resid_norm(A * x - b)^2 
     end
@@ -332,7 +346,8 @@ This function is not exported and thus the user does not have direct access to i
 - `sampler::Type{LinSysSampler}`, the type of sampler being used.
 
 # Outputs
-Performs an inplace update of the sub-Exponential constants for the log.
+Performs an inplace update of the sub-Exponential constants for the log. Additionally, updates the scaling constant to ensure expectation of 
+block norms is equal to true norm.
 """
 function get_SE_constants!(log::LSLogMA, sampler::Type{T}) where T<:LinSysSampler
     return nothing
@@ -346,7 +361,8 @@ for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
              LinSysVecRowMaxDistance,)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
-            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
         end
 
     end
@@ -358,7 +374,8 @@ end
 for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
     @eval begin
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
-            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.sigma2 = log.dist_info.max_dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+            log.dist_info.scaling = log.dist_info.max_dimension / log.dist_info.block_dimension
         end
 
     end
