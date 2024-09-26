@@ -142,8 +142,8 @@ LSLogMA(;
         omega = nothing, 
         eta = 1, 
         true_res = false
-       ) = LSLogMA( collection_rate,
-                    MAInfo(lambda1, lambda2, 1, false, 1, zeros(lambda2)),
+       ) = LSLogMA( cr,
+                    MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
                     Float64[], 
                     Float64[], 
                     Int64[],
@@ -207,7 +207,7 @@ function log_update!(
         update_ma!(log, res, ma_info.lambda2, iter)
     else
         #Check if we can switch between lambda1 and lambda2 regime
-        if res < ma_info.res_window[ma_info.idx]
+        if iter == 0 || res <= ma_info.res_window[ma_info.idx] 
             update_ma!(log, res, ma_info.lambda1, iter)
         else
             update_ma!(log, res, ma_info.lambda1, iter)
@@ -246,7 +246,7 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
     ma_info.idx = ma_info.idx < ma_info.lambda2 ? ma_info.idx + 1 : 1
     ma_info.res_window[ma_info.idx] = res
     #Check if entire storage buffer can be used
-    if ma_info.lambda == lambda_base 
+    if ma_info.lambda == ma_info.lambda2 
         # Compute the moving average
         for i in 1:ma_info.lambda2
             accum += ma_info.res_window[i]
@@ -255,6 +255,32 @@ function update_ma!(log::LSLogMA, res::Union{AbstractVector, Real}, lambda_base:
        
         if mod(iter, log.collection_rate) == 0 || iter == 0
             push!(log.lambda_hist, ma_info.lambda)
+            push!(log.resid_hist, accum / ma_info.lambda) 
+            push!(log.iota_hist, accum2 / ma_info.lambda) 
+        end
+    
+    elseif ma_info.lambda == ma_info.lambda1 && !ma_info.flag
+        diff = ma_info.idx - ma_info.lambda
+        # Determine start point for first loop
+        startp1 = diff < 0 ? 1 : (diff + 1)
+
+        # Determine start and endpoints for second loop
+        startp2 = diff < 0 ? ma_info.lambda2 + diff + 1 : 2 
+        endp2 = diff < 0 ? ma_info.lambda2 : 1 
+        # Compute the moving average two loop setup required when lambda < lambda2
+        for i in startp1:ma_info.idx
+            accum += ma_info.res_window[i]
+            accum2 += ma_info.res_window[i]^2
+        end
+
+        for i in startp2:endp2
+            accum += ma_info.res_window[i]
+            accum2 += ma_info.res_window[i]^2
+        end
+
+        #Update the log variable with the information for this update
+        if mod(iter, log.collection_rate) == 0 || iter == 0
+            push!(log.width_hist, ma_info.lambda)
             push!(log.resid_hist, accum / ma_info.lambda) 
             push!(log.iota_hist, accum2 / ma_info.lambda) 
         end
@@ -388,6 +414,7 @@ for type in (LinSysVecRowGaussSampler, LinSysVecRowSparseGaussSampler)
         function get_SE_constants!(log::LSLogMA, sampler::Type{$type})
             log.dist_info.sigma2 = log.dist_info.block_dimension / (0.2345 * log.dist_info.eta)
             log.dist_info.omega = .1127
+            log.dist_info.scaling = 1.
         end
 
     end
