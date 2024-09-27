@@ -34,18 +34,18 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     @test norm( A * Vk - Vk_tilde * Hk_tilde ) < eps() * 1e3
     @test norm( Vk' * A * Vk - Hk ) < eps() * 1e3
 
-    # Check that ΩVk is indeed orthonormal
+    # Check that Vk is indeed orthonormal
     I = zeros(k, k)
     for i in 1:k
         I[i, i] = 1.0
     end
     @test norm( Vk' * Vk - I ) < eps() * 1e3
 
-    # Check sketched Petrov-Galerkin condition (Ω*rk ⟂ Ω*Vk)
+    # Check Petrov-Galerkin condition (rk ⟂ Vk)
     rk = b - A * x0
     @test norm(Vk' * rk) < eps() * 1e3
 
-    # Check that norm( (Ω * Vk)' * Ω * r0 )[1] = norm(r0)
+    # Check that norm( (Vk)' * r0 )[1] = norm(r0)
     @test abs( ( Vk' * r0 )[1] - norm(r0) ) < eps() * 1e3
 
     # Check that the end result was correctly computed
