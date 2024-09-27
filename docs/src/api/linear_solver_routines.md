@@ -57,3 +57,11 @@ LinSysBlkColGent
 ```@docs
 RLinearAlgebra.rsubsolve!
 ```
+
+## Alternative Solvers
+
+```@docs
+arnoldi!
+
+randomized_arnoldi!
+```

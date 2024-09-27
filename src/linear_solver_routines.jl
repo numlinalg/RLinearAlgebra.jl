@@ -140,6 +140,11 @@ include("linear_solver_routines/block_col_projection.jl")
 #############################################
 #Blendenpik
 
+#############################################
+# Alternative Solvers
+#############################################
+include("linear_solver_routines/randomized_arnoldi_solver.jl")
+include("linear_solver_routines/arnoldi_solver.jl")
 
 #############################################
 # Export Statements
