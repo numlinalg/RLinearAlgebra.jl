@@ -6,10 +6,11 @@ the hadamard transform and random sign swaps are applied once, then that matrix 
 sampled.
 
 # Fields
-- `blockSize::Int64`, the size of the sketching dimension
+- `block_size::Int64`, the size of the sketching dimension
 - `sparsity::Float64`, the sparsity of the sampling matrix
-- `paddedSize::Int64`, the size of the matrix when padded
-- `Sketch::Union{SparseMatrixCSC, Nothing}`, storage for sparse sketching matrix 
+- `padded_size::Int64`, the size of the matrix when padded
+- `sampling_matrix::Union{SparseMatrixCSC, Nothing}`, storage for sparse sketching matrix 
+- `hadamard::Union{AbstractMatrix, Nothing}`, storage for the hadamard matrix.
 - `Ap::Union{AbstractMatrix, Nothing}`, storage for padded matrix
 - `bp::Union{AbstractMatrix, Nothing}`, storage for padded vector
 - `signs::Union{Vector{Bool}, Nothing}`, storage for random sign flips.
@@ -20,10 +21,11 @@ Calling `LinSysBlockRowFJLT()` defaults to setting `sparsity` to .3 and the bloc
 Nir Ailon and Bernard Chazelle. 2006. Approximate nearest neighbors and the fast Johnson-Lindenstrauss transform. In Proceedings of the thirty-eighth annual ACM symposium on Theory of Computing (STOC '06). Association for Computing Machinery, New York, NY, USA, 557–563. https://doi.org/10.1145/1132516.1132597
 """
 mutable struct LinSysBlockRowFJLT <: LinSysBlkRowSampler
-    blockSize::Int64
+    block_size::Int64
     sparsity::Float64 
-    paddedSize::Int64
-    Sketch::Union{SparseMatrixCSC, Nothing}
+    padded_size::Int64
+    sampling_matrix::Union{SparseMatrixCSC, Nothing}
+    hadamard::Union{AbstractMatrix, Nothing}
     Ap::Union{AbstractMatrix, Nothing}
     bp::Union{AbstractVector, Nothing}
     signs::Union{Vector{Bool}, Nothing}
@@ -35,6 +37,7 @@ LinSysBlockRowFJLT(;blocksize = 2, sparsity = .3) = LinSysBlockRowFJLT(
                                                    sparsity, 
                                                    0, 
                                                    nothing, 
+                                                   nothing,
                                                    nothing,
                                                    nothing,
                                                    nothing,
@@ -53,33 +56,37 @@ function sample(
         m, n = size(A)
         # If matrix is not a power of 2 then pad the rows
         if rem(log(2, m), 1) != 0
-            type.paddedSize = Int64(2^(div(log(2, m), 1) + 1)) 
+            type.padded_size = Int64(2^(div(log(2, m), 1) + 1)) 
             # Find nearest power 2 and allocate
-            type.Ap = zeros(type.paddedSize, n)
-            type.bp = zeros(type.paddedSize)
+            type.Ap = zeros(type.padded_size, n)
+            type.bp = zeros(type.padded_size)
             # Pad matrix and constant vector
-            @views type.Ap[1:m, :] .= A
-            @views type.bp[1:m] .= b
+            type.Ap[1:m, :] .= A
+            type.bp[1:m] .= b
         else
-            type.paddedSize = m
+            type.padded_size = m
             type.Ap = A
             type.bp = b
         end
+        type.hadamard = hadamard(type.padded_size)
         # Compute scaling and sign flips
-        type.scaling = sqrt(type.blockSize / (type.paddedSize * type.sparsity))
-        type.signs = bitrand(type.paddedSize)
+        type.scaling = sqrt(type.block_size / (type.padded_size * type.sparsity))
+        type.signs = bitrand(type.padded_size)
         # Apply FWHT to padded matrix and vector
         fwht!(type.bp, signs = type.signs, scaling = type.scaling)
         for i = 1:n
-            @views fwht!(type.Ap[:, i], signs = type.signs, scaling = type.scaling)
+            Av = view(type.Ap, :, i)
+            # Perform the fast walsh hadamard transform and update the ith row of Ap
+            @views fwht!(Av, signs = type.signs, scaling = type.scaling)
         end
         
     end
 
-    type.Sketch = sprandn(type.blockSize, type.paddedSize, type.sparsity) 
-    SA = type.Sketch * type.Ap
-    Sb = type.Sketch * type.bp
+    type.sampling_matrix = sprandn(type.block_size, type.padded_size, type.sparsity) 
+    SA = type.sampling_matrix * type.Ap
+    Sb = type.sampling_matrix * type.bp
     # Residual of the linear system
     res = SA * x - Sb
-    return type.Sketch, SA, res
+    sgn = [type.signs[i] ? 1 : -1 for i in 1:type.padded_size]
+    return type.sampling_matrix * (sgn .* type.hadamard) .* type.scaling, SA, res
 end
