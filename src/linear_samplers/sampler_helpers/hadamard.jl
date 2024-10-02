@@ -1,9 +1,9 @@
 """
 fwht!(x::AbstractVector; signs=ones(Bool, size(x)), scaling = 1)  
 
-Performs an in-place Fast Walsh Hadamard Transform (FWHT). `signs` allows the user to input a booleanvector that can flip the signs in the transform. `scaling` allows the user to scale the result of the transform. 
+Performs an in-place Fast Walsh Hadamard Transform (FWHT). `signs` allows the user to input a boolean vector that can 
+flip the signs in the transform. `scaling` allows the user to scale the result of the transform. 
 
-!!! Note: To avoid log computation at every call the function does not check that the dimension is a power of 2. This must be done by a separate function at an earlier point.
 """
 function fwht!(x::AbstractVector; signs=ones(Bool, size(x)), scaling = 1)
     ln = size(x,1)
