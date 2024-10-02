@@ -1,7 +1,6 @@
-
 # This file is part of RLinearAlgebra.jl
 
-module ProceduralTestLSBRSRHT
+module ProceduralTestLSBRFJLT
 
 using Test, RLinearAlgebra, Random, Hadamard
 
@@ -9,10 +8,10 @@ import LinearAlgebra: norm
 
 Random.seed!(1010)
 
-@testset "LSBR SRHT -- Procedural" begin
+@testset "LSBR FJLT -- Procedural" begin
 
     # Verify appropriate super type
-    @test supertype(LinSysBlockRowSRHT) == LinSysBlkRowSampler
+    @test supertype(LinSysBlockRowFJLT) == LinSysBlkRowSampler
 
     # Test whether row ordering remains fixed and padding required
     A = rand(10,6)
@@ -23,20 +22,20 @@ Random.seed!(1010)
     Ap[1:10, :] .= A
     bp[1:10] .= b
 
-    samp = LinSysBlockRowSRHT()
+    samp = LinSysBlockRowFJLT()
 
-    v, M, res = RLinearAlgebra.sample(samp, A, b, x, 1)
+    S, M, res = RLinearAlgebra.sample(samp, A, b, x, 1)
     
     H = hadamard(16)
     sgn = samp.signs
     signs = [sgn[i] ? 1 : -1 for i in 1:16]  
-    scaling = sqrt(2/16)
+    scaling = sqrt(2 / (.3 * 16))
     for j = 2:5
-        v, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
+        S, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
         sgn = samp.signs
-        signs = [sgn[i] ? 1 : -1 for i in 1:16]  
-        Ab = (H * (signs .* Ap) .* scaling)[v, :]
-        bb = (H * (signs .* bp) .* scaling)[v]
+        signs = [sgn[i] ? 1 : -1 for i in 1:16] 
+        Ab = S * (H * (signs .* Ap) .* scaling)
+        bb = S * (H * (signs .* bp) .* scaling)
         @test norm(res - (Ab * x - bb)) < eps() * 1e2
     end
 
@@ -50,18 +49,18 @@ Random.seed!(1010)
     Ap[1:16, :] .= A
     bp[1:16] .= b
 
-    samp = LinSysBlockRowSRHT()
+    samp = LinSysBlockRowFJLT()
 
-    v, M, res = RLinearAlgebra.sample(samp, A, b, x, 1)
+    S, M, res = RLinearAlgebra.sample(samp, A, b, x, 1)
     
     H = hadamard(16)
-    scaling = sqrt(2/16)
+    scaling = sqrt(2 / (.3 * 16))
     for j = 2:5
-        v, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
+        S, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
         sgn = samp.signs
         signs = [sgn[i] ? 1 : -1 for i in 1:16]  
-        Ab = (H * (signs .* Ap) .* scaling)[v, :]
-        bb = (H * (signs .* bp) .* scaling)[v]
+        Ab = S * (H * (signs .* Ap) .* scaling)
+        bb = S * (H * (signs .* bp) .* scaling)
         @test norm(res - (Ab * x - bb)) < eps() * 1e2
     end
 

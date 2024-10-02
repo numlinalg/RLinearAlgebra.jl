@@ -28,7 +28,7 @@ module ProceduralFWHT
         # Test Transform with scaling
         x = deepcopy(xc)
         RLinearAlgebra.fwht!(x, scaling = sc)
-        @test  norm(x - H * xc .* sc) < 1e-10
+        @test  norm(x - H * (xc .* sc)) < 1e-10
         # Test that applying this again gives original vector
         RLinearAlgebra.fwht!(x, scaling = sc)
         @test  norm(x - xc) < 1e-10
@@ -41,7 +41,7 @@ module ProceduralFWHT
         # Test with the sign flipping and scaling
         x = deepcopy(xc)
         RLinearAlgebra.fwht!(x, signs = sgn, scaling = sc)
-        @test  norm(x - H * (xc .* signs) .* sc) < 1e-10
+        @test  norm(x - H * ((xc .* signs) .* sc)) < 1e-10
     end
 
 end

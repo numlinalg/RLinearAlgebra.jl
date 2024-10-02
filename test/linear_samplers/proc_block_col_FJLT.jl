@@ -20,19 +20,19 @@ Random.seed!(1010)
     Ap = zeros(16, 8)
     Ap[1:16, 1:6] .= A
 
-    cyc = LinSysBlockColFJLT()
+    samp = LinSysBlockColFJLT()
 
-    S, M, res, grad = RLinearAlgebra.sample(cyc, A, b, x, 1)
+    S, M, res, grad = RLinearAlgebra.sample(samp, A, b, x, 1)
     
     H = hadamard(8)
-    sgn = cyc.signs
+    sgn = samp.signs
     signs = [sgn[i] ? 1 : -1 for i in 1:8]  
     scaling = sqrt(2 / (.3 * 8))
     for j = 2:5
-        S, M, res, grad = RLinearAlgebra.sample(cyc, A, b, x, j)
-        sgn = cyc.signs
+        S, M, res, grad = RLinearAlgebra.sample(samp, A, b, x, j)
+        sgn = samp.signs
         signs = [sgn[i] ? 1 : -1 for i in 1:8] 
-        Ab = ((Ap * Diagonal(signs)) * H .* scaling) * cyc.Sketch
+        Ab = ((Ap * Diagonal(signs)) * H .* scaling) * samp.Sketch
         @test norm(grad - Ab' * (A * x - b)) < eps() * 1e2
     end
 
@@ -44,17 +44,17 @@ Random.seed!(1010)
     Ap = zeros(16, 8)
     Ap[1:16, :] .= A
 
-    cyc = LinSysBlockColFJLT()
+    samp = LinSysBlockColFJLT()
 
-    S, M, res = RLinearAlgebra.sample(cyc, A, b, x, 1)
+    S, M, res = RLinearAlgebra.sample(samp, A, b, x, 1)
     
     H = hadamard(8)
     scaling = sqrt(2 / (.3 * 8))
     for j = 2:5
-        S, M, res, grad = RLinearAlgebra.sample(cyc, A, b, x, j)
-        sgn = cyc.signs
+        S, M, res, grad = RLinearAlgebra.sample(samp, A, b, x, j)
+        sgn = samp.signs
         signs = [sgn[i] ? 1 : -1 for i in 1:8]  
-        Ab = ((Ap * Diagonal(signs)) * H .* scaling) * cyc.Sketch
+        Ab = ((Ap * Diagonal(signs)) * H .* scaling) * samp.Sketch
         @test norm(grad - Ab' * (A * x - b)) < eps() * 1e2
     end
 
