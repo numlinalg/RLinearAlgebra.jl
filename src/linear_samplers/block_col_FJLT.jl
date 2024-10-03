@@ -84,5 +84,5 @@ function sample(
     res = A * x - b
     grad = AS' * res
     sgn = [type.signs[i] ? 1 : -1 for i in 1:type.padded_size]
-    return (type.sampling_matrix * (sgn .* type.hadamard) .* type.scaling)', AS, res, grad
+    return ((sgn .* type.hadamard) * type.sampling_matrix .* type.scaling), AS, res, grad
 end

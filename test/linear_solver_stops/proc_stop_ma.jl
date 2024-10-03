@@ -1,4 +1,3 @@
-# This file is part of RLinearAlgebra.jl
 
 module ProceduralTestLSStopMA
 
@@ -17,13 +16,13 @@ using Test, RLinearAlgebra
     log.dist_info.dimension = 100
     log.dist_info.sampler = LinSysVecRowDetermCyclic
 
-    log.iterations = 0
+    log.iteration = 0
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false
 
-    log.iterations = 2 
+    log.iteration = 2 
     @test RLinearAlgebra.check_stop_criterion(log, stop) == true
 
-    log.iterations = 3
+    log.iteration = 3
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false
 
     #Verify threshold stopping
@@ -33,13 +32,13 @@ using Test, RLinearAlgebra
     log.ma_info.lambda = 15
     stop = LSStopMA(4, 1e-10, 1.1, .9, .01, .01)
 
-    log.iterations = 1
+    log.iteration = 1
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false
 
-    log.iterations = 2
+    log.iteration = 2
     @test RLinearAlgebra.check_stop_criterion(log, stop) == false
 
-    log.iterations = 3
+    log.iteration = 3
     @test RLinearAlgebra.check_stop_criterion(log, stop) == true
 end
 
