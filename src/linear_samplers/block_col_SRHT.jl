@@ -68,7 +68,7 @@ function sample(
         for i = 1:m
             Av = view(type.Ap, i, :)
             # Perform the fast walsh hadamard transform and update the ith column of Ap
-            fwht!(type.Ap, signs = type.signs, scaling = type.scaling)
+            fwht!(Av, signs = type.signs, scaling = type.scaling)
         end
         
         type.block = zeros(Int64, type.block_size) 

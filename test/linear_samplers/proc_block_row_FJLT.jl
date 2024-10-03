@@ -31,7 +31,8 @@ Random.seed!(1010)
     signs = [sgn[i] ? 1 : -1 for i in 1:16]  
     scaling = sqrt(2 / (.3 * 16))
     for j = 2:5
-        S, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
+        _, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
+        S = samp.sampling_matrix
         sgn = samp.signs
         signs = [sgn[i] ? 1 : -1 for i in 1:16] 
         Ab = S * (H * (signs .* Ap) .* scaling)
@@ -56,8 +57,9 @@ Random.seed!(1010)
     H = hadamard(16)
     scaling = sqrt(2 / (.3 * 16))
     for j = 2:5
-        S, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
+        _, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
         sgn = samp.signs
+        S = samp.sampling_matrix
         signs = [sgn[i] ? 1 : -1 for i in 1:16]  
         Ab = S * (H * (signs .* Ap) .* scaling)
         bb = S * (H * (signs .* bp) .* scaling)

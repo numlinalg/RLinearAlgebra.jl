@@ -84,6 +84,7 @@ function sample(
     type.block .= randperm(type.padded_size)[1:type.block_size] 
     SA = type.Ap[type.block, :]
     Sb = type.bp[type.block]
+    sgn = [type.signs[i] ? 1 : -1 for i in 1:type.padded_size]
     # Residual of the linear system
     res = SA * x - Sb
     return ((sgn .* type.hadamard) .* type.scaling)[type.block, :], SA, res

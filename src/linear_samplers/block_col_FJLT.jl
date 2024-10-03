@@ -82,8 +82,7 @@ function sample(
     AS = type.Ap * type.sampling_matrix
     # Residual of the linear system
     res = A * x - b
-    grad = AS'res
-    H = hadamard(type.paddedSize)
-    sgn = [type.signs[i] ? 1 : -1 for i in 1:type.paddedSize]
-    return [sgn, type.Sketch .* type.scaling], AS, res, grad
+    grad = AS' * res
+    sgn = [type.signs[i] ? 1 : -1 for i in 1:type.padded_size]
+    return ((sgn .* type.hadamard) * type.sampling_matrix .* type.scaling), AS, res, grad
 end

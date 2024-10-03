@@ -35,8 +35,8 @@ Random.seed!(1010)
         v, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
         sgn = samp.signs
         signs = [sgn[i] ? 1 : -1 for i in 1:16]  
-        Ab = (H * (signs .* Ap) .* scaling)[v, :]
-        bb = (H * (signs .* bp) .* scaling)[v]
+        Ab = (H * (signs .* Ap) .* scaling)[samp.block, :]
+        bb = (H * (signs .* bp) .* scaling)[samp.block]
         @test norm(res - (Ab * x - bb)) < eps() * 1e2
     end
 
@@ -60,8 +60,8 @@ Random.seed!(1010)
         v, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
         sgn = samp.signs
         signs = [sgn[i] ? 1 : -1 for i in 1:16]  
-        Ab = (H * (signs .* Ap) .* scaling)[v, :]
-        bb = (H * (signs .* bp) .* scaling)[v]
+        Ab = (H * (signs .* Ap) .* scaling)[samp.block, :]
+        bb = (H * (signs .* bp) .* scaling)[samp.block]
         @test norm(res - (Ab * x - bb)) < eps() * 1e2
     end
 
