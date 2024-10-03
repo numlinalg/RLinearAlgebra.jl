@@ -10,10 +10,10 @@ rows = 96
 cols = 96 
 iter = 200000
 thres = 1e-30
-b_size = 32 
+b_size = 20 
 
-A = randn(rows, cols)
-A = matrixdepot("phillips", rows)
+A = randn(rows, cols)#"phillips"
+A = matrixdepot("randsvd", rows)
 x = randn(cols)
 b = A * x
 s1 = svd(A).S[1]
@@ -43,7 +43,7 @@ Random.seed!(123)
 t1 = @elapsed x1 = rsolve(solver1, A, b)
 Random.seed!(123)
 t2 = @elapsed x2 = rsolve(solver2, A, b)
-plot!(solver1.log.resid_hist[solver1.log.resid_hist .> 1e-32], 
+plot(solver1.log.resid_hist[solver1.log.resid_hist .> 1e-32], 
      lab = "CD", 
      yscale = :log10,
      title = "Max ev $s1"
