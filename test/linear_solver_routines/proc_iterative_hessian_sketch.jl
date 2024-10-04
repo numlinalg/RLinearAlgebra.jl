@@ -114,13 +114,14 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
 
     step_buffer = zeros(5)
     B = (S*A)' * (S * A) 
-    b = (size(S)[1] * A' * (b - A * zeros(5)))
+    b_sub_system = (size(S)[1] * A' * (b - A * zeros(5)))
 
-    @test norm(B' * B * rsub.step - B' * b) < eps() * 1e4
+    @test norm(B' * B * rsub.step - B' * b_sub_system) < eps() * 1e4
     @test x0 ≈ zeros(5) + rsub.step
+    @test_logs (:warn, "The sampler's block_size might be too small for sensible inner problem solution. Algorithm will continue by solving the least squares problem instead (Caution: No theory).") RLinearAlgebra.rsubsolve!(rsub, x0, (S, S * A, S * A * x0 - S * b), 1) 
     ##########################
-    ##########################
-    
+    ##########################    
+
 end
 
 end # End module

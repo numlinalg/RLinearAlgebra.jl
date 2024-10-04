@@ -15,9 +15,18 @@ See Mert Pilanci and Martin J. Wainwright. "Iterative Hessian Sketch:
 # Fields
 
 - `A::AbstractArray`, the coefficient matrix for the linear system. Required as we need to compute the full residual.
-- `b::AbstractVector`, the constant term (i.e., the linear system is Ax=b). Required as we need to compute the full residual.
+- `b::AbstractVector`, the constant term (i.e., the linear system is `Ax = b`). Required as we need to compute the full residual.
 - `step::Union{AbstractVector, Nothing}`, buffer array to hold solution of subproblem that provides update to x.
 - `btilde::Union{AbstractVector, Nothing}`, buffer array to hold constant term in forming the subproblem to compute `step`.
+
+# Constructors
+
+        IterativeHessianSketch(A, b)
+
+## Arguments
+
+- `A::AbstractArray`, the coefficient matrix for the linear system. Required as we need to compute the full residual.
+- `b::AbstractVector`, the constant term (i.e., the linear system is `Ax = b`). Required as we need to compute the full residual.
 """
 mutable struct IterativeHessianSketch <: LinSysSolveRoutine 
     A::AbstractArray
