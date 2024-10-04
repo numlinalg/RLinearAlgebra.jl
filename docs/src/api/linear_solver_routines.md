@@ -28,6 +28,8 @@ LinSysVecRowProjStd
 LinSysVecRowProjPO
 
 LinSysVecRowProjFO
+
+IterativeHessianSketch
 ```
 
 ## Vector Column Solvers
