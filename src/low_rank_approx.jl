@@ -52,6 +52,7 @@ abstract type NystromMethod <: ApproxMethod end
 
 """
     rapproximate(type::T where T<:ApproxMethod,
+
                 A::AbstractArray
                )
 A common interface for specifying different strategies for forming low rank approximations
