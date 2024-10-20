@@ -24,6 +24,11 @@ makedocs(
             "Linear Solver Stop Criteria" => "api/linear_solver_stops.md",
             "Low Rank Approximations" => "api/low_rank_approximations.md",
         ],
+        "Developers" => [
+            "Contributing" => "dev/contributing.md"
+            "Style Guide" => "dev/styleguide.md"
+            "Checklists" => "dev/checklists.md"
+        ],
     ]
 )
 
