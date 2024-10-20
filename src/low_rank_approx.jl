@@ -51,7 +51,8 @@ Abstract supertype for Nystrom techniques. These can only be applied to symmetri
 abstract type NystromMethod <: ApproxMethod end
 
 """
-    approximate(type::T where T<:ApproxMethod,
+    rapproximate(type::T where T<:ApproxMethod,
+
                 A::AbstractArray
                )
 A common interface for specifying different strategies for forming low rank approximations

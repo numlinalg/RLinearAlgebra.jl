@@ -64,7 +64,7 @@ export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
 export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjFO
 
 # Vector Block Row Projection
-export LinSysBlkRowLQ, BlockKaczmarz
+export LinSysBlkRowLQ, BlockKaczmarz, IterativeHessianSketch
 
 # Vector Column Projection
 export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
@@ -108,10 +108,14 @@ export rapproximate
 ###########################################
 # Low Rank Approximation Error Exports
 ###########################################
+
 export ApproxErrorMethod, RangeFinderError
 
 # Function to perform the error computation
 export error_approximate!
+
+export ApproxError, RangeError
+
 ###########################################
 # Source File Inclusions
 ###########################################
@@ -124,5 +128,6 @@ include("linear_solver_stops.jl")
 include("linear_rsolve.jl")
 include("low_rank_approx.jl")
 include("low_rank_approx_error.jl")
+
 
 end # module
