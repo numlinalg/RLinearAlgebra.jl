@@ -63,7 +63,7 @@ export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
 export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjFO
 
 # Vector Block Row Projection
-export LinSysBlkRowLQ, BlockKaczmarz
+export LinSysBlkRowLQ, BlockKaczmarz, LinSysBlkRowLUAccel
 
 # Vector Column Projection
 export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
@@ -96,8 +96,8 @@ export RLSSolver, rsolve, rsolve!
 
 include("tools.jl")
 include("linear_samplers.jl")
-include("linear_solver_routines.jl")
 include("linear_solver_logs.jl")
+include("linear_solver_routines.jl")
 include("linear_solver_stops.jl")
 include("linear_rsolve.jl")
 

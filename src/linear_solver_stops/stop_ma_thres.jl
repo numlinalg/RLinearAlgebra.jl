@@ -39,7 +39,7 @@ function check_stop_criterion(
     log::LSLogMA,
     stop::LSStopMA
 )
-    its = log.iterations
+    its = log.iteration
     if its > 0
         I_threshold = iota_threshold(log, stop)
         thresholdChecks = sqrt(log.iota_hist[its]) <= I_threshold && 
@@ -81,10 +81,10 @@ function iota_threshold(hist::LSLogMA, stop::LSStopMA)
         # Compute the threshold bound in the case where there is no omega
         c = min((1 - delta1)^2 * threshold^2 / (2 * log(1/chi1)), (delta2 - 1)^2 * 
                 threshold^2 / (2 * log(1/chi2)))
-        c /= (hist.dist_info.sigma2 * sqrt(hist.iota_hist[hist.iterations])) * (1 + log(lambda)) / lambda
+        c /= (hist.dist_info.sigma2 * sqrt(hist.iota_hist[hist.iteration])) * (1 + log(lambda)) / lambda
     else
         #compute error bound when there is an omega
-        siota = (hist.dist_info.sigma2 * sqrt(hist.iota_hist[hist.iterations])) * (1 + log(lambda)) / lambda
+        siota = (hist.dist_info.sigma2 * sqrt(hist.iota_hist[hist.iteration])) * (1 + log(lambda)) / lambda
         min1 = min((1 - delta1)^2 * threshold^2 / (2 * log(1/chi1) * siota),
                    lambda * (1 - delta1) * threshold / (2 * log(1/chi1) * hist.dist_info.omega))
         min2 = min((delta2 - 1)^2 * threshold^2 / (2 * log(1/chi2) * siota),
@@ -95,4 +95,3 @@ function iota_threshold(hist::LSLogMA, stop::LSStopMA)
     return c 
 
 end
-
