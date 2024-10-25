@@ -23,23 +23,27 @@ See Kenneth L. Clarkson and David P. Woodruff. 2017.
 
 - `block_size::Int64`, is the number of columns in the sketched matrix `A * S`
 - `S::Union{Matrix{Int64}, Nothing}`, buffer matrix for storing the sampling matrix `S`.
-- `signs::Union{Vector{Int64}, Nothing}`, buffer vector for storing data used in `sample`.
 
 Additional Constructors:
 
 Calling `LinSysBlkColCountSketch(block_size)` defaults to `LinSysBlkColCountSketch(block_size, nothing, nothing)`.
 Calling `LinSysBlkColCountSketch()` defaults to `LinSysBlkColCountSketch(2, nothing, nothing)`. 
 
-Remark: Current implementation does not take advantage of sparse matrix data structures or operations.
+!!! Remark "Implementation Note"
+    Current implementation does not take advantage of sparse matrix data structures or operations.
 """
 mutable struct LinSysBlkColCountSketch <: LinSysVecColSelect
     block_size::Int64
     S::Union{Matrix{Int64}, Nothing}
-    signs::Union{Vector{Int64}, Nothing}
 end
 
 function LinSysBlkColCountSketch(block_size::Int64)
-    return LinSysBlkColCountSketch(block_size, nothing, nothing)
+    # check if block size is non-positive and throw error
+    if block_size <= 0
+        throw(DomainError("block_size is 0 or negative!"))
+    end
+
+    return LinSysBlkColCountSketch(block_size, nothing)
 end
 
 LinSysBlkColCountSketch() = LinSysBlkColCountSketch(2)
@@ -63,14 +67,18 @@ function sample(
             @warn("block_size is greater than the number of columns in A!")
         end
 
-        type.S = Matrix{Int64}(undef, ncolA, type.block_size)
-        type.signs = [-1, 1]
+        type.S = zeros(Int64, ncolA, type.block_size)
     end
 
-    # form sketching matrix
-    fill!(type.S, 0)
+    # reset previous sketch matrix 
+    if iter > 1 
+        fill!(type.S, 0)
+    end
+
+    # for each row, assign a -1 or 1 randomly
+    signs = [-1, 1]
     @inbounds for j in 1:ncolA
-        type.S[j,rand(1:type.block_size)] = rand(type.signs) # (ncolA, block_size)
+        type.S[j, rand(1:type.block_size)] = rand(signs) # (ncolA, block_size)
     end
 
     # form sketched matrix `A * S`
