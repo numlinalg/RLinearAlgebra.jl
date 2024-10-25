@@ -26,8 +26,8 @@ See Kenneth L. Clarkson and David P. Woodruff. 2017.
 
 Additional Constructors:
 
-Calling `LinSysBlkColCountSketch(block_size)` defaults to `LinSysBlkColCountSketch(block_size, nothing, nothing)`.
-Calling `LinSysBlkColCountSketch()` defaults to `LinSysBlkColCountSketch(2, nothing, nothing)`. 
+Calling `LinSysBlkColCountSketch(block_size)` defaults to `LinSysBlkColCountSketch(block_size, nothing)`.
+Calling `LinSysBlkColCountSketch()` defaults to `LinSysBlkColCountSketch(2, nothing)`. 
 
 !!! Remark "Implementation Note"
     Current implementation does not take advantage of sparse matrix data structures or operations.

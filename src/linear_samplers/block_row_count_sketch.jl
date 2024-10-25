@@ -22,28 +22,32 @@ See Kenneth L. Clarkson and David P. Woodruff. 2017.
 
 - `block_size::Int64`, is the number of rows in the sketched matrix `S * A`.
 - `S::Union{Matrix{Int64}, Nothing}`, buffer matrix for storing the sampling matrix `S`.
-- `signs::Union{Vector{Int64}, Nothing}`, buffer vector for storing data used in `sample`.
 
 Additional Constructors:
 
-Calling `LinSysBlkRowCountSketch(block_size)` defaults to `LinSysBlkRowCountSketch(block_size, nothing, nothing)`.
-Calling `LinSysBlkRowCountSketch()` defaults to `LinSysBlkRowCountSketch(2, nothing, nothing)`. 
+Calling `LinSysBlkRowCountSketch(block_size)` defaults to `LinSysBlkRowCountSketch(block_size, nothing)`.
+Calling `LinSysBlkRowCountSketch()` defaults to `LinSysBlkRowCountSketch(2, nothing)`. 
 
-Remark: Current implementation does not take advantage of sparse matrix data structures or operations.
+!!! Remark "Implementation Note" 
+    Current implementation does not take advantage of sparse matrix data structures or operations.
 """
 mutable struct LinSysBlkRowCountSketch <: LinSysVecRowSelect 
     block_size::Int64
     S::Union{Matrix{Int64}, Nothing}
-    signs::Union{Vector{Int64}, Nothing}
 end
 
 # Additional constructor for LinSysBlkRowCountSketch to specify just block_size
 function LinSysBlkRowCountSketch(block_size::Int64)
-    return LinSysBlkRowCountSketch(block_size, nothing, nothing)
+    # check if block size is non-positive and throw error
+    if block_size <= 0
+        throw(DomainError("block_size is 0 or negative!"))
+    end
+
+    return LinSysBlkRowCountSketch(block_size, nothing)
 end
 
 # Default constructor for LinSysBlkRowCountSketch
-LinSysBlkRowCountSketch() = LinSysBlkRowCountSketch(2, nothing, nothing)
+LinSysBlkRowCountSketch() = LinSysBlkRowCountSketch(2)
 
 # Common sample interface for linear systems
 function sample(
@@ -66,15 +70,18 @@ function sample(
         end
 
         # initializations
-        type.S = Matrix{Int64}(undef, type.block_size, nrowA)
-        type.signs = [-1, 1]
+        type.S = zeros(Int64, type.block_size, nrowA)
     end
 
-    # form sketching matrix
-    fill!(type.S, 0)  
+    # reset previous sketch matrix
+    if iter > 1
+        fill!(type.S, 0) 
+    end 
+    
+    # for each column assign a row with a rand -1 or 1
+    signs = [-1, 1] 
     @inbounds for j in 1:nrowA
-        # assign labels to rows and possible sign flips 
-        type.S[rand(1:type.block_size),j] = rand(type.signs) # (blocksize, size(A)[1])
+        type.S[rand(1:type.block_size), j] = rand(signs) # (blocksize, size(A)[1])
     end
     
     # form sketched matrix `S * A`
