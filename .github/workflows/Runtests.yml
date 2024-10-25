@@ -1,11 +1,11 @@
 name: Runtests
-on: [push, pull_request]
+on: [pull_request]
 jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        julia-version: ['1.6']
+        julia-version: ['lts']
         julia-arch: [x64]
         os: [ubuntu-latest] # [ubuntu-latest, windows-latest, macOS-latest]
     steps:
