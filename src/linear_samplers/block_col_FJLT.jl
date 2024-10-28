@@ -1,9 +1,10 @@
 """
     LinSysBlockColFJLT <: LinSysBlkColSampler
 
-A mutable structure with fields to handle FJLT row sketching. For this procedure,
-the hadamard transform and random sign swaps are applied once, then that matrix is repeatably
-sampled.
+A mutable structure with fields to handle FJLT column sketching. For this procedure,
+the sketching matrix S = D * H * G, where D is a diagonal matrix with a Rademacher vector
+on the diagonal, H is a hadamard matrix, and G is a sparse Gaussian matrix. D is generated once
+while G is generated everytime the `sample` function is called.
 
 # Fields
 - `block_size::Int64`, the size of the sketching dimension
@@ -72,7 +73,7 @@ function sample(
         # Apply FWHT to padded matrix and vector
         for i = 1:m
             Av = view(type.Ap, i, :)
-            # Perform the fast walsh hadamard transform and update the ith column of Ap
+            # Perform the fast walsh hadamard transform and update the ith row of Ap
             fwht!(Av, signs = type.signs, scaling = type.scaling)
         end
         
