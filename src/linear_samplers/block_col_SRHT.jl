@@ -61,25 +61,18 @@ function sample(
             type.padded_size = n
             type.Ap = A
         end
+
         type.hadamard = hadamard(type.padded_size)
         # Compute scaling and sign flips
-        type.scaling = sqrt(type.block_size / type.padded_size)
-        type.signs = bitrand(type.padded_size)
-        for i = 1:m
-            Av = view(type.Ap, i, :)
-            # Perform the fast walsh hadamard transform and update the ith column of Ap
-            fwht!(Av, signs = type.signs, scaling = type.scaling)
-        end
-        
+        type.scaling = sqrt(1 / type.block_size)
         type.block = zeros(Int64, type.block_size) 
     end
 
+    sgn = rand([-1, 1], type.padded_size)
     type.block .= randperm(type.padded_size)[1:type.block_size] 
-    AS = type.Ap[:, type.block]
+    AS = (type.scaling * (type.Ap * sgn .* type.hadamard))[:, type.block]
     # Residual of the linear system
     res = A * x - b
     grad = AS'res
-    H = hadamard(type.paddedSize)
-    sgn = [type.signs[i] ? 1 : -1 for i in 1:type.paddedSize]
-    return [sgn .* type.scaling, type.block], AS, res, grad
+    return (type.scaling * sgn .* type.Hadamard)[:, type.block], AS, res, grad
 end

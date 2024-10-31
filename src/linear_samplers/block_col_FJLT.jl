@@ -14,7 +14,6 @@ while G is generated everytime the `sample` function is called.
 - `hadamard::Union{AbstractMatrix, Nothing}`, storage for the hadamard matrix.
 - `Ap::Union{AbstractMatrix, Nothing}`, storage for padded matrix
 - `bp::Union{AbstractMatrix, Nothing}`, storage for padded vector
-- `signs::Union{Vector{Bool}, Nothing}`, storage for random sign flips.
 - `scaling::Float64`, storage for the scaling of the sketches.
 
 Calling `LinSysBlockColFJLT()` defaults to setting `sparsity` to .3 and the blocksize to 2.
@@ -29,7 +28,6 @@ mutable struct LinSysBlockColFJLT <: LinSysBlkColSampler
     hadamard::Union{AbstractMatrix, Nothing}
     Ap::Union{AbstractMatrix, Nothing}
     bp::Union{AbstractVector, Nothing}
-    signs::Union{Vector{Bool}, Nothing}
     scaling::Float64
 end
 
@@ -38,7 +36,6 @@ LinSysBlockColFJLT(;blocksize = 2, sparsity = .3) = LinSysBlockColFJLT(
                                                    sparsity, 
                                                    0, 
                                                    nothing, 
-                                                   nothing,
                                                    nothing,
                                                    nothing,
                                                    nothing,
@@ -69,21 +66,14 @@ function sample(
         type.hadamard = hadamard(type.padded_size)
         # Compute scaling and sign flips
         type.scaling = sqrt(type.block_size / (type.padded_size * type.sparsity))
-        type.signs = bitrand(type.padded_size)
-        # Apply FWHT to padded matrix and vector
-        for i = 1:m
-            Av = view(type.Ap, i, :)
-            # Perform the fast walsh hadamard transform and update the ith row of Ap
-            fwht!(Av, signs = type.signs, scaling = type.scaling)
-        end
         
     end
 
+    sgn = rand([-1, 1], type.padded_size)
     type.sampling_matrix = sprandn(type.padded_size, type.block_size, type.sparsity) 
-    AS = type.Ap * type.sampling_matrix
+    AS = (type.Ap * (sgn .* type.hadamard)) * type.sampling_matrix * type.scaling
     # Residual of the linear system
     res = A * x - b
     grad = AS' * res
-    sgn = [type.signs[i] ? 1 : -1 for i in 1:type.padded_size]
-    return ((sgn .* type.hadamard) * type.sampling_matrix .* type.scaling), AS, res, grad
+    return ((sgn .* type.hadamard) * type.sampling_matrix * type.scaling), AS, res, grad
 end
