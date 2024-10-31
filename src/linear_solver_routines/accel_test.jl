@@ -13,7 +13,7 @@ thres = 1e-30
 b_size = 30 
 
 A = randn(rows, cols)#"phillips"
-A = matrixdepot("golub", rows)
+A = matrixdepot("phillips", rows)
 x = randn(cols)
 b = A * x
 s1 = svd(A).S[1]

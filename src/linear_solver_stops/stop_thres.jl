@@ -20,7 +20,7 @@ function check_stop_criterion(
     log::LinSysSolverLog,
     stop::LSStopThreshold
 )
-    its = log.iterations
+    its = log.iteration
     thresholdCheck = its > 0 && log.resid_hist[its] < stop.thres ? true : false 
     return thresholdCheck || its == stop.max_iter ? true : false
 end
