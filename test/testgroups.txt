@@ -42,3 +42,5 @@ linear_solver_stops/proc_stop_thres
 proc_linear_rsolve
 linear_samplers/proc_block_row_count_sketch
 linear_samplers/proc_block_col_count_sketch
+proc_low_rank_approximations
+linear_solver_routines/proc_iterative_hessian_sketch

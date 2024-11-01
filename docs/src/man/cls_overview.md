@@ -170,3 +170,8 @@ solver = RLSSolver(
 # Solve the system
 sol = rsolve(solver, A, b)
 ```
+
+## Block Methods for Linear Systems
+
+Because of the way that computers operate, it is often more efficient to work using 
+blocks of data rather than single vectors to generate updates to solutions. 
