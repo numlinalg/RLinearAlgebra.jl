@@ -169,7 +169,7 @@ include("linear_samplers/block_col_FJLT.jl")
 #############################################
 # Fast Transforms
 #############################################
-include("linear_samplers/sampler_helpers/hadamard.jl")
+include("linear_samplers/linear_sampler_helpers/hadamard.jl")
 #############################################
 # Fast Transforms
 #############################################

@@ -2,9 +2,7 @@
 """
     LinSysBlockColSRHT <: LinSysBlkColSampler
 
-A mutable structure with fields to handle SRHT column sketching. For this procedure,
-the hadamard transform and random sign swaps are applied once, then that matrix is repeatably
-sampled.
+A mutable structure with fields to handle SRHT column sketching. At each iteration, this procedure generates a matrix of the form S = D H R where R is a subset of the identity matrix, H is a Hadamard matrix, and D is a diagonal matrix with a rademacher vector on the diagonal.
 
 # Fields
 - `block_size::Int64`, the size of blocks being chosen
@@ -17,7 +15,7 @@ sampled.
 
 Calling `LinSysBlockColSRHT()` defaults to setting `block_size` to 2.
 
-Nir Ailon and Bernard Chazelle. 2006. Approximate nearest neighbors and the fast Johnson-Lindenstrauss transform. In Proceedings of the thirty-eighth annual ACM symposium on Theory of Computing (STOC '06). Association for Computing Machinery, New York, NY, USA, 557–563. https://doi.org/10.1145/1132516.1132597
+Nguyen, Nam H., Thong T. Do, and Trac D. Tran. "A fast and efficient algorithm for low-rank approximation of a matrix." Proceedings of the forty-first annual ACM symposium on Theory of computing. 2009. https://doi.org/10.1145/1536414.1536446
 """
 mutable struct LinSysBlockColSRHT <: LinSysBlkColSampler
     block_size::Int64
@@ -73,6 +71,6 @@ function sample(
     AS = (type.scaling * (type.Ap * sgn .* type.hadamard))[:, type.block]
     # Residual of the linear system
     res = A * x - b
-    grad = AS'res
+    grad = AS' * res
     return (type.scaling * sgn .* type.Hadamard)[:, type.block], AS, res, grad
 end

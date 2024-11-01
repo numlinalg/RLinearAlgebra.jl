@@ -26,7 +26,6 @@ using LinearAlgebra, Random, Distributions
 import SparseArrays: sprandn, SparseMatrixCSC
 
 import Hadamard: hadamard
-import StatsBase: sample
 
 import SparseArrays: sprandn, SparseMatrixCSC
 
@@ -51,9 +50,7 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
     LinSysVecRowPropToNormSampler, LinSysVecRowSVSampler, LinSysVecRowRandCyclic,
     LinSysVecRowUnidSampler, LinSysVecRowUnifSampler, LinSysVecRowGaussSampler,
     LinSysVecRowSparseUnifSampler, LinSysVecRowSparseGaussSampler, LinSysVecRowMaxResidual,
-    LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic, LinSysBlockRowSRHT,
-    LinSysBlockRowFJLT
-    LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic, LinSysBlockRowSRHT
+    LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic, LinSysBlockRowSRHT,LinSysBlockRowFJLT
 
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic

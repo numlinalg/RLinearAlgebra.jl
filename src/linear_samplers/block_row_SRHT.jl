@@ -1,9 +1,7 @@
 """
     LinSysBlockRowSRHT <: LinSysBlkRowSampler
 
-A mutable structure with fields to handle SRHT row sketching. For this procedure,
-the hadamard transform and random sign swaps are applied once, then that matrix is repeatably
-sampled.
+A mutable structure with fields to handle SRHT row sketching. At each iteration, this procedure generates a matrix of the form S = R H D where R is a subset of the identity matrix, H is a Hadamard matrix, and D is a diagonal matrix with a rademacher vector on the diagonal.
 
 # Fields
 - `block_size::Int64`, the size of blocks being chosen
@@ -16,7 +14,7 @@ sampled.
 
 Calling `LinSysBlockRowSRHT()` defaults to setting `block_size` to 2.
 
-Nir Ailon and Bernard Chazelle. 2006. Approximate nearest neighbors and the fast Johnson-Lindenstrauss transform. In Proceedings of the thirty-eighth annual ACM symposium on Theory of Computing (STOC '06). Association for Computing Machinery, New York, NY, USA, 557–563. https://doi.org/10.1145/1132516.1132597
+Nguyen, Nam H., Thong T. Do, and Trac D. Tran. "A fast and efficient algorithm for low-rank approximation of a matrix." Proceedings of the forty-first annual ACM symposium on Theory of computing. 2009. https://doi.org/10.1145/1536414.1536446
 """
 mutable struct LinSysBlockRowSRHT <: LinSysBlkRowSampler
     block_size::Int64
@@ -63,6 +61,7 @@ function sample(
             type.Ap = A
             type.bp = b
         end
+
         type.hadamard = hadamard(type.padded_size)
         # Compute scaling and sign flips
         type.scaling = sqrt(1 / type.block_size)
