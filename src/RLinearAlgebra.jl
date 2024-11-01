@@ -26,10 +26,6 @@ using LinearAlgebra, Random, Distributions
 import SparseArrays: sprandn, SparseMatrixCSC
 
 import Hadamard: hadamard
-
-import SparseArrays: sprandn, SparseMatrixCSC
-
-import Hadamard: hadamard
 ###########################################
 # Exports
 ###########################################

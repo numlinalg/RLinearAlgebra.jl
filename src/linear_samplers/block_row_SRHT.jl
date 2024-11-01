@@ -1,7 +1,10 @@
 """
     LinSysBlockRowSRHT <: LinSysBlkRowSampler
 
-A mutable structure with fields to handle SRHT row sketching. At each iteration, this procedure generates a matrix of the form S = R H D where R is a subset of the identity matrix, H is a Hadamard matrix, and D is a diagonal matrix with a rademacher vector on the diagonal.
+A mutable structure with fields to handle SRHT row sketching. At each iteration, this 
+procedure generates a matrix of the form S = R H D where R is a subset of the identity 
+matrix, H is a Hadamard matrix, and D is a diagonal matrix with a rademacher vector on 
+the diagonal.
 
 # Fields
 - `block_size::Int64`, the size of blocks being chosen
@@ -14,7 +17,8 @@ A mutable structure with fields to handle SRHT row sketching. At each iteration,
 
 Calling `LinSysBlockRowSRHT()` defaults to setting `block_size` to 2.
 
-Nguyen, Nam H., Thong T. Do, and Trac D. Tran. "A fast and efficient algorithm for low-rank approximation of a matrix." Proceedings of the forty-first annual ACM symposium on Theory of computing. 2009. https://doi.org/10.1145/1536414.1536446
+Nguyen, Nam H., Thong T. Do, and Trac D. Tran. "A fast and efficient algorithm for low-rank approximation of a matrix." 
+Proceedings of the forty-first annual ACM symposium on Theory of computing. 2009. https://doi.org/10.1145/1536414.1536446
 """
 mutable struct LinSysBlockRowSRHT <: LinSysBlkRowSampler
     block_size::Int64

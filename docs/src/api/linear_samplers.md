@@ -65,7 +65,7 @@ LinSysVecColDetermCyclic
 LinSysVecColOneRandCyclic
 ```
 
-## Block Vector Row Samplers
+## Block Row Samplers
 
 ```@docs
 LinSysBlkRowGaussSampler
@@ -75,7 +75,7 @@ LinSysBlkRowReplace
 LinSysBlkRowRandCyclic
 ```
 
-## Block Vector Col Samplers
+## Block Col Samplers
 
 ```@docs
 LinSysBlkColGaussSampler
@@ -87,6 +87,7 @@ LinSysBlkColRandCyclic
 LinSysBlockColFJLT
 
 LinSysBlockColSRHT
+
 ```
 
 ## Sample Function

@@ -1,7 +1,10 @@
 """
     LinSysBlockRowFJLT <: LinSysBlkRowSampler
 
-A mutable structure with fields to handle FJLT row sketching. At each iteration, this procedure generates a matrix of the form S = G H D where G is sparse matrix with the non-zero entries being drawn from a gaussian distribution, H is a Hadamard matrix, and D is a diagonal matrix with a rademacher vector on the diagonal.
+A mutable structure with fields to handle FJLT row sketching. At each iteration, 
+this procedure generates a matrix of the form S = G H D where G is sparse matrix with 
+the non-zero entries being drawn from a gaussian distribution, H is a Hadamard matrix, 
+and D is a diagonal matrix with a rademacher vector on the diagonal.
 
 # Fields
 - `block_size::Int64`, the size of the sketching dimension
@@ -15,7 +18,8 @@ A mutable structure with fields to handle FJLT row sketching. At each iteration,
 
 Calling `LinSysBlockRowFJLT()` defaults to setting `sparsity` to .3 and the blocksize to 2.
 
-Ailon, Nir, and Bernard Chazelle. "The fast Johnson–Lindenstrauss transform and approximate nearest neighbors." SIAM Journal on computing 39.1 (2009): 302-322. https://doi.org/10.1137/060673096
+Ailon, Nir, and Bernard Chazelle. "The fast Johnson–Lindenstrauss transform and approximate nearest neighbors." 
+SIAM Journal on computing 39.1 (2009): 302-322. https://doi.org/10.1137/060673096
 """
 mutable struct LinSysBlockRowFJLT <: LinSysBlkRowSampler
     block_size::Int64
