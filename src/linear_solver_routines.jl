@@ -127,6 +127,7 @@ include("linear_solver_routines/vec_col_projection_fortho.jl")
 # Exact Solvers
 include("linear_solver_routines/block_row_projection.jl")
 # Approximate Solvers
+include("linear_solver_routines/iterative_hessian_sketch.jl")
 
 #############################################
 # Block Column Projection Solvers
