@@ -1,7 +1,6 @@
 # This file is part of RLinearAlgebra.jl
 
-# Implement moving average by using the structs and functions in another file. 
-include("solve_log_ma.jl")
+# using LinearAlgebra
 
 """
     LSLogFull <: LinSysSolverLog
@@ -33,18 +32,9 @@ mutable struct LSLogFull <: LinSysSolverLog
     resid_norm::Function
     iterations::Int64
     converged::Bool
-    ma_info::MAInfo  # Implement moving average (MA)
-    lambda_hist::Vector{Int64}  # Implement moving average (MA)
-    iota_hist::Vector{Float64}  # Implement moving average (MA)
 end
-LSLogFull() = LSLogFull(1, Float64[], norm, -1, false, 
-                        MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
-                        Int64[], 
-                        Float64[])
-LSLogFull(cr::Int64) = LSLogFull(cr, Float64[], norm, -1, false,
-                        MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
-                        Int64[], 
-                        Float64[])
+LSLogFull() = LSLogFull(1, Float64[], norm, -1, false)
+LSLogFull(cr::Int64) = LSLogFull(cr, Float64[], norm, -1, false)
 
 # Common interface for update
 function log_update!(
@@ -59,35 +49,11 @@ function log_update!(
     # Update iteration counter
     log.iterations = iter
 
-    ###############################
-    # Implement moving average (MA)
-    ###############################
-    ma_info = log.ma_info 
-    # Compute the current residual to second power to align with theory
-    res_norm_iter =  log.resid_norm(A * x - b)
-    res::Float64 = res_norm_iter^2
-
-    # Check if MA is in lambda1 or lambda2 regime
-    if ma_info.flag
-        update_ma!(log, res, ma_info.lambda2, iter)
-    else
-        # Check if we can switch between lambda1 and lambda2 regime
-        # If it is in the monotonic decreasing of the sketched residual then we are in a lambda1 regime
-        # otherwise we switch to the lambda2 regime which is indicated by the changing of the flag
-        # because update_ma changes res_window and ma_info.idx we must check condition first
-        flag_cond = iter == 0 || res <= ma_info.res_window[ma_info.idx] 
-        update_ma!(log, res, ma_info.lambda1, iter)
-        ma_info.flag = !flag_cond
-
-    end
-
-    ###############################
-
     # Check whether to record information
     if mod(iter, 1:log.collection_rate) == log.collection_rate
 
         # Push residual norm of current iterate
-        push!(log.resid_hist, res_norm_iter)
+        push!(log.resid_hist, log.resid_norm(A * x - b))
     end
 
     return nothing
