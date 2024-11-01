@@ -19,6 +19,9 @@ See Kenneth L. Clarkson and David P. Woodruff. 2017.
     J. ACM 63, 6, Article 54 (February 2017), 45 pages. 
     https://doi.org/10.1145/3019134
 
+The explicit sketch matrix is mentioned in Section 1.2 - Techniques (row version) of the aforementioned paper.
+See also https://wangshusen.github.io/code/countsketch.html for a visual explanation of the column version.
+
 # Fields
 
 - `block_size::Int64`, is the number of columns in the sketched matrix `A * S`
