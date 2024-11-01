@@ -8,12 +8,12 @@ using RLinearAlgebra
 Random.seed!(123132)
 rows = 96 
 cols = 96 
-iter = 100000
+iter = 500000
 thres = 1e-30
 b_size = 30 
 
 A = randn(rows, cols)#"phillips"
-A = matrixdepot("phillips", rows)
+A = matrixdepot("chebspec", rows)
 x = randn(cols)
 b = A * x
 s1 = svd(A).S[1]
