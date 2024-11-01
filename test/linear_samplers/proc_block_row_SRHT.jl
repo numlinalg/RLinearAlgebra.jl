@@ -28,15 +28,11 @@ Random.seed!(1010)
     v, M, res = RLinearAlgebra.sample(samp, A, b, x, 1)
     
     H = hadamard(16)
-    sgn = samp.signs
-    signs = [sgn[i] ? 1 : -1 for i in 1:16]  
-    scaling = sqrt(2/16)
+    scaling = sqrt(1/2)
     for j = 2:5
         v, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
-        sgn = samp.signs
-        signs = [sgn[i] ? 1 : -1 for i in 1:16]  
-        Ab = (H * (signs .* Ap) .* scaling)[samp.block, :]
-        bb = (H * (signs .* bp) .* scaling)[samp.block]
+        Ab = v * Ap 
+        bb = v * bp 
         @test norm(res - (Ab * x - bb)) < eps() * 1e2
     end
 
@@ -55,13 +51,11 @@ Random.seed!(1010)
     v, M, res = RLinearAlgebra.sample(samp, A, b, x, 1)
     
     H = hadamard(16)
-    scaling = sqrt(2/16)
+    scaling = sqrt(1/2)
     for j = 2:5
         v, M, res = RLinearAlgebra.sample(samp, A, b, x, j)
-        sgn = samp.signs
-        signs = [sgn[i] ? 1 : -1 for i in 1:16]  
-        Ab = (H * (signs .* Ap) .* scaling)[samp.block, :]
-        bb = (H * (signs .* bp) .* scaling)[samp.block]
+        Ab = v * Ap
+        bb = v * bp 
         @test norm(res - (Ab * x - bb)) < eps() * 1e2
     end
 

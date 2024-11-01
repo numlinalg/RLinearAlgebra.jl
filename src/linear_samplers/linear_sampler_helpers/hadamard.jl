@@ -12,6 +12,7 @@ function fwht!(x::AbstractVector; signs=ones(Bool, size(x, 1)), scaling = 1)
     # size of separation between indicies
     h = 1 
     inc = 2 * h
+    # total iterations required ends up being this division plus 1 for the 2^0 pass
     total_its = div(log(ln), log(2))
     # In 1st pass scale and flip signs of entries, this does not need to be done 
     # in any other passes over the vector. To avoid unnecessary condition checking 
@@ -29,7 +30,7 @@ function fwht!(x::AbstractVector; signs=ones(Bool, size(x, 1)), scaling = 1)
 
     # Double distance between next combintation
     h *= 2
-    for k = 2:total_its 
+    for k = 1:total_its 
         # spacing between operations
         inc = 2 * h
         for i in 1:inc:ln

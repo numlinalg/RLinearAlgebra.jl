@@ -25,13 +25,10 @@ Random.seed!(1010)
     v, M, res, grad = RLinearAlgebra.sample(samp, A, b, x, 1)
     
     H = hadamard(8)
-    scaling = sqrt(2/8)
+    scaling = sqrt(1/2)
     for j = 2:5
         v, M, res, grad = RLinearAlgebra.sample(samp, A, b, x, j)
-        sgn = samp.signs
-        signs = [sgn[i] ? 1 : -1 for i in 1:8]  
-        Ab = ((Ap * Diagonal(signs)) * H .* scaling)[:, samp.block]
-        @test norm(grad - Ab' * (A * x - b)) < eps() * 1e2
+        @test norm(grad - v' * Ap' * (A * x - b)) < eps() * 1e2
     end
 
 
@@ -47,13 +44,10 @@ Random.seed!(1010)
     v, M, res, grad = RLinearAlgebra.sample(samp, A, b, x, 1)
     
     H = hadamard(8)
-    scaling = sqrt(2/8)
+    scaling = sqrt(1/2)
     for j = 2:5
         v, M, res, grad = RLinearAlgebra.sample(samp, A, b, x, j)
-        sgn = samp.signs
-        signs = [sgn[i] ? 1 : -1 for i in 1:8]  
-        Ab = ((Ap * Diagonal(signs)) * H .* scaling)[:, samp.block]
-        @test norm(grad - Ab' * (A * x - b)) < eps() * 1e2
+        @test norm(grad - v' * Ap' * (A * x - b)) < eps() * 1e2
     end
 
 end

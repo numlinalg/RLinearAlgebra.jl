@@ -171,10 +171,6 @@ include("linear_samplers/block_col_FJLT.jl")
 #############################################
 include("linear_samplers/linear_sampler_helpers/hadamard.jl")
 #############################################
-# Fast Transforms
-#############################################
-include("helper_functions/hadamard.jl")
-#############################################
 # Block Row Sampler/Sketch/Selector
 #############################################
 include("linear_samplers/block_row_gaussian.jl")

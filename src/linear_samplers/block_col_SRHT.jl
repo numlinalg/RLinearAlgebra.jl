@@ -68,9 +68,9 @@ function sample(
 
     sgn = rand([-1, 1], type.padded_size)
     type.block .= randperm(type.padded_size)[1:type.block_size] 
-    AS = (type.scaling * (type.Ap * sgn .* type.hadamard))[:, type.block]
+    AS = (type.scaling * (type.Ap * (sgn .* type.hadamard)))[:, type.block]
     # Residual of the linear system
     res = A * x - b
     grad = AS' * res
-    return (type.scaling * sgn .* type.Hadamard)[:, type.block], AS, res, grad
+    return (type.scaling * sgn .* type.hadamard)[:, type.block], AS, res, grad
 end
