@@ -20,4 +20,3 @@ Have a new method that you think would be a valuable addition to the package? Ma
 
 You can also contribute code to `RLinearAlgebra.jl`. Before contributing make sure that you are familiar with 
 [Git](https://git-scm.com/book/en/v2), [GitHub](https://docs.github.com/en/get-started/start-your-journey/hello-world), and [Julia package development](https://docs.julialang.org/en/v1/stdlib/Pkg/#Developing-packages-1). Once you are familiar with these items you can contribute to `RLinearAlgebra.jl` by following the steps laid out in the [JUMP](https://jump.dev/JuMP.jl/stable/developers/contributing/) guide.
-

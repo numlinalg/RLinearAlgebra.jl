@@ -29,6 +29,11 @@ makedocs(
             "Style Guide" => "dev/styleguide.md"
             "Checklists" => "dev/checklists.md"
         ],
+        "Developers" => [
+            "Contributing" => "dev/contributing.md"
+            "Style Guide" => "dev/styleguide.md"
+            "Checklists" => "dev/checklists.md"
+        ],
     ]
 )
 
