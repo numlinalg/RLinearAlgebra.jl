@@ -23,6 +23,9 @@ module RLinearAlgebra
 
 using LinearAlgebra, Random, Distributions
 
+import SparseArrays: sprandn, SparseMatrixCSC
+
+import Hadamard: hadamard
 ###########################################
 # Exports
 ###########################################
@@ -48,9 +51,9 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 #Vector Block Row Samplers
-export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace, LinSysBlkRowCountSketch
+export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace, LinSysBlkRowFJLT, LinSysBlkRowSRHT, LinSysBlkRowCountSketch
 #Vector Block Column Samplers
-export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace, LinSysBlkColCountSketch
+export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace, LinSysBlkColFJLT, LinSysBlkColSRHT, LinSysBlkColCountSketch
 
 #*****************************************#
 # Linear Solver Routine Exports
