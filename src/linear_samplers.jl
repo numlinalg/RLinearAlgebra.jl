@@ -141,7 +141,6 @@ include("linear_samplers/vec_row_uniform.jl")
 include("linear_samplers/vec_row_gaussian.jl")
 include("linear_samplers/vec_row_uniform_sparse.jl")
 include("linear_samplers/vec_row_gaussian_sparse.jl")
-include("linear_samplers/block_row_count_sketch.jl")
 include("linear_samplers/block_row_sample_wo_replacement.jl")
 #include("linear_samplers/vec_row_uniform_sym_sparse.jl")
 #include("linear_samplers/vec_row_uniform_sym.jl")
@@ -170,12 +169,16 @@ include("linear_samplers/block_col_sample_wo_replacement.jl")
 include("linear_samplers/block_row_gaussian.jl")
 include("linear_samplers/block_row_rand_cyclic.jl")
 include("linear_samplers/block_row_rand_replace.jl")
+include("linear_samplers/block_row_SRHT.jl")
+include("linear_samplers/block_row_FJLT.jl")
 #############################################
 # Block Column Sampler/Sketch/Selector
 #############################################
-include("linear_samplers/block_col_rand_cyclic.jl")
 include("linear_samplers/block_col_gaussian.jl")
 include("linear_samplers/block_col_rand_replace.jl")
+include("linear_samplers/block_col_rand_cyclic.jl")
+include("linear_samplers/block_col_SRHT.jl")
+include("linear_samplers/block_col_FJLT.jl")
 #############################################
 # Compositional Sampler/Sketch/Selector
 #############################################
@@ -185,6 +188,7 @@ include("linear_samplers/block_col_rand_replace.jl")
 # Sampler Helper Functions
 #############################################
 include("linear_samplers/linear_sampler_helpers/helpers_cyclic.jl")
+include("linear_samplers/linear_sampler_helpers/hadamard.jl")
 #############################################
 # Export Statements
 #############################################

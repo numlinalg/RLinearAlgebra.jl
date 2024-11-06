@@ -69,7 +69,13 @@ LinSysBlkRowReplace
 
 LinSysBlkRowRandCyclic
 
+<<<<<<< HEAD
 LinSysBlkRowSelectWoReplacement
+=======
+LinSysBlkRowFJLT
+
+LinSysBlkRowSRHT
+>>>>>>> master
 ```
 
 ## Block Vector Col Samplers
@@ -82,6 +88,10 @@ LinSysBlkColReplace
 LinSysBlkColRandCyclic
 
 LinSysBlkColSelectWoReplacement
+
+LinSysBlkColFJLT
+
+LinSysBlkColSRHT
 ```
 
 ## Sample Function
@@ -93,4 +103,6 @@ RLinearAlgebra.sample(::Nothing,::AbstractArray,::AbstractVector,
 ## Internal Functions
 ```@docs
 RLinearAlgebra.init_blocks_cyclic!
+
+RLinearAlgebra.fwht!
 ```
