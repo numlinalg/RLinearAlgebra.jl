@@ -19,7 +19,7 @@ See Kenneth L. Clarkson and David P. Woodruff. 2017.
     https://doi.org/10.1145/3019134
 
 The explicit sketch matrix is mentioned in Section 1.2 - Techniques (row version) of the aforementioned paper.
-See also https://wangshusen.github.io/code/countsketch.html for a visual explanation of the column version.
+See this [website](https://wangshusen.github.io/code/countsketch.html) for a visual explanation of the column version.
 
 # Fields
 
