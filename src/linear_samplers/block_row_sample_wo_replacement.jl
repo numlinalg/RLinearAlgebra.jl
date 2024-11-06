@@ -32,6 +32,11 @@ mutable struct LinSysBlkRowSelectWoReplacement <: LinSysVecRowSelect
     population::Union{Vector{Int64}, Nothing}
     rows_sampled::Union{Vector{Int64}, Nothing}
     S::Union{Matrix{Int64}, Nothing}
+    LinSysBlkRowSelectWoReplacement(block_size, probability, population, rows_sampled, S) = begin
+        check_properties = (block_size > 0)
+        @assert check_properties "block_size is 0 or negative."
+        return new(block_size, probability, population, rows_sampled, S)
+    end
 end
 
 function LinSysBlkRowSelectWoReplacement(;block_size=2, probability=nothing)
@@ -50,10 +55,6 @@ function sample(
     # Error checking and initialization on first iteration
     if iter == 1
         nrow = size(A)[1]
-        if type.block_size <= 0
-            throw(DomainError("block_size is 0 or negative!")) 
-        end
-        
         if type.block_size > nrow
             throw(DomainError("block_size is larger than the number of rows in A! Cannot select this amount without replacement!"))
         end
@@ -68,13 +69,13 @@ function sample(
         elseif isa(type.probability, Vector) || isa(type.probability, Weights)
             # check that probability is a valid distribution on the rows 
             if !(sum(type.probability) ≈ 1)
-                throw(DomainError("Elements of probability do not sum to 1!"))
+                throw(DomainError("Elements of `probability` do not sum to 1!"))
             elseif sum(type.probability .>= 0) != size(type.probability)[1]
-                throw(DomainError("Not all probabilities are non-negative in probability!")) 
+                throw(DomainError("Not all probabilities are non-negative in `probability`!")) 
             elseif size(type.probability)[1] != size(A)[1]
-                throw(DimensionMismatch("Length of probability vector is smaller than the number of rows in A!"))
+                throw(DimensionMismatch("Length of `probability` vector is smaller than the number of rows in A!"))
             elseif sum(type.probability .> 0) < type.block_size
-                throw(DimensionMismatch("Not enough non-zero probabilities in probability to select the required number of rows!"))
+                throw(DimensionMismatch("Not enough non-zero probabilities in `probability` to select the required number of rows!"))
             end
             
             # type conversion if necessary

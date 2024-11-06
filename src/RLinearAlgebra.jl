@@ -47,7 +47,6 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
     LinSysVecRowUnidSampler, LinSysVecRowUnifSampler, LinSysVecRowGaussSampler,
     LinSysVecRowSparseUnifSampler, LinSysVecRowSparseGaussSampler, LinSysVecRowMaxResidual,
     LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic
-export LinSysBlkRowCountSketch, LinSysBlkRowSelectWoReplacement
 
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic

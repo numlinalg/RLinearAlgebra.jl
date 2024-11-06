@@ -41,8 +41,9 @@ Random.seed!(1010)
     @test sampler.block_size == 101
     @test sampler.probability == [.5, .5]
     @test isnothing(sampler.population) && isnothing(sampler.rows_sampled) && isnothing(sampler.S)
-    #####################
-    #####################
+
+    # test assertion error
+    @test_throws AssertionError LinSysBlkRowSelectWoReplacement(block_size = -1)
 
     ####################
     ### test sampler ###

@@ -41,8 +41,9 @@ Random.seed!(1010)
     @test sampler.block_size == 101
     @test sampler.probability == [.5, .5]
     @test isnothing(sampler.population) && isnothing(sampler.col_sampled) && isnothing(sampler.S)
-    #####################
-    #####################
+
+    # test assertion error
+    @test_throws AssertionError LinSysBlkColSelectWoReplacement(block_size = -1)
 
     ####################
     ### test sampler ###
@@ -203,9 +204,6 @@ Random.seed!(1010)
         flag_col = flag_col && (sum_to_one && non_negative)
     end
     @test flag_col
-
-    ####################
-    ####################
 
 end 
 
