@@ -24,7 +24,8 @@ Random.seed!(1010)
     @test isnothing(sampler.S)
 
     # test full constructor with arbitrary arguments
-    sampler = LinSysBlkRowSelectWoReplacement(100, [1., -1.], collect(1:2), ones(1000), ones(100,100))
+    sampler = LinSysBlkRowSelectWoReplacement(100, [1., -1.], collect(1:2), 
+                                              ones(1000), ones(100,100))
     @test sampler.block_size == 100
     @test sampler.probability == [1., -1.]
     @test sampler.population == collect(1:2)
@@ -34,13 +35,15 @@ Random.seed!(1010)
     # test default constructor
     sampler = LinSysBlkRowSelectWoReplacement()
     @test sampler.block_size == 2
-    @test isnothing(sampler.probability) && isnothing(sampler.population) && isnothing(sampler.rows_sampled) && isnothing(sampler.S)
+    @test isnothing(sampler.probability) && isnothing(sampler.population) && 
+    isnothing(sampler.rows_sampled) && isnothing(sampler.S)
 
     # test keyword constructor
     sampler = LinSysBlkRowSelectWoReplacement(block_size=101, probability = [.5, .5])
     @test sampler.block_size == 101
     @test sampler.probability == [.5, .5]
-    @test isnothing(sampler.population) && isnothing(sampler.rows_sampled) && isnothing(sampler.S)
+    @test isnothing(sampler.population) && isnothing(sampler.rows_sampled) && 
+    isnothing(sampler.S)
 
     # test assertion error
     @test_throws AssertionError LinSysBlkRowSelectWoReplacement(block_size = -1)
@@ -64,7 +67,8 @@ Random.seed!(1010)
     # check initializations
     @test size(sampler.S) == (block_size, size(A)[1])
     @test size(sampler.rows_sampled) == (block_size, )
-    @test sampler.probability == repeat([1/size(A)[1]], outer = size(A)[1]) && isa(sampler.probability, Weights)
+    @test sampler.probability == 
+            repeat([1/size(A)[1]], outer = size(A)[1]) && isa(sampler.probability, Weights)
     @test sampler.population == collect(1:size(A)[1])
 
     # check output
@@ -107,7 +111,8 @@ Random.seed!(1010)
     probability[1:20] .= 1/20
     block_size = 20
 
-    sampler = LinSysBlkRowSelectWoReplacement(block_size = block_size, probability = probability)
+    sampler = LinSysBlkRowSelectWoReplacement(block_size = block_size, 
+                                              probability = probability)
     
     # sample
     S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
@@ -124,46 +129,30 @@ Random.seed!(1010)
     # test error checking in keyword constructor
 
     # weights do not add to 1.
-    try
-        sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = [1., 1.])
-        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
-    catch e
-        @test isa(e, DomainError)
-    end
+    sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = [1., 1.])
+    @test_throws DomainError RLinearAlgebra.sample(sampler, A, b, x0, 1)
 
     # weights are not non-negative
-    try
-        sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = [2., -1.])
-        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
-    catch e
-        @test isa(e, DomainError)
-    end
+    sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = [2., -1.])
+    @test_throws DomainError RLinearAlgebra.sample(sampler, A, b, x0, 1)
 
     # weights do not form a valid distribution over rows
-    try
-        nrow = size(A)[1] - 50
-        probability = Weights(repeat([1/nrow], outer = nrow))
-        sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = probability)
-        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
-    catch e
-        @test isa(e, DimensionMismatch)
-    end
+    nrow = size(A)[1] - 50
+    probability = Weights(repeat([1/nrow], outer = nrow))
+    sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = probability)
+    @test_throws DimensionMismatch RLinearAlgebra.sample(sampler, A, b, x0, 1)
 
     # not enough non-zero probabilities
-    try
-        nrow = size(A)[1]
-        probability = Weights(repeat([0.], outer = nrow))
-        probability[1] = 1.
-        sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = probability)
-        S, SA, res = RLinearAlgebra.sample(sampler, A, b, x0, 1)
-    catch e
-        @test size(probability)[1] == size(A)[1] # ignores the first dim mismatch
-        @test isa(e, DimensionMismatch)
-    end
+    nrow = size(A)[1]
+    probability = Weights(repeat([0.], outer = nrow))
+    probability[1] = 1.
+    sampler = LinSysBlkRowSelectWoReplacement(block_size = 2, probability = probability)
+    @test_throws DimensionMismatch RLinearAlgebra.sample(sampler, A, b, x0, 1)
 
     # initialize sampler with arbitrary arguments 
     block_size = 10
-    sampler = LinSysBlkRowSelectWoReplacement(block_size, nothing, collect(1:10000), collect(1:10000), ones(10000,10000))
+    sampler = LinSysBlkRowSelectWoReplacement(block_size, nothing, collect(1:10000), 
+                                              collect(1:10000), ones(10000,10000))
     
     # first iteration
     sample_sketch = RLinearAlgebra.sample(sampler, A, b, x0, 1)
@@ -171,7 +160,8 @@ Random.seed!(1010)
     # check that buffer arrays were over-written with correct values
     @test size(sampler.S) == (block_size, size(A)[1])
     @test size(sampler.rows_sampled) == (block_size, )
-    @test sampler.probability == repeat([1/size(A)[1]], outer = size(A)[1]) && isa(sampler.probability, Weights)
+    @test sampler.probability == 
+    repeat([1/size(A)[1]], outer = size(A)[1]) && isa(sampler.probability, Weights)
     @test sampler.population == collect(1:size(A)[1])
 
     # check output

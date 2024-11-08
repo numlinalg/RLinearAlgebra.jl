@@ -124,42 +124,27 @@ Random.seed!(1010)
 
     # test error checking in keyword constructor
     # weights do not add to 1.
-    try
-        sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = [1., 1.])
-        output = RLinearAlgebra.sample(sampler, A, b, x0, 1)
-    catch e
-        @test isa(e, DomainError)
-    end
+    sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = [1., 1.])
+    @test_throws DomainError RLinearAlgebra.sample(sampler, A, b, x0, 1)
 
     # weights are not non-negative
-    try
-        sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = [2., -1.])
-        output = RLinearAlgebra.sample(sampler, A, b, x0, 1)
-    catch e
-        @test isa(e, DomainError)
-    end
+    sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = [2., -1.])
+    @test_throws DomainError RLinearAlgebra.sample(sampler, A, b, x0, 1)
+
 
     # weights do not form a valid distribution over cols
-    try
-        ncol = size(A)[2] - 50
-        probability = Weights(repeat([1/ncol], outer = ncol)) # a vector of length 50
-        sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = probability)
-        output = RLinearAlgebra.sample(sampler, A, b, x0, 1)
-    catch e
-        @test isa(e, DimensionMismatch)
-    end
+    ncol = size(A)[2] - 50
+    probability = Weights(repeat([1/ncol], outer = ncol)) # a vector of length 50
+    sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = probability)
+    @test_throws DimensionMismatch RLinearAlgebra.sample(sampler, A, b, x0, 1)
 
     # not enough non-zero probabilities
-    try
-        ncol = size(A)[2]
-        probability = Weights(repeat([0.], outer = ncol))
-        probability[1] = 1. # only one non-zero probability but block_size > 1
-        sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = probability)
-        output = RLinearAlgebra.sample(sampler, A, b, x0, 1)
-    catch e
-        @test size(probability)[1] == size(A)[2] # ignores the first dim mismatch error
-        @test isa(e, DimensionMismatch)
-    end
+    ncol = size(A)[2]
+    probability = Weights(repeat([0.], outer = ncol))
+    probability[1] = 1. # only one non-zero probability but block_size > 1
+    sampler = LinSysBlkColSelectWoReplacement(block_size = 2, probability = probability)
+    @test_throws DimensionMismatch RLinearAlgebra.sample(sampler, A, b, x0, 1)
+    @test size(probability)[1] == size(A)[2] # ignores the first dim mismatch error
 
     # initialize sampler with arbitrary values
     block_size = 10
