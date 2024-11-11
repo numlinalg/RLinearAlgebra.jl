@@ -69,6 +69,8 @@ LinSysBlkRowReplace
 
 LinSysBlkRowRandCyclic
 
+LinSysBlkRowSelectWoReplacement
+
 LinSysBlkRowFJLT
 
 LinSysBlkRowSRHT
@@ -84,6 +86,8 @@ LinSysBlkColGaussSampler
 LinSysBlkColReplace
 
 LinSysBlkColRandCyclic
+
+LinSysBlkColSelectWoReplacement
 
 LinSysBlkColFJLT
 

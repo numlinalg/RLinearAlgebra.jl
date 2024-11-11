@@ -141,6 +141,7 @@ include("linear_samplers/vec_row_uniform.jl")
 include("linear_samplers/vec_row_gaussian.jl")
 include("linear_samplers/vec_row_uniform_sparse.jl")
 include("linear_samplers/vec_row_gaussian_sparse.jl")
+include("linear_samplers/block_row_sample_wo_replacement.jl")
 #include("linear_samplers/vec_row_uniform_sym_sparse.jl")
 #include("linear_samplers/vec_row_uniform_sym.jl")
 
@@ -158,6 +159,7 @@ include("linear_samplers/vec_row_cyclic_distance.jl")
 # Non-adaptive Cyclic Methods
 include("linear_samplers/vec_col_deterministic_cyclic.jl")
 include("linear_samplers/vec_col_one_rand_cyclic.jl")
+include("linear_samplers/block_col_sample_wo_replacement.jl")
 # Non-adaptive Sampling (with replacement)
 #Leventhal-Lewis (non-symmetric)
 

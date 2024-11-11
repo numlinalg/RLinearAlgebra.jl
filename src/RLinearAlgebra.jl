@@ -21,7 +21,7 @@ module RLinearAlgebra
 # Dependencies
 ###########################################
 
-using LinearAlgebra, Random, Distributions
+using LinearAlgebra, Random, Distributions, StatsBase
 
 import SparseArrays: sprandn, SparseMatrixCSC
 
@@ -51,9 +51,14 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 #Vector Block Row Samplers
-export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace, LinSysBlkRowFJLT, LinSysBlkRowSRHT, LinSysBlkRowCountSketch
+export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace, 
+    LinSysBlkRowFJLT, LinSysBlkRowSRHT, LinSysBlkRowCountSketch, 
+    LinSysBlkRowSelectWoReplacement
+
 #Vector Block Column Samplers
-export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace, LinSysBlkColFJLT, LinSysBlkColSRHT, LinSysBlkColCountSketch
+export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace, 
+    LinSysBlkColFJLT, LinSysBlkColSRHT, LinSysBlkColCountSketch, 
+    LinSysBlkColSelectWoReplacement
 
 #*****************************************#
 # Linear Solver Routine Exports
