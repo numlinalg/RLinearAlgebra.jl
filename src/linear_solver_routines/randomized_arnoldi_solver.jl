@@ -14,11 +14,22 @@ Timsit, Grigori, and Balabanov. "Randomized Orthogonal Projection Methods for Kr
 https://arxiv.org/abs/2302.07466.
 
 # Parameters
-- `x::AbstractVector`, initial solution to the linear system `Ax = b`. Will be overwritten.
+
+- `x::AbstractVector`, initial solution to the linear system `Ax = b`. 
+    Will be overwritten with the solution found by the method.
 - `A::AbstractMatrix`, coefficient matrix for linear system.
 - `b::AbstractVector`, constant vector for linear system.
 - `k::Int`, number of iterations to do (size of Krylov Subspace).
 - `sketch_matrix::Union{AbstractMatrix, Nothing}` (Optional; Default value `nothing`) 
+
+# Returns
+
+- `H::AbstractMatrix`, upper hessenberg matrix produced by the method
+- `V::AbstractMatrix`, approximate orthogonal basis for the krylov subspace
+- `S::AbstractMatrix`, sketched orthogonal basis for the sketched krylov subspace
+
+Along with returning these matrices, `x` is also overwritten with the approximate solution.
+
 """
 function randomized_arnoldi!(
     x::AbstractVector,                                      # initial guess - will be overwritten
@@ -27,20 +38,6 @@ function randomized_arnoldi!(
     k::Int;                                                 # max iteration limit 
     sketch_matrix::Union{AbstractMatrix, Nothing} = nothing # optional sketch matrix
 )
-
-    # helper function to set up and solve linear system after main iteration
-    function solve_linear_system!(
-        x::AbstractVector, 
-        beta::Float64, 
-        H::AbstractMatrix, 
-        V::AbstractMatrix, 
-        k::Int64)
-
-        ek = zeros(k)
-        ek[1] = beta
-        rho = H[1:k, 1:k] \ ek
-        x .+= V[:, 1:k] * rho
-    end
 
     # check to make sure A is square
     if size(A)[1] != size(A)[2]
@@ -51,7 +48,8 @@ function randomized_arnoldi!(
     if isnothing(sketch_matrix)
         sketch_matrix = randn(k * cond(A), size(A)[1])
     elseif size(sketch_matrix)[1] < k
-        @warn("Embedding space smaller then number of iterations. Possible trouble with forming sketched basis. Caution advised.")
+        @warn("Embedding space smaller then number of iterations. 
+        Possible trouble with forming sketched basis. Caution advised.")
     end
 
     # initializations -- important quantities
@@ -63,7 +61,7 @@ function randomized_arnoldi!(
     V = zeros(size(A)[1], k+1)              # Approximate basis for krylov space
     S = zeros(size(sketch_matrix)[1], k+1)  # Sketched basis for krylov space
     H = zeros(k+1, k+1)                     # Normalizing coefficients
-    d = zeros(size(A)[1])                   # buffer array for making z orthogonal
+    d = zeros(size(A)[1])                   # buffer array for making z approximately orthogonal
     s_prime = zeros(size(sketch_matrix)[1]) # buffer array for sketched basis vector
 
     # initial basis vectors
@@ -72,14 +70,19 @@ function randomized_arnoldi!(
 
     # main loop
     for j in 1:k 
-        # get vector to be added to basis
+        # get vector to be add to the approximate basis
         z = view(V, :, j+1)
         mul!( z, A, view(V, :, j) )
 
+        # get vector to add to the sketched basis 
+        mul!(s_prime, sketch_matrix, z)             # p in the psuedo code
+
         # orthogonalizing constants
-        mul!( s_prime, sketch_matrix, z )
-        buffer = view(H, 1:j, j)
-        mul!(buffer, view(S, :, 1:j)', s_prime)
+        for i in 1:j
+            s = view(S, :, i)
+            H[i, j] = dot(s, s_prime)
+            s_prime .-= H[i, j] .* s
+        end
 
         # orthogonalize (in sketch space) and update current basis
         mul!( d, view(V, :, 1:j), view(H, 1:j, j) )
@@ -93,6 +96,6 @@ function randomized_arnoldi!(
     end
 
     # solve the resulting linear system and return H, V, S for debugging purposes
-    solve_linear_system!(x, beta, H, V, k)
+    form_and_solve_hessenberg_system!(x, beta, H, V, k)
     return H, V, S
 end

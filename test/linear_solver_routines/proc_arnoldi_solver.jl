@@ -21,7 +21,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
 
     # run randomized arnoldi iteration
     k = 5
-    H, V = arnoldi!(x0, A, b, k)
+    H, V = RLinearAlgebra.arnoldi!(x0, A, b, k)
 
     # gather common matrices
     Vk = V[:, 1:k]

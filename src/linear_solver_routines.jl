@@ -107,6 +107,7 @@ end
 # Linear Solvers Helpers
 ############################################
 include("linear_solver_routines/block_solver_helpers/gentlemans_house.jl")
+include("linear_solver_routines/arnoldi_solver_helpers/solve_hessenberg_system.jl")
 #############################################
 # Vector Row Projection Solvers
 #############################################

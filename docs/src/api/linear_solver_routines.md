@@ -60,10 +60,10 @@ LinSysBlkColGent
 RLinearAlgebra.rsubsolve!
 ```
 
-## Alternative Solvers
+## Krylov Solvers
 
 ```@docs
-arnoldi!
+RLinearAlgebra.arnoldi!
 
-randomized_arnoldi!
+RLinearAlgebra.randomized_arnoldi!
 ```

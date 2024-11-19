@@ -22,7 +22,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     # run randomized arnoldi iteration -- sketch matrix provided
     k = 5
     sketch_matrix = randn(5, 10) # refered to as Ω in comments
-    H, V, S = randomized_arnoldi!(x0, A, b, k, sketch_matrix = sketch_matrix)
+    H, V, S = RLinearAlgebra.randomized_arnoldi!(x0, A, b, k, sketch_matrix = sketch_matrix)
 
     # gather common matrices
     Vk = V[:, 1:k]
@@ -60,8 +60,6 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     ek = zeros(k)
     ek[1] = norm(sketch_matrix * r0)
     @test norm(x0 - Vk * (Hk \ ek) ) < eps() * 1e3
-
-    # run randomized arnoldi iteration -- sketch matrix is not provided 
 
 end # end test
 

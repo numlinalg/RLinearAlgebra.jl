@@ -81,9 +81,6 @@ export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
 # Vector Block Column Projection
 export LinSysBlkColGent, BlockCoordinateDescent
 
-# Alternative Solvers
-export arnoldi!, randomized_arnoldi!
-
 #*****************************************#
 # Linear Solver Log Exports
 #*****************************************#
