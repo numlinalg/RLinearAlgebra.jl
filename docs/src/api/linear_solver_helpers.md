@@ -20,3 +20,10 @@ RLinearAlgebra.ldiv!
 RLinearAlgebra.copy_block_from_mat!
 RLinearAlgebra.reset_gent!
 ```
+
+## (Randomized) Arnoldi Solvers
+
+### Helper Functions
+```@docs
+RLinearAlgebra.form_and_solve_hessenberg_system!
+```

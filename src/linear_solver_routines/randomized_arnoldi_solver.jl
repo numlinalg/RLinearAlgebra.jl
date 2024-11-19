@@ -5,7 +5,8 @@
 # by Timsit, Grigori, Balabanov.
 
 """
-    randomized_arnoldi!(x, A, b, k; sketch_matrix)
+    randomized_arnoldi!(x::AbstractVector, A::AbstractMatrix, b::AbstractVector, 
+    k::Int64; sketch_matrix::Union{AbstractMatrix, Nothing})
 
 Find an approximate solution of the linear system using the randomized arnoldi iteration.
 This method was introduced in the following paper
