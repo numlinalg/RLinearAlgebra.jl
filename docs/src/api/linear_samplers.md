@@ -61,11 +61,19 @@ LinSysVecColOneRandCyclic
 ## Block Vector Row Samplers
 
 ```@docs
+LinSysBlkRowCountSketch
+
 LinSysBlkRowGaussSampler
 
 LinSysBlkRowReplace
 
 LinSysBlkRowRandCyclic
+
+LinSysBlkRowSelectWoReplacement
+
+LinSysBlkRowFJLT
+
+LinSysBlkRowSRHT
 
 LinSysBlkRowSparseSign
 ```
@@ -73,11 +81,19 @@ LinSysBlkRowSparseSign
 ## Block Vector Col Samplers
 
 ```@docs
+LinSysBlkColCountSketch
+
 LinSysBlkColGaussSampler
 
 LinSysBlkColReplace
 
 LinSysBlkColRandCyclic
+
+LinSysBlkColSelectWoReplacement
+
+LinSysBlkColFJLT
+
+LinSysBlkColSRHT
 
 LinSysBlkColSparseSign
 ```
@@ -91,4 +107,6 @@ RLinearAlgebra.sample(::Nothing,::AbstractArray,::AbstractVector,
 ## Internal Functions
 ```@docs
 RLinearAlgebra.init_blocks_cyclic!
+
+RLinearAlgebra.fwht!
 ```

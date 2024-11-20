@@ -21,8 +21,11 @@ module RLinearAlgebra
 # Dependencies
 ###########################################
 
-using LinearAlgebra, Random, Distributions
+using LinearAlgebra, Random, Distributions, StatsBase
 
+import SparseArrays: sprandn, SparseMatrixCSC
+
+import Hadamard: hadamard
 ###########################################
 # Exports
 ###########################################
@@ -44,15 +47,19 @@ export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandC
     LinSysVecRowUnidSampler, LinSysVecRowUnifSampler, LinSysVecRowGaussSampler,
     LinSysVecRowSparseUnifSampler, LinSysVecRowSparseGaussSampler, LinSysVecRowMaxResidual,
     LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic
-
+    
 # Vector Column Samplers
 export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
-# Vector Block Row Samplers
+#Vector Block Row Samplers
 export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace, 
-    LinSysBlkRowSparseSign
-# Vector Block Column Samplers
-export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace,
-    LinSysBlkColSparseSign
+    LinSysBlkRowFJLT, LinSysBlkRowSRHT, LinSysBlkRowCountSketch, 
+    LinSysBlkRowSelectWoReplacement, LinSysBlkRowSparseSign
+
+#Vector Block Column Samplers
+export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace, 
+    LinSysBlkColFJLT, LinSysBlkColSRHT, LinSysBlkColCountSketch, 
+    LinSysBlkColSelectWoReplacement, LinSysBlkColSparseSign
+
 #*****************************************#
 # Linear Solver Routine Exports
 #*****************************************#
@@ -65,7 +72,7 @@ export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
 export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjFO
 
 # Vector Block Row Projection
-export LinSysBlkRowLQ, BlockKaczmarz
+export LinSysBlkRowLQ, BlockKaczmarz, IterativeHessianSketch
 
 # Vector Column Projection
 export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
@@ -91,6 +98,31 @@ export iota_threshold
 #*****************************************#
 export RLSSolver, rsolve, rsolve!
 
+###########################################
+# Low Rank Approximation Exports
+###########################################
+export ApproxMethod, RangeFinderMethod, IntDecompMethod, NystromMethod
+
+# Rangefinder methods
+
+# Interpolatory decomposition methods
+
+# Nystrom methods
+
+# Function to perform the approximation
+export rapproximate
+
+
+###########################################
+# Low Rank Approximation Error Exports
+###########################################
+
+export ApproxErrorMethod, RangeFinderError
+
+# Function to perform the error computation
+export error_approximate!
+
+export ApproxError, RangeError
 
 ###########################################
 # Source File Inclusions
@@ -102,6 +134,8 @@ include("linear_solver_routines.jl")
 include("linear_solver_logs.jl")
 include("linear_solver_stops.jl")
 include("linear_rsolve.jl")
+include("low_rank_approx.jl")
+include("low_rank_approx_error.jl")
 
 
 end # module
