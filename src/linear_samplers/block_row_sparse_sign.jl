@@ -13,17 +13,14 @@ Acta Numerica. 2020;29:403-572. doi:10.1017/S0962492920000021.
 
 # Fields
 - `block_size::Int64`, represents the number of rows in the sketch matrix.
-- `sparsity::Float64`, represents the sparsity of the sketch matrix. Suppose the sketch matrix 
-    has dimensions of `block_size` rows and `n` columns; the sparsity, as described in the reference book, 
-    can be chosen from `{2, 3, ..., block_size}`, representing the number of elements we want in each column.
 - `sketch_matrix::Union{AbstractMatrix, Nothing}`, buffer for storing the sparse sign sketching matrix.
 - `numsigns::Int64`, storing how many signs we need to have for each column of the 
-    sketch matrix, calculated only in the first iteration by `max(floor(sparsity * size(A, 1)), 2)`.
+    sketch matrix, which can be chosen from `{2, 3, ..., block_size}
 - `scaling::Float64`, the standard deviation of the sketch, set to `sqrt(n / numsigns)`, calculated 
     only in the first iteration.
 
 # Constructors
-- `LinSysBlkRowSparseSign()` defaults to setting `block_size` to 8 and `sparsity` to `min(d, 8)`.
+- `LinSysBlkRowSparseSign()` defaults to setting `block_size` to 8 and `numsigns` to `min(d, 8)`.
 """
 mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
     block_size::Int64
@@ -31,19 +28,25 @@ mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
         @assert block_size > 0 "`block_size` must be positive."
         return new(block_size)
     end
-    sparsity::Float64
-    
+    # sparsity::Float64
     sketch_matrix::Union{Matrix{Int64}, Nothing}
-    numsigns::Int64
+    numsigns::Union{Int64, Nothing}
     scaling::Float64
 end
 
-LinSysBlkRowSparseSign(;block_size, sparsity) = LinSysBlkRowSparseSign(block_size, sparsity,
+# LinSysBlkRowSparseSign(;block_size, sparsity) = LinSysBlkRowSparseSign(block_size, sparsity,
+#     nothing, 0, 0.0)
+# LinSysBlkRowSparseSign(;block_size) = LinSysBlkRowSparseSign(block_size, -12345.0, nothing, 0, 
+#     0.0)
+# LinSysBlkRowSparseSign(;sparsity) = LinSysBlkRowSparseSign(8, sparsity, nothing, 0, 0.0)
+# LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, -12345.0, nothing, 0, 0.0)
+
+LinSysBlkRowSparseSign(;block_size, numsigns) = LinSysBlkRowSparseSign(block_size, numsigns,
     nothing, 0, 0.0)
-LinSysBlkRowSparseSign(;block_size) = LinSysBlkRowSparseSign(block_size, -12345.0, nothing, 0, 
+LinSysBlkRowSparseSign(;block_size) = LinSysBlkRowSparseSign(block_size, nothing, nothing, 0, 
     0.0)
-LinSysBlkRowSparseSign(;sparsity) = LinSysBlkRowSparseSign(8, sparsity, nothing, 0, 0.0)
-LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, -12345.0, nothing, 0, 0.0)
+LinSysBlkRowSparseSign(;numsigns) = LinSysBlkRowSparseSign(8, numsigns, nothing, 0, 0.0)
+LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, nothing, nothing, 0, 0.0)
 
 # Common sample interface for linear systems
 function sample(
@@ -64,13 +67,13 @@ function sample(
 
         # In default, we should sample min{type.block_size, 8} signs for each column.
         # Otherwise, we take an integer from 2 to d with sparsity parameter.
-        if type.sparsity == -12345.0
+        if type.numsigns == nothing
             type.numsigns = min(type.block_size, 8)
-        elseif type.sparsity <= 0.0 || type.sparsity >= 1.0
-            DomainError(sparsity, "Must be strictly between 0.0 and 1.0") |>
+        elseif type.numsigns <= 0 || type.type.numsigns >= size(A, 1)
+            DomainError(type.numsigns, "Must be strictly between 0 and $(size(A, 1))") |>
                 throw
-        else
-            type.numsigns = max(floor(Int64, type.sparsity * size(A,1)), 2)
+        # else
+        #     type.numsigns = max(floor(Int64, type.sparsity * size(A,1)), 2)
         end
 
         # Scaling value for saprse sign matrix
@@ -108,3 +111,7 @@ function sample(
 end
 
 # export LinSysBlkRowSparseSign
+
+# - `sparsity::Float64`, represents the sparsity of the sketch matrix. Suppose the sketch matrix 
+#     has dimensions of `block_size` rows and `n` columns; the sparsity, as described in the reference book, 
+#     can be chosen from `{2, 3, ..., block_size}`, representing the number of elements we want in each column.
