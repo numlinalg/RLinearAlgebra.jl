@@ -27,7 +27,6 @@ mutable struct LinSysBlkColSparseSign <: LinSysBlkColSampler
         @assert block_size > 0 "`block_size` must be positive."
         return new(block_size)
     end
-    # sparsity::Float64
     sketch_matrix::Union{Matrix{Int64}, Nothing}
     numsigns::Union{Int64, Nothing}
     scaling::Float64
@@ -61,11 +60,9 @@ function sample(
         # Otherwise, we take an integer from 2 to type.block_size with sparsity parameter.
         if type.numsigns == nothing
             type.numsigns = min(type.block_size, 8)
-        elseif type.numsigns <= 0 || type.numsigns >= size(A, 2)
-            DomainError(type.numsigns, "Must be strictly between 0 and $(size(A, 2))") |>
+        elseif type.numsigns <= 0 || type.numsigns > type.block_size
+            DomainError(numsigns, "Must be strictly between 0 and $(type.block_size)") |>
                 throw
-        # else
-        #     type.numsigns = max(floor(Int64, type.sparsity * size(A,2)), 2)
         end
 
         # Scaling value for saprse sign matrix

@@ -28,18 +28,10 @@ mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
         @assert block_size > 0 "`block_size` must be positive."
         return new(block_size)
     end
-    # sparsity::Float64
     sketch_matrix::Union{Matrix{Int64}, Nothing}
     numsigns::Union{Int64, Nothing}
     scaling::Float64
 end
-
-# LinSysBlkRowSparseSign(;block_size, sparsity) = LinSysBlkRowSparseSign(block_size, sparsity,
-#     nothing, 0, 0.0)
-# LinSysBlkRowSparseSign(;block_size) = LinSysBlkRowSparseSign(block_size, -12345.0, nothing, 0, 
-#     0.0)
-# LinSysBlkRowSparseSign(;sparsity) = LinSysBlkRowSparseSign(8, sparsity, nothing, 0, 0.0)
-# LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, -12345.0, nothing, 0, 0.0)
 
 LinSysBlkRowSparseSign(;block_size, numsigns) = LinSysBlkRowSparseSign(block_size, numsigns,
     nothing, 0, 0.0)
@@ -57,7 +49,7 @@ function sample(
     iter::Int64
 )
     # Sketch matrix has dimension type.block_size (a pre-identified number of rows) by 
-    #size(A,1) (matrix A's number of rows)
+    # size(A,1) (matrix A's number of rows)
 
     if iter == 1
         # @assert type.block_size > 0 "`block_size` must be positve."
@@ -69,11 +61,9 @@ function sample(
         # Otherwise, we take an integer from 2 to d with sparsity parameter.
         if type.numsigns == nothing
             type.numsigns = min(type.block_size, 8)
-        elseif type.numsigns <= 0 || type.type.numsigns >= size(A, 1)
-            DomainError(type.numsigns, "Must be strictly between 0 and $(size(A, 1))") |>
+        elseif type.numsigns <= 0 || type.type.numsigns > type.block_size
+            DomainError(numsigns, "Must be strictly between 0 and $(type.block_size)") |>
                 throw
-        # else
-        #     type.numsigns = max(floor(Int64, type.sparsity * size(A,1)), 2)
         end
 
         # Scaling value for saprse sign matrix
@@ -111,7 +101,3 @@ function sample(
 end
 
 # export LinSysBlkRowSparseSign
-
-# - `sparsity::Float64`, represents the sparsity of the sketch matrix. Suppose the sketch matrix 
-#     has dimensions of `block_size` rows and `n` columns; the sparsity, as described in the reference book, 
-#     can be chosen from `{2, 3, ..., block_size}`, representing the number of elements we want in each column.
