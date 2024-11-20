@@ -39,7 +39,6 @@ function arnoldi!(
     # initialization of storage and initial residual
     r0 = b - A * x 
     beta = norm(r0)
-    d = zeros(size(A)[1])
     V = zeros(size(A)[1], k+1)
     H = zeros(k+1, k+1)
 
