@@ -20,7 +20,7 @@ Acta Numerica. 2020;29:403-572. doi:10.1017/S0962492920000021.
     only in the first iteration.
 
 # Constructors
-- `LinSysBlkRowSparseSign()` defaults to setting `block_size` to 8 and `numsigns` to `min(d, 8)`.
+- `LinSysBlkRowSparseSign()` defaults to setting `block_size` to 8 and `numsigns` to `min(block_size, 8)`.
 """
 mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
     block_size::Int64
@@ -50,11 +50,10 @@ function sample(
 )
     # Sketch matrix has dimension type.block_size (a pre-identified number of rows) by 
     # size(A,1) (matrix A's number of rows)
-
+    
     if iter == 1
-        # @assert type.block_size > 0 "`block_size` must be positve."
         if type.block_size > size(A,1)
-            @warn "`block_size` should be less than or equal to row dimension"
+            @warn "`block_size` should less than or equal to row dimension"
         end
 
         # In default, we should sample min{type.block_size, 8} signs for each column.

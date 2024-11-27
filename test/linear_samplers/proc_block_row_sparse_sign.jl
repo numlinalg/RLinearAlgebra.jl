@@ -28,7 +28,6 @@ Random.seed!(1010)
      SS = LinSysBlkRowSparseSign(numsigns = 5)
      @test RLinearAlgebra.sample(SS, A, b, x, 1) !== nothing
 
-
      # Block size must be positive
      SS = LinSysBlkRowSparseSign(block_size = -12)
      @test_throws AssertionError("`block_size` must be positive") RLinearAlgebra.sample(SS, A, b, x, 1)
@@ -49,6 +48,8 @@ Random.seed!(1010)
      # Only test for res?
      for j = 2:5
           v, M, res = RLinearAlgebra.sample(SS, A, b, x, j)
+
+          @test norm(M - v * A) < eps() * 1e2
           @test norm(res - (v * A * x - v * b)) < eps() * 1e2
      end
  

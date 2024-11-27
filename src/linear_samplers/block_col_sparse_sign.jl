@@ -19,7 +19,7 @@ Acta Numerica. 2020;29:403-572. doi:10.1017/S0962492920000021.
 - `scaling::Float64`, the standard deviation of the sketch, set to `sqrt(n / numsigns)`.
 
 # Constructors
-- `LinSysBlkColSparseSign()` defaults to setting `block_size` to 8 and `numsigns` to `min(d, 8)`.
+- `LinSysBlkColSparseSign()` defaults to setting `block_size` to 8 and `numsigns` to `min(block_size, 8)`.
 """
 mutable struct LinSysBlkColSparseSign <: LinSysBlkColSampler
     block_size::Int64
@@ -49,11 +49,10 @@ function sample(
 )
     # Sketch matrix has dimension type.block_size (a pre-identified number of rows) by 
     # size(A,2) (matrix A's number of Columns)
-
+    
     if iter == 1
-        # @assert type.block_size > 0 "`block_size` must be positve."
         if type.block_size > size(A,2)
-            @warn "`block_size` should be less than or equal to column dimension"
+            @warn "`block_size` should less than or equal to column dimension"
         end
 
         # In default, we should sample min{type.block_size, 8} signs for each column.
@@ -61,7 +60,7 @@ function sample(
         if type.numsigns == nothing
             type.numsigns = min(type.block_size, 8)
         elseif type.numsigns <= 0 || type.numsigns > type.block_size
-            DomainError(numsigns, "Must be strictly between 0 and $(type.block_size)") |>
+            DomainError(numsigns, "Must strictly between 0 and $(type.block_size)") |>
                 throw
         end
 
