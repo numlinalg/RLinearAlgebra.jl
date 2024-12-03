@@ -30,28 +30,29 @@ A Q_{k-1} = Q H,
 ```
 and
 ```math
-(\\Omega Q)^{\\intercal} \\Omega A Q = H,
+(\\Omega Q_{k-1})^{\\intercal} \\Omega A Q_{k-1} = H_{k-1},
 ```
-where ``Q_{k-1}`` contains the first ``k-1`` columns of the matrix Q.
+where ``Q_{k-1}`` contains the first ``k-1`` columns of the matrix ``Q``, and ``H_{k-1}``
+is the first ``k-1`` rows of the matrix ``H``.
 
 # Reference(s)
 
-TODO
+Timsit, Grigori, Balabanov. "Randomized Orthogonal Projection Methods for Krylov Subspace
+Solvers". arxiv, https://arxiv.org/pdf/2302.07466
 
 # Arguments
 
 - `A::AbstractMatrix`, matrix that is used to form Krylov subspace.
-- `q::AbstractVector`, initial vector to make subspace.
+- `q::AbstractVector`, vector used to form krylov subspace. 
 - `Omega::AbstractMatrix`, sketching matrix.
 - `k::Int64`, how many vectors to add to basis.
 
 # Returns 
 
-TODO
-
-- `Q::AbstractMatrix`
-- `S::AbstractMatrix`
-- `H::AbstractMatrix`
+- `Q::AbstractMatrix`, approximate basis vectors. Is of dimension `(size(q, 1), k)`.
+- `S::AbstractMatrix`, sketched basis vectors. Is of dimension `(size(Omega, 1), k)`.
+- `H::AbstractMatrix`, upper hessenberg matrix that stores the orthogonalizing 
+coefficients for the sketched basis vectors. Is of dimension `(k, k - 1)`.
 """
 function randomized_arnoldi(
         A::AbstractMatrix,     # matrix for krylov subspace

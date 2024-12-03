@@ -3,7 +3,7 @@
 # Purpose: Implement the modified gram schmidt method
 
 """
-    mgs!(q::AbstractVector, basis::Vector{Vector})
+    mgs!(q::AbstractVector, basis::AbstractMatrix)
 
 Perform the modified gram-schmidt to orthogonalize `q`
 with respect to the set of vectors in `basis`. 
@@ -23,16 +23,11 @@ with respect to the set of vectors in `basis`.
 """
 function mgs!(q::AbstractVector, basis::AbstractMatrix)
     
-    # error checking
-    @assert size(basis, 1) == size(q, 1) 
-    "Vector `q` has length $(size(q, 1)) but should be $(size(basis, 1))."
-    
     # initializations
     sz = size(basis, 2)
-    @assert sz > 0 "No basis vectors to orthogonalize against."
-
-    # orthogonalization loop
     h = zeros(sz)
+    
+    # orthogonalization loop
     for i in 1:sz
         bi = view(basis, :, i)
         h[i] = dot(q, bi)
@@ -60,17 +55,7 @@ the vectors in `basis`.
 """
 function mgs!(q::AbstractVector, h::AbstractVector, basis::AbstractMatrix)
 
-
-    # error checking
-    @assert size(basis, 1) == size(q, 1) 
-    "Vector `q` has length $(size(q, 1)), which is not equal to $(size(basis, 1))
-    the number of rows in `basis`."
-
     sz = size(basis, 2)
-    @assert sz > 0 "No basis vectors to orthogonalize against."
-    @assert size(h, 1) == sz 
-    "Size of `h` is $(size(h, 1)), which is not equal to $(sz) 
-    the number of columns in `basis`."
     
     # orthogonalization loop
     for i in 1:sz

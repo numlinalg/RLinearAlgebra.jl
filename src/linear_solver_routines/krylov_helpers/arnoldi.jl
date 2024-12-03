@@ -13,34 +13,49 @@ Compute a orthonormal basis for the Krylov subspace
 \\text{span}(q, Aq, ..., A^{k-1}q),
 ```
 and returns the basis vectors and an upper Hessenberg matrix that contains
-the coefficients for orthogonalizations. The hessenberg matrix, ``H``, 
+the coefficients for orthogonalization. The hessenberg matrix, ``H``, 
 and basis matrix, ``Q``, satisfy
 ```math
 A Q_{k-1} = Q H,
 ```
 and
 ```math
-Q^\\intercal A Q = H.
+Q_{k-1}^\\intercal A Q_{k-1} = H_{k-1}.
 ```
-where ``Q_{k-1}`` contains the first ``k-1`` columns of the matrix ``Q``.
+where ``Q_{k-1}`` contains the first ``k-1`` columns of the matrix ``Q``, and
+``H_{k-1}`` contains the first ``k-1`` rows of the matrix ``H``.
 
 # Reference(s)
 
-TODO
+Timsit, Grigori, Balabanov. "Randomized Orthogonal Projection Methods for Krylov
+Subspace Solvers". arxiv, https://arxiv.org/pdf/2302.07466
 
 # Arguments
 
-- `A::AbstractMatrix`,
-- `q::AbstractVector`,
-- `k::Int64`,
+- `A::AbstractMatrix`, matrix used for the krylov subspace
+- `q::AbstractVector`, vector used for the krylov subspace
+- `k::Int64`, number of vectors in krylov subpsace
 
 # Returns
 
-- `Q::AbstractMatrix`,
-- `H::AbstractMatrix`,
+- `Q::AbstractMatrix`, orthogonal basis vector for the krylov subspace. Is of dimension
+`(size(q,1), k)`.
+- `H::AbstractMatrix`, upper hessenberg matrix containing orthogonalizing coefficients. Is
+of dimension `(k, k - 1)`.
 """
 function arnoldi(A::AbstractMatrix, q::AbstractVector, k::Int64)
     
+    # error checking
+    @assert size(A, 1) == size(A, 2) "The matrix `A` is not square."
+
+    @assert size(A, 2) == size(q, 1) "Dimension of q is $(size(q, 1)), and the number of
+    columns in `A` is $(size(A, 2)) which are not equal."
+
+    @assert size(Omega, 2) == size(q, 1) "Dimension of q is $(size(q, 1)), and the number
+    of columns in `Omega` is $(size(Omega, 2))."
+
+    @assert k >= 1 "`k` is smaller than one."
+
     # initializations
     sz = size(q, 1)
     Q = zeros(sz, k)
