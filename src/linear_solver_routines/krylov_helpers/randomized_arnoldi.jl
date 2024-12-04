@@ -82,7 +82,7 @@ function randomized_arnoldi(
     buffer = zeros(sz_full)
 
     # perform orthogonalization
-    S[: ,1] .= Omega * q
+    S[:, 1] .= Omega * q
     beta = norm(S[:, 1])
     
     S[:, 1] ./= beta
