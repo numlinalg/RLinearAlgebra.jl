@@ -38,10 +38,6 @@ end
 
 LinSysBlkColSparseSign(;block_size = 8, numsigns = nothing) = LinSysBlkColSparseSign(block_size, numsigns,
     nothing, 0.0)
-# LinSysBlkColSparseSign(;block_size) = LinSysBlkColSparseSign(block_size, nothing, nothing, 
-#     0.0)
-# LinSysBlkColSparseSign(;numsigns) = LinSysBlkColSparseSign(8, numsigns, nothing, 0.0)
-# LinSysBlkColSparseSign() = LinSysBlkColSparseSign(8, nothing, nothing, 0.0)
 
 # Common sample interface for linear systems
 function sample(
@@ -63,9 +59,13 @@ function sample(
         # Otherwise, we take an integer from 2 to type.block_size.
         if type.numsigns == nothing
             type.numsigns = min(type.block_size, 8)
-        elseif type.numsigns <= 0 || type.numsigns > type.block_size
-            DomainError(type.numsigns, "Must strictly between 0 and $(type.block_size)") |>
-                throw
+        elseif type.numsigns <= 0
+            @assert type.numsigns > 0 "`numsigns` must be positive."
+        else 
+            @assert type.numsigns <= type.block_size "`numsigns` must less than the block size of sketch matrix, $(type.block_size)."
+        # elseif type.numsigns <= 0 || type.numsigns > type.block_size
+        #     DomainError(type.numsigns, "Must strictly between 0 and $(type.block_size)") |>
+        #         throw
         end
 
         # Scaling value for saprse sign matrix
@@ -92,7 +92,7 @@ function sample(
     sketch_after_rescale = type.sketch_matrix .* type.scaling
 
     # Matrix after random sketch
-    AS = A * type.sketch_matrix'
+    AS = A * sketch_after_rescale'
 
     # Residual of the linear system
     res = A * x - b
@@ -100,7 +100,7 @@ function sample(
     # Normal equation residual in the Sketched Block
     grad = AS' * res
     
-    return type.sketch_matrix', AS, grad, res
+    return sketch_after_rescale', AS, grad, res
 
 end
 

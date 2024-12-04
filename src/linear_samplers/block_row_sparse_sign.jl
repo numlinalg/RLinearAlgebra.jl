@@ -24,10 +24,6 @@ Acta Numerica. 2020;29:403-572. doi:10.1017/S0962492920000021.
 """
 mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
     block_size::Int64
-    # function LinSysBlkRowSparseSign(block_size::Int64)
-    #     @assert block_size > 0 "`block_size` must be positive."
-    #     return new(block_size)
-    # end
     numsigns::Union{Int64, Nothing}
     sketch_matrix::Union{Matrix{Int64}, Nothing}
     scaling::Float64
@@ -42,10 +38,6 @@ end
 
 LinSysBlkRowSparseSign(;block_size = 8, numsigns = nothing) = LinSysBlkRowSparseSign(block_size, numsigns,
     nothing, 0.0)
-# LinSysBlkRowSparseSign(;block_size) = LinSysBlkRowSparseSign(block_size, nothing, nothing, 
-#     0.0)
-# LinSysBlkRowSparseSign(;numsigns) = LinSysBlkRowSparseSign(8, numsigns, nothing, 0.0)
-# LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, nothing, nothing, 0.0)
 
 # Common sample interface for linear systems
 function sample(
@@ -64,12 +56,16 @@ function sample(
         end
 
         # In default, we should sample min{type.block_size, 8} signs for each column.
-        # Otherwise, we take an integer from 2 to d with sparsity parameter.
+        # Otherwise, we take an integer from 2 to type.block_size.
         if type.numsigns == nothing
             type.numsigns = min(type.block_size, 8)
-        elseif type.numsigns <= 0 || type.type.numsigns > type.block_size
-            DomainError(type.numsigns, "Must be strictly between 0 and $(type.block_size)") |>
-                throw
+        elseif type.numsigns <= 0
+            @assert type.numsigns > 0 "`numsigns` must be positive."
+        else 
+            @assert type.numsigns <= type.block_size "`numsigns` must less than the block size of sketch matrix, $(type.block_size)."
+        # elseif type.numsigns > type.block_size
+        #     DomainError(type.numsigns, "Must be strictly between 0 and $(type.block_size)") |>
+        #         throw
         end
 
         # Scaling value for saprse sign matrix
@@ -91,18 +87,18 @@ function sample(
     end
 
     # Scale the sparse sign matrix with dimensions
-    type.sketch_matrix .*=  type.scaling
+    sketch_after_rescale = type.sketch_matrix .* type.scaling
 
     # Matrix after random sketch
-    SA = type.sketch_matrix * A
-    Sb = type.sketch_matrix * b
+    SA = sketch_after_rescale * A
+    Sb = sketch_after_rescale * b
 
     # Residual
     res = SA * x - Sb
     
     # Output random sketch matrix, the matrix after random sketch, 
     # and the residual after random sketch
-    return type.sketch_matrix, SA, res
+    return sketch_after_rescale, SA, res
 
 end
 
