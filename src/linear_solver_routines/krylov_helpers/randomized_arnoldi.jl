@@ -72,6 +72,9 @@ function randomized_arnoldi(
     $(size(Omega, 2)) which are not equal."
     
     @assert k >= 1 "Dimension requested is smaller than 1."
+    @assert k <= size(Omega, 1) 
+    "`k` is $(k) but Omega has $(size(Omega, 1)) rows, so a sketched orthogonal basis cannot
+    be created"
 
     #initializations
     sz_full = size(q, 1)

@@ -47,6 +47,13 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     k = 0
     @test_throws AssertionError RLinearAlgebra.randomized_arnoldi(A, q, Omega, k)
 
+    # k is larger than sketch size
+    A = randn(nrow, nrow)
+    q = randn(nrow)
+    Omega = randn(sketch_row, nrow)
+    k = sketch_row + 1
+    @test_throws AssertionError RLinearAlgebra.randomized_arnoldi(A, q, Omega, k)
+
     #############################
     # Test output
     #############################

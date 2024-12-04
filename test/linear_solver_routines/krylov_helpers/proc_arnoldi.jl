@@ -46,7 +46,24 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     A = randn(nrow, nrow)
     q = randn(nrow)
     k = rand(collect(1:nrow))
-    Q, H = RLinearAlgebra.arnoldi(A, q, k)
+    output = RLinearAlgebra.arnoldi(A, q, k)
+
+    # test output and type
+    @test size(output, 1) == 2
+    for i in 1:2
+        @test typeof(output[i]) == Matrix{Float64}
+    end
+    
+    Q, H = output[1], output[2]
+    @test size(Q) == (nrow, k)
+    @test size(H) == (k, k - 1)
+
+    # test structure of H
+    for i in 3:k
+        for j in 1:i-2
+            @test H[i, j] == 0
+        end
+    end 
 
     # matrix conditions
     Q_prev = Q[:, 1:(k-1)]
