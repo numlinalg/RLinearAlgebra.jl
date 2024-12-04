@@ -24,21 +24,28 @@ Acta Numerica. 2020;29:403-572. doi:10.1017/S0962492920000021.
 """
 mutable struct LinSysBlkRowSparseSign <: LinSysBlkRowSampler
     block_size::Int64
-    function LinSysBlkRowSparseSign(block_size::Int64)
-        @assert block_size > 0 "`block_size` must be positive."
-        return new(block_size)
-    end
-    sketch_matrix::Union{Matrix{Int64}, Nothing}
+    # function LinSysBlkRowSparseSign(block_size::Int64)
+    #     @assert block_size > 0 "`block_size` must be positive."
+    #     return new(block_size)
+    # end
     numsigns::Union{Int64, Nothing}
+    sketch_matrix::Union{Matrix{Int64}, Nothing}
     scaling::Float64
+    LinSysBlkRowSparseSign(block_size, 
+                           numsigns, 
+                           sketch_matrix, 
+                           scaling) = begin
+        @assert block_size > 0 "`block_size` must be positive."
+        return new(block_size, numsigns, sketch_matrix, scaling)
+    end
 end
 
-LinSysBlkRowSparseSign(;block_size, numsigns) = LinSysBlkRowSparseSign(block_size, numsigns,
-    nothing, 0, 0.0)
-LinSysBlkRowSparseSign(;block_size) = LinSysBlkRowSparseSign(block_size, nothing, nothing, 0, 
-    0.0)
-LinSysBlkRowSparseSign(;numsigns) = LinSysBlkRowSparseSign(8, numsigns, nothing, 0, 0.0)
-LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, nothing, nothing, 0, 0.0)
+LinSysBlkRowSparseSign(;block_size = 8, numsigns = nothing) = LinSysBlkRowSparseSign(block_size, numsigns,
+    nothing, 0.0)
+# LinSysBlkRowSparseSign(;block_size) = LinSysBlkRowSparseSign(block_size, nothing, nothing, 
+#     0.0)
+# LinSysBlkRowSparseSign(;numsigns) = LinSysBlkRowSparseSign(8, numsigns, nothing, 0.0)
+# LinSysBlkRowSparseSign() = LinSysBlkRowSparseSign(8, nothing, nothing, 0.0)
 
 # Common sample interface for linear systems
 function sample(
@@ -53,7 +60,7 @@ function sample(
     
     if iter == 1
         if type.block_size > size(A,1)
-            @warn "`block_size` should less than or equal to row dimension"
+            @warn "`block_size` should less than or equal to row dimension, $(size(A,1))"
         end
 
         # In default, we should sample min{type.block_size, 8} signs for each column.
@@ -61,7 +68,7 @@ function sample(
         if type.numsigns == nothing
             type.numsigns = min(type.block_size, 8)
         elseif type.numsigns <= 0 || type.type.numsigns > type.block_size
-            DomainError(numsigns, "Must be strictly between 0 and $(type.block_size)") |>
+            DomainError(type.numsigns, "Must be strictly between 0 and $(type.block_size)") |>
                 throw
         end
 
@@ -79,7 +86,7 @@ function sample(
     if type.block_size != type.numsigns
         for i in 1:size(A,1)
             row_perm = randperm(type.block_size)[1:(type.block_size - type.numsigns)]
-            type.sketch_matrix[row_perm, i] = 0
+            type.sketch_matrix[row_perm, i] .= 0
         end
     end
 

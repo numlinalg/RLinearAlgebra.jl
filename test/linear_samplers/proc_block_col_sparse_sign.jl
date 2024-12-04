@@ -21,20 +21,19 @@ Random.seed!(1010)
      # Test assertions
 
      # numsigns must between 0 and number of rows
-     SS = LinSysBlkColSparseSign(numsigns = -5)
-     @test_throws AssertionError("`numsigns` Must be strictly between 0 and 10") RLinearAlgebra.sample(SS, A, b, x, 1)
-     SS = LinSysBlkColSparseSign(numsigns = 15)
-     @test_throws AssertionError("`numsigns` Must be strictly between 0 and 10") RLinearAlgebra.sample(SS, A, b, x, 1)
-     SS = LinSysBlkColSparseSign(numsigns = 5)
+     SS = LinSysBlkColSparseSign(;numsigns = -5)
+     @test_throws AssertionError("`numsigns` must strictly between 0 and 10") RLinearAlgebra.sample(SS, A, b, x, 1)
+     SS = LinSysBlkColSparseSign(;numsigns = 15)
+     @test_throws AssertionError("`numsigns` must strictly between 0 and 10") RLinearAlgebra.sample(SS, A, b, x, 1)
+     SS = LinSysBlkColSparseSign(;numsigns = 5)
      @test RLinearAlgebra.sample(SS, A, b, x, 1) !== nothing
 
      # Block size must be positive
-     SS = LinSysBlkColSparseSign(block_size = -12)
-     @test_throws AssertionError("`block_size` must be positive") RLinearAlgebra.sample(SS, A, b, x, 1)
+     @test_throws AssertionError("`block_size` must be positive.") LinSysBlkColSparseSign(block_size = -12)
 
      # Block size less than matrix size test
      SS = LinSysBlkColSparseSign(block_size = 12)
-     @test_logs (:warn, "`block_size` should be less than or equal to column dimension") RLinearAlgebra.sample(SS, A, b, x, 1)
+     @test_logs (:warn, "`block_size` should less than or equal to column dimension, 10") RLinearAlgebra.sample(SS, A, b, x, 1)
      # @test_throws AssertionError("`block_size` must be less than row dimension") RLinearAlgebra.sample(SS, A, b, x, 1)
 
      # Block size is correct

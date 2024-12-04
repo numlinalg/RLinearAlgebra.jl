@@ -23,21 +23,25 @@ Acta Numerica. 2020;29:403-572. doi:10.1017/S0962492920000021.
 """
 mutable struct LinSysBlkColSparseSign <: LinSysBlkColSampler
     block_size::Int64
-    function LinSysBlkRowSparseSign(block_size::Int64)
-        @assert block_size > 0 "`block_size` must be positive."
-        return new(block_size)
-    end
-    sketch_matrix::Union{Matrix{Int64}, Nothing}
     numsigns::Union{Int64, Nothing}
+    sketch_matrix::Union{Matrix{Int64}, Nothing}
     scaling::Float64
+    LinSysBlkColSparseSign(block_size, 
+                           numsigns, 
+                           sketch_matrix, 
+                           scaling) = begin
+        check_properties = (block_size > 0)
+        @assert check_properties "`block_size` must be positive."
+        return new(block_size, numsigns, sketch_matrix, scaling)
+    end
 end
 
-LinSysBlkColSparseSign(;block_size, numsigns) = LinSysBlkColSparseSign(block_size, numsigns,
-    nothing, 0, 0.0)
-LinSysBlkColSparseSign(;block_size) = LinSysBlkColSparseSign(block_size, nothing, nothing, 0, 
-    0.0)
-LinSysBlkColSparseSign(;numsigns) = LinSysBlkColSparseSign(8, numsigns, nothing, 0, 0.0)
-LinSysBlkColSparseSign() = LinSysBlkColSparseSign(8, nothing, nothing, 0, 0.0)
+LinSysBlkColSparseSign(;block_size = 8, numsigns = nothing) = LinSysBlkColSparseSign(block_size, numsigns,
+    nothing, 0.0)
+# LinSysBlkColSparseSign(;block_size) = LinSysBlkColSparseSign(block_size, nothing, nothing, 
+#     0.0)
+# LinSysBlkColSparseSign(;numsigns) = LinSysBlkColSparseSign(8, numsigns, nothing, 0.0)
+# LinSysBlkColSparseSign() = LinSysBlkColSparseSign(8, nothing, nothing, 0.0)
 
 # Common sample interface for linear systems
 function sample(
@@ -52,15 +56,15 @@ function sample(
     
     if iter == 1
         if type.block_size > size(A,2)
-            @warn "`block_size` should less than or equal to column dimension"
+            @warn "`block_size` should less than or equal to column dimension, $(size(A,2))"
         end
 
         # In default, we should sample min{type.block_size, 8} signs for each column.
-        # Otherwise, we take an integer from 2 to type.block_size with sparsity parameter.
+        # Otherwise, we take an integer from 2 to type.block_size.
         if type.numsigns == nothing
             type.numsigns = min(type.block_size, 8)
         elseif type.numsigns <= 0 || type.numsigns > type.block_size
-            DomainError(numsigns, "Must strictly between 0 and $(type.block_size)") |>
+            DomainError(type.numsigns, "Must strictly between 0 and $(type.block_size)") |>
                 throw
         end
 
@@ -73,18 +77,19 @@ function sample(
     end
 
     # Create a random matrix with 1 and -1
-    type.sketch_matrix = ifelse.(rand(type.block_size, n) .> 0.5, 1, -1)  
+    type.sketch_matrix = ifelse.(rand(type.block_size, size(A,2)) .> 0.5, 1, -1)  
 
     # Each column we want to have type.block_size - type.numsigns non-zero terms
     if type.block_size != type.numsigns
         for i in 1:size(A,2)
             row_perm = randperm(type.block_size)[1:(type.block_size - type.numsigns)]
-            type.sketch_matrix[row_perm, i] = 0
+            type.sketch_matrix[row_perm, i] .= 0
         end
     end
 
     # Scale the sparse sign matrix with dimensions
-    type.sketch_matrix .*=  type.scaling
+    # type.sketch_matrix =  type.sketch_matrix .* type.scaling
+    sketch_after_rescale = type.sketch_matrix .* type.scaling
 
     # Matrix after random sketch
     AS = A * type.sketch_matrix'
