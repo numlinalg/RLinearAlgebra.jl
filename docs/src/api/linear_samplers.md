@@ -74,6 +74,8 @@ LinSysBlkRowSelectWoReplacement
 LinSysBlkRowFJLT
 
 LinSysBlkRowSRHT
+
+LinSysBlkRowSparseSign
 ```
 
 ## Block Vector Col Samplers
@@ -92,6 +94,8 @@ LinSysBlkColSelectWoReplacement
 LinSysBlkColFJLT
 
 LinSysBlkColSRHT
+
+LinSysBlkColSparseSign
 ```
 
 ## Sample Function
