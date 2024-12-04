@@ -8,7 +8,7 @@
 Perform the modified gram-schmidt to orthogonalize `q`
 with respect to the set of vectors in `basis`. 
 
-!!! Remark
+!!! note
     Edits the vector `q` in place.
 
 # Arguments
@@ -43,7 +43,7 @@ end
 Perform the modified gram-schmidt to orthogonalize `q` against
 the vectors in `basis`.
 
-!!! Remark
+!!! note
     Edits `q` in place, and stores the coefficients for orthogonalization
     in the vector h, which is assumed to be a view of another matrix.
 

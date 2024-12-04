@@ -56,6 +56,43 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     ##################################
     # test second method
     ##################################
+    dim = 100
+    nbasis = 1
+    q_original = randn(dim)
+    q_copy = copy(q_original)
+    basis = randn(dim, nbasis)
+    basis ./= norm(basis)
+    h = zeros(1, 1)
+
+
+    RLinearAlgebra.mgs!(q_copy, view(h, :, 1), basis)
+
+    for i in 1:nbasis
+        @test dot(q_copy, basis[:, i]) <= eps() * 1e6
+        q_original .-= h[i, i] .* basis[:, i]
+    end
+    @test norm(q_original - q_copy) <= eps() * 1e6 
+
+    # continuously add to previous basis
+    k = rand(collect(1:10))
+    for i in 1:k
+        q_copy ./= norm(q_copy)
+        basis = hcat(basis, q_copy)
+        nbasis += 1
+
+        q_original = randn(dim)
+        q_copy = copy(q_original)
+        h = zeros(nbasis, 1)
+
+        RLinearAlgebra.mgs!(q_copy, view(h, :, 1), basis)
+
+        for i in 1:nbasis
+            @test dot(q_copy, basis[:, i]) <= eps() * 1e6
+            q_original .-= h[i, 1] .* basis[:, i]
+        end
+        
+        @test norm(q_original - q_copy) <= eps() * 1e6
+    end
 end
 
 
