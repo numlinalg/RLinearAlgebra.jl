@@ -51,9 +51,6 @@ function arnoldi(A::AbstractMatrix, q::AbstractVector, k::Int64)
     @assert size(A, 2) == size(q, 1) "Dimension of q is $(size(q, 1)), and the number of
     columns in `A` is $(size(A, 2)) which are not equal."
 
-    @assert size(Omega, 2) == size(q, 1) "Dimension of q is $(size(q, 1)), and the number
-    of columns in `Omega` is $(size(Omega, 2))."
-
     @assert k >= 1 "`k` is smaller than one."
 
     # initializations
