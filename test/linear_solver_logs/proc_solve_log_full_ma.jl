@@ -59,8 +59,13 @@ Random.seed!(1010)
             RLinearAlgebra.log_update!(log, sampler, x + i*(z-x), (), i, A, b)
         end
 
+        obs_res = [norm(A*(x + i*(z-x)) - b)^2 for i in [1, 3, 6, 9]]
+        obs_res2 = [norm(A*(x + i*(z-x)) - b)^4 for i in [1, 3, 6, 9]]
+        norm(log.resid_hist[2:4] - vcat( [(obs_res[i] + obs_res[i-1])/2 for i = 2:4]))
+
         @test length(log.resid_hist) == 4 # Record at 0, 3, 6, 9
-        @test norm(log.resid_hist - [1.0, 3.0, 6.0, 9.0] * norm(A * z - b)) < 1e-15
+        @test norm()
+        @test norm(log.resid_hist - [1.0, 3.0, 6.0, 9.0] * norm(A * z - b)^2) < 1e-15
         @test log.iterations == 10
         @test log.converged == false
     end

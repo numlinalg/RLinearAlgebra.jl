@@ -146,7 +146,7 @@ function update_ma!(log::LSLogFullMA, res::Union{AbstractVector, Real}, lambda_b
             accum += ma_info.res_window[i]
             accum2 += ma_info.res_window[i]^2
         end
-       
+        
         if mod(iter, log.collection_rate) == 0 || iter == 0
             push!(log.lambda_hist, ma_info.lambda)
             push!(log.resid_hist, accum / ma_info.lambda) 
