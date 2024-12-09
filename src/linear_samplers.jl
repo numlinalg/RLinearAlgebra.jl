@@ -172,6 +172,7 @@ include("linear_samplers/block_row_rand_cyclic.jl")
 include("linear_samplers/block_row_rand_replace.jl")
 include("linear_samplers/block_row_SRHT.jl")
 include("linear_samplers/block_row_FJLT.jl")
+include("linear_samplers/block_row_sparse_sign.jl")
 #############################################
 # Block Column Sampler/Sketch/Selector
 #############################################
@@ -183,6 +184,7 @@ include("linear_samplers/block_col_rand_replace.jl")
 include("linear_samplers/block_col_rand_cyclic.jl")
 include("linear_samplers/block_col_SRHT.jl")
 include("linear_samplers/block_col_FJLT.jl")
+include("linear_samplers/block_col_sparse_sign.jl")
 #############################################
 # Compositional Sampler/Sketch/Selector
 #############################################
