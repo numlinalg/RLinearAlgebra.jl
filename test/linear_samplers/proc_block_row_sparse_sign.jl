@@ -42,6 +42,7 @@ Random.seed!(1010)
      SS = LinSysBlkRowSparseSign()
  
      v, M, res = RLinearAlgebra.sample(SS, A, b, x, 1)
+     @assert SS.scaling == sqrt(size(A,1) / SS.numsigns)
      
      # Only test for res?
      for j = 2:5
@@ -49,6 +50,7 @@ Random.seed!(1010)
 
           @test norm(M - v * A) < eps() * 1e2
           @test norm(res - (v * A * x - v * b)) < eps() * 1e2
+          @assert SS.scaling == sqrt(size(A,1) / SS.numsigns)
      end
  
  end

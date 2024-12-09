@@ -48,6 +48,7 @@ Random.seed!(1010)
           @test norm(AS - A * S) < eps() * 1e2
           @test norm(res - (A * x - b)) < eps() * 1e2
           @test norm(grad - S' * A' * (A * x - b)) < eps() * 1e2
+          @assert SS.scaling == sqrt(size(A,2) / SS.numsigns)
      end
  
  end
