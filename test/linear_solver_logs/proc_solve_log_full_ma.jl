@@ -6,7 +6,7 @@ using Test, RLinearAlgebra, Random, LinearAlgebra
 
 Random.seed!(1010)
 
-@testset "LS Full Log -- Procedural" begin
+@testset "LS Full MA Log -- Procedural" begin
 
     # Verify appropriate super type
     @test supertype(LSLogFullMA) == LinSysSolverLog
@@ -29,11 +29,12 @@ Random.seed!(1010)
         RLinearAlgebra.log_update!(log, sampler, z, (), 0, A, b)
 
         @test length(log.resid_hist) == 1
-        @test log.resid_hist[1] == norm(A * z - b)
+        @test norm(log.resid_hist[1] - norm(A * z - b)^2) < 1e2 * eps()
+        @test norm(log.iota_hist[1] - norm(A * z - b)^4) < 1e2 * eps()
         @test log.iterations == 0
         @test log.converged == false
     end
-
+    
     # Verify collection rate
     let
         A = rand(2,2)
@@ -42,13 +43,14 @@ Random.seed!(1010)
         z = rand(2)
 
         sampler = LinSysVecRowOneRandCyclic()
-        log = LSLogFullMA(3)
+        log = LSLogFullMA(collection_rate = 3)
 
         # Test initialization of log
         RLinearAlgebra.log_update!(log, sampler, z, (), 0, A, b)
 
         @test length(log.resid_hist) == 1
-        @test log.resid_hist[1] == norm(A * z - b)
+        @test norm(log.resid_hist[1] - norm(A * z - b)^2) < 1e2 * eps()
+        @test norm(log.iota_hist[1] - norm(A * z - b)^4) < 1e2 * eps()
         @test log.iterations == 0
         @test log.converged == false
 
