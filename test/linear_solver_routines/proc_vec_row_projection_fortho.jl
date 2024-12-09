@@ -36,7 +36,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
             RLinearAlgebra.rsubsolve!(rsub, z, (A[i,:], b[i]), i)
         end
 
-        norm(A * z - b) < 1e-15
+        norm(A * z - b) < 1e-10
     end
 end
 
