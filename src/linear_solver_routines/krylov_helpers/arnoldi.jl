@@ -30,17 +30,19 @@ where ``Q_{k-1}`` contains the first ``k-1`` columns of the matrix ``Q``, and
 Timsit, Grigori, Balabanov. "Randomized Orthogonal Projection Methods for Krylov
 Subspace Solvers". arxiv, https://arxiv.org/pdf/2302.07466
 
+Lloyd N. Trefethen and David Bau III. "Numerical Linear Algebra". SIAM, 1997, Lecture 33.
+
 # Arguments
 
 - `A::AbstractMatrix`, matrix used for the krylov subspace
 - `q::AbstractVector`, vector used for the krylov subspace
-- `k::Int64`, number of vectors in krylov subpsace
+- `k::Int64`, order of the krylov subspace. Number of vectors in krylov subspace.
 
 # Returns
 
-- `Q::AbstractMatrix`, orthogonal basis vector for the krylov subspace. Is of dimension
+- `Q::Matrix{Float64}`, orthogonal basis vector for the krylov subspace. Is of dimension
 `(size(q,1), k)`.
-- `H::AbstractMatrix`, upper hessenberg matrix containing orthogonalizing coefficients. Is
+- `H::Matrix{Float64}`, upper hessenberg matrix containing orthogonalizing coefficients. Is
 of dimension `(k, k - 1)`.
 """
 function arnoldi(A::AbstractMatrix, q::AbstractVector, k::Int64)
@@ -48,8 +50,8 @@ function arnoldi(A::AbstractMatrix, q::AbstractVector, k::Int64)
     # error checking
     @assert size(A, 1) == size(A, 2) "The matrix `A` is not square."
 
-    @assert size(A, 2) == size(q, 1) "Dimension of q is $(size(q, 1)), and the number of
-    columns in `A` is $(size(A, 2)) which are not equal."
+    @assert size(A, 2) == size(q, 1) "Dimension of q is $(size(q, 1)), and the number of"*
+    "columns in `A` is $(size(A, 2)) which are not equal."
 
     @assert k >= 1 "`k` is smaller than one."
 
@@ -63,19 +65,18 @@ function arnoldi(A::AbstractMatrix, q::AbstractVector, k::Int64)
     for i in 2:k
 
         # get new vector to orthogonalize
-        q = view(Q, :, i)
-        mul!(q, A, view(Q, :, i-1))
-        
+        v = view(Q, :, i)
+        mul!(v, A, view(Q, :, i-1))
+
         # get coefficients
         basis = view(Q, :, 1:(i-1))
         h = view(H, 1:(i-1), (i-1))
-        mgs!(q, h, basis)
-
+        mgs!(v, h, basis)
 
         # normalize
-        H[i, (i-1)] = norm(q)
-        q ./= H[i, (i-1)]
+        H[i, (i-1)] = norm(v)
+        v ./= H[i, (i-1)]
     end
-
+        
     return Q, H
 end

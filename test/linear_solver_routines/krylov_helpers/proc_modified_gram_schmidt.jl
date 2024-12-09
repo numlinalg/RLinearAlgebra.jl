@@ -28,10 +28,10 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     h = RLinearAlgebra.mgs!(q_copy, basis)
 
     for i in 1:nbasis
-        @test dot(q_copy, basis[:, i]) <= eps() * 1e6
+        @test dot(q_copy, basis[:, i]) <= eps() * dim
         q_original .-= h[i] .* basis[:, i]
     end
-    @test norm(q_original - q_copy) <= eps() * 1e6 
+    @test norm(q_original - q_copy) <= eps() * dim 
 
     # continuously add to previous basis
     k = rand(collect(1:10))
@@ -46,11 +46,11 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         h = RLinearAlgebra.mgs!(q_copy, basis)
 
         for i in 1:nbasis
-            @test dot(q_copy, basis[:, i]) <= eps() * 1e6
+            @test dot(q_copy, basis[:, i]) <= eps() * dim
             q_original .-= h[i] .* basis[:, i]
         end
         
-        @test norm(q_original - q_copy) <= eps() * 1e6
+        @test norm(q_original - q_copy) <= eps() * dim
     end
 
     ##################################
@@ -68,10 +68,10 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     RLinearAlgebra.mgs!(q_copy, view(h, :, 1), basis)
 
     for i in 1:nbasis
-        @test dot(q_copy, basis[:, i]) <= eps() * 1e6
+        @test dot(q_copy, basis[:, i]) <= eps() * dim
         q_original .-= h[i, i] .* basis[:, i]
     end
-    @test norm(q_original - q_copy) <= eps() * 1e6 
+    @test norm(q_original - q_copy) <= eps() * dim
 
     # continuously add to previous basis
     k = rand(collect(1:10))
@@ -87,11 +87,11 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         RLinearAlgebra.mgs!(q_copy, view(h, :, 1), basis)
 
         for i in 1:nbasis
-            @test dot(q_copy, basis[:, i]) <= eps() * 1e6
+            @test dot(q_copy, basis[:, i]) <= eps() * dim
             q_original .-= h[i, 1] .* basis[:, i]
         end
         
-        @test norm(q_original - q_copy) <= eps() * 1e6
+        @test norm(q_original - q_copy) <= eps() * dim
     end
 end
 

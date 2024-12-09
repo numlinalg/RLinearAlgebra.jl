@@ -13,9 +13,9 @@ Computes a sketched orthonormal basis for the Krylov subspace
 ```math
 \\text{span}(q, Aq, ..., A^{k-1}q),
 ```
-and returns the approximate basis vectors, the sketched basis vectors,
-and an upper Hessenberg matrix containing the orthogonalizing coefficients
-for the sketched basis.
+and returns basis vectors that are approximately orthogonal, 
+the sketched basis vectors, and an upper Hessenberg matrix containing the 
+orthogonalizing coefficients for the sketched basis.
 
 Let ``Q``, ``S``, and ``H`` be the matrices defined above, and let ``\\Omega`` be
 the sketching matrix. A sketched orthonormal basis formed by the columns of ``S`` is
@@ -64,17 +64,17 @@ function randomized_arnoldi(
     @assert size(A, 1) == size(A, 2) "The matrix `A` is not square." 
 
     @assert size(A, 2) == size(q, 1)
-    "Dimension of q is $(size(q, 1)), and the number of columns in `A` is 
-    $(size(A, 2)) which are not equal."
+    "Dimension of q is $(size(q, 1)), and the number of columns in `A` is"* 
+    "$(size(A, 2)) which are not equal."
     
     @assert size(Omega, 2) == size(q, 1) 
-    "Dimension of q is $(size(q, 1)), and the number of columns in `Omega` is 
-    $(size(Omega, 2)) which are not equal."
+    "Dimension of q is $(size(q, 1)), and the number of columns in `Omega` is"* 
+    "$(size(Omega, 2)) which are not equal."
     
     @assert k >= 1 "Dimension requested is smaller than 1."
     @assert k <= size(Omega, 1) 
-    "`k` is $(k) but Omega has $(size(Omega, 1)) rows, so a sketched orthogonal basis cannot
-    be created"
+    "`k` is $(k) but Omega has $(size(Omega, 1)) rows, so a sketched orthogonal"* 
+    "basis cannot be created."
 
     #initializations
     sz_full = size(q, 1)
@@ -91,11 +91,11 @@ function randomized_arnoldi(
     S[:, 1] ./= beta
     Q[:, 1] .= q ./ beta
     for i in 2:k
-        q = view(Q, :, i)
-        mul!(q, A, view(Q, :, i - 1))
+        v = view(Q, :, i)
+        mul!(v, A, view(Q, :, i - 1))
 
         s = view(S, :, i)
-        mul!(s, Omega, q)
+        mul!(s, Omega, v)
 
         # do gram schmidt
         sketched_basis = view(S, :, 1:(i-1))
@@ -104,12 +104,12 @@ function randomized_arnoldi(
 
         # update q with approximate coefficients
         mul!(buffer, view(Q, :, 1:(i-1)), view(H, 1:(i-1), (i-1)))
-        q .-= buffer
+        v .-= buffer
         
         # normalization
-        mul!(s, Omega, q)
+        mul!(s, Omega, v)
         H[i, (i-1)] = norm(s)
-        q ./= H[i, (i-1)]
+        v ./= H[i, (i-1)]
         s ./= H[i, (i-1)]
     end
 
