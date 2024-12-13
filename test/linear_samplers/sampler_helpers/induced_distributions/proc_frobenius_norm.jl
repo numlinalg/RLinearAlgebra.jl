@@ -30,7 +30,8 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
 
             max_index = dist_type ? nrow : ncol
             for i in 1:max_index
-                value = dist_type ? norm(@view A[i, :])^2 / norm(A)^2 : norm(@view A[:, i])^2 / norm(A)^2  
+                value = dist_type ? 
+                    norm(@view A[i, :])^2 / norm(A)^2 : norm(@view A[:, i])^2 / norm(A)^2  
                 @test distribution[i] ≈ value
             end 
         end
