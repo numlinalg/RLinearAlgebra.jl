@@ -42,10 +42,10 @@ function frobenius_norm_distribution(
     row_distribution::Bool
 )
     # get distribution vector and range of iteration
-    max_index = size(A, 1) ? row_distribution : size(A, 2)
+    max_index = row_distribution ? size(A, 1) : size(A, 2)
     distribution = zeros(max_index)
     for i in 1:max_index
-        distribution[i] = norm(@view A[i, :])^2 ? row_distribution : norm(@view A[:, i])^2
+        distribution[i] = row_distribution ? norm(@view A[i, :])^2 : norm(@view A[:, i])^2
     end
 
     return distribution ./ sum(distribution)
