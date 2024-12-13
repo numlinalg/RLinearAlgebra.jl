@@ -193,6 +193,7 @@ include("linear_samplers/block_col_FJLT.jl")
 #############################################
 include("linear_samplers/linear_sampler_helpers/helpers_cyclic.jl")
 include("linear_samplers/linear_sampler_helpers/hadamard.jl")
+include("linear_samplers/linear_sampler_helpers/induced_distributions/frobenius_norm.jl")
 #############################################
 # Export Statements
 #############################################
