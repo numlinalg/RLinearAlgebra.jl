@@ -19,6 +19,8 @@ LSLogOracle
 LSLogFull
 
 LSLogMA
+
+LSLogFullMA
 ```
 
 ## Log Function
