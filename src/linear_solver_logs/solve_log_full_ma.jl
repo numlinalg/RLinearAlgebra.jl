@@ -1,6 +1,6 @@
 # This file is part of RLinearAlgebra.jl
 
-# Implement moving average by using the structs and functions in another file. 
+# Implement moving average by using the structs in the file that implementing MA. 
 include("solve_log_ma.jl")
 
 """
@@ -37,6 +37,7 @@ mutable struct LSLogFullMA <: LinSysSolverLog
     lambda_hist::Vector{Int64}  # Implement moving average (MA)
     iota_hist::Vector{Float64}  # Implement moving average (MA)
 end
+
 LSLogFullMA(;
             collection_rate = 1, 
             lambda1 = 1, 
@@ -50,19 +51,6 @@ LSLogFullMA(;
                             Int64[], 
                             Float64[]
                           )
-# LSLogFullMA(;
-#             collection_rate::Int64, 
-#             lambda1 = 1, 
-#             lambda2 = 30,
-#            ) = LSLogFullMA( collection_rate, 
-#                             Float64[], 
-#                             norm, 
-#                             -1, 
-#                             false,
-#                             MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
-#                             Int64[], 
-#                             Float64[]
-#                           )
 
 # Common interface for update
 function log_update!(
@@ -99,17 +87,6 @@ function log_update!(
 
     end
 
-    ###############################
-
-    # # Check whether to record information
-    # if mod(iter, log.collection_rate) == 0 || iter == 0
-    # # if mod(iter, 1:log.collection_rate) == log.collection_rate
-
-    #     # Push residual norm of current iterate
-    #     push!(log.resid_hist, res_norm_iter)
-    # end
-
-    # return nothing
 end
 
 """

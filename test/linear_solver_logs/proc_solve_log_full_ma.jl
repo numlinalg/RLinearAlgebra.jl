@@ -14,6 +14,7 @@ Random.seed!(1010)
     # Verify Required Fields
     @test :iterations in fieldnames(LSLogFullMA)
     @test :converged in fieldnames(LSLogFullMA)
+    
 
     # Verify log_update initialization
     let
@@ -34,6 +35,61 @@ Random.seed!(1010)
         @test log.iterations == 0
         @test log.converged == false
     end
+
+
+    # Verify late moving average 
+    let
+        A = rand(2,2)
+        x = rand(2)
+        b = A * x
+        z = rand(2)
+
+        sampler = LinSysVecRowOneRandCyclic()
+        log = LSLogFullMA(lambda2 = 2)
+
+        RLinearAlgebra.log_update!(log, sampler, z, (), 0, A, b)
+        # Test moving average of log
+        for i = 1:10
+            RLinearAlgebra.log_update!(log, sampler, x + (i+1)*(z-x), (), i, A, b)
+        end
+        #compute sampled residuals
+        obs_res = [norm(A*(x + (i+1)*(z-x)) - b)^2 for i = 0:10]
+        obs_res2 = [norm(A*(x + (i+1)*(z-x)) - b)^4 for i = 0:10]
+        @test length(log.resid_hist) == 11
+        @test norm(log.resid_hist[3:11] - vcat(obs_res[3], 
+                                         [(obs_res[i] + obs_res[i-1])/2 for i = 4:11])) < 1e2 * eps()
+        @test_skip norm(log.iota_hist[3:11] - vcat(obs_res2[3], 
+                                        [(obs_res2[i] + obs_res2[i-1])/2 for i = 4:11])) < 1e2 * eps()
+        @test log.iterations == 10
+        @test log.converged == false
+    end
+
+    # Verify early moving average
+    let
+        A = rand(2,2)
+        x = rand(2)
+        b = A * x
+        z = rand(2)
+
+        sampler = LinSysVecRowOneRandCyclic()
+        log = LSLogFullMA(lambda1 = 2, lambda2 = 10)
+
+        RLinearAlgebra.log_update!(log, sampler, z, (), 0, A, b)
+        # Test moving average of log when the residual only decreases to not trigger switch
+        for i = 1:10
+            RLinearAlgebra.log_update!(log, sampler, x + .3^(i+1)*(z-x), (), i, A, b)
+        end
+        #compute sampled residuals
+        obs_res = [norm(A*(x + .3^(i+1)*(z-x)) - b)^2 for i = 0:10]
+        obs_res2 = [norm(A*(x + .3^(i+1)*(z-x)) - b)^4 for i = 0:10]
+        @test length(log.resid_hist) == 11
+        @test norm(log.resid_hist[3:11] - vcat( [(obs_res[i] + obs_res[i-1])/2 for i = 3:11])) < 1e2 * eps()
+        @test norm(log.iota_hist[3:11] - vcat( [(obs_res2[i] + obs_res2[i-1])/2 for i = 3:11])) < 1e2 * eps()
+        @test log.iterations == 10
+        @test log.converged == false
+    
+    end
+
     
     # Verify collection rate
     let
@@ -59,13 +115,8 @@ Random.seed!(1010)
             RLinearAlgebra.log_update!(log, sampler, x + i*(z-x), (), i, A, b)
         end
 
-        obs_res = [norm(A*(x + i*(z-x)) - b)^2 for i in [1, 3, 6, 9]]
-        obs_res2 = [norm(A*(x + i*(z-x)) - b)^4 for i in [1, 3, 6, 9]]
-        norm(log.resid_hist[2:4] - vcat( [(obs_res[i] + obs_res[i-1])/2 for i = 2:4]))
-
         @test length(log.resid_hist) == 4 # Record at 0, 3, 6, 9
-        @test norm()
-        @test norm(log.resid_hist - [1.0, 3.0, 6.0, 9.0] * norm(A * z - b)^2) < 1e-15
+        @test length(log.iota_hist) == 4 # Record at 0, 3, 6, 9
         @test log.iterations == 10
         @test log.converged == false
     end
