@@ -31,8 +31,8 @@ squared of the rows of `A` replace by the norm squared of the columns of `A`.
 
 # Return
 
-- `distribution::Vector{Float64}`, vector of probabilities. Will be of `size(A, 1)` if
-    `row_distribution = true`, otherwise will be of size `size(A, 2)`.
+- `distribution::Vector{Float64}`, vector of probabilities. Will be of length `size(A, 1)` 
+    if `row_distribution = true`, otherwise will be of length `size(A, 2)`.
 
 !!! warning
     If `A` is sparse, the implementation does not account for this.
@@ -42,9 +42,9 @@ function frobenius_norm_distribution(
     row_distribution::Bool
 )
     # get distribution vector and range of iteration
-    max_index = row_distribution ? size(A, 1) : size(A, 2)
-    distribution = zeros(max_index)
-    for i in 1:max_index
+    sz = row_distribution ? size(A, 1) : size(A, 2)
+    distribution = zeros(sz)
+    for i in 1:sz
         distribution[i] = row_distribution ? norm(@view A[i, :])^2 : norm(@view A[:, i])^2
     end
 
