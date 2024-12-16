@@ -20,3 +20,9 @@ RLinearAlgebra.ldiv!
 RLinearAlgebra.copy_block_from_mat!
 RLinearAlgebra.reset_gent!
 ```
+
+## Matrix Induced Probability Distributions
+
+```@docs
+RLinearAlgebra.frobenius_norm_distribution
+```
