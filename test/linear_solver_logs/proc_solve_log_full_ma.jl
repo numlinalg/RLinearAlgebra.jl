@@ -15,7 +15,6 @@ Random.seed!(1010)
     @test :iterations in fieldnames(LSLogFullMA)
     @test :converged in fieldnames(LSLogFullMA)
     
-
     # Verify log_update initialization
     let
         A = rand(2,2)
@@ -35,7 +34,6 @@ Random.seed!(1010)
         @test log.iterations == 0
         @test log.converged == false
     end
-
 
     # Verify late moving average 
     let
@@ -89,8 +87,7 @@ Random.seed!(1010)
         @test log.converged == false
     
     end
-
-    
+  
     # Verify collection rate
     let
         A = rand(2,2)

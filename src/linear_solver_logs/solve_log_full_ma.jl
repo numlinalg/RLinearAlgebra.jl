@@ -1,6 +1,6 @@
 # This file is part of RLinearAlgebra.jl
 
-# Implement moving average by using the structs in the file that implementing MA. 
+# Using the structs, MAInfo, in the file that implementing MA. 
 include("solve_log_ma.jl")
 
 """
@@ -20,12 +20,19 @@ A mutable structure that stores information about a randomized linear solver's b
     scalar. Used to compute the residual size.
 - `iterations::Int64`, the number of iterations of the solver.
 - `converged::Bool`, a flag to indicate whether the system has converged by some measure
+- `ma_info::MAInfo`, [`MAInfo`](@ref)
+- `lambda_hist::Vector{Int64}`, contains the widths of the moving average.
+- `iota_hist::Vector{Float64}`, contains an estimate used for calculating the variability
+    of the progress estimators. These values are stored at iterates specified by
+    `collection_rate`.
 
 # Constructors
-- Calling `LSLogFullMA()` sets `collection_rate = 1`, `resid_hist = Float64[]`,
-    `resid_norm = norm` (Euclidean norm), `iterations = -1`, and `converged = false`.
-- Calling `LSLogFullMA(cr::Int64)` is the same as calling `LSLogFullMA()` except
-    `collection_rate = cr`.
+- The keyword constructor is defined as 
+`LSLogFullMA(collection_rate = 1,
+            lambda1 = 1, 
+            lambda2 = 30, 
+            resid_norm = norm #(Euclidean norm), 
+            )`
 """
 mutable struct LSLogFullMA <: LinSysSolverLog
     collection_rate::Int64
@@ -91,7 +98,7 @@ end
 
 """
     update_ma!(
-        log::LSLogMA, 
+        log::LSLogFullMA, 
         res::Union{AbstractVector, Real}, 
         lambda_base::Int64, 
         iter::Int64
@@ -100,7 +107,7 @@ end
 Function that updates the moving average tracking statistic. 
 
 # Inputs
-- `log::LSLogMA`, the moving average log structure.
+- `log::LSLogFullMA`, the moving average log structure.
 - `res::Union{AbstractVector, Real}`, the sketched residual for the current iteration. 
 - `lambda_base::Int64`, which lambda, between lambda1 and lambda2, is currently being used.
 - `iter::Int64`, the current iteration.
