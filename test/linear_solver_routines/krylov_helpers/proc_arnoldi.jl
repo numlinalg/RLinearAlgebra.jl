@@ -14,67 +14,67 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     # test definition
     #####################
     @test isdefined(RLinearAlgebra, :arnoldi)
-
-    #####################
-    # test errors
-    #####################
     
-    # not square
-    nrow = 100
-    ncol = 50
-    A = randn(nrow, ncol)
-    q = randn(ncol)
-    k = 10
-    @test_throws AssertionError RLinearAlgebra.arnoldi(A, q, k)
+    let nrow = 100, ncol = 50
+        #####################
+        # test errors
+        #####################
 
-    # q is wrong dimension
-    A = randn(nrow, nrow)
-    q = randn(nrow-1)
-    k = 10
-    @test_throws AssertionError RLinearAlgebra.arnoldi(A, q, k)
+        # not square
+        A = randn(nrow, ncol)
+        q = randn(ncol)
+        k = 10
+        @test_throws AssertionError RLinearAlgebra.arnoldi(A, q, k)
 
-    # k is not greater than or equal to 1
-    A = randn(nrow, nrow)
-    q = randn(nrow)
-    k = 0
-    @test_throws AssertionError RLinearAlgebra.arnoldi(A, q, k)
+        # q is wrong dimension
+        A = randn(nrow, nrow)
+        q = randn(nrow-1)
+        k = 10
+        @test_throws AssertionError RLinearAlgebra.arnoldi(A, q, k)
 
-    ###########################
-    # Compute orthonormal basis
-    # and check conditions
-    ###########################
-    A = randn(nrow, nrow)
-    q = randn(nrow)
-    k = rand(collect(1:nrow))
-    output = RLinearAlgebra.arnoldi(A, q, k)
+        # k is not greater than or equal to 1
+        A = randn(nrow, nrow)
+        q = randn(nrow)
+        k = 0
+        @test_throws AssertionError RLinearAlgebra.arnoldi(A, q, k)
 
-    # test output and type
-    @test size(output, 1) == 2
-    for i in 1:2
-        @test typeof(output[i]) == Matrix{Float64}
-    end
-    
-    Q, H = output[1], output[2]
-    @test size(Q) == (nrow, k)
-    @test size(H) == (k, k - 1)
+        ###########################
+        # Compute orthonormal basis
+        # and check conditions
+        ###########################
+        A = randn(nrow, nrow)
+        q = randn(nrow)
+        k = rand(1:nrow)
+        output = RLinearAlgebra.arnoldi(A, q, k)
 
-    # test structure of H
-    for i in 3:k
-        for j in 1:i-2
-            @test H[i, j] == 0
+        # test output and type
+        @test size(output, 1) == 2
+        for i in 1:2
+            @test typeof(output[i]) == Matrix{Float64}
         end
-    end 
+        
+        Q, H = output[1], output[2]
+        @test size(Q) == (nrow, k)
+        @test size(H) == (k, k - 1)
 
-    # matrix conditions
-    Q_prev = Q[:, 1:(k-1)]
-    @test A * Q_prev ≈ Q * H atol = 1e-10
-    
-    H_prev = H[1:(k-1), 1:(k-1)]
-    @test Q_prev' * A * Q_prev ≈ H_prev atol = 1e-10
+        # test structure of H
+        for i in 3:k
+            for j in 1:i-2
+                @test H[i, j] == 0
+            end
+        end 
 
-    # orthogonality
-    eye = Matrix{Float64}(I, k, k)
-    @test Q' * Q ≈ eye atol = 1e-10 
+        # matrix conditions
+        Q_prev = Q[:, 1:(k-1)]
+        @test A * Q_prev ≈ Q * H atol = 1e-10
+        
+        H_prev = H[1:(k-1), 1:(k-1)]
+        @test Q_prev' * A * Q_prev ≈ H_prev atol = 1e-10
+
+        # orthogonality
+        eye = Matrix{Float64}(I, k, k)
+        @test Q' * Q ≈ eye atol = 1e-10 
+    end
 end
 
 end

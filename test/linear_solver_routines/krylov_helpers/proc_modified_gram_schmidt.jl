@@ -18,80 +18,69 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
     ##################################
     # test first method
     ##################################
-    dim = 100
-    nbasis = 1
-    q_original = randn(dim)
-    q_copy = copy(q_original)
-    basis = randn(dim, nbasis)
-    basis ./= norm(basis)
+    let dim = 100
+        # continuously add to previous basis
+        nbasis = 1
+        q_original = randn(dim); q_copy = copy(q_original);
+        basis = randn(dim, nbasis); basis ./= norm(basis);
+        k = rand(1:10)
+        for i in 1:k
+            # get orthogonalize q_copy against basis
+            h = RLinearAlgebra.mgs!(q_copy, basis)
 
-    h = RLinearAlgebra.mgs!(q_copy, basis)
-
-    for i in 1:nbasis
-        @test dot(q_copy, basis[:, i]) <= eps() * dim
-        q_original .-= h[i] .* basis[:, i]
-    end
-    @test norm(q_original - q_copy) <= eps() * dim 
-
-    # continuously add to previous basis
-    k = rand(collect(1:10))
-    for i in 1:k
-        q_copy ./= norm(q_copy)
-        basis = hcat(basis, q_copy)
-        nbasis += 1
-
-        q_original = randn(dim)
-        q_copy = copy(q_original)
-
-        h = RLinearAlgebra.mgs!(q_copy, basis)
-
-        for i in 1:nbasis
-            @test dot(q_copy, basis[:, i]) <= eps() * dim
-            q_original .-= h[i] .* basis[:, i]
+            # test orthogonality and that mgs did the process correctly
+            for i in 1:nbasis
+                @test dot(q_copy, basis[:, i]) <= eps() * dim
+                q_original .-= h[i] .* basis[:, i]
+            end
+            
+            # q_original should be q_copy if h is saved correctly
+            @test norm(q_original - q_copy) <= eps() * dim
+            
+            # expand basis
+            q_copy ./= norm(q_copy)
+            basis = hcat(basis, q_copy)
+            nbasis += 1
+            
+            # get new vectors
+            q_original = randn(dim)
+            q_copy = copy(q_original)
         end
-        
-        @test norm(q_original - q_copy) <= eps() * dim
     end
 
     ##################################
     # test second method
     ##################################
-    dim = 100
-    nbasis = 1
-    q_original = randn(dim)
-    q_copy = copy(q_original)
-    basis = randn(dim, nbasis)
-    basis ./= norm(basis)
-    h = zeros(1, 1)
-
-
-    RLinearAlgebra.mgs!(q_copy, view(h, :, 1), basis)
-
-    for i in 1:nbasis
-        @test dot(q_copy, basis[:, i]) <= eps() * dim
-        q_original .-= h[i, i] .* basis[:, i]
-    end
-    @test norm(q_original - q_copy) <= eps() * dim
-
-    # continuously add to previous basis
-    k = rand(collect(1:10))
-    for i in 1:k
-        q_copy ./= norm(q_copy)
-        basis = hcat(basis, q_copy)
-        nbasis += 1
-
+    let dim = 100
+        
+        # storage vectors
+        nbasis = 1
         q_original = randn(dim)
         q_copy = copy(q_original)
-        h = zeros(nbasis, 1)
+        basis = randn(dim, nbasis)
+        basis ./= norm(basis)
+        h = zeros(1, 1)
+       
+        # continuously add to basis
+        k = rand(2:10)
+        for i in 1:k
+            RLinearAlgebra.mgs!(q_copy, view(h, :, 1), basis)
 
-        RLinearAlgebra.mgs!(q_copy, view(h, :, 1), basis)
+            for i in 1:nbasis
+                @test dot(q_copy, basis[:, i]) <= eps() * dim
+                q_original .-= h[i, 1] .* basis[:, i]
+            end
 
-        for i in 1:nbasis
-            @test dot(q_copy, basis[:, i]) <= eps() * dim
-            q_original .-= h[i, 1] .* basis[:, i]
+            @test norm(q_original - q_copy) <= eps() * dim
+            
+            q_copy ./= norm(q_copy)
+            basis = hcat(basis, q_copy)
+            nbasis += 1
+            
+            q_original = randn(dim)
+            q_copy = copy(q_original)
+            h = zeros(nbasis, 1)
         end
-        
-        @test norm(q_original - q_copy) <= eps() * dim
     end
 end
 
