@@ -58,16 +58,16 @@ function sample(
     # size(A,1) (matrix A's number of rows)
     if iter == 1
         type.block_size > size(A,1) && @warn "`block_size` should less than or"*
-                                             " equal to row dimension, $(size(A,1))"
+                                             " equal to row dimension, $(size(A,1))."
 
         # In default, we should sample min{type.block_size, 8} signs for each column.
         # Otherwise, we take an integer from 2 to type.block_size.
         type.numsigns == nothing && (type.numsigns = min(type.block_size, 8))
         type.numsigns <= 0 && @assert (type.numsigns > 0) "`numsigns` must be positive."
-        type.numsigns > 0 && @assert (type.numsigns <= type.block_size) "`numsigns` must less \
-                                                                         than the block size \
-                                                                         of sketch matrix, \
-                                                                         $(type.block_size)."
+        type.numsigns > 0 && @assert (type.numsigns <= type.block_size) "`numsigns` must less"*
+                                                                        " than the block size"*
+                                                                        " of sketch matrix,"*
+                                                                        " $(type.block_size)."
 
         # Scaling value for saprse sign matrix
         type.scaling = sqrt(size(A,1) / type.numsigns)

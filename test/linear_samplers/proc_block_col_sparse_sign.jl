@@ -37,7 +37,7 @@ Random.seed!(1010)
      # Block size less than matrix size test
      SS = LinSysBlkColSparseSign(block_size = 12)
      @test_logs (:warn, "`block_size` should less than or \
-                         equal to column dimension, 10") RLinearAlgebra.sample(SS, A, b, x, 1)
+                         equal to column dimension, 10.") RLinearAlgebra.sample(SS, A, b, x, 1)
 
      # Block size is correct
      SS = LinSysBlkColSparseSign(block_size = 5)
