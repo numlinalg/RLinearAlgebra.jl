@@ -109,7 +109,7 @@ function rsolve!(solver::RLSSolver, A, b, x::AbstractVector)
         iter += 1
         samp = sample(solver.sampler, A, b, x, iter)
         log_update!(solver.log, solver.sampler, x, samp, iter, A, b)
-        if typeof(solver.routine) <: LinSysBlkColGentAccel || typeof(solver.routine) <: LinSysBlkRowLUAccel
+        if typeof(solver.routine) <: LinSysBlkColGentAccel || typeof(solver.routine) <: LinSysBlkRowLUAccel || typeof(solver.routine) <: LinSysBlkColLSRNAccel
             rsubsolve!(solver.routine, x, samp, iter, solver.log)
         else
             rsubsolve!(solver.routine, x, samp, iter)

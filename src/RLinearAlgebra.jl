@@ -21,7 +21,7 @@ module RLinearAlgebra
 # Dependencies
 ###########################################
 
-using LinearAlgebra, Random, Distributions
+using LinearAlgebra, Random, Distributions, Krylov, LinearOperators
 
 ###########################################
 # Exports
@@ -70,7 +70,7 @@ export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
     LinSysVecColProjFO
 
 # Vector Block Column Projection
-export LinSysBlkColGent, LinSysBlkColGentAccel, BlockCoordinateDescent 
+export LinSysBlkColGent, LinSysBlkColLSRNAccel, LinSysBlkColGentAccel, LinSysBlkColLSRN, BlockCoordinateDescent 
 #*****************************************#
 # Linear Solver Log Exports
 #*****************************************#

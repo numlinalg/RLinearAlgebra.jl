@@ -134,6 +134,8 @@ include("linear_solver_routines/block_row_projection.jl")
 # Exact Solvers
 include("linear_solver_routines/block_col_projection.jl")
 include("linear_solver_routines/block_col_projection_accel.jl")
+include("linear_solver_routines/block_col_projection_lsrn.jl")
+include("linear_solver_routines/block_col_lsrn_accel.jl")
 include("linear_solver_routines/block_row_projection_accel.jl")
 # Approximate Solvers
 
