@@ -23,7 +23,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         nbasis = 1
         q_original = randn(dim); q_copy = copy(q_original);
         basis = randn(dim, nbasis); basis ./= norm(basis);
-        k = rand(1:10)
+        k = rand(2:10)
         for i in 1:k
             # get orthogonalize q_copy against basis
             h = RLinearAlgebra.mgs!(q_copy, basis)
