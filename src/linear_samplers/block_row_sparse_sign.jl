@@ -58,7 +58,7 @@ function sample(
     # size(A,1) (matrix A's number of rows)
     if iter == 1
         type.block_size > size(A,1) && @warn "`block_size` should less than or \
-                                                equal to row dimension, $(size(A,1))"
+                                              equal to row dimension, $(size(A,1))"
 
         # In default, we should sample min{type.block_size, 8} signs for each column.
         # Otherwise, we take an integer from 2 to type.block_size.
