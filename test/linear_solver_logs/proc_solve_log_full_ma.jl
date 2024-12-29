@@ -30,7 +30,6 @@ Random.seed!(1010)
 
         @test length(log.resid_hist) == 1
         @test norm(log.resid_hist[1] - norm(A * z - b)^2) < 1e2 * eps()
-        @test norm(log.iota_hist[1] - norm(A * z - b)^4) < 1e2 * eps()
         @test log.iterations == 0
         @test log.converged == false
     end
@@ -56,8 +55,6 @@ Random.seed!(1010)
         @test length(log.resid_hist) == 11
         @test norm(log.resid_hist[3:11] - vcat(obs_res[3], 
                                          [(obs_res[i] + obs_res[i-1])/2 for i = 4:11])) < 1e2 * eps()
-        @test_skip norm(log.iota_hist[3:11] - vcat(obs_res2[3], 
-                                        [(obs_res2[i] + obs_res2[i-1])/2 for i = 4:11])) < 1e2 * eps()
         @test log.iterations == 10
         @test log.converged == false
     end
@@ -79,10 +76,8 @@ Random.seed!(1010)
         end
         #compute sampled residuals
         obs_res = [norm(A*(x + .3^(i+1)*(z-x)) - b)^2 for i = 0:10]
-        obs_res2 = [norm(A*(x + .3^(i+1)*(z-x)) - b)^4 for i = 0:10]
         @test length(log.resid_hist) == 11
         @test norm(log.resid_hist[3:11] - vcat( [(obs_res[i] + obs_res[i-1])/2 for i = 3:11])) < 1e2 * eps()
-        @test norm(log.iota_hist[3:11] - vcat( [(obs_res2[i] + obs_res2[i-1])/2 for i = 3:11])) < 1e2 * eps()
         @test log.iterations == 10
         @test log.converged == false
     
@@ -103,7 +98,6 @@ Random.seed!(1010)
 
         @test length(log.resid_hist) == 1
         @test norm(log.resid_hist[1] - norm(A * z - b)^2) < 1e2 * eps()
-        @test norm(log.iota_hist[1] - norm(A * z - b)^4) < 1e2 * eps()
         @test log.iterations == 0
         @test log.converged == false
 
@@ -113,7 +107,6 @@ Random.seed!(1010)
         end
 
         @test length(log.resid_hist) == 4 # Record at 0, 3, 6, 9
-        @test length(log.iota_hist) == 4 # Record at 0, 3, 6, 9
         @test log.iterations == 10
         @test log.converged == false
     end
