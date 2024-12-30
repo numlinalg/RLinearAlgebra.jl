@@ -18,36 +18,40 @@ Random.seed!(1010)
      x = rand(10)
 
  
-     # Test assertions
+     # Test assertions and default values
 
-     # numsigns must between 0 and number of rows
-     SS = LinSysBlkColSparseSign(;numsigns = -5)
+     # numsigns must between 2 and number of rows, block_size is set to 8 in default.
      @test_throws AssertionError("`numsigns` must be \
-                                  positive.") RLinearAlgebra.sample(SS, A, b, x, 1)
+          greater than 1.") LinSysBlkColSparseSign(;numsigns = -5)
+     @test_throws AssertionError("`numsigns` must be \
+          greater than 1.") LinSysBlkColSparseSign(;numsigns = 1)
      SS = LinSysBlkColSparseSign(;numsigns = 15)
      @test_throws AssertionError("`numsigns` must less than the block size of \
-                                  sketch matrix, 8.") RLinearAlgebra.sample(SS, A, b, x, 1)
-     SS = LinSysBlkColSparseSign(;numsigns = 5)
-     @test RLinearAlgebra.sample(SS, A, b, x, 1) !== nothing
+          sketch matrix, 8.") RLinearAlgebra.sample(SS, A, b, x, 1)
 
-     # Block size must be positive
+     # numsigns' default value is correctly set, numsigns should equal to 8.
+     SS = LinSysBlkColSparseSign(block_size = 9)
+     S, _, _, _ = RLinearAlgebra.sample(SS, A, b, x, 1)
+     for i in axes(S, 1)
+          @test length(S[i, :] == 0.0) == 1
+     end
+
+     # Block size must be greater than 1
      @test_throws AssertionError("`block_size` must be \
-                                  positive.") LinSysBlkColSparseSign(block_size = -12)
+          greater than 1.") LinSysBlkColSparseSign(block_size = -12)
+     @test_throws AssertionError("`block_size` must be \
+          greater than 1.") LinSysBlkColSparseSign(block_size = 1)
 
      # Block size less than matrix size test
      SS = LinSysBlkColSparseSign(block_size = 12)
      @test_logs (:warn, "`block_size` should less than or \
-                         equal to column dimension, 10.") RLinearAlgebra.sample(SS, A, b, x, 1)
-
-     # Block size is correct
-     SS = LinSysBlkColSparseSign(block_size = 5)
-     @test RLinearAlgebra.sample(SS, A, b, x, 1) !== nothing
+          equal to column dimension, 10.") RLinearAlgebra.sample(SS, A, b, x, 1)
 
 
      SS = LinSysBlkColSparseSign()
  
      for i in 1:5
-          S, AS, grad, res  = RLinearAlgebra.sample(SS, A, b, x, i)
+          S, AS, grad, res = RLinearAlgebra.sample(SS, A, b, x, i)
   
           @test norm(AS - A * S) < eps() * 1e2
           @test norm(res - (A * x - b)) < eps() * 1e2
