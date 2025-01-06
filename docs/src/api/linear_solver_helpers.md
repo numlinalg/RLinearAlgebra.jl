@@ -20,3 +20,12 @@ RLinearAlgebra.ldiv!
 RLinearAlgebra.copy_block_from_mat!
 RLinearAlgebra.reset_gent!
 ```
+
+## Krylov Solvers
+
+### Helpers
+```@docs
+RLinearAlgebra.mgs!
+RLinearAlgebra.arnoldi
+RLinearAlgebra.randomized_arnoldi
+```
