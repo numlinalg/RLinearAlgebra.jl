@@ -53,12 +53,12 @@ export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
 #Vector Block Row Samplers
 export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace, 
     LinSysBlkRowFJLT, LinSysBlkRowSRHT, LinSysBlkRowCountSketch, 
-    LinSysBlkRowSelectWoReplacement
+    LinSysBlkRowSelectWoReplacement, LinSysBlkRowSparseSign
 
 #Vector Block Column Samplers
 export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace, 
     LinSysBlkColFJLT, LinSysBlkColSRHT, LinSysBlkColCountSketch, 
-    LinSysBlkColSelectWoReplacement
+    LinSysBlkColSelectWoReplacement, LinSysBlkColSparseSign
 
 #*****************************************#
 # Linear Solver Routine Exports

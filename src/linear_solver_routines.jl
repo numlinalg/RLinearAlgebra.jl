@@ -107,6 +107,9 @@ end
 # Linear Solvers Helpers
 ############################################
 include("linear_solver_routines/block_solver_helpers/gentlemans_house.jl")
+include("linear_solver_routines/krylov_helpers/arnoldi.jl")
+include("linear_solver_routines/krylov_helpers/randomized_arnoldi.jl")
+include("linear_solver_routines/krylov_helpers/modified_gram_schmidt.jl")
 #############################################
 # Vector Row Projection Solvers
 #############################################
