@@ -26,3 +26,12 @@ RLinearAlgebra.reset_gent!
 ```@docs
 RLinearAlgebra.frobenius_norm_distribution
 ```
+
+## Krylov Solvers
+
+### Helpers
+```@docs
+RLinearAlgebra.mgs!
+RLinearAlgebra.arnoldi
+RLinearAlgebra.randomized_arnoldi
+```
