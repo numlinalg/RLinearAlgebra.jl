@@ -4,7 +4,44 @@
 # on the leverage scores.
 
 """
-    TODO - documentation
+    leverage_score_distribution(A::AbstractMatrix, row_distribution::Bool)
+
+Given a matrix `A`, compute a distribution over rows or columns of the matrix, as 
+    indicated by `row_distribution`, by using the leverage scores of the matrix.
+
+# References(s)
+
+# Method
+
+If `row_distribution = true`, then we compute the thin QR decomposition of `A`.
+Take ``Q_1`` to be the thin Q. The probability weight assigned to row ``i`` of `A` is
+```
+    ||Q_1[i, :]||_2^2 / ||Q_1||_F^2,
+```
+where ``Q_1[i, :]`` is the ``i^{th}`` row of ``Q_1``, ``||\\cdot||_2`` is the L2 norm, and
+``||\\cdot||_F`` is the frobenius norm.
+
+If `row_distribution = false`, then we carry out the same procedure on ``A^\\intercal``.
+
+# Arguments
+
+- `A::AbstractMatrix`, matrix for which a distribution over rows or columns is desired.
+- `row_distribution::Bool`, indication whether a distribution over rows or columns
+    is desired.
+
+!!! note
+    As we take the QR decomposition of `A`, we enforce that `size(A)[1] >= size(A)[2]` 
+    when `row_distribution = true`, and `size(A')[1] >= size(A')[2]` when 
+    `row_distribution = false`.
+
+# Return
+
+- `distribution::Vector{Float64}`, vector of probabilities. Will be of length `size(A, 1)` 
+    if `row_distribution = true`, otherwise will be of length `size(A, 2)`.
+
+!!! warning
+    If `A` is sparse, the implementation does not account for this.
+    The distribution vector is always initialized to be of type `Vector{Float64}`.
 """
 function leverage_score_distribution(
     A::AbstractMatrix,
