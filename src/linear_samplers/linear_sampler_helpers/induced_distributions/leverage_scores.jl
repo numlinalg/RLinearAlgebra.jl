@@ -11,13 +11,13 @@ function leverage_score_distribution(
     row_distribution::Bool
 )
     # error checking
-    #@assert row_distribution ? (size(A)[1] >= size(A)[2]) : (size(A')[1] <= size(A')[2])
-    #"Need to take QR decomposition but dimensions of `A` are incorrect."
+    @assert row_distribution ? (size(A)[1] >= size(A)[2]) : (size(A')[1] >= size(A')[2])
+    "Need to take QR decomposition but dimensions of `A` are incorrect."
 
     # get thin QR
     sz = row_distribution ? size(A)[1] : size(A)[2]
     distribution = zeros(sz)
-    Q1 = row_distribution ? collect(qr(A).Q) : collect(qr(A').Q)
+    Q1 = row_distribution ? Matrix(qr(A).Q) : Matrix(qr(A').Q)
     
     # compute distribution
     for i in 1:sz
