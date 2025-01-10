@@ -11,11 +11,14 @@ Given a matrix `A`, compute a distribution over rows or columns of the matrix, a
 
 # References(s)
 
+Drineas, Magdon-Ismail, Mahoney, and Woodruff. "Fast Approximation of Matrix Coherence
+and Statistical Leverage". arxiv, https://arxiv.org/abs/1109.3843v2.
+
 # Method
 
 If `row_distribution = true`, then we compute the thin QR decomposition of `A`.
 Take ``Q_1`` to be the thin Q. The probability weight assigned to row ``i`` of `A` is
-```
+```math
     ||Q_1[i, :]||_2^2 / ||Q_1||_F^2,
 ```
 where ``Q_1[i, :]`` is the ``i^{th}`` row of ``Q_1``, ``||\\cdot||_2`` is the L2 norm, and
@@ -49,7 +52,7 @@ function leverage_score_distribution(
 )
     # error checking
     @assert row_distribution ? (size(A)[1] >= size(A)[2]) : (size(A')[1] >= size(A')[2])
-    "Need to take QR decomposition but dimensions of `A` are incorrect."
+    "Need to take QR decomposition but dimensions of A are incorrect."
 
     # get thin QR
     sz = row_distribution ? size(A)[1] : size(A)[2]

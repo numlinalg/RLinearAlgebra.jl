@@ -25,7 +25,7 @@ using Test, RLinearAlgebra, Random, LinearAlgebra, StatsBase
     # test distribution output
     let dim1 = dim1, dim2 = dim2
         # test for row distribution
-        A = randn(dim1, dim2)
+        A = randn(dim1, dim2) ## 10, 5
         dist = RLinearAlgebra.leverage_score_distribution(A, true)
 
         # test characteristics
@@ -41,7 +41,7 @@ using Test, RLinearAlgebra, Random, LinearAlgebra, StatsBase
         end
 
         # test for column distribution
-        A = randn(dim2, dim1)
+        A = randn(dim2, dim1) ## 5, 10
         dist = RLinearAlgebra.leverage_score_distribution(A, false)
 
         # test characteristics
