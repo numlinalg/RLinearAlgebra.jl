@@ -10,7 +10,7 @@ come from [JUMP](https://jump.dev/JuMP.jl/stable/developers/style/). Overall whe
     - Be concise
     - Prefer lists over long sentences
     - Use numbers when describing an ordered set of ideas
-    - Use bullets when these is no specific order
+    - Use bullets when there is no specific order
 
 ### Docstrings
     - Every new **function** and **data structure** needs to have a docstring
