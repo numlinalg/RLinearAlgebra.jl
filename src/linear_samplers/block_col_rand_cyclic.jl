@@ -9,6 +9,8 @@ After all blocks are called, a new random ordering is created.
 - `n_blocks::Int64`, Variable that contains the number of blocks overall.
 - `order::Vector{Int64}`, The order that the blocks will be used to generate updates.
 - `blocks::Vector{Vector{Int64}}`, The vector containing all the groupings of column indices.
+- `block_size::Int64`, Variable that represents the smallest sketching block size in iterations. 
+    Used in moving average method. 
 
 # Constructors
 Calling `LinSysBlkColRandCyclic()` defaults to setting `n_blocks` to 2 and `blocks` to be sequentially ordered. 
@@ -19,9 +21,17 @@ mutable struct LinSysBlkColRandCyclic <: LinSysBlkColSampler
     n_blocks::Int64
     order::Union{Vector{Int64}, Nothing}
     blocks::Union{Vector{Vector{Int64}}, Nothing}
+    block_size::Union{Int64, Nothing}
 end
 
-LinSysBlkColRandCyclic(;n_blocks = 2, blocks = nothing) = LinSysBlkColRandCyclic(n_blocks, nothing, blocks)
+LinSysBlkColRandCyclic(;
+                       n_blocks = 2, 
+                       blocks = nothing
+                      ) = LinSysBlkColRandCyclic( n_blocks, 
+                                                  nothing, 
+                                                  blocks, 
+                                                  nothing
+                                                )
 
 # Common sample interface for linear systems
 function sample(
@@ -52,6 +62,7 @@ function sample(
     # Normal equation residual in the Sketched Block
     grad = AS' * (A * x - b)
     
+    type.block_size = div(n, type.n_blocks)
     bsize = size(col_idx, 1)
     # Create sketching matrix
     S = zeros(n, bsize)
