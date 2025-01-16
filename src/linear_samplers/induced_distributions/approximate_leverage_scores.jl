@@ -74,15 +74,22 @@ function approximate_leverage_score_distribution(
 )
 
     B = row_distribution ? A : A'
-    return _approximate_leverage_score(B, 
-        sketching_method_FJLT, sketching_method_JLT)
+    Ω = _approximate_leverage_score(B, sketching_method_FJLT, sketching_method_JLT)
+
+    sz = size(B, 1)
+    distribution = zeros(sz)
+    for i in 1:sz
+        distribution[i] = norm(Ω[i, :])^2
+    end
+
+    return distribution ./ sum(distribution)
 end
 
 """
     _approximate_leverage_score(A::AbstractMatrix, row_sketching_method_FJLT::Function,
         col_sketching_method_JLT::Function)
 
-Compute a distribution over the rows of a matrix `A` using approximate leverage scores.
+Return the matrix for which the approximate leverage scores are computed from.
 
 # Reference(s)
 
@@ -101,16 +108,10 @@ Let the SVD of ``\\Pi_1A = U \\Sigma V^\\intercal`` and let
 ``R^{-1} = V \\Sigma^{-1}``. Then, define
 
 ```math
-    \\Omega = AR^{-1}\\Pi_2,
+    \\Omega = AR^{-1}\\Pi_2.
 ```
-which is the matrix that will be used to construct distribution.
-
-In particular, given ``\\Omega`` the probability weight assigned to the ``i^{th}``
-row of ``A`` is
-
-```math
-    ||\\Omega[i, :]||_2^2/||\\Omega||_F^2.
-```
+This matrix is returned by the function, and use used to calculate the approximate 
+leverage scores.
 
 # Arguments
 
@@ -129,11 +130,6 @@ row of ``A`` is
 !!! warning
     The function `sketching_method_FLJT` should return a sketched matrix
     such that the dimension of the rows is at least the column dimension.
-
-# Return
-
-- `distribution::Vector{Float64}`, vector of probability weights. Will be of
-    size `size(A, 1)`.
 """
 function _approximate_leverage_score(
     A::AbstractMatrix,
@@ -150,13 +146,5 @@ function _approximate_leverage_score(
 
     # sketch columns
     Ω = col_sketching_method_JLT(A * Rinv)
-
-    # form distribution
-    sz = size(A, 1)
-    distribution = zeros(sz)
-    for i in 1:sz
-        distribution[i] = norm(Ω[i, :])^2
-    end
-
-    return distribution ./ sum(distribution)
+    return Ω
 end

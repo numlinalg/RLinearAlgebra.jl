@@ -31,16 +31,19 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         end
 
         A = randn(row, col)
-        dist = RLinearAlgebra._approximate_leverage_score(A, 
+
+        Random.seed!(1010)
+        Ω = RLinearAlgebra._approximate_leverage_score(A, 
             row_sampler_function,
             col_sampler_function)
 
-        # distribution characteristics
-        @test length(dist) == row
-        @test sum(dist) ≈ 1.0
-        @test sum(dist .>= 0) == row
+        Random.seed!(1010)
 
-        # TODO - test if the correct method is being applied
+        Π_1A = row_sampler_function(A)
+        _, Σ, V = svd(Π_1A)
+        Rinv = V * Diagonal(Σ.^(-1))
+        Ωtrue = col_sampler_function(A * Rinv)
+        @test Ωtrue ≈ Ω   
     end
 
     # test for approximate_leverage_score -- row_distribution = true
@@ -62,6 +65,8 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         end
 
         A = randn(row, col)
+
+        Random.seed!(1010)
         dist = RLinearAlgebra.approximate_leverage_score_distribution(A, 
             row_sampler_function,
             col_sampler_function,
@@ -72,7 +77,16 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         @test sum(dist) ≈ 1.0
         @test sum(dist .>= 0) == row
 
-        # TODO - test if the correct method is being applied
+        # test if the correct method is being applied
+        Random.seed!(1010)
+        Π_1A = row_sampler_function(A)
+        _, Σ, V = svd(Π_1A)
+        Rinv = V * Diagonal(Σ.^(-1))
+        Ωtrue = col_sampler_function(A * Rinv)
+
+        for i in 1:row
+            @test dist[i] ≈ norm(Ωtrue[i, :])^2 / norm(Ωtrue)^2
+        end
     end
 
     # test for approximate_leverage_score -- row_distribution = false
@@ -94,6 +108,8 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         end
 
         A = randn(row, col)
+
+        Random.seed!(1010)
         dist = RLinearAlgebra.approximate_leverage_score_distribution(A, 
             row_sampler_function,
             col_sampler_function,
@@ -105,6 +121,15 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         @test sum(dist .>= 0) == col
 
         # TODO - test if the correct method is being applied
+        Random.seed!(1010)
+        Π_1A = row_sampler_function(A')
+        _, Σ, V = svd(Π_1A)
+        Rinv = V * Diagonal(Σ.^(-1))
+        Ωtrue = col_sampler_function(A' * Rinv)
+
+        for i in 1:col
+            @test dist[i] ≈ norm(Ωtrue[i, :])^2 / norm(Ωtrue)^2
+        end
     end
 
 end
