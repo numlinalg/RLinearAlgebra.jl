@@ -110,3 +110,8 @@ RLinearAlgebra.init_blocks_cyclic!
 
 RLinearAlgebra.fwht!
 ```
+
+## Matrix Induced Probability Distributions 
+ ```@docs
+ RLinearAlgebra.approximate_leverage_score_distribution
+ ```

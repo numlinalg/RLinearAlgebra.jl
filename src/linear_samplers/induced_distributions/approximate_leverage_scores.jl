@@ -4,8 +4,9 @@
 # using approximation to the leverage scores of a matrix
 
 """
-    approximate_leverage_score(A::AbstractMatrix, row_sketching_method_FJLT::Function,
-        col_sketching_method_JLT::Function, row_distribution::Bool)
+    approximate_leverage_score_distribution(A::AbstractMatrix, 
+        row_sketching_method_FJLT::Function, col_sketching_method_JLT::Function,
+        row_distribution::Bool)
 
 Compute a distribution over the rows or columns of a matrix `A` as indicated by
 `row_distribution` using approximate leverage scores.
@@ -65,7 +66,7 @@ account for this.
     size `size(A, 1)` when `row_distribution = true`, and of size `size(A, 2)`
     when `row_distribution = false`.
 """
-function approximate_leverage_score(
+function approximate_leverage_score_distribution(
     A::AbstractMatrix,
     sketching_method_FJLT::Function,
     sketching_method_JLT::Function,

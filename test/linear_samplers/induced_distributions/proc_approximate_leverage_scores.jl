@@ -9,7 +9,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
 @testset "Procedural -- Approximate Leverage Scores" begin
 
     # test definition
-    @test isdefined(RLinearAlgebra, :approximate_leverage_score)
+    @test isdefined(RLinearAlgebra, :approximate_leverage_score_distribution)
     @test isdefined(RLinearAlgebra, :_approximate_leverage_score)
 
     # test cases for _approximate_leverage_score
@@ -62,7 +62,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         end
 
         A = randn(row, col)
-        dist = RLinearAlgebra.approximate_leverage_score(A, 
+        dist = RLinearAlgebra.approximate_leverage_score_distribution(A, 
             row_sampler_function,
             col_sampler_function,
             true)
@@ -94,7 +94,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         end
 
         A = randn(row, col)
-        dist = RLinearAlgebra.approximate_leverage_score(A, 
+        dist = RLinearAlgebra.approximate_leverage_score_distribution(A, 
             row_sampler_function,
             col_sampler_function,
             false)
