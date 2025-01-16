@@ -50,10 +50,13 @@ account for this.
     desired.
 - `sketching_method_FJLT::Function`, sketching method that can be applied to the
     left of `A` if `row_distribution = true`, or to `A'` when 
-    `row_distribution = false`. 
+    `row_distribution = false`. The function should take in a single argument,
+    the matrix to be sketched, and return the sketched matrix.
 - `sketching_method_JLT::Function`, sketching method that can applied to the
     right of a ``AR^{-1}`` when `row_distribution = true`, or to 
-    ``A^{\\intercal}R^{-1}`` when `row_distribution = false`.
+    ``A^{\\intercal}R^{-1}`` when `row_distribution = false`. The function 
+    should take in a single argument, the matrix to be sketched, 
+    and return the sketched matrix.
 - `row_distribution::Bool`, whether a row or column distribution is desired.
 
 # Return
@@ -114,11 +117,17 @@ row of ``A`` is
     desired.
 - `sketching_method_FJLT::Function`, sketching method that can be applied to the
     left of `A` if `row_distribution = true`, or to `A'` when 
-    `row_distribution = false`. 
+    `row_distribution = false`. The function should take in a single argument,
+    the matrix to be sketched, and return the sketched matrix.
 - `sketching_method_JLT::Function`, sketching method that can applied to the
     right of a ``AR^{-1}`` when `row_distribution = true`, or to 
-    ``A^{\\intercal}R^{-1}`` when `row_distribution = false`.
+    ``A^{\\intercal}R^{-1}`` when `row_distribution = false`. The function should take 
+    in a single argument, the matrix to be sketched, and return the sketched matrix.
 - `row_distribution::Bool`, whether a row or column distribution is desired.
+
+!!! warning
+    The function `sketching_method_FLJT` should return a sketched matrix
+    such that the dimension of the rows is at least the column dimension.
 
 # Return
 
@@ -132,16 +141,14 @@ function _approximate_leverage_score(
 )
 
     # sketch the rows of the matrix A
-    Π_1 = row_sketching_method_FJLT(A)
-    Π_1A = Π_1 * A
+    Π_1A = row_sketching_method_FJLT(A)
 
     # perform a QR decomposition
     _, Σ, V = svd(Π_1A)
     Rinv = V * Diagonal(Σ.^(-1))
 
     # sketch columns
-    ARinv = A * Rinv
-    Ω = ARinv * col_sketching_method_JLT(A)
+    Ω = col_sketching_method_JLT(A * Rinv)
 
     # form distribution
     sz = size(A, 1)
