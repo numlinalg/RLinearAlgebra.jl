@@ -117,6 +117,6 @@ RLinearAlgebra.approximate_leverage_score_distribution
 ```
 
 ### Helper
-```
+```@docs
 RLinearAlgebra._approximate_leverage_score
 ```
