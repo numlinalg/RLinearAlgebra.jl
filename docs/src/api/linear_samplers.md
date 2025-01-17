@@ -112,6 +112,11 @@ RLinearAlgebra.fwht!
 ```
 
 ## Matrix Induced Probability Distributions 
- ```@docs
- RLinearAlgebra.approximate_leverage_score_distribution
- ```
+```@docs
+RLinearAlgebra.approximate_leverage_score_distribution
+```
+
+### Helper
+```
+RLinearAlgebra._approximate_leverage_score
+```
