@@ -120,7 +120,7 @@ using Test, RLinearAlgebra, LinearAlgebra, Random
         @test sum(dist) ≈ 1.0
         @test sum(dist .>= 0) == col
 
-        # TODO - test if the correct method is being applied
+        # test if the correct method is being applied
         Random.seed!(1010)
         Π_1A = row_sampler_function(A')
         _, Σ, V = svd(Π_1A)
