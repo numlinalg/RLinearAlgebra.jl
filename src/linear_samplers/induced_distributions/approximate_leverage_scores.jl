@@ -5,11 +5,11 @@
 
 """
     approximate_leverage_score_distribution(A::AbstractMatrix, 
-        row_sketching_method_FJLT::Function, col_sketching_method_JLT::Function,
+        sketching_method_FJLT::Function, sketching_method_JLT::Function,
         row_distribution::Bool)
 
 Compute a distribution over the rows or columns of a matrix `A` as indicated by
-`row_distribution` using approximate leverage scores.
+`row_distribution` using approximate leverage scores of the matrix.
 
 # Reference(s)
 
@@ -19,12 +19,13 @@ coherence and statistical leverage". arxiv, https://arxiv.org/pdf/1109.3843.
 # Method
 
 Let `row_distribution = true` and ``A \\in \\mathbb{R}^{n \\times d}``.
-Let ``\\Pi_1 \\in \\mathbb{R}^{r_1 \\times n}`` be a ``\\epsilon-``Fast Johnson-Lindenstrauss Transform, and
-``\\Pi_2 \\in \\mathbb{R}^{d \\times r_2}`` be an ``\\epsilon-``Johnson-Lindenstrauss Transform. 
+Let ``\\Pi_1 \\in \\mathbb{R}^{r_1 \\times n}`` be a ``\\epsilon-``Fast Johnson-Lindenstrauss 
+Transform, and ``\\Pi_2 \\in \\mathbb{R}^{d \\times r_2}`` be an 
+``\\epsilon-``Johnson-Lindenstrauss Transform. 
 
 !!! note
-    In the reference, ``\\Pi_1`` is formed by the subsampled randomized hadamard transform and an example distribution for ``\\Pi_2`` is introduced in 
-    section 2.2.
+    In the reference, ``\\Pi_1`` is formed by the subsampled randomized hadamard transform 
+    and an example distribution for ``\\Pi_2`` is introduced in section 2.2.
 
 Let the SVD of ``\\Pi_1A = U \\Sigma V^\\intercal`` and let 
 ``R^{-1} = V \\Sigma^{-1}``. Then, define
@@ -32,7 +33,7 @@ Let the SVD of ``\\Pi_1A = U \\Sigma V^\\intercal`` and let
 ```math
     \\Omega = AR^{-1}\\Pi_2,
 ```
-which is the matrix that will be used to construct distribution.
+which is the matrix that will be used to construct the distribution.
 
 In particular, given ``\\Omega`` the probability weight assigned to the ``i^{th}``
 row of ``A`` is
@@ -60,6 +61,10 @@ account for this.
     and return the sketched matrix.
 - `row_distribution::Bool`, whether a row or column distribution is desired.
 
+!!! warning
+    The function `sketching_method_FLJT` should return a sketched matrix
+    such that the dimension of the rows is at least the column dimension.
+
 # Return
 
 - `distribution::Vector{Float64}`, vector of probability weights. Will be of
@@ -73,9 +78,11 @@ function approximate_leverage_score_distribution(
     row_distribution::Bool
 )
 
+    # compute the approximate leverage scores
     B = row_distribution ? A : A'
     Ω = _approximate_leverage_score(B, sketching_method_FJLT, sketching_method_JLT)
 
+    # form the distribution
     sz = size(B, 1)
     distribution = zeros(sz)
     for i in 1:sz
@@ -96,13 +103,16 @@ Return the matrix for which the approximate leverage scores are computed from.
 Drineas, Magdon-Ismail, Mahoney, and Woodruff. "Fast approximation of matrix
 coherence and statistical leverage". arxiv, https://arxiv.org/pdf/1109.3843.
 
+# Method
+
 Let ``A \\in \\mathbb{R}^{n \\times d}``.
-Let ``\\Pi_1 \\in \\mathbb{R}^{r_1 \\times n}`` be a ``\\epsilon-``Fast Johnson-Lindenstrauss Transform, and
-``\\Pi_2 \\in \\mathbb{R}^{d \\times r_2}`` be an ``\\epsilon-``Johnson-Lindenstrauss Transform. 
+Let ``\\Pi_1 \\in \\mathbb{R}^{r_1 \\times n}`` be a ``\\epsilon-``Fast 
+Johnson-Lindenstrauss Transform, and ``\\Pi_2 \\in \\mathbb{R}^{d \\times r_2}`` 
+be an ``\\epsilon-``Johnson-Lindenstrauss Transform. 
 
 !!! note
-    In the reference, ``\\Pi_1`` is formed by the subsampled randomized hadamard transform and an example distribution for ``\\Pi_2`` is introduced in 
-    section 2.2.
+    In the reference, ``\\Pi_1`` is formed by the subsampled randomized hadamard transform 
+    and an example distribution for ``\\Pi_2`` is introduced in section 2.2.
 
 Let the SVD of ``\\Pi_1A = U \\Sigma V^\\intercal`` and let 
 ``R^{-1} = V \\Sigma^{-1}``. Then, define
@@ -110,26 +120,29 @@ Let the SVD of ``\\Pi_1A = U \\Sigma V^\\intercal`` and let
 ```math
     \\Omega = AR^{-1}\\Pi_2.
 ```
-This matrix is returned by the function, and use used to calculate the approximate 
+This matrix is returned by the function, and used to calculate the approximate 
 leverage scores.
 
 # Arguments
 
 - `A::AbstractMatrix`, matrix for which a distribution over rows or columns is
     desired.
-- `sketching_method_FJLT::Function`, sketching method that can be applied to the
-    left of `A` if `row_distribution = true`, or to `A'` when 
-    `row_distribution = false`. The function should take in a single argument,
+- `row_sketching_method_FJLT::Function`, sketching method that can be applied to the
+    left of `A`. The function should take in a single argument, the matrix to be sketched, 
+    and return the sketched matrix.
+- `col_sketching_method_JLT::Function`, sketching method that can applied to the
+    right of a ``AR^{-1}``. The function should take in a single argument, 
     the matrix to be sketched, and return the sketched matrix.
-- `sketching_method_JLT::Function`, sketching method that can applied to the
-    right of a ``AR^{-1}`` when `row_distribution = true`, or to 
-    ``A^{\\intercal}R^{-1}`` when `row_distribution = false`. The function should take 
-    in a single argument, the matrix to be sketched, and return the sketched matrix.
-- `row_distribution::Bool`, whether a row or column distribution is desired.
 
 !!! warning
     The function `sketching_method_FLJT` should return a sketched matrix
     such that the dimension of the rows is at least the column dimension.
+
+# Return
+
+- `Ω::AbstractMatrix`, matrix used to compute the approximate leverage scores. Has
+    the same number of rows as `A`, but the column dimension will be the sketching
+    dimension of `col_sketching_method_JLT`.
 """
 function _approximate_leverage_score(
     A::AbstractMatrix,
