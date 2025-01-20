@@ -1,3 +1,4 @@
+module RLinearAlgebra
     import Base.:* 
     import Base: transpose, adjoint 
     import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ
@@ -40,3 +41,4 @@
     # Export SolverError types
     export SolverError, SolverErrorRecipe, FullResidual, FullResidualRecipe
     export CompressedResidual, CompressedResidualRecipe
+end #module

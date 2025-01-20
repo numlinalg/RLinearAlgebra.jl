@@ -14,15 +14,18 @@ makedocs(
             "Tracking" => "man/tracking_overview.md"
         ],
         "API Reference" => [
-            "Randomized Linear Solvers" => "api/linear_rsolve.md",
-            "Linear Samplers" => "api/linear_samplers.md",
-            "Linear Subsolvers" => [
-                "Main Solvers" => "api/linear_solver_routines.md",
-                "Solver Helpers" => "api/linear_solver_helpers.md",
+            "Compressors" => "api/Compressors.md",
+            "Solvers" => "api/solvers.md",
+            "Solver SubRoutines" => [
+                "SubSolvers" => "api/sub_solvers.md",
+                "SolverErrors" => "api/solver_error.md",
+                "Loggers" => "api/loggers.md"
             ],
-            "Linear Solver Logs" => "api/linear_solver_logs.md",
-            "Linear Solver Stop Criteria" => "api/linear_solver_stops.md",
+            "Approximators" => "api/linear_solver_stops.md",
         ],
+        "Development" => [
+            "Design" => "dev/design.md"
+        ]
     ]
 )
 
