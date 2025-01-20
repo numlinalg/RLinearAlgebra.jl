@@ -1,105 +1,42 @@
-############################################################################################
-## This file is part of RLinearAlgebra.jl
-##
-## Overview: abstractions and methods for performing various randomized linear algebra
-## computations
-##
-## Contents
-## - Dependencies
-## - Export Statements
-##  + Linear Sampler
-##  + Linear Solver Routine
-##  + Linear Solver Log
-##  + Linear Solver Stopping Criteria
-## - Source File Inclusions
-##
-############################################################################################
+    import Base.:* 
+    import Base: transpose, adjoint 
+    import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ
+    import StatsBase: sample!
+    import Random: bitrand, seed!
+   
+    # Include the files correspoding to the top-level techniques
+    include("Compressors.jl")
+    include("Solvers.jl")
+    include("Approximators.jl")
 
-module RLinearAlgebra
+    # Export the complete_ functions 
+    export complete_compressor, complete_solver, complete_approximator
+    export complete_sub_solver, complete_error, complete_logger
 
-###########################################
-# Dependencies
-###########################################
+    # Export the update_ functions
+    export update_compressor!, update_logger!, update_sub_solver!
 
-using LinearAlgebra, Random, Distributions, Krylov, LinearOperators
+    # Export the Solve and Approximate functions
+    export rsolve, rsolve!, rapproximate, rapproximate!
 
-###########################################
-# Exports
-###########################################
+    # Export Approximator types
+    export Approximator, ApproximatorRecipe, ApproximatorAdjoint
+    export RangeFinder, RangeFinderRecipe
+    export ErrorMethod, ProjectedError, ProjectedErrorRecipe
 
-#*****************************************#
-# Linear Sampler Exports
-#*****************************************#
+    # Export Compressor types
+    export Compressor, CompressorRecipe, CompressorAdjoint
+    export SparseSign, SparseSignRecipe 
 
-# Abstract Types
-export LinSysSampler, LinSysSketch, LinSysSelect
-export LinSysVecRowSampler, LinSysVecRowSketch, LinSysVecRowSelect
-export LinSysVecColSampler, LinSysVecColSketch, LinSysVecColSelect
-export LinSysBlkRowSampler, LinSysBlkRowSketch, LinSysBlkRowSelect
-export LinSysBlkColSampler, LinSysBlkColSketch, LinSysBlkColSelect
+    # Export Solver types
+    export Solver, SolverRecipe, Kaczmarz, KaczmarzRecipe 
 
-# Vector Row Samplers
-export LinSysVecRowDetermCyclic, LinSysVecRowHopRandCyclic, LinSysVecRowOneRandCyclic,
-    LinSysVecRowPropToNormSampler, LinSysVecRowSVSampler, LinSysVecRowRandCyclic,
-    LinSysVecRowUnidSampler, LinSysVecRowUnifSampler, LinSysVecRowGaussSampler,
-    LinSysVecRowSparseUnifSampler, LinSysVecRowSparseGaussSampler, LinSysVecRowMaxResidual,
-    LinSysVecRowMaxDistance, LinSysVecRowResidCyclic, LinSysVecRowDistCyclic
+    # Export Logger types
+    export  Logger, LoggerRecipe, BasicLogger, BasicLoggerRecipe
 
-# Vector Column Samplers
-export LinSysVecColDetermCyclic, LinSysVecColOneRandCyclic
-#Vector Block Row Samplers
-export LinSysBlkRowGaussSampler, LinSysBlkRowRandCyclic, LinSysBlkRowReplace
-#Vector Block Column Samplers
-export LinSysBlkColRandCyclic, LinSysBlkColGaussSampler, LinSysBlkColReplace
-#*****************************************#
-# Linear Solver Routine Exports
-#*****************************************#
+    # Export SubSolver types
+    export SubSolver, SubSolverRecipe, LQSolver, LQSolverRecipe
 
-# Abstract Types
-export LinSysSolveRoutine, LinSysVecRowProjection, LinSysVecColProjection,
-    LinSysBlkRowProjection, LinSysBlkColProjection, LinSysPreconKrylov
-
-# Vector Row Projection
-export LinSysVecRowProjStd, Kaczmarz, ART, LinSysVecRowProjPO, LinSysVecRowProjFO
-
-# Vector Block Row Projection
-export LinSysBlkRowLQ, BlockKaczmarz, LinSysBlkRowLUAccel
-
-# Vector Column Projection
-export LinSysVecColProjStd, CoordinateDescent, GaussSeidel, LinSysVecColProjPO,
-    LinSysVecColProjFO
-
-# Vector Block Column Projection
-export LinSysBlkColGent, LinSysBlkColLSRNAccel, LinSysBlkColGentAccel, LinSysBlkColLSRN, BlockCoordinateDescent 
-#*****************************************#
-# Linear Solver Log Exports
-#*****************************************#
-export LinSysSolverLog
-export LSLogOracle, LSLogFull, LSLogMA
-export get_uncertainty
-#*****************************************#
-# Linear Solver Stopping Criteria Exports
-#*****************************************#
-export LinSysStopCriterion
-export LSStopMaxIterations
-export LSStopThreshold, LSStopMA 
-export iota_threshold
-#*****************************************#
-# Randomized Linear Solver Exports
-#*****************************************#
-export RLSSolver, rsolve, rsolve!
-
-
-###########################################
-# Source File Inclusions
-###########################################
-
-include("tools.jl")
-include("linear_samplers.jl")
-include("linear_solver_logs.jl")
-include("linear_solver_routines.jl")
-include("linear_solver_stops.jl")
-include("linear_rsolve.jl")
-
-
-end # module
+    # Export SolverError types
+    export SolverError, SolverErrorRecipe, FullResidual, FullResidualRecipe
+    export CompressedResidual, CompressedResidualRecipe
