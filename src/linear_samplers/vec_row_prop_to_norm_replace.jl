@@ -3,7 +3,7 @@
 """
     LinSysVecRowPropToNormSampler <: LinSysVecRowSampler
 
-A parametric mutable structure that specifies sampling from the rows of the equation where
+A mutable structure that specifies sampling from the rows of the equation where
 the probability of selecting a given equation is proportional to the sum of squares of the
 coefficients of the given equation. The solver will appropriately initialize the
 distribution.
@@ -19,6 +19,10 @@ Convergence. J Fourier Anal Appl 15, 262 (2009). https://doi.org/10.1007/s00041-
 
 Calling `LinSysVecRowPropToNormSampler()` or `LinSysVecRowSVSampler()` defaults `dist` to
 `[1.0]`.
+
+!!! note
+    When `iter == 1`, the vector `dist` will be overwritten to ensure the correct probability
+    weights. 
 """
 mutable struct LinSysVecRowPropToNormSampler <: LinSysVecRowSampler
     dist::Vector{Float64}
