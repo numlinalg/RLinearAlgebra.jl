@@ -9,19 +9,22 @@ makedocs(
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
-        "Manual" => [
-            "Consistent Linear Systems" => "man/cls_overview.md",
-            "Tracking" => "man/tracking_overview.md"
-        ],
+#        "Manual" => [
+#            "Consistent Linear Systems" => "man/cls_overview.md",
+#            "Tracking" => "man/tracking_overview.md"
+#        ],
         "API Reference" => [
-            "Compressors" => "api/Compressors.md",
+            "Compressors" => "api/compressors.md",
             "Solvers" => "api/solvers.md",
-            "Solver SubRoutines" => [
+            "Solver Sub-routines" => [
                 "SubSolvers" => "api/sub_solvers.md",
                 "SolverErrors" => "api/solver_error.md",
                 "Loggers" => "api/loggers.md"
             ],
-            "Approximators" => "api/linear_solver_stops.md",
+            "Approximators" => "api/approximators.md",
+            "Approximator Sub-routines" => [
+                "ApproximatorErrors" => "api/approximator_error.md"
+                                           ],
         ],
         "Development" => [
             "Design" => "dev/design.md"

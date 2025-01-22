@@ -1,7 +1,7 @@
-# Solvers  
+# Approximators 
 
 ```@contents
-Pages = ["solvers.md"]
+Pages = ["approximators.md"]
 ```
 
 ## Abstract Types

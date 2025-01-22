@@ -6,9 +6,9 @@ module RLinearAlgebra
     import Random: bitrand, seed!
    
     # Include the files correspoding to the top-level techniques
-    include("Compressors.jl")
-    include("Solvers.jl")
-    include("Approximators.jl")
+#    include("Compressors.jl")
+#    include("Solvers.jl")
+#    include("Approximators.jl")
 
     # Export the complete_ functions 
     export complete_compressor, complete_solver, complete_approximator
