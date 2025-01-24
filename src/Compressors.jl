@@ -1,0 +1,361 @@
+"""
+    Compressor
+
+An abstract supertype containing user-defined parameters for techniques that compress 
+a matrix.
+"""
+abstract type Compressor end
+
+"""
+   CompressorRecipe
+
+An abstract type for a compression technique that includes both the user defined 
+parameters in the `Compressor` and the memory allocations for applying the compression
+technique to a particular linear system.
+"""
+abstract type CompressorRecipe end
+
+# Function skeletons
+"""
+    complete_compressor(compressor::Compressor, A::AbstractMatrix, b::AbstractVector)
+
+A function that  the user-defined parameters in the `Compressor`, the matrix `A`, 
+and the constrant vector `b` to form a `CompressorRecipe` that will then by applied
+to matrices and vectors.
+
+# INPUTS
+-`compress::Compressor`, A compressor object.
+-`A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
+-`b::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
+
+# OUPUTS
+A `CompressorRecipe` that can be applied to matrices and vectors through the use of
+the multiplication functions.
+"""
+function complete_compressor(compress::Compressor, A::AbstractMatrix, b::AbstractVector)
+    return <: CompressorRecipe
+end
+
+"""
+    update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
+
+# INPUTS
+-`S::CompressorRecipe`, A preallocated CompressorRecipe.
+-`A::AbstractMatrix`, a matrix that could be used to update the compressor.
+-`b::AbstractVector`, a matrix that could be used to update the compressor.
+-`x::AbstractVector`, a matrix that could be used to update the compressor.
+
+# OUTPUTS
+Will generate an updated version of S based on the information obtained from A, b, and x.
+For some compression techniques that are data oblivious this simply means generating new
+random entries in S.
+"""
+function update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector, x::AbstractVector)
+    update_compressor!(S, A, b)
+    return nothing
+end
+
+function update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
+    update_compressor!(S, A)
+    return nothing
+end
+# Implement the * operator  for matrix matrix multiplication
+"""
+    (*)(S::CompressorRecipe, v::AbstractVector)
+
+Applies a compression technique to a vector.
+
+# INPUTS
+- `S::CompressorRecipe`, a compressor object.
+- `v::AbstractVector`, a vector being compressed.
+
+#OUTPUTS
+- A vector that has a number of entries equal to the number of rows
+of `S`.
+"""
+function (*)(S::CompressorRecipe, v::AbstractVector)
+    s_rows, s_cols = size(S)
+    len_v = size(v, 1)
+    @assert len_v == s_cols "Vector has $len_v entries and is not compatible with matrix with $s_cols 
+    columns."  
+    output = zeros(s_rows)
+    mul!(output, S, v, 1.0, 0.0)
+    return output
+end
+
+"""
+    mul!(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
+
+Applies a CompressorRecipe to a vector `y` and stores the output in the preallocated vector 
+`x`.
+
+
+# INPUTS
+- `S::CompressorRecipe`, a compressor object.
+- `y::AbstractVector`, a vector being compressed.
+- `x::AbstractVector`, a vector for storing the compression output.
+
+#OUTPUTS
+- Overwrites the entries of `x`, a vector that has a number of entries equal to the number 
+of rows of `S`.
+"""
+function mul!(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
+    mul!(x, S, y, 1.0, 0.0)
+    return
+end
+
+# Implement the * operator for matrix matrix multiplication
+# The left multiplication version
+"""
+    (*)(S::CompressorRecipe, A::AbstractMatrix)
+Applies a CompressionRecipe to a matrix `A` from the left. 
+
+# INPUTS
+- `S::CompressorRecipe`, a compressor object.
+- `A::AbstractMatrix`, a matrix being compressed.
+
+#OUTPUTS
+- A matrix that has a number of rows  equal to the number of rows
+of `S` and a number of columns equal to the columns of `A`.
+"""
+function (*)(S::CompressorRecipe, A::AbstractMatrix)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    @assert a_rows == s_cols "Matrix A has $a_rows rows while S has $s_cols columns."
+    if typeof(S) <: CompressorAdjoint
+        B = zeros(s_rows, a_cols)
+    else
+        B = zeros(s_rows, a_cols)
+    end
+    mul!(B, S, A, 1.0, 0.0)
+    return B
+end
+
+"""
+    mul!(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+Applies a CompressionRecipe to a matrix `A` from the left and stores the result in `C`. 
+
+# INPUTS
+- `S::CompressorRecipe`, a compressor object.
+- `A::AbstractMatrix`, a matrix being compressed.
+- `C::AbstractMatrix`, a matrix where the output of the compression is stored.
+
+#OUTPUTS
+- Overwrites the matrix `C` A matrix that has a number of rows equal to the number of rows
+of `S` and a number of columns equal to the columns of `A`.
+"""
+function mul!(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+    mul!(C, S, A, 1.0, 0.0)
+end
+
+# The right multiplication version
+"""
+    (*)(A::AbstractMatrix, S::CompressorRecipe)
+Applies a CompressionRecipe to a matrix `A` from the right. 
+
+# INPUTS
+- `A::AbstractMatrix`, a matrix being compressed.
+- `S::CompressorRecipe`, a compressor object.
+
+#OUTPUTS
+- A matrix that has a number of rows equal to the number of rows
+of `A` and a number of columns equal to the columns of `S`.
+"""
+function (*)(A::AbstractMatrix, S::CompressorRecipe)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    @assert s_rows == a_cols "Matrix A has $a_cols cols while S has $s_rows rows."
+    if typeof(S) <: CompressorAdjoint
+        # Since size function flips dimenstions for adjoint
+        B = zeros(s_cols, a_rows)
+    else
+        B = zeros(a_rows, s_cols)
+    end
+    mul!(B, A, S, 1.0, 0.0)
+    return B
+end
+
+"""
+    mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
+Applies a CompressionRecipe to a matrix `A` from the right and stores the result in `C`. 
+
+# INPUTS
+- `S::CompressorRecipe`, a compressor object.
+- `A::AbstractMatrix`, a matrix being compressed.
+- `C::AbstractMatrix`, a matrix where the output of the compression is stored.
+
+#OUTPUTS
+- Overwrites the matrix `C` A matrix that has a number of columns equal to the number of 
+columns of `S` and a number of rows equal to the rows of `A`.
+"""
+function mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
+    mul!(C, A, S, 1.0, 0.0)
+    return
+end
+
+# Now implement the size functions for Compressors
+function Base.size(S::CompressorRecipe)
+    return S.n_rows, S.n_cols
+end
+
+function Base.size(S::CompressorRecipe, dim::Int64)
+    return dim == 1 ? S.n_rows : S.n_cols
+end
+
+# Wrapper functions for all compressors
+
+#Define wrappers for the adjoint and transpose of a compressoor
+"""
+    CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
+
+A structure for the adjoint of a compression recipe.
+
+# Fields
+-`Parent::CompressorRecipe`, the compressor that we compute the adjoint of.
+"""
+struct CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
+    parent::S
+end
+
+Adjoint(A::CompressorRecipe) = CompressorAdjoint{typeof(A)}(A)
+adjoint(A::CompressorRecipe) = Adjoint(A)
+# Undo the transpose
+adjoint(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
+# Make transpose wrapper function
+transpose(A::CompressorRecipe) = Adjoint(A)
+# Undo the transpose wrapper
+transpose(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
+# Implement the size functions for adjoints
+function Base.size(S::CompressorAdjoint{<:CompressorRecipe})
+    return S.parent.n_cols, S.parent.n_rows
+end
+
+function Base.size(S::CompressorAdjoint{<:CompressorRecipe}, dim::Int64)
+    return dim == 1 ? S.parent.n_cols : S.parent.n_rows
+end
+
+
+function mul!(
+        C::AbstractMatrix, 
+        S::CompressorAdjoint{<:CompressorRecipe}, 
+        A::AbstractMatrix, 
+        alpha, 
+        beta
+    )
+    # To advoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
+    # this will give us C = S' * A as desired
+    mul!(transpose(C), transpose(A), S.parent, alpha, beta)
+    return
+end
+
+function mul!(
+        C::AbstractMatrix, 
+        A::AbstractMatrix, 
+        S::CompressorAdjoint{<:CompressorRecipe}, 
+        alpha, 
+        beta
+    )
+    # To advoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
+    # this will give us C = A * S' as desired
+    mul!(transpose(C), S.parent, transpose(A), alpha, beta)
+    return
+end
+
+function mul!(
+        x::AbstractVector, 
+        S::CompressorAdjoint{<:CompressorRecipe}, 
+        y::AbstractVector, 
+        alpha, 
+        beta
+    )
+    # Because the direction of multiplication is based on size compatability no transposing 
+    n_rows, n_cols = size(S)
+    S.parent.n_rows = n_rows
+    S.parent.n_cols = n_cols
+    mul!(x, S.parent, y, alpha, beta)
+    # Return the sizes to the original values which is inverse order of size S
+    S.parent.n_rows = n_cols
+    S.parent.n_cols = n_rows
+    return
+end
+
+# Dimension testing for Compressors 
+"""
+    left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+
+Function to test the dimensions of the compressor and matrices, that arise from applying 
+a compression matrix from the left.
+
+# INPUTS
+- `C::AbstractMatrix`, A matrix where the output will be stored.
+- `S::CompressorRecipe`, The compression matrix information.
+- `A::AbstractMatrix`, The matrix the compressor is being applied to from the left.
+
+# OUTPUTS
+Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
+with the others.
+"""
+function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    c_rows, c_cols = size(C)
+    @assert a_rows == s_cols "Matrix A has $a_rows rows while S has $s_cols columns."
+    @assert a_cols == c_cols "Matrix A has $a_cols columns while C has $c_cols columns."
+    @assert c_rows == s_rows "Matrix C has $c_rows rows while S has $s_rows rows."
+    return
+end
+
+"""
+    right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe
+
+Function to test the dimensions of the compressor and matrices, that arise from applying 
+a compression matrix from the right.
+
+# INPUTS
+`C::AbstractMatrix`, A matrix where the output will be stored.
+`S::CompressorRecipe`, The compression matrix information.
+`A::AbstractMatrix`, The matrix the compressor is being applied to from the right.
+
+# OUTPUTS
+Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
+with the others.
+"""
+function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    c_rows, c_cols = size(C)
+    @assert a_cols == s_rows "Matrix A has $a_cols columns while S has $s_rows rows."
+    @assert c_cols == s_cols "Matrix C has $c_cols columns while S has $s_cols columns."
+    @assert c_rows == a_rows "Matrix C has $c_rows rows while A has $a_rows rows."
+    return
+end
+
+"""
+    vec_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+
+Function to test the dimensions of the compressor and vector, that arise from applying 
+a compression matrix to a vector.
+
+# INPUTS
+`x::AbstractVector`, A vector where the output will be stored.
+`S::CompressorRecipe`, The compression matrix information.
+`A::AbstractVector`, The vector that the compressor is being applied to.
+
+# OUTPUTS
+Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
+with the others.
+"""
+function vec_mul_dimcheck(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
+    s_rows, s_cols = size(S)
+    len_y = size(y, 1)
+    len_x = size(x, 1)
+    @assert len_y == s_cols "Vector y is of dimension $len_y while S has $s_cols columns."
+    @assert len_x == s_rows "Vector x is of dimension $len_x while S has $s_rows rows."
+    return
+end
+
+###################################
+# Include Compressor Files
+###################################
+include("Compressors/sparse_sign.jl")
+
