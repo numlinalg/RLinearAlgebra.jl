@@ -15,12 +15,14 @@ Random.seed!(1010)
     @test :iterations in fieldnames(LSLogMA)
     @test :converged in fieldnames(LSLogMA)
 
+    # Initialize data
+    A = rand(2,2)
+    x = rand(2)
+    b = A * x
+    z = rand(2)
+
     # Verify log_update initialization
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
+    let A = A, x = x, b = b, z = z
 
         sampler = LinSysVecRowOneRandCyclic()
         logger = LSLogMA()
@@ -45,11 +47,7 @@ Random.seed!(1010)
     end
 
     # Verify late moving average 
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
+    let A = A, x = x, b = b, z = z
 
         sampler = LinSysVecRowOneRandCyclic()
         logger = LSLogMA(lambda2 = 2)
@@ -80,11 +78,7 @@ Random.seed!(1010)
                     logger.dist_info.sigma2 .* (1 .+ log.(logger.lambda_hist)) ./  logger.lambda_hist) .- 1) < 1e2 * eps()
     end
     # Verify early moving average
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
+    let A = A, x = x, b = b, z = z
 
         sampler = LinSysVecRowOneRandCyclic()
         logger = LSLogMA(lambda1 = 2,

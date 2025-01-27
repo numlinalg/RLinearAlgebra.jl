@@ -14,14 +14,16 @@ Random.seed!(1010)
     # Verify Required Fields
     @test :iterations in fieldnames(LSLogFullMA)
     @test :converged in fieldnames(LSLogFullMA)
+
+    # Initialize data
+    A = rand(2,2)
+    x = rand(2)
+    b = A * x
+    z = rand(2)
     
     # Verify log_update initialization
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
-
+    let A = A, x = x, b = b, z = z
+        
         sampler = LinSysVecRowOneRandCyclic()
         log = LSLogFullMA()
 
@@ -35,11 +37,7 @@ Random.seed!(1010)
     end
 
     # Verify late moving average 
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
+    let A = A, x = x, b = b, z = z
 
         sampler = LinSysVecRowOneRandCyclic()
         log = LSLogFullMA(lambda2 = 2)
@@ -60,11 +58,7 @@ Random.seed!(1010)
     end
 
     # Verify early moving average
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
+    let A = A, x = x, b = b, z = z
 
         sampler = LinSysVecRowOneRandCyclic()
         log = LSLogFullMA(lambda1 = 2, lambda2 = 10)
@@ -84,11 +78,7 @@ Random.seed!(1010)
     end
   
     # Verify collection rate
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
+    let A = A, x = x, b = b, z = z
 
         sampler = LinSysVecRowOneRandCyclic()
         log = LSLogFullMA(collection_rate = 3)
