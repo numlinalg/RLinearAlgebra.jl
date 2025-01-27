@@ -4,11 +4,9 @@
 # Structs: MAInfo, SEDistInfo
 # Functions: update_ma!, get_uncertainty, get_SE_constants!
 
-
 #########################################
 # Structs
 #########################################
-
 """
     MAInfo
 
@@ -43,7 +41,6 @@ mutable struct MAInfo
     idx::Int64
     res_window::Vector{Float64}
 end
-
 
 """ 
     SEDistInfo
@@ -83,15 +80,12 @@ mutable struct SEDistInfo
     scaling::Float64
 end
 
-
 #########################################
 # Functions
 #########################################
-
-
 """
     update_ma!(
-        log::LSLogMA, 
+        log::LinSysSolverLog, 
         res::Union{AbstractVector, Real}, 
         lambda_base::Int64, 
         iter::Int64
@@ -100,7 +94,7 @@ end
 Function that updates the moving average tracking statistic. 
 
 # Inputs
-- `log::LSLogMA`, the moving average log structure.
+- `log::LinSysSolverLog`, the parent structure of moving average log structure.
 - `res::Union{AbstractVector, Real}`, the sketched residual for the current iteration. 
 - `lambda_base::Int64`, which lambda, between lambda1 and lambda2, is currently being used.
 - `iter::Int64`, the current iteration.
@@ -108,9 +102,12 @@ Function that updates the moving average tracking statistic.
 # Outputs
 Updates the log datatype and does not explicitly return anything.
 """
-function update_ma!(log::LinSysSolverLog,  # log::L where L <: LinSysSolverLog
-                    res::Union{AbstractVector, Real}, 
-                    lambda_base::Int64, iter::Int64)
+function update_ma!(
+    log::LinSysSolverLog,  # log::L where L <: LinSysSolverLog
+    res::Union{AbstractVector, Real}, 
+    lambda_base::Int64, 
+    iter::Int64,
+)
     # Variable to store the sum of the terms for rho
     accum = 0
     # Variable to store the sum of the terms for iota 
@@ -170,13 +167,21 @@ function update_ma!(log::LinSysSolverLog,  # log::L where L <: LinSysSolverLog
 
 end
 
-
 #Function that will return rho and its uncertainty from a LSLogMA type 
 """
-    get_uncertainty(log::LSLogMA; alpha = 0.05)
+    get_uncertainty(log::LinSysSolverLog; alpha = 0.05)
     
-A function that takes a LSLogMA type and a confidence level, `alpha`, and returns a `(1-alpha)`-credible intervals 
-for every `rho` in the `log`, specifically it returns a tuple with (rho, Upper bound, Lower bound).
+A function that gets the uncertainty from LSLogMA or LSLogFullMA type.
+
+# Inputs
+- `hist::LinSysSolverLog`, the parent structure of moving average log structure, 
+    i.e. LSLogMA and LSLogFullMA types. Specifically, the information of moving average 
+    and distribution, and all histories stored in the structure.
+- `alpha::Float64`, the confidence level. 
+
+# Outputs
+A `(1-alpha)`-credible intervals for every `rho` in the `log`, specifically 
+it returns a tuple with (rho, Upper bound, Lower bound).
 """
 function get_uncertainty(hist::LinSysSolverLog; alpha::Float64 = 0.05)
     lambda = hist.ma_info.lambda

@@ -1,11 +1,5 @@
 # This file is part of RLinearAlgebra.jl
 
-# Use the structs and functions to implement MA. Which includes 
-# Structs: MAInfo
-# Functions: update_ma!
-
-include("./linear_solver_logs_helpers/structs_functions_ma.jl")
-
 """
     LSLogFullMA <: LinSysSolverLog
 
@@ -71,7 +65,7 @@ function log_update!(
     samp::Tuple,
     iter::Int64,
     A::AbstractArray,
-    b::AbstractVector
+    b::AbstractVector,
 )
     # Update iteration counter
     log.iterations = iter

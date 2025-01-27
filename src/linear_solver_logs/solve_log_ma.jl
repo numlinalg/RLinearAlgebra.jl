@@ -1,11 +1,5 @@
 # This file is part of RLinearAlgebra.jl
 
-# Use structs and functions to implement moving average. Which includes 
-# Structs: MAInfo and SEDistInfo
-# Functions: update_ma!, get_uncertainty, get_SE_constants!
-
-include("./linear_solver_logs_helpers/structs_functions_ma.jl")
-
 """
     LSLogMA <: LinSysSolverLog
 
@@ -29,7 +23,7 @@ A mutable structure that stores information for tracking a randomized linear sol
    These values are stored at iterates specified by `collection_rate`.
 - `resid_norm::Function`, the desired `norm` used. The default constructor sets this to the 
     Euclidean norm. 
-- `iteration::Int64`, the current iteration of the solver.
+- `iterations::Int64`, the current iteration of the solver.
 - `converged::Bool`, a flag to indicate whether the system has converged by some measure. 
     By default this is `false`.
 - `dist_info::SEDistInfo`, [`SEDistInfo`](@ref)
@@ -59,7 +53,7 @@ mutable struct LSLogMA <: LinSysSolverLog
     iota_hist::Vector{Float64}
     lambda_hist::Vector{Int64}
     resid_norm::Function
-    iteration::Int64
+    iterations::Int64
     converged::Bool
     dist_info::SEDistInfo
 end
@@ -95,19 +89,15 @@ function log_update!(
     if iter == 0 
         # Check if it is a row or column method and record dimensions
         log.dist_info.dimension = size(A,1)
-        if supertype(typeof(sampler)) <: LinSysVecRowSampler
-            log.dist_info.block_dimension = 1 
-        elseif supertype(typeof(sampler)) <: LinSysBlkRowSampler
-            # For the block methods samp[3] is always the sketched residual, its length is block size
-            log.dist_info.block_dimension = sampler.block_size 
-        elseif supertype(typeof(sampler)) <: LinSysVecColSampler
-            log.dist_info.block_dimension = 1 
-        elseif supertype(typeof(sampler)) <: LinSysBlkColSampler
-            # For the block methods samp[3] is always the sketched residual, its length is block size
-            log.dist_info.block_dimension = sampler.block_size
-        else
-            throw(ArgumentError("`sampler` is not of type `LinSysBlkColSampler`, `LinSysVecColSampler`, `LinSysBlkRowSampler`, or `LinSysVecRowSampler`"))
-        end
+        # For the block methods samp[3] is always the sketched residual, its length is block size
+        log.dist_info.block_dimension = 
+            if supertype(typeof(sampler)) <: LinSysVecRowSampler || supertype(typeof(sampler)) <: LinSysVecColSampler
+                1
+            elseif supertype(typeof(sampler)) <: LinSysBlkRowSampler || supertype(typeof(sampler)) <: LinSysBlkColSampler
+                sampler.block_size
+            else
+                throw(ArgumentError("`sampler` is not of type `LinSysBlkColSampler`, `LinSysVecColSampler`, `LinSysBlkRowSampler`, or `LinSysVecRowSampler`"))
+            end
         
         # If the constants for the sub-Exponential distribution are not defined then define them
         if typeof(log.dist_info.sigma2) <: Nothing || log.dist_info.sigma2 == 0
@@ -117,7 +107,7 @@ function log_update!(
     end
 
     ma_info = log.ma_info
-    log.iteration = iter
+    log.iterations = iter
     # Compute the current residual to second power to align with theory
     # Check if it is one dimensional or block sampling method
     res::Float64 = log.dist_info.scaling * (eltype(samp[1]) <: Int64 || size(samp[1],2) != 1 ? 

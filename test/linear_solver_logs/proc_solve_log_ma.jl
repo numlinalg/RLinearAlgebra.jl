@@ -12,7 +12,7 @@ Random.seed!(1010)
     @test supertype(LSLogMA) == LinSysSolverLog
 
     # Verify Required Fields
-    @test :iteration in fieldnames(LSLogMA)
+    @test :iterations in fieldnames(LSLogMA)
     @test :converged in fieldnames(LSLogMA)
 
     # Verify log_update initialization
@@ -34,7 +34,7 @@ Random.seed!(1010)
         @test length(logger.resid_hist) == 1
         @test norm(logger.resid_hist[1] - 2 * norm(dot(A[1, :], z) - b[1])^2) < 1e2 * eps()
         @test norm(logger.iota_hist[1] - 4 * norm(dot(A[1, :], z) - b[1])^4) < 1e2 * eps()
-        @test logger.iteration == 0
+        @test logger.iterations == 0
         @test logger.converged == false
         
         struct MadeUpSampler <: LinSysSampler  
@@ -69,7 +69,7 @@ Random.seed!(1010)
                                          [(obs_res[i] + obs_res[i-1])/2 for i = 4:11])) < 1e2 * eps()
         @test_skip norm(logger.iota_hist[3:11] - vcat(obs_res2[3], 
                                         [(obs_res2[i] + obs_res2[i-1])/2 for i = 4:11])) < 1e2 * eps()
-        @test logger.iteration == 10
+        @test logger.iterations == 10
         @test logger.converged == false
         
         #Test uncertainty set 
@@ -103,7 +103,7 @@ Random.seed!(1010)
         @test length(logger.resid_hist) == 11
         @test norm(logger.resid_hist[3:11] - vcat( [(obs_res[i] + obs_res[i-1])/2 for i = 3:11])) < 1e2 * eps()
         @test norm(logger.iota_hist[3:11] - vcat( [(obs_res2[i] + obs_res2[i-1])/2 for i = 3:11])) < 1e2 * eps()
-        @test logger.iteration == 10
+        @test logger.iterations == 10
         @test logger.converged == false
         
         #Test uncertainty set 
@@ -113,8 +113,8 @@ Random.seed!(1010)
         @test norm((Uncertainty_set[2] - logger.resid_hist) ./ sqrt.(2 * log(2/.05) * logger.iota_hist * 
                     logger.dist_info.sigma2 .* (1 .+ log.(logger.lambda_hist)) ./  logger.lambda_hist) .- 1) < 1e2 * eps()
     end
-    
-   
+
+ 
 
 
 end

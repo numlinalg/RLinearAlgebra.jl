@@ -61,7 +61,10 @@ function log_update!(
     return nothing
 end
 
-
+#############################################
+# Logger Helper Structs and Functions
+#############################################
+include("linear_solver_logs/linear_solver_logs_helpers/structs_functions_ma.jl")
 #############################################
 # Loggers
 #############################################
