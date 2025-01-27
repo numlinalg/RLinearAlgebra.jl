@@ -110,3 +110,9 @@ RLinearAlgebra.init_blocks_cyclic!
 
 RLinearAlgebra.fwht!
 ```
+
+## Matrix Induced Probability Distributions
+
+```@docs
+RLinearAlgebra.frobenius_norm_distribution
+```
