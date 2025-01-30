@@ -49,12 +49,12 @@ function update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
 end
 
 """
-    function sub_solve!(x::AbstractVector, solver::LQSolverRecipe, b::AbstractVector)
+    function ldiv!(x::AbstractVector, solver::LQSolverRecipe, b::AbstractVector)
 
 A function that uses a subSolver method to find the `x` corresponding to the constant
 vector `b`.
 """
-function sub_solve!(x::AbstractVector, solver::SubSolverRecipe, b::AbstractVector)
+function LinearAlgebra.ldiv!(x::AbstractVector, solver::SubSolverRecipe, b::AbstractVector)
     return
 end
 
