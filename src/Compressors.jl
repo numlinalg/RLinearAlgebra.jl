@@ -50,7 +50,12 @@ Will generate an updated version of S based on the information obtained from A, 
 For some compression techniques that are data oblivious this simply means generating new
 random entries in S.
 """
-function update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector, x::AbstractVector)
+function update_compressor!(
+        S::CompressorRecipe, 
+        A::AbstractMatrix, 
+        b::AbstractVector, 
+        x::AbstractVector
+    )
     update_compressor!(S, A, b)
     return nothing
 end
@@ -76,8 +81,8 @@ of `S`.
 function (*)(S::CompressorRecipe, v::AbstractVector)
     s_rows, s_cols = size(S)
     len_v = size(v, 1)
-    @assert len_v == s_cols "Vector has $len_v entries and is not compatible with matrix with $s_cols 
-    columns."  
+    @assert len_v == s_cols "Vector has $len_v entries and is not compatible with matrix \
+    with $s_cols columns."  
     output = zeros(s_rows)
     mul!(output, S, v, 1.0, 0.0)
     return output
@@ -357,5 +362,4 @@ end
 ###################################
 # Include Compressor Files
 ###################################
-include("Compressors/sparse_sign.jl")
 

@@ -4,7 +4,6 @@
 An abstract supertype for structures that store user defined parameters corresponding to 
     technqiues that form low-rank approximations of the matrix `A`.
 """
-
 abstract type Approximator end
 
 """
@@ -13,7 +12,6 @@ abstract type Approximator end
 An abstract supertype for structures that store user defined parameters and preallocated 
     memory corresponding to techniques that form low-rank approximations of the matrix `A`.
 """
-
 abstract type ApproximatorRecipe end
 
 """
@@ -22,7 +20,6 @@ abstract type ApproximatorRecipe end
 An abstract supertype for structures containing user-defined parameters corresponding to 
 methods that evaluate the quality of a Low-Rank approximation of a matrix `A`.
 """
-
 abstract type ApproximatorError end
 
 """
@@ -58,14 +55,33 @@ transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 
 # Function skeletons
 """
+    complete_approximator(approximator::Approximator, A::AbstractMatrix)
+
+A function that uses information in the matrix A and user defined parameters in the 
+Approximator to form an ApproximatorRecipe with appropiate memory allocations.
+
+# INPUTS
+- `approximator::Approximator`, a data structure containing the user controlled parameters
+relating to a particular low rank approximation.
+-`A::AbstractMatrix`, a matrix that we wish to approximate.
+
+# OUTPUTS
+- `::ApproximatorRecipe`, a data structure with memory preallocated for forming and storing
+the desired low rank approximation.
+"""
+function complete_approximator(approximator::Approximator, A::AbstractMatrix)
+    return
+end
+
+"""
 r_approximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
 
 A function that computes a Low-Rank approximation of the matrix `A` using the information 
 in the provided `ApproximatorRecipe` data structure.
 
 # INPUTS
-- `approximator::ApproximatorRecipe`, a function that computes a low-rank approximatio of 
-the matrix `A`.
+- `approximator::ApproximatorRecipe`, a data structure for storing the low rank 
+approximation to the matrix `A`.
 - `A::AbstractMatrix`, the matrix being approximated.
 
 # OUTPUTS
@@ -150,5 +166,5 @@ function compute_error(
     return complete_error(error_recipe, approx, A) 
 end
 ###########################################
-# INclude the Approximator files
+# Include the Approximator files
 ###########################################

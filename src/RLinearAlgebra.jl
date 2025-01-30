@@ -9,6 +9,8 @@ module RLinearAlgebra
     include("Compressors.jl")
     include("Solvers.jl")
     include("Approximators.jl")
+    include("Solvers/Loggers.jl")
+    include("Solvers/SubSolvers.jl")
 
     # Export the complete_ functions 
     export complete_compressor, complete_solver, complete_approximator
@@ -30,7 +32,7 @@ module RLinearAlgebra
     export SparseSign, SparseSignRecipe 
 
     # Export Solver types
-    export Solver, SolverRecipe, Kaczmarz, KaczmarzRecipe 
+    export Solver, SolverRecipe, ProjectionSolver, ProjectionSolverRecipe 
 
     # Export Logger types
     export  Logger, LoggerRecipe, BasicLogger, BasicLoggerRecipe
