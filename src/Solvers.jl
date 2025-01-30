@@ -15,6 +15,24 @@ for techniques that solve a linear system `Ax = b`.
 abstract type SolverRecipe end
 
 """
+    ProjectionSolver <: Solver
+
+An abstract supertype for the user-controlled parameters for 
+techniques that use sequences of projections to solve a linear system `Ax = b`. Common 
+examples of projection solvers are Kaczmarz method and Coordinate Descent.
+"""
+abstract type ProjectionSolver <: Solver end
+
+"""
+    ProjectionSolverRecipe
+
+An abstract supertype for the user-controlled parameters and memory allocations
+for techniques that use sequences of projections solve a linear system `Ax = b`. Common 
+examples of projection solvers are Kaczmarz method and Coordinate Descent.
+"""
+abstract type ProjectionSolverRecipe <: SolverRecipe end
+
+"""
     SolverError
 
 An abstract supertype for specifying the user controlled parameters
