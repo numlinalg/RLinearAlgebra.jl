@@ -112,7 +112,7 @@ function r_approximate(approximator::ApproximatorRecipe, A::AbstractMatrix)
 end
 
 """
-complete_error(error::ApproximatorError, S::CompressorRecipe, A::AbstractMatrix)
+complete_approximator_error(error::ApproximatorError, S::CompressorRecipe, A::AbstractMatrix)
 
 A function that produces an `ApproximatorErrorRecipe` from an `ApproximatorError`, 
 `CompressorRecipe`, and `AbstractMatrix`.
@@ -126,7 +126,7 @@ approximation error.
 # OUTPUTS
 - The `ApproximatorErrorRecipe` corresponding to the `ApproximatorError` technique.
 """
-function complete_error(
+function complete_approximator_error(
         error::ApproximatorError,
         S::CompressorRecipe,
         A::AbstractMatrix,
@@ -135,7 +135,11 @@ function complete_error(
 end
 
 """
-compute_error(error::ApproximatorErrorMethod, approximator::Approximator, A::AbstractMatrix)
+compute_approximator_error(
+    error::ApproximatorErrorMethod, 
+    approximator::Approximator, 
+    A::AbstractMatrix
+)
 
 A function that evaluates the quality of an approximation by an approximator.
 
@@ -148,7 +152,7 @@ approximation error.
 # OUTPUTS
 This function will return an error metric for the approximation of the matrix.
 """
-function compute_error(
+function compute_approximator_error(
         error::ApproximatorErrorRecipe,
         approx::ApproximatorRecipe,
         A::AbstractMatrix,
@@ -157,13 +161,13 @@ function compute_error(
 end
 
 # Implement a version of the compute error function that works without the recipe
-function compute_error(
+function compute_approximator_error(
         error::ApproximatorError,
         approx::ApproximatorRecipe,
         A::AbstractMatrix,
     )
-    error_recipe = complete_error(error, approx.S, A)
-    return complete_error(error_recipe, approx, A) 
+    error_recipe = complete_approximator_error(error, approx.S, A)
+    return complete_approximator_error(error_recipe, approx, A) 
 end
 ###########################################
 # Include the Approximator files

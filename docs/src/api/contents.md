@@ -2,9 +2,11 @@
 
 ```@contents
 Pages=[
-  "linear_rsolve.md",
-  "linear_samplers.md",
-  "linear_solver_routines.md",
-  "linear_solver_logs.md",
-  "linear_solver_stops.md"]
+  "approximators.md",  
+  "approximator_error.md",
+  "compressors.md",
+  "solvers.md",
+  "solver_error.md",
+  "sub_solvers.md",
+  "loggers.md"]
 ```

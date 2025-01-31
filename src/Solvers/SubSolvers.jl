@@ -54,7 +54,7 @@ end
 A function that uses a subSolver method to find the `x` corresponding to the constant
 vector `b`.
 """
-function LinearAlgebra.ldiv!(x::AbstractVector, solver::SubSolverRecipe, b::AbstractVector)
+function ldiv!(x::AbstractVector, solver::SubSolverRecipe, b::AbstractVector)
     return
 end
 

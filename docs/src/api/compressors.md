@@ -25,7 +25,7 @@ complete_compressor
 
 update_compressor!
 
-mul!
+LinearAlgebra.mul!
 ```
 
 ## Developer Specific Functions
@@ -34,5 +34,5 @@ RLinearAlgebra.left_mat_mul_dimcheck
 
 RLinearAlgebra.right_mat_mul_dimcheck
 
-RLinearAlgebra.vec_mul_dim_check
+RLinearAlgebra.vec_mul_dimcheck
 ```

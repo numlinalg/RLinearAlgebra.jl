@@ -18,5 +18,7 @@ ApproximatorAdjoint
 ```
 r_approximate
 
+r_approximate!
+
 complete_approximator
 ```

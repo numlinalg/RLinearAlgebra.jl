@@ -113,7 +113,40 @@ function rsolve(
 end
 
 """
-    compute_error(error::ErrorRecipe, solver::Solver, A::AbstractMatrix, b::AbstractVector)
+    complete_solver_error(
+        error::SolverError, 
+        ::AbstractMatrix, 
+        ::AbstractVector
+    )
+
+A function that generates a SolverErrorRecipe using the user defined inputs of a SolverError
+and information from the matrix `A` and vector `b`.
+
+# INPUTS
+- `error::SolverError`, a data structure that stores the user defined parameters relating to 
+an error method.
+- `A::AbstractMatrix`, the coefficient matrix.
+- `b::AbstractVector`, the constant vector.
+
+# OUTPUTS
+A Float64 representing the progress of the solver. 
+"""
+function complete_solver_error(
+        error::SolverErrorRecipe,
+        solver::SolverRecipe,
+        A::AbstractMatrix,
+        b::AbstractVector
+    )
+    return nothing
+end
+
+"""
+    compute_solver_error(
+        error::ErrorRecipe, 
+        solver::Solver, 
+        A::AbstractMatrix, 
+        b::AbstractVector
+    )
 
 A function that evaluates the quality of a solution from a linear solver.
 
@@ -128,10 +161,11 @@ a buffer vector for storing the residual.
 # OUTPUTS
 A Float64 representing the progress of the solver. 
 """
-function compute_error(
+function compute_solver_error(
         error::SolverErrorRecipe,
         solver::SolverRecipe,
         A::AbstractMatrix,
+        x::AbstractVector,
         b::AbstractVector
     )
     return nothing
