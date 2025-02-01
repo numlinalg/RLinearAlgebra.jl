@@ -23,13 +23,13 @@ A function that  the user-defined parameters in the `Compressor`, the matrix `A`
 and the constrant vector `b` to form a `CompressorRecipe` that will then by applied
 to matrices and vectors.
 
-# INPUTS
--`compress::Compressor`, A compressor object.
--`A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
--`b::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
+### Arguments
+- `compress::Compressor`, A compressor object.
+- `A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
+- `b::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
 
-# OUPUTS
-A `CompressorRecipe` that can be applied to matrices and vectors through the use of
+### OUPUTS
+- A `CompressorRecipe` that can be applied to matrices and vectors through the use of
 the multiplication functions.
 """
 function complete_compressor(compress::Compressor, A::AbstractMatrix, b::AbstractVector)
@@ -39,13 +39,13 @@ end
 """
     update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
 
-# INPUTS
--`S::CompressorRecipe`, A preallocated CompressorRecipe.
--`A::AbstractMatrix`, a matrix that could be used to update the compressor.
--`b::AbstractVector`, a matrix that could be used to update the compressor.
--`x::AbstractVector`, a matrix that could be used to update the compressor.
+### Arguments
+- `S::CompressorRecipe`, A preallocated CompressorRecipe.
+- `A::AbstractMatrix`, a matrix that could be used to update the compressor.
+- `b::AbstractVector`, a matrix that could be used to update the compressor.
+- `x::AbstractVector`, a matrix that could be used to update the compressor.
 
-# OUTPUTS
+### Outputs
 Will generate an updated version of S based on the information obtained from A, b, and x.
 For some compression techniques that are data oblivious this simply means generating new
 random entries in S.
@@ -65,19 +65,6 @@ function update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractV
     return nothing
 end
 # Implement the * operator  for matrix matrix multiplication
-"""
-    (*)(S::CompressorRecipe, v::AbstractVector)
-
-Applies a compression technique to a vector.
-
-# INPUTS
-- `S::CompressorRecipe`, a compressor object.
-- `v::AbstractVector`, a vector being compressed.
-
-#OUTPUTS
-- A vector that has a number of entries equal to the number of rows
-of `S`.
-"""
 function (*)(S::CompressorRecipe, v::AbstractVector)
     s_rows, s_cols = size(S)
     len_v = size(v, 1)
@@ -88,22 +75,6 @@ function (*)(S::CompressorRecipe, v::AbstractVector)
     return output
 end
 
-"""
-    mul!(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
-
-Applies a CompressorRecipe to a vector `y` and stores the output in the preallocated vector 
-`x`.
-
-
-# INPUTS
-- `S::CompressorRecipe`, a compressor object.
-- `y::AbstractVector`, a vector being compressed.
-- `x::AbstractVector`, a vector for storing the compression output.
-
-#OUTPUTS
-- Overwrites the entries of `x`, a vector that has a number of entries equal to the number 
-of rows of `S`.
-"""
 function mul!(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
     mul!(x, S, y, 1.0, 0.0)
     return
@@ -111,18 +82,6 @@ end
 
 # Implement the * operator for matrix matrix multiplication
 # The left multiplication version
-"""
-    (*)(S::CompressorRecipe, A::AbstractMatrix)
-Applies a CompressionRecipe to a matrix `A` from the left. 
-
-# INPUTS
-- `S::CompressorRecipe`, a compressor object.
-- `A::AbstractMatrix`, a matrix being compressed.
-
-#OUTPUTS
-- A matrix that has a number of rows  equal to the number of rows
-of `S` and a number of columns equal to the columns of `A`.
-"""
 function (*)(S::CompressorRecipe, A::AbstractMatrix)
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
@@ -136,36 +95,11 @@ function (*)(S::CompressorRecipe, A::AbstractMatrix)
     return B
 end
 
-"""
-    mul!(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
-Applies a CompressionRecipe to a matrix `A` from the left and stores the result in `C`. 
-
-# INPUTS
-- `S::CompressorRecipe`, a compressor object.
-- `A::AbstractMatrix`, a matrix being compressed.
-- `C::AbstractMatrix`, a matrix where the output of the compression is stored.
-
-#OUTPUTS
-- Overwrites the matrix `C` A matrix that has a number of rows equal to the number of rows
-of `S` and a number of columns equal to the columns of `A`.
-"""
 function mul!(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
     mul!(C, S, A, 1.0, 0.0)
 end
 
 # The right multiplication version
-"""
-    (*)(A::AbstractMatrix, S::CompressorRecipe)
-Applies a CompressionRecipe to a matrix `A` from the right. 
-
-# INPUTS
-- `A::AbstractMatrix`, a matrix being compressed.
-- `S::CompressorRecipe`, a compressor object.
-
-#OUTPUTS
-- A matrix that has a number of rows equal to the number of rows
-of `A` and a number of columns equal to the columns of `S`.
-"""
 function (*)(A::AbstractMatrix, S::CompressorRecipe)
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
@@ -180,19 +114,6 @@ function (*)(A::AbstractMatrix, S::CompressorRecipe)
     return B
 end
 
-"""
-    mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
-Applies a CompressionRecipe to a matrix `A` from the right and stores the result in `C`. 
-
-# INPUTS
-- `S::CompressorRecipe`, a compressor object.
-- `A::AbstractMatrix`, a matrix being compressed.
-- `C::AbstractMatrix`, a matrix where the output of the compression is stored.
-
-#OUTPUTS
-- Overwrites the matrix `C` A matrix that has a number of columns equal to the number of 
-columns of `S` and a number of rows equal to the rows of `A`.
-"""
 function mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
     mul!(C, A, S, 1.0, 0.0)
     return
@@ -215,8 +136,8 @@ end
 
 A structure for the adjoint of a compression recipe.
 
-# Fields
--`Parent::CompressorRecipe`, the compressor that we compute the adjoint of.
+### Fields
+- `Parent::CompressorRecipe`, the compressor that we compute the adjoint of.
 """
 struct CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
     parent::S
@@ -291,12 +212,12 @@ end
 Function to test the dimensions of the compressor and matrices, that arise from applying 
 a compression matrix from the left.
 
-# INPUTS
+# Arguments
 - `C::AbstractMatrix`, A matrix where the output will be stored.
 - `S::CompressorRecipe`, The compression matrix information.
 - `A::AbstractMatrix`, The matrix the compressor is being applied to from the left.
 
-# OUTPUTS
+# Outputs
 Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
 with the others.
 """
@@ -316,12 +237,12 @@ end
 Function to test the dimensions of the compressor and matrices, that arise from applying 
 a compression matrix from the right.
 
-# INPUTS
-`C::AbstractMatrix`, A matrix where the output will be stored.
-`S::CompressorRecipe`, The compression matrix information.
-`A::AbstractMatrix`, The matrix the compressor is being applied to from the right.
+### Arguments
+- `C::AbstractMatrix`, A matrix where the output will be stored.
+- `S::CompressorRecipe`, The compression matrix information.
+- `A::AbstractMatrix`, The matrix the compressor is being applied to from the right.
 
-# OUTPUTS
+### Outputs
 Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
 with the others.
 """
@@ -341,12 +262,12 @@ end
 Function to test the dimensions of the compressor and vector, that arise from applying 
 a compression matrix to a vector.
 
-# INPUTS
-`x::AbstractVector`, A vector where the output will be stored.
-`S::CompressorRecipe`, The compression matrix information.
-`A::AbstractVector`, The vector that the compressor is being applied to.
+### Arguments
+- `x::AbstractVector`, A vector where the output will be stored.
+- `S::CompressorRecipe`, The compression matrix information.
+- `A::AbstractVector`, The vector that the compressor is being applied to.
 
-# OUTPUTS
+### Outputs
 Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
 with the others.
 """

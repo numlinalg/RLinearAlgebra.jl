@@ -15,24 +15,6 @@ for techniques that solve a linear system `Ax = b`.
 abstract type SolverRecipe end
 
 """
-    ProjectionSolver <: Solver
-
-An abstract supertype for the user-controlled parameters for 
-techniques that use sequences of projections to solve a linear system `Ax = b`. Common 
-examples of projection solvers are Kaczmarz method and Coordinate Descent.
-"""
-abstract type ProjectionSolver <: Solver end
-
-"""
-    ProjectionSolverRecipe
-
-An abstract supertype for the user-controlled parameters and memory allocations
-for techniques that use sequences of projections solve a linear system `Ax = b`. Common 
-examples of projection solvers are Kaczmarz method and Coordinate Descent.
-"""
-abstract type ProjectionSolverRecipe <: SolverRecipe end
-
-"""
     SolverError
 
 An abstract supertype for specifying the user controlled parameters
@@ -60,14 +42,14 @@ A function that solvers the linear system `Ax=b` or the least square problem
 min_x ||Ax -b||_2^2 using solving method specified by the `solver`
 data structure. 
 
-# INPUTS
+### Arguments
 -`solver::SolverRecipe`, a structure containing all relevant parameter values and memory
 to solve a linear system with a speciefied technique.
 -`x::AbstractVector`, a vector that will be overwritten with the solution.
 -`A::AbstractMatrix`, the coeficent matrix for the linear system.
 -`b::AbstractVector`, the constant vector for the linear system.
 
-# OUTPUTS
+### Outputs
 The function updates `solver` and `x` in-place.
 """
 function rsolve!(
@@ -91,13 +73,13 @@ A function that solvers the linear system `Ax=b` or the least square problem
  min_x ||Ax -b||_2^2 using solving method specified by the `solver`
 data structure.
 
-# INPUTS
+### Arguments
 -`solver::Solver`, a solver structure containing all the user defined parameters.
 -`x::AbstractVector`, a vector that will be overwritten with the solution.
 -`A::AbstractMatrix`, the coeficent matrix for the linear system.
 -`b::AbstractVector`, the constant vector for the linear system.
 
-# OUTPUTS
+### Outputs
 -`x::AbstractVector`, the solution to the linear system.
 -`solver_method`, the SolverRecipe generating for applying the desired solving technique.
 """
@@ -122,13 +104,13 @@ end
 A function that generates a SolverErrorRecipe using the user defined inputs of a SolverError
 and information from the matrix `A` and vector `b`.
 
-# INPUTS
+### Arguments
 - `error::SolverError`, a data structure that stores the user defined parameters relating to 
 an error method.
 - `A::AbstractMatrix`, the coefficient matrix.
 - `b::AbstractVector`, the constant vector.
 
-# OUTPUTS
+### Outputs
 A Float64 representing the progress of the solver. 
 """
 function complete_solver_error(
@@ -150,7 +132,7 @@ end
 
 A function that evaluates the quality of a solution from a linear solver.
 
-# INPUTS
+### Arguments
 - `error::SolverErrorRecipe`, a data structure that stores intermediate information relating 
 to the computation of an error metric. For instance, if computing the residual this would be 
 a buffer vector for storing the residual.
@@ -158,7 +140,7 @@ a buffer vector for storing the residual.
 - `A::AbstractMatrix`, the coefficient matrix.
 - `b::AbstractVector`, the constant vector.
 
-# OUTPUTS
+### Outputs
 A Float64 representing the progress of the solver. 
 """
 function compute_solver_error(

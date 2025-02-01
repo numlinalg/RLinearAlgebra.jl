@@ -15,10 +15,10 @@ ApproximatorAdjoint
 ```
 
 ## User Functions
-```
-r_approximate
+```@docs
+rapproximate
 
-r_approximate!
+rapproximate!
 
 complete_approximator
 ```

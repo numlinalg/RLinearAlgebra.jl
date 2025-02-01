@@ -24,8 +24,6 @@ CompressorAdjoint
 complete_compressor
 
 update_compressor!
-
-LinearAlgebra.mul!
 ```
 
 ## Developer Specific Functions

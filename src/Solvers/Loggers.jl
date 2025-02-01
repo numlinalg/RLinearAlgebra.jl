@@ -20,7 +20,7 @@ abstract type LoggerRecipe end
 A function that combines the user-defined information contained in the `Logger`, the matrix
 from the matrix `A`, and vector `b`. to produce a logger recipe.
 
-# INPUTS
+### Arguments
 - `logger::Logger`, the `Logger` data structure containing user defined parameters.
 - `A::AbstractMatrix`, the matrix in the linear system.
 - `b::AbstractVector`, the constant vector in the linear system.
@@ -36,12 +36,12 @@ end
 
 A function that updates the history and convergence information in the logger recipe.
 
-# INPUTS
+### Arguments
 - `loggger::LoggerRecipe`, the LoggerRecipe being updated.
 - `err::Float64`, the value of the progress estimator.
 - `iteration::Int64`, the iteration of the linear solver.
 
-# OUTPUTS
+### Outputs
 - Performs an inplace update to the history and convergence information contained in the 
 LoggerRecipe.
 """

@@ -20,16 +20,16 @@ abstract type SubSolverRecipe end
 A function that takes the user defined parameters from the `SubSolver` data structure 
 and the matrix A and uses this information to create the `SubSolverRecipe`.
 
-# INPUTS
+### Arguments
 - `solver::SubSolver`, the `SubSolver` structure that contains the user controlled 
 parameters.
 - `A::AbstractMatrix`, the matrix that the `SubSolverRecipe` will contain.
 
-# OUTPUTS
+### Outputs
 Will return a SubSolverRecipe that can be applied to a vector.
 """
 function complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
-    return <:SubSolverRecipe
+    return 
 end
 
 
@@ -39,21 +39,18 @@ end
 A function that updates the structure of subSolver with the matrix A. These updates
 typically require preforming decompositons or updating pointers.
 
-# INPUTS
+### Arguments
 - `solver::SubSolverRecipe`, the `SubSolverRecipe` structure that can be applied 
 to a matrix or vector..
 - `A::AbstractMatrix`, the matrix that the `SubSolverRecipe` will contain.
+
+### Outputs
+Modifies the `SubSolverRecipe` in place and returns nothing.
 """
 function update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
     return
 end
 
-"""
-    function ldiv!(x::AbstractVector, solver::LQSolverRecipe, b::AbstractVector)
-
-A function that uses a subSolver method to find the `x` corresponding to the constant
-vector `b`.
-"""
 function ldiv!(x::AbstractVector, solver::SubSolverRecipe, b::AbstractVector)
     return
 end

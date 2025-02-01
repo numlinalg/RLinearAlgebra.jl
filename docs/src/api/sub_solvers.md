@@ -13,10 +13,8 @@ SubSolverRecipe
 ```
 
 ## Functions
-```
+```@docs
 complete_sub_solver
 
 update_sub_solver!
-
-ldiv!
 ```
