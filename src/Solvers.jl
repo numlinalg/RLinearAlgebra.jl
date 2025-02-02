@@ -46,7 +46,7 @@ A function that combines the information in the `Solver` data structure, matrix 
 - `b::AbstractVector`, the constant vector for the linear system.
 
 ### Outputs
-Returns a `SolverRecipe`.
+- Returns a `SolverRecipe`.
 """
 function complete_solver(
         solver::Solver, 
@@ -77,7 +77,7 @@ to solve a linear system with a speciefied technique.
 - `b::AbstractVector`, the constant vector for the linear system.
 
 ### Outputs
-The function updates `solver` and `x` in-place.
+- The function updates `solver` and `x` in-place.
 """
 function rsolve!(
         solver::SolverRecipe,
@@ -138,7 +138,7 @@ an error method.
 - `b::AbstractVector`, the constant vector.
 
 ### Outputs
-A Float64 representing the progress of the solver. 
+- A Float64 representing the progress of the solver. 
 """
 function complete_solver_error(
         error::SolverErrorRecipe,
@@ -168,7 +168,7 @@ a buffer vector for storing the residual.
 - `b::AbstractVector`, the constant vector.
 
 ### Outputs
-A Float64 representing the progress of the solver. 
+- A Float64 representing the progress of the solver. 
 """
 function compute_solver_error(
         error::SolverErrorRecipe,

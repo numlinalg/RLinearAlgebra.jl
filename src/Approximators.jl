@@ -67,7 +67,7 @@ relating to a particular low rank approximation.
 -`A::AbstractMatrix`, a matrix that we wish to approximate.
 
 ### Outputs
-returns an `ApproximatorRecipe` with memory preallocated for forming and storing
+- Returns an `ApproximatorRecipe` with memory preallocated for forming and storing
 the desired low rank approximation.
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
@@ -86,7 +86,7 @@ approximation to the matrix `A`.
 - `A::AbstractMatrix`, the matrix being approximated.
 
 ### Outputs
-Performs an inplace update of the `ApproximatorRecipe`.
+- Performs an inplace update of the `ApproximatorRecipe`.
 """
 function rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
     return nothing
@@ -155,7 +155,7 @@ approximation error.
 - `A::AbstractMatrix`, the matrix.
 
 ### Outputs
-This function will return an error metric for the approximation of the matrix.
+- This function will return an error metric for the approximation of the matrix.
 """
 function compute_approximator_error(
         error::ApproximatorErrorRecipe,

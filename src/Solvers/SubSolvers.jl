@@ -27,7 +27,7 @@ parameters.
 - `A::AbstractMatrix`, the matrix that the `SubSolverRecipe` will contain.
 
 ### Outputs
-Will return a SubSolverRecipe that can be applied to a vector.
+- Will return a SubSolverRecipe that can be applied to a vector.
 """
 function complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
     return 
@@ -46,7 +46,7 @@ to a matrix or vector.
 - `A::AbstractMatrix`, the matrix that the `SubSolverRecipe` will contain.
 
 ### Outputs
-Modifies the `SubSolverRecipe` in place and returns nothing.
+- Modifies the `SubSolverRecipe` in place and returns nothing.
 """
 function update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
     return

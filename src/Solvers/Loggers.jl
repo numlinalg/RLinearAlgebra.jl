@@ -27,7 +27,7 @@ the matrix `A`, and vector `b`. to produce a logger recipe.
 - `b::AbstractVector`, the constant vector in the linear system.
 
 ### Outputs
-Returns a `LoggerRecipe` with appropiate parameter and memory allocations.
+- Returns a `LoggerRecipe` with appropiate parameter and memory allocations.
 """
 function complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
     # By default the LoggerRecipe formed by applying the version of this function that only

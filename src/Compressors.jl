@@ -48,7 +48,7 @@ information contained in `A::AbstractMatrix` and `b::AbstractMatrix`.
 - `b::AbstractVector`, a vector that could be used to update the compressor.
 
 ### Outputs
-Will generate an updated version of `S` based on the information obtained from A, b.
+- Will generate an updated version of `S` based on the information obtained from A, b.
 For some compression techniques that are data oblivious this simply means generating new
 random entries in `S`.
 """
@@ -220,7 +220,7 @@ compression matrix to a matrix from the left.
 - `A::AbstractMatrix`, The matrix the compressor is being applied to from the left.
 
 # Outputs
-Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
+- Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
 with the others.
 """
 function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
@@ -245,7 +245,7 @@ compression matrix to a matrix from the right.
 - `A::AbstractMatrix`, The matrix the compressor is being applied to from the right.
 
 ### Outputs
-Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
+- Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
 with the others.
 """
 function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
@@ -270,7 +270,7 @@ compression matrix to a vector.
 - `A::AbstractVector`, The vector that the compressor is being applied to.
 
 ### Outputs
-Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
+- Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
 with the others.
 """
 function vec_mul_dimcheck(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
