@@ -1,9 +1,19 @@
-The library is designed around using randomized linear algebra to accomplish two tasks: 
-(1) solve a linear system of equations or (2) for a low rank approximation to a linear 
-system of equations. Both methods rely on the compression of a linear system, also known as 
-sampling or sketching. Every technique associated with these three methods two main data 
-structures associated with them: `[Technique]`, a structure where the user inputs values of 
-user controlled parameters, and `[Technique]Recipe`, a structure that contains preallocated
+# Overview Library Goals
+The library is designed to allow users to use randomized linear algebra to accomplish 
+two tasks: (1) solve a linear system of equations or (2) form a low rank approximation of a 
+equations. Randomized Linear Algebra accomplishes these tasks by compressing of a linear 
+system. This compression can be accomplished in a randomized way, also known as sampling or 
+sketching or deterministically. 
+
+The library is organized with main techniques falling into one of three classes: 
+Approximators, Compressors, and Solvers. The Solver category then has its own set of 
+sub-techniques, Loggers and SubSolvers to facilitate the Solvers.
+
+In designing the library, we aim two allow for reasonably efficient code execution and a 
+highly modular environment that makes experimenting with different techniques easy. To help
+with the modularity goal every technique two main data structures:  `[Technique]`, a 
+structure where the user inputs values of user-controlled parameters, and a 
+`[Technique]Recipe`, a structure that contains preallocated
 memory and some of the values from `[Technique]` needed for executing the particular 
 technique. In simple terms the `[Technique]` is the easy to user interface the user 
 interacts with, while the `[Technique]Recipe` is the optimized interface that is used for 
@@ -484,8 +494,10 @@ function complete_solver(
     logger = complete_logger(solver.log, A, b)
     error = complete_error(solver.error, A, b) 
     # Check that required fields are in the types
-    @assert isdefined(error, :residual) "ErrorRecipe $(typeof(error)) does not contain the field 'residual' and is not valid for a kaczmarz solver."
-    @assert isdefined(logger, :converged) "LoggerRecipe $(typeof(logger)) does not contain the field 'converged' and is not valid for a kaczmarz solver."
+    @assert isdefined(error, :residual) "ErrorRecipe $(typeof(error)) does not contain the\ 
+field 'residual' and is not valid for a kaczmarz solver."
+    @assert isdefined(logger, :converged) "LoggerRecipe $(typeof(logger)) does not contain\
+ the field 'converged' and is not valid for a kaczmarz solver."
     # Assuming that max_it is defined in the logger
     alpha::Float64 = solver.alpha 
     # We assume the user is using compressors to only decrease dimension
