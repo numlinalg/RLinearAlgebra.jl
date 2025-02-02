@@ -1,23 +1,24 @@
 """
     SubSolver
 
-An abstract supertype for user-controlled parameters for a block solver. 
+An abstract supertype for structures that contain user-controlled parameters 
+for a linear solver applied to compressed matrix blocks. 
 """
 abstract type SubSolver end
 
 """
     SubSolverRecipe
 
-An abstract supertype for all information related to a specific solver. This includes both 
-the user controlled parameters defined in the `SubSolver` and memory structures specific
-to the solver.
+An abstract supertype for structures that contain user-controlled parameters, linear system
+specific parameters and preallocated memory for a linear solver applied to compressed matrix
+blocks. 
 """
 abstract type SubSolverRecipe end
 
 """
     complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
 
-A function that takes the user defined parameters from the `SubSolver` data structure 
+A function that takes the user-controlled parameters from the `SubSolver` data structure 
 and the matrix A and uses this information to create the `SubSolverRecipe`.
 
 ### Arguments
@@ -36,12 +37,12 @@ end
 """
     update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
 
-A function that updates the structure of subSolver with the matrix A. These updates
-typically require preforming decompositons or updating pointers.
+A function that updates the structure of `SubSolverRecipe` with information from the matrix
+A. These updates typically require preforming decompositons or updating pointers.
 
 ### Arguments
 - `solver::SubSolverRecipe`, the `SubSolverRecipe` structure that can be applied 
-to a matrix or vector..
+to a matrix or vector.
 - `A::AbstractMatrix`, the matrix that the `SubSolverRecipe` will contain.
 
 ### Outputs

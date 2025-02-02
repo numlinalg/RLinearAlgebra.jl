@@ -1,23 +1,24 @@
 """
    Approximator 
 
-An abstract supertype for structures that store user defined parameters corresponding to 
-    technqiues that form low-rank approximations of the matrix `A`.
+An abstract supertype for structures that store user-controlled parameters corresponding to 
+technqiues that form low-rank approximations of the matrix `A`.
 """
 abstract type Approximator end
 
 """
    ApproximatorRecipe
 
-An abstract supertype for structures that store user defined parameters and preallocated 
-    memory corresponding to techniques that form low-rank approximations of the matrix `A`.
+An abstract supertype for structures that store user-controlled parameters, linear system
+dependent parameters and preallocated memory corresponding to techniques that form low-rank 
+approximations of the matrix `A`.
 """
 abstract type ApproximatorRecipe end
 
 """
     ApproxmatorError
 
-An abstract supertype for structures containing user-defined parameters corresponding to 
+An abstract supertype for structures containing user-controlled parameters corresponding to 
 methods that evaluate the quality of a Low-Rank approximation of a matrix `A`.
 """
 abstract type ApproximatorError end
@@ -25,9 +26,9 @@ abstract type ApproximatorError end
 """
     ApproxmatorErrorRecipe
 
-An abstract supertype for structures containing user-defined parameters and preallocated 
-memory corresponding to methods that evaluate the quality of a Low-Rank approximation of a 
-matrix `A`.
+An abstract supertype for structures containing user-controlled parameters, linear system
+dependent parameters and preallocated memory corresponding to methods that evaluate the 
+quality of a Low-Rank approximation of a matrix `A`.
 """
 abstract type ApproximatorErrorRecipe end
 
@@ -37,7 +38,7 @@ abstract type ApproximatorErrorRecipe end
 
 A structure for the adjoint of a approximator recipe.
 
-# Fields
+### Fields
 -`Parent::ApproximatorRecipe`, the approximator that we compute the adjoint of.
 """
 struct ApproximatorAdjoint{S<:ApproximatorRecipe} <: ApproximatorRecipe
@@ -57,16 +58,16 @@ transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 """
     complete_approximator(approximator::Approximator, A::AbstractMatrix)
 
-A function that uses information in the matrix A and user defined parameters in the 
-Approximator to form an ApproximatorRecipe with appropiate memory allocations.
+A function that uses information in the matrix `A` and user-controlled parameters in the 
+Approximator to form an `ApproximatorRecipe` with appropiate memory allocations.
 
 ### Arguments
-- `approximator::Approximator`, a data structure containing the user controlled parameters
+- `approximator::Approximator`, a data structure containing the user-controlled parameters
 relating to a particular low rank approximation.
 -`A::AbstractMatrix`, a matrix that we wish to approximate.
 
 ### Outputs
-- `::ApproximatorRecipe`, a data structure with memory preallocated for forming and storing
+returns an `ApproximatorRecipe` with memory preallocated for forming and storing
 the desired low rank approximation.
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
@@ -95,7 +96,7 @@ end
     rapproximate(approximator::Approximator, A::AbstractMatrix)
 
 A function that computes a Low-Rank approximation of the matrix `A` using the information 
-in the provided `ApproximatorRecipe` data structure.
+in the provided `Approximator` data structure.
 
 ### Arguments
 - `approximator::Approximator`, an approximation technique for computing a low-rank 
@@ -112,7 +113,11 @@ function rapproximate(approximator::ApproximatorRecipe, A::AbstractMatrix)
 end
 
 """
-   complete_approximator_error(error::ApproximatorError, S::CompressorRecipe, A::AbstractMatrix)
+   complete_approximator_error(
+        error::ApproximatorError, 
+        S::CompressorRecipe, 
+        A::AbstractMatrix
+    )
 
 A function that produces an `ApproximatorErrorRecipe` from an `ApproximatorError`, 
 `CompressorRecipe`, and `AbstractMatrix`.
@@ -141,10 +146,10 @@ compute_approximator_error(
     A::AbstractMatrix
 )
 
-A function that evaluates the quality of an approximation by an approximator.
+A function that evaluates the quality of an `ApproximatorRecipe`.
 
 ### Arguments
-- `error::ApproximatorErrorRecipe, ApproximatorErrorRecipe}`, the method for computing the 
+- `error::ApproximatorErrorRecipe`, the method for computing the 
 approximation error.
 - `approx::ApproximatorRecipe`, the low rank of the approximation of the matrix.
 - `A::AbstractMatrix`, the matrix.

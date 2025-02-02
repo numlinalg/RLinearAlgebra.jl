@@ -1,29 +1,33 @@
 """
     Logger
 
-An abstract supertype containing the user defined parameters for a logger, which has the 
-goal of recording the progress of a linear solver and evaluating convergence.
+An abstract supertype for structures that contain user-controlled parameters for a logger, 
+which has the goal of recording the progress of a linear solver and evaluating convergence.
 """
 abstract type Logger end
 
 """
     LoggerRecipe
 
-An abstract supertype containing all parameters for a particular logger this includes 
-the user defined parameters in `Logger` and the necessary storage buffers,
+An abstract supertype for structures that contain user-controlled parameters and
+preallocated memory for a logger, which has the goal of recording the progress of a linear 
+solver and evaluating convergence.
 """
 abstract type LoggerRecipe end
 
 """
     complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
 
-A function that combines the user-defined information contained in the `Logger`, the matrix
-from the matrix `A`, and vector `b`. to produce a logger recipe.
+A function that combines the user-controlled information contained in the `Logger`, 
+the matrix `A`, and vector `b`. to produce a logger recipe.
 
 ### Arguments
-- `logger::Logger`, the `Logger` data structure containing user defined parameters.
+- `logger::Logger`, the `Logger` data structure containing user-controlled parameters.
 - `A::AbstractMatrix`, the matrix in the linear system.
 - `b::AbstractVector`, the constant vector in the linear system.
+
+### Outputs
+Returns a `LoggerRecipe` with appropiate parameter and memory allocations.
 """
 function complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
     # By default the LoggerRecipe formed by applying the version of this function that only

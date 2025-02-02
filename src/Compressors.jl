@@ -1,17 +1,17 @@
 """
     Compressor
 
-An abstract supertype containing user-defined parameters for techniques that compress 
-a matrix.
+An abstract supertype for structures that contain user-controlled parameters corresponding
+to techniques that compress a matrix.
 """
 abstract type Compressor end
 
 """
    CompressorRecipe
 
-An abstract type for a compression technique that includes both the user defined 
-parameters in the `Compressor` and the memory allocations for applying the compression
-technique to a particular linear system.
+An abstract supertype for structures that contain both the user-controlled
+parameters in the `Compressor` and the memory allocations necessary for applying the 
+compression technique to a particular linear system.
 """
 abstract type CompressorRecipe end
 
@@ -19,12 +19,12 @@ abstract type CompressorRecipe end
 """
     complete_compressor(compressor::Compressor, A::AbstractMatrix, b::AbstractVector)
 
-A function that  the user-defined parameters in the `Compressor`, the matrix `A`, 
-and the constrant vector `b` to form a `CompressorRecipe` that will then by applied
-to matrices and vectors.
+A function that uses the information in the `Compressor`, the matrix `A`, 
+and the constrant vector `b` to form a `CompressorRecipe` that can then be multiplied with
+matrices and vectors.
 
 ### Arguments
-- `compress::Compressor`, A compressor object.
+- `compress::Compressor`, a compressor object.
 - `A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
 - `b::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
 
@@ -33,22 +33,24 @@ to matrices and vectors.
 the multiplication functions.
 """
 function complete_compressor(compress::Compressor, A::AbstractMatrix, b::AbstractVector)
-    return <: CompressorRecipe
+    return 
 end
 
 """
     update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
 
+A function that updates a `CompressorRecipe` with new random components, possibly based on
+information contained in `A::AbstractMatrix` and `b::AbstractMatrix`.
+
 ### Arguments
 - `S::CompressorRecipe`, A preallocated CompressorRecipe.
 - `A::AbstractMatrix`, a matrix that could be used to update the compressor.
-- `b::AbstractVector`, a matrix that could be used to update the compressor.
-- `x::AbstractVector`, a matrix that could be used to update the compressor.
+- `b::AbstractVector`, a vector that could be used to update the compressor.
 
 ### Outputs
-Will generate an updated version of S based on the information obtained from A, b, and x.
+Will generate an updated version of `S` based on the information obtained from A, b.
 For some compression techniques that are data oblivious this simply means generating new
-random entries in S.
+random entries in `S`.
 """
 function update_compressor!(
         S::CompressorRecipe, 
@@ -137,7 +139,7 @@ end
 A structure for the adjoint of a compression recipe.
 
 ### Fields
-- `Parent::CompressorRecipe`, the compressor that we compute the adjoint of.
+- `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to..
 """
 struct CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
     parent::S
@@ -209,8 +211,8 @@ end
 """
     left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
 
-Function to test the dimensions of the compressor and matrices, that arise from applying 
-a compression matrix from the left.
+Function to test the dimensions of the CompressorRecipe and matrices when applying a 
+compression matrix to a matrix from the left.
 
 # Arguments
 - `C::AbstractMatrix`, A matrix where the output will be stored.
@@ -234,8 +236,8 @@ end
 """
     right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe
 
-Function to test the dimensions of the compressor and matrices, that arise from applying 
-a compression matrix from the right.
+Function to test the dimensions of the CompressorRecipe and matrices when applying a 
+compression matrix to a matrix from the right. 
 
 ### Arguments
 - `C::AbstractMatrix`, A matrix where the output will be stored.
@@ -259,8 +261,8 @@ end
 """
     vec_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
 
-Function to test the dimensions of the compressor and vector, that arise from applying 
-a compression matrix to a vector.
+Function to test the dimensions of the CompressorRecipe and matrices when applying a 
+compression matrix to a vector.
 
 ### Arguments
 - `x::AbstractVector`, A vector where the output will be stored.
