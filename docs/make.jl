@@ -37,7 +37,10 @@ makedocs(
             ],
         ],
         "Development" => [
-            "Design" => "dev/design.md"
+            "Contributing" => "dev/contributing.md",
+            "Design" => "dev/design.md",
+            "Style Guide" => "dev/styleguide.md",
+            "Check Lists" => "dev/checklist.md"
         ],
         "References" => "references.md",
     ]
