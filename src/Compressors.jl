@@ -70,8 +70,7 @@ end
 function (*)(S::CompressorRecipe, v::AbstractVector)
     s_rows, s_cols = size(S)
     len_v = size(v, 1)
-    @assert len_v == s_cols "Vector has $len_v entries and is not compatible with matrix \
-    with $s_cols columns."  
+    @assert len_v == s_cols "Vector has $len_v entries and is not compatible with matrix with $s_cols columns."  
     output = zeros(s_rows)
     mul!(output, S, v, 1.0, 0.0)
     return output
