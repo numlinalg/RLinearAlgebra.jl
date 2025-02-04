@@ -15,10 +15,6 @@ makedocs(
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
-#        "Manual" => [
-#            "Consistent Linear Systems" => "man/cls_overview.md",
-#            "Tracking" => "man/tracking_overview.md"
-#        ],
         "API Reference" => [
             "Compressors" => "api/compressors.md",
             "Solvers" => [
@@ -35,12 +31,6 @@ makedocs(
                     "ApproximatorErrors" => "api/approximator_error.md"
                                            ],
             ],
-        ],
-        "Development" => [
-            "Contributing" => "dev/contributing.md",
-            "Design" => "dev/design.md",
-            "Style Guide" => "dev/styleguide.md",
-            "Check Lists" => "dev/checklist.md"
         ],
         "References" => "references.md",
     ]

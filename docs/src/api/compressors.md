@@ -1,11 +1,9 @@
 # Compressors 
-
 ```@contents
 Pages = ["compressors.md"]
 ```
 
 ## Abstract Types
-
 ```@docs
 Compressor
 
@@ -14,19 +12,19 @@ CompressorRecipe
 CompressorAdjoint
 ```
 
-## Compressors
+## Compressor Structures
 ```@docs
 
 ```
 
-## User Functions
+## Exported  Functions
 ```@docs
 complete_compressor
 
 update_compressor!
 ```
 
-## Developer Specific Functions
+## Internal Functions
 ```@docs
 RLinearAlgebra.left_mat_mul_dimcheck
 

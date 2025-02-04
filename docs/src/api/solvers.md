@@ -1,18 +1,21 @@
 # Solvers  
-
 ```@contents
 Pages = ["solvers.md"]
 ```
 
 ## Abstract Types
-
 ```@docs
 Solver
 
 SolverRecipe
 ```
 
-## Functions
+## Solver Structures
+```@docs
+
+```
+
+## Exported Functions
 ```@docs
 complete_solver
 
@@ -20,4 +23,3 @@ rsolve
 
 rsolve!
 ```
-

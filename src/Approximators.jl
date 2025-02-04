@@ -59,16 +59,16 @@ transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
     complete_approximator(approximator::Approximator, A::AbstractMatrix)
 
 A function that uses information in the matrix `A` and user-controlled parameters in the 
-Approximator to form an `ApproximatorRecipe` with appropiate memory allocations.
+    Approximator to form an `ApproximatorRecipe` with appropiate memory allocations.
 
 ### Arguments
 - `approximator::Approximator`, a data structure containing the user-controlled parameters
-relating to a particular low rank approximation.
+    relating to a particular low rank approximation.
 -`A::AbstractMatrix`, a matrix that we wish to approximate.
 
 ### Outputs
 - Returns an `ApproximatorRecipe` with memory preallocated for forming and storing
-the desired low rank approximation.
+    the desired low rank approximation.
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
     return
@@ -78,11 +78,11 @@ end
     rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
 
 A function that computes a Low-Rank approximation of the matrix `A` using the information 
-in the provided `ApproximatorRecipe` data structure.
+    in the provided `ApproximatorRecipe` data structure.
 
 ### Arguments
 - `approximator::ApproximatorRecipe`, a data structure for storing the low rank 
-approximation to the matrix `A`.
+    approximation to the matrix `A`.
 - `A::AbstractMatrix`, the matrix being approximated.
 
 ### Outputs
@@ -96,11 +96,11 @@ end
     rapproximate(approximator::Approximator, A::AbstractMatrix)
 
 A function that computes a Low-Rank approximation of the matrix `A` using the information 
-in the provided `Approximator` data structure.
+    in the provided `Approximator` data structure.
 
 ### Arguments
 - `approximator::Approximator`, an approximation technique for computing a low-rank 
-approximation of the matrix `A`.
+    approximation of the matrix `A`.
 - `A::AbstractMatrix`, the matrix being approximated.
 
 ### Outputs
@@ -120,11 +120,11 @@ end
     )
 
 A function that produces an `ApproximatorErrorRecipe` from an `ApproximatorError`, 
-`CompressorRecipe`, and `AbstractMatrix`.
+    `CompressorRecipe`, and `AbstractMatrix`.
 
 ### Arguments
 - `error::ApproximatorError`, the user controlled parameters associated with the 
-approximation error.
+    approximation error.
 - `S::CompressorRecipe`, the compressor information used for the low rank approximation.
 - `A::AbstractMatrix`, the matrix being approximated.
 

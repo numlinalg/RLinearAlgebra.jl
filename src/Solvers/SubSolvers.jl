@@ -19,11 +19,11 @@ abstract type SubSolverRecipe end
     complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
 
 A function that takes the user-controlled parameters from the `SubSolver` data structure 
-and the matrix A and uses this information to create the `SubSolverRecipe`.
+    and the matrix A and uses this information to create the `SubSolverRecipe`.
 
 ### Arguments
 - `solver::SubSolver`, the `SubSolver` structure that contains the user controlled 
-parameters.
+    parameters.
 - `A::AbstractMatrix`, the matrix that the `SubSolverRecipe` will contain.
 
 ### Outputs
@@ -38,11 +38,11 @@ end
     update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
 
 A function that updates the structure of `SubSolverRecipe` with information from the matrix
-A. These updates typically require preforming decompositons or updating pointers.
+    A. These updates typically require preforming decompositons or updating pointers.
 
 ### Arguments
 - `solver::SubSolverRecipe`, the `SubSolverRecipe` structure that can be applied 
-to a matrix or vector.
+    to a matrix or vector.
 - `A::AbstractMatrix`, the matrix that the `SubSolverRecipe` will contain.
 
 ### Outputs

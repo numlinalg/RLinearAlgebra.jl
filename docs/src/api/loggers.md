@@ -1,18 +1,21 @@
 # Loggers 
-
 ```@contents
 Pages = ["loggers.md"]
 ```
 
 ## Abstract Types
-
 ```@docs
 Logger
 
 LoggerRecipe
 ```
 
-## Functions
+## Logger Structures
+```@docs
+
+```
+
+## Exported Functions
 ```@docs
 complete_logger
 

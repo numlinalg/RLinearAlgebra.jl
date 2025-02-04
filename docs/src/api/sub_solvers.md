@@ -1,18 +1,21 @@
 # SubSolvers  
-
 ```@contents
 Pages = ["sub_solvers.md"]
 ```
 
 ## Abstract Types
-
 ```@docs
 SubSolver
 
 SubSolverRecipe
 ```
 
-## Functions
+## SubSolver Structures
+```@docs
+
+```
+
+## Exported Functions
 ```@docs
 complete_sub_solver
 

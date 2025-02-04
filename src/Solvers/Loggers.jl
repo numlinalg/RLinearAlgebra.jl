@@ -19,7 +19,7 @@ abstract type LoggerRecipe end
     complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
 
 A function that combines the user-controlled information contained in the `Logger`, 
-the matrix `A`, and vector `b`. to produce a logger recipe.
+    the matrix `A`, and vector `b`. to produce a logger recipe.
 
 ### Arguments
 - `logger::Logger`, the `Logger` data structure containing user-controlled parameters.
@@ -47,7 +47,7 @@ A function that updates the history and convergence information in the logger re
 
 ### Outputs
 - Performs an inplace update to the history and convergence information contained in the 
-LoggerRecipe.
+    LoggerRecipe.
 """
 function update_logger!(logger::LoggerRecipe, err::Float64, iteration::Int64)
     return

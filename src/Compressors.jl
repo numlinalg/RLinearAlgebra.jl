@@ -28,9 +28,9 @@ matrices and vectors.
 - `A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
 - `b::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
 
-### OUPUTS
-- A `CompressorRecipe` that can be applied to matrices and vectors through the use of
-the multiplication functions.
+### Outputs
+- A `CompressorRecipe` that can be applied to matrices and vectors through the use of the 
+    multiplication functions.
 """
 function complete_compressor(compress::Compressor, A::AbstractMatrix, b::AbstractVector)
     return 
@@ -49,8 +49,8 @@ information contained in `A::AbstractMatrix` and `b::AbstractMatrix`.
 
 ### Outputs
 - Will generate an updated version of `S` based on the information obtained from A, b.
-For some compression techniques that are data oblivious this simply means generating new
-random entries in `S`.
+    For some compression techniques that are data oblivious this simply means generating new
+    random entries in `S`.
 """
 function update_compressor!(
         S::CompressorRecipe, 
@@ -211,7 +211,7 @@ end
     left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
 
 Function to test the dimensions of the CompressorRecipe and matrices when applying a 
-compression matrix to a matrix from the left.
+    compression matrix to a matrix from the left.
 
 # Arguments
 - `C::AbstractMatrix`, A matrix where the output will be stored.
@@ -220,7 +220,7 @@ compression matrix to a matrix from the left.
 
 # Outputs
 - Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
-with the others.
+    with the others.
 """
 function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
     s_rows, s_cols = size(S)
@@ -236,7 +236,7 @@ end
     right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe
 
 Function to test the dimensions of the CompressorRecipe and matrices when applying a 
-compression matrix to a matrix from the right. 
+    compression matrix to a matrix from the right. 
 
 ### Arguments
 - `C::AbstractMatrix`, A matrix where the output will be stored.
@@ -244,8 +244,8 @@ compression matrix to a matrix from the right.
 - `A::AbstractMatrix`, The matrix the compressor is being applied to from the right.
 
 ### Outputs
-- Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
-with the others.
+- Will assert an error if one of the relevant dimensions of the three inputs is incompatible
+    with the others.
 """
 function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
     s_rows, s_cols = size(S)
@@ -261,7 +261,7 @@ end
     vec_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
 
 Function to test the dimensions of the CompressorRecipe and matrices when applying a 
-compression matrix to a vector.
+    compression matrix to a vector.
 
 ### Arguments
 - `x::AbstractVector`, A vector where the output will be stored.
@@ -270,7 +270,7 @@ compression matrix to a vector.
 
 ### Outputs
 - Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
-with the others.
+    with the others.
 """
 function vec_mul_dimcheck(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
     s_rows, s_cols = size(S)

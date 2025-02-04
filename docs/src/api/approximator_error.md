@@ -1,18 +1,21 @@
 # ApproximatorError 
-
 ```@contents
 Pages = ["approximator_error.md"]
 ```
 
 ## Abstract Types
-
 ```@docs
 ApproximatorError
 
 ApproximatorErrorRecipe
 ```
 
-## Functions
+## ApproximatorError Structures
+```@docs
+
+```
+
+## Exported Functions
 ```@docs
 complete_approximator_error
 
