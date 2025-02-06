@@ -11,40 +11,41 @@ Approximators, Compressors, and Solvers. Solvers feature their own set of
 sub-techniques: Loggers, SolverErrors, and SubSolvers that facilitate solving. Approximators
 have only one set of sub-techniques known as ApproximatorErrors.
 
-RLinearAlgebra.jl aims for efficient code with high modularity. These goals are complicated 
-by an interdependency between the sub-techniques and the matrix system. RLinearAlgebra.jl
-simplifies the dependency by introducing two structures, one that contains user-controlled 
-parameters which takes the form of `[Technique]` and a second that is used by the technique 
-to complete the techniques task and thus contains the necessary preallocated memory this 
-structure takes names of the form `[Technique]Recipe`.
+RLinearAlgebra.jl is designed so that the codebase has a good balance between efficiency 
+and modularity. RLinearAlgebra.jl tries to achieve these goals by introducing two 
+structures, one that contains user-controlled parameters which takes the form of 
+`[Technique]` and a second that is used by the technique to execute the techniques because it
+contains the necessary preallocated memory and is known as a `[Technique]Recipe`.
 
-For example, in implementing Gaussian sketching we create a `Gaussian` structure that 
-contains the number of rows and columns for the sketch. The user can then construct this 
-structure calling the structure name with keyword options. Thus, if the user wanted a 
-Gaussian matrix with 3 rows they could create this structure with the call 
-`Gaussian(n_rows = 3)`. This structure simply contains the number of rows in the matrix, 
-but without knowing information about the matrix that the sketching matrix will be applied 
-to, `n_cols` will be unknown. To incorporate information about the matrix the sketch is 
-being applied to with the user controlled parameters, we use the function 
-`complete_compressor` and generate a `GaussianRecipe` with the appropriate size parameters
-and preallocated space to store the Gaussian matrix. 
+We can see an example of the difference between the two structures when considering an 
+implementation of compression with Gaussian matrices. In this implementation we wish to 
+have the user specify a compression dimension and size without having to know the dimension
+of the matrix the sketch is applied to. The `Gaussian` structure facilitates this by having 
+two fields `n_rows`  and `n_cols` with the default for both being zero. When the user then 
+constructs this structure the can specify the dimension and direction of the compression 
+by specifying the number of rows or columns they wish for the compression matrix to have.
+If the user wanted a Gaussian matrix with 3 rows they would call 
+`Gaussian(n_rows = 3)`. We then turn this dimensional information into an usable compression
+matrix by using the `complete_compressor` function to form a `GaussianRecipe`. This 
+`GaussianRecipe` contains Fields `n_rows = 3`, `n_cols` set to be the number of rows in the
+compressor, and a Gaussian matrix of the size specified by `n_rows` and `n_cols`.
 
 Once a `[Technique]Recipe` has been created, this data structure can then be used to 
 execute a particular technique. The command to execute each technique varies by the class 
-of techniques, as such we lay out specifics for each class of techniques in the following 
+of techniques, as such we lay out the specifics for each type of techniques in the following 
 section.
 
-## Technique Classes
-Overall there are three top-level technique classes: (1) Compressors, (2) Solvers, and 
-(3) Approximators, with the latter two also having additional sets of technique classes 
-used when implementing the top-level techniques. We group the discussions of the technique 
+## Technique Types 
+Overall, there are three top-level technique types: (1) Compressors, (2) Solvers, and 
+(3) Approximators, with the latter two also having additional sets of technique types
+used in the execution of the top-level techniques. We group the discussions of the technique 
 classes by top-level technique.
 
 ### Compressors
-When implementing any Compressor, RLinearAlgebra requires an immutable `Compressor` 
+When implementing any Compressor, RLinearAlgebra requires an mutable `Compressor` 
 structure, a mutable `CompressorRecipe` structure, a `complete_compressor` function, a 
-`update_compressor!` function, and four mul! functions (two for the compressor 
-applied to vectors and two for the sketch applied to matrices). 
+`update_compressor!` function, and three five input mul! functions (one for applying the 
+compressor to vectors and two for applying the compressor to matrices). 
 
 #### Compressor Structure
 Every compression technique needs a place to store user-defined parameters. 
