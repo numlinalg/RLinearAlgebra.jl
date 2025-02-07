@@ -42,7 +42,7 @@ used in the execution of the top-level techniques. We group the discussions of t
 classes by top-level technique.
 
 ### Compressors
-When implementing any Compressor, RLinearAlgebra requires an mutable `Compressor` 
+When implementing a Compressor, RLinearAlgebra requires an mutable `Compressor` 
 structure, a mutable `CompressorRecipe` structure, a `complete_compressor` function, a 
 `update_compressor!` function, and three five input mul! functions (one for applying the 
 compressor to vectors and two for applying the compressor to matrices). 
@@ -50,7 +50,7 @@ compressor to vectors and two for applying the compressor to matrices).
 #### Compressor Structure
 Every compression technique needs a place to store user-defined parameters. 
 This will be accomplished by the immutable Compressor structure. 
-We present an example structure used for the Sparse Sign technique in ADD CITATION.
+We present an example structure used for the Sparse Sign technique.
 
 ```
 struct SparseSign <: Compressor
@@ -62,12 +62,10 @@ end
 You will first notice that `n_rows` and `n_cols` are fields present in the Compressor, 
 these fields allow for the user to specify either the number of rows or the number of 
 columns they wish the compressor to have. **Both `n_rows` and `n_cols` are required for 
-every Compressor structure.** Beyond those fields the method will
-dictate the other parameters that can be made available to the user. In implementation, we 
-should aim to make every parameter associated with the compression technique available to 
-the user. In addition to the structure itself their should be a **constructor for the 
-structure that accepts keyword inputs for each field of the Compressor structure.**
-For example in the `SparseSign` case we define,
+every Compressor structure.** Beyond those fields the technique will dictate the other 
+parameters that should be made available to the user. In addition to the structure, there 
+should be a **constructor for the structure that accepts keyword inputs for each 
+field of the Compressor structure.** For example in the `SparseSign` case we define,
 ```
 function SparseSign(;n_rows::Int64 = 0, n_cols::Int64 = 0, nnz::Int64 = 8)
     # Partially construct the sparse sign datatype
@@ -75,10 +73,15 @@ function SparseSign(;n_rows::Int64 = 0, n_cols::Int64 = 0, nnz::Int64 = 8)
 end
 ```  
 #### CompressorRecipe Structure
-Because the `Compressor` requires no information about the linear system, 
-when the linear system is known, we need a structure that contains preallocated memory for 
-the compressor. This location is the `CompressorRecipe`. Again we present an example for
-such a structure based on the SparseSign technique:
+To form the compressor from the user-inputted information, we need information about the 
+linear system. Once this information is attained preallocations of the necessary memory can 
+be done. These preallocations are then stored in the `CompressorRecipe` structure. Because
+this structure has all of the preallocated memory for applying the compression technique it
+is this structure that can be applied to matrices and vectors. 
+
+As example, we have included the CompressorRecipe for the sparse sign compressor. This
+structure importantly includes the size of the compressor in the `n_rows` and `n_cols` 
+fields
 ```
 mutable struct SparseSignRecipe <: CompressorRecipe
     n_rows::Int64
