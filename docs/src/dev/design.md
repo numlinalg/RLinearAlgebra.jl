@@ -44,11 +44,12 @@ classes by top-level technique.
 ### Compressors
 When implementing a Compressor, RLinearAlgebra requires an mutable `Compressor` 
 structure, a mutable `CompressorRecipe` structure, a `complete_compressor` function, a 
-`update_compressor!` function, and three five input mul! functions (one for applying the 
-compressor to vectors and two for applying the compressor to matrices). 
+`update_compressor!` function, and for five input mul! functions (one for applying the 
+compressor to vectors, one for applying the adjoint of a compressor to a vector, 
+and two for applying the compressor to matrices). 
 
 #### Compressor Structure
-Every compression technique needs a place to store user-defined parameters. 
+Every compression technique needs a place to store user-controlled parameters. 
 This will be accomplished by the immutable Compressor structure. 
 We present an example structure used for the Sparse Sign technique.
 
@@ -93,11 +94,11 @@ mutable struct SparseSignRecipe <: CompressorRecipe
     signs::Vector{Bool}
 end
 ```
-Here we have the **required `n_rows` and `n_cols`** fields as fields specific to the 
-sketching technique like signs and the number of non-zero elements. 
+Here we have the **required `n_rows` and `n_cols`** fields for all compressors. The 
+remaining fields are specific to the sparse sign compression technique. 
 
 #### complete_compressor
-To create the CompressorRecipe from linear system information and the user implemented 
+To create the CompressorRecipe from linear system information and the user-controlled 
 parameters, we use the function `complete_compressor(::Compressor, ::AbsractMatrix)`, 
 if vector information is required we can also define 
 `complete_compressor(::Compressor, ::AbsractMatrix, ::AbstractVector)`. 
@@ -163,12 +164,13 @@ function complete_compressor(sparse_info::SparseSign, A::AbstractMatrix)
 end
 ``` 
 The `complete_compressor` function assumes that if the user inputs only `n_rows` or `n_cols` 
-in the Compressor structure this is the desired compression dimension. If they input neither 
-it users a compression dimension of two and if the input both and neither is consistent with 
-a dimension of the inputted linear system it returns and error otherwise it assumes the 
-inconsistent dimension is the sketching dimension. Once, the sizes of the compressor have 
-been determined it next allocates an initial compressor matrix with the minimal necessary 
-memory.
+in the Compressor structure this is the desired compression dimension. If they input 
+neither, it creates a compressor with a compression dimension of two and 
+if the input both and neither is consistent with 
+a dimension of the inputted linear system it returns an error. Otherwise, it assumes the 
+inconsistent dimension is the compression dimension. Once the sizes of the compressor have 
+been determined it next allocates the memory necessary for storing the initial compressor
+and packages these allocations with the size information into the `CompressorRecipe`.
 
 #### update_compressor!
 To generate a new version of the compressor we can call the function `update_compressor!`, 
@@ -207,17 +209,17 @@ end
 #### mul!
 The last pieces of code that every compression technique requires are the `mul!` functions. 
 For these functions we follow the conventions laid out in the LinearAlgebra library where 
-there are five inputs (A, B, C, alpha, beta) and it outputs A = beta * A + alpha * B * C.
+there are five inputs (A, B, C, alpha, beta) and it outputs `A = beta * A + alpha * B * C`.
 The `mul!` functions that should be implemented are two for applying the compression matrix
-to vectors, one in standard orientation and one for when the adjoint of the matrix is 
+to vectors, one in standard orientation and one for when the adjoint of the compressor is 
 applied to the vector. Additionally, two `mul!` functions should be implemented for when 
 the compression matrix is applied to a matrix, one for when the compression matrix, C, is 
-applied from the left, i.e. CA, and one for when the compression matrix is applied from the 
-right, i.e. AC. 
+applied from the left, i.e. CB, and one for when the compression matrix is applied from the 
+right, i.e. BC. 
 
 ### Solvers
-A Solver technique is any technique that aims to find a vector $$x$$ such that either 
-$$Ax = b$$ or $$x = \min_u \|A u - b\|_2^2$$. Solvers rely on compression techniques, 
+A Solver technique is any technique that aims to find a vector ``x`` such that either 
+``Ax = b`` or ``x = \\min_u \\|A u - b\\|_2^2``. Solvers rely on compression techniques, 
 logging techniques, error techniques, and sub-solver techniques. We first discuss 
 implementations requirements for the sub-techniques and then discuss how we can use these 
 when creating a solver structure.
@@ -230,11 +232,11 @@ into this for a logging technique will be contained in the Logger structure.
 ##### Logger
 The Logger structure is where the user inputs any information required 
 to logging progress and stopping the method. **The Logger is required to have a field for 
-`max_it`, `threshold_info`, and `stopping_criterion`.** The `max_it` field is simply a field
-for the maximum number of iterations of the method. The `stopping_criterion` is a function 
-that returns a stopping decision based on the information in the LoggerRecipe and the 
-information supplied by the user in the `threshold_info` field. We present an example of
-the Logger structure for a BasicLogger below
+`max_it`, `threshold_info`, and `stopping_criterion`.** The `max_it` field is a field
+for the maximum number of iterations of the method. The `stopping_criterion` is a field that
+contains a function that returns a stopping decision based on the information in the 
+`LoggerRecipe` and the `Tuple` of information supplied by the user in the `threshold_info` 
+field. We present an example of the Logger structure for a `BasicLogger` below
 ```
 struct BasicLogger <: Logger
     max_it::Int64
@@ -244,17 +246,18 @@ struct BasicLogger <: Logger
 end
 ```
 
-Aside from the required parameters the BasicLogger also features a collection rate parameter
-to allow the user to specify how often they wish for the LoggerRecipe to log progress.
+Aside from the required parameters the `BasicLogger` also features a collection rate parameter
+to allow the user to specify how often they wish for the `LoggerRecipe` to log progress.
 
 ##### LoggerRecipe
-The LoggerRecipe will contain the user-controlled parameters from the Logger as well as the 
-memory for storing the log information. All LoggerRecipes **must contain a `max_it` field 
-and a `converged` field,** where the `converged` field is a boolean indicating if the method
-has converged. An example of a LoggerRecipe is presented below for the BasicLoggerRecipe. 
-This Logger has a vector for the history of the progress metric, a field whose inclusion is
-strongly suggested. It also has `record_location` field to keep track of where the next 
-observed progress estimate should be placed depending on the `collection_rate`.
+The `LoggerRecipe` will contain the user-controlled parameters from the `Logger` as well as 
+memory for storing the logged information. All `LoggerRecipes` 
+**must contain a `max_it` field and a `converged` field,** where the `converged` field is a 
+boolean indicating if the method has converged. An example of a `LoggerRecipe` is presented 
+below for the `BasicLoggerRecipe`.  This Logger has a vector for the history of the progress 
+metric, a field whose inclusion is strongly suggested. It also has `record_location` field 
+to keep track of where the next observed progress estimate should be placed depending 
+on the `collection_rate`.
 ```
 mutable struct BasicLoggerRecipe{F} <: LoggerRecipe where F<:Function
     max_it::Int64
@@ -334,8 +337,8 @@ compressed residual, but could be more complicated techniques like an estimate o
 stability. 
 
 ##### SolverError
-This is a structure that holds user-defined parameters for a progress estimation technique.
-For basic techniques like the residual where no user-defined parameters are required this
+This is a structure that holds user-controlled parameters for a progress estimation technique.
+For basic techniques like the residual where no user-controlled parameters are required this
 will simply be an empty structure. We have included an example of a `SolverError` structure
 for the residual computations.
 ```
@@ -345,7 +348,7 @@ end
 ```
 
 ##### SolverErrorRecipe
-This is strcuture containing the user-defined parameters from the `SolverError` as well 
+This is strcuture containing the user-controlled parameters from the `SolverError` as well 
 memory allocations of a size determined based on the linear system. An example for a 
 residual technique has been included below.
 
@@ -396,11 +399,11 @@ compressed linear system, we introduce the SubSolver data structures.
 This is a data structure that allows the user to specify how they wish to solve the
 compressed linear systems generated in the solving process. When the solver type is a direct
 method it is possible for there to be no user inputs in this data structure. For iterative
-methods there could be extensive user-defined parameters included in this structure. For 
+methods there could be extensive user-controlled parameters included in this structure. For 
 example, for a LSQR SubSolver the user could input the maximum of iterations, a 
 preconditioner type, or stopping thresholds. We have included an example of the `SubSolver`
 structure for the `LQSolver`, which is an approach for solving undetermined linear systems 
-and does not have any user-defined parameters associated with it.
+and does not have any user-controlled parameters associated with it.
 ```
 struct LQSolver <: SubSolver
 
@@ -428,7 +431,7 @@ methods to implement a Solver technique. The first data structure required for a
 the `Solver` structure.
 
 ##### Solver
-The Solver data structure is a structure where the user can input values of user-defined 
+The Solver data structure is a structure where the user can input values of user-controlled 
 parameters specific to a particular type of solver. This typically involves the user
 inputting the structures associated with their desired Compressor, Logger, Error, and 
 SubSolver, as well as any parameters like step-sizes associated with the particular 
@@ -447,7 +450,7 @@ end
 
 ##### SolverRecipe
 The SolverRecipe will contain all the preallocated memory associate with the solver, the 
-solver specific user-defined parameters, and all recipes associated with the sub-techniques
+solver specific user-controlled parameters, and all recipes associated with the sub-techniques
 included in the Solver. We have included an example for the `KaczmarzRecipe` below.
 ```
 mutable struct KaczmarzRecipe{T<:Number, 
@@ -612,7 +615,7 @@ end
 ```
 
 #### ApproximatorRecipe
-This a data structure that contains preallocated memory and the user-defined parameters for 
+This a data structure that contains preallocated memory and the user-controlled parameters for 
 a specific approximation method. An example of this data structure for a RangeFinder 
 decomposition is included below.
 ```
