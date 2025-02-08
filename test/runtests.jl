@@ -1,10 +1,3 @@
-using Test
-using RLinearAlgebra
-
-
-# Include the test for recipes
-include("./test_helpers/field_test_macros.jl")
-
 # List all directories that have files to be tested 
 directs = joinpath.(@__DIR__,["./", "Approximators/", "Solvers/", "Solvers/Loggers/", 
                               "Solvers/SubSolvers/", "Compressors/"])

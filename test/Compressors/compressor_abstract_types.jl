@@ -3,8 +3,10 @@ module compressor_abstract_types
     include("../test_helpers/field_test_macros.jl")
     include("../test_helpers/approx_tol.jl")
 
-    @test isdefined(Main, :Compressor)
-    @test isdefined(Main, :CompressorRecipe)
-    @test isdefined(Main, :CompressorAdjoint)
+    @testset "Compressor Abstract Tyoes" begin
+        @test isdefined(Main, :Compressor)
+        @test isdefined(Main, :CompressorRecipe)
+        @test isdefined(Main, :CompressorAdjoint)
+    end
 
 end
