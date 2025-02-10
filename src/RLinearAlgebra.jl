@@ -9,8 +9,6 @@ module RLinearAlgebra
     include("Compressors.jl")
     include("Solvers.jl")
     include("Approximators.jl")
-    include("Solvers/Loggers.jl")
-    include("Solvers/SubSolvers.jl")
 
     # Export the complete_ functions 
     export complete_compressor, complete_solver, complete_approximator
