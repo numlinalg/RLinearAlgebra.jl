@@ -1,4 +1,5 @@
-# Overview Library Goals
+# Design
+## Overview Library Goals
 RLinearAlgebra.jl implements randomized numerical linear algebra (RNLA) routines for
 two tasks: (1) solving a matrix equations and (2) forming a low-rank approximation 
 to matrices.  The primary tool Randomized Linear Algebra uses to accomplish these tasks is
