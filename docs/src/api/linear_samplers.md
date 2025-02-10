@@ -112,6 +112,8 @@ RLinearAlgebra.fwht!
 ```
 
 ## Matrix Induced Probability Distributions 
-```@docs
+```@docs 
+RLinearAlgebra.frobenius_norm_distribution
+
 RLinearAlgebra.leverage_score_distribution
 ```
