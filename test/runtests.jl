@@ -1,4 +1,5 @@
 using Test
+using RLinearAlgebra
 # List all directories that have files to be tested 
 directs = joinpath.(@__DIR__,["./", "Approximators/", "Solvers/", "Solvers/Loggers/", 
                               "Solvers/SubSolvers/", "Compressors/"])
