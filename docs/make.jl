@@ -21,16 +21,22 @@ makedocs(
                 "Solvers Overview" => "api/solvers.md",
                 "Solver Sub-routines" => [
                     "SubSolvers" => "api/sub_solvers.md",
-                    "SolverErrors" => "api/solver_errors.md",
+                    "SolverErrors" => "api/solver_error.md",
                     "Loggers" => "api/loggers.md"
                 ],
             ],
             "Approximators" => [
                 "Approximators Overview" => "api/approximators.md",
                 "Approximator Sub-routines" => [
-                    "ApproximatorErrors" => "api/approximator_errors.md"
+                    "ApproximatorErrors" => "api/approximator_error.md"
                                            ],
             ],
+        ],
+        "Contributing" => [
+            "Contributing Overview" => "dev/contributing.md",
+            "Design of Library" => "dev/design.md",
+            "Checklists" => "dev/checklists.md",
+            "Style Guide" => "dev/style_guide.md",
         ],
         "References" => "references.md",
     ]
