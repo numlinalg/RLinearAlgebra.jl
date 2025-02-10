@@ -14,6 +14,9 @@ CompressorAdjoint
 
 ## Compressor Structures
 ```@docs
+SparseSign
+
+SparseSignRecipe
 
 ```
 
