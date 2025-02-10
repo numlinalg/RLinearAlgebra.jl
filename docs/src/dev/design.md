@@ -209,34 +209,36 @@ end
 #### mul!
 The last pieces of code that every compression technique requires are the `mul!` functions. 
 For these functions we follow the conventions laid out in the LinearAlgebra library where 
-there are five inputs (A, B, C, alpha, beta) and it outputs `A = beta * A + alpha * B * C`.
+there are five inputs (C, A, S, alpha, beta) and it outputs `C = beta * C + alpha * A * S`.
 The `mul!` functions that should be implemented are two for applying the compression matrix
 to vectors, one in standard orientation and one for when the adjoint of the compressor is 
 applied to the vector. Additionally, two `mul!` functions should be implemented for when 
-the compression matrix is applied to a matrix, one for when the compression matrix, C, is 
-applied from the left, i.e. CB, and one for when the compression matrix is applied from the 
-right, i.e. BC. 
+the compression matrix is applied to a matrix, one for when the compression matrix, S, is 
+applied from the left, i.e. AS, and one for when the compression matrix is applied from the 
+right, i.e. SA. 
 
 ### Solvers
 A Solver technique is any technique that aims to find a vector ``x`` such that either 
 ``Ax = b`` or ``x = \\min_u \\|A u - b\\|_2^2``. Solvers rely on compression techniques, 
 logging techniques, error techniques, and sub-solver techniques. We first discuss 
-implementations requirements for the sub-techniques and then discuss how we can use these 
+implementation requirements for the sub-techniques and then discuss how we can use these 
 when creating a solver structure.
 
 #### Loggers
 Loggers are structures with two goals (1) log a progress value produced by an error metric
 and (2) evaluate whether that error is sufficient for stopping. The user controlled inputs
-into this for a logging technique will be contained in the Logger structure.
+for a logging technique are contained in the Logger structure.
 
 ##### Logger
-The Logger structure is where the user inputs any information required 
+The `Logger` structure is where the user inputs any information required 
 to logging progress and stopping the method. **The Logger is required to have a field for 
 `max_it`, `threshold_info`, and `stopping_criterion`.** The `max_it` field is a field
 for the maximum number of iterations of the method. The `stopping_criterion` is a field that
 contains a function that returns a stopping decision based on the information in the 
 `LoggerRecipe` and the `Tuple` of information supplied by the user in the `threshold_info` 
-field. We present an example of the Logger structure for a `BasicLogger` below
+field. It is important to note that constructors for these techniques should have keyword 
+inputs with predefined defaults. We present an example of the Logger structure for a 
+`BasicLogger` below
 ```
 struct BasicLogger <: Logger
     max_it::Int64
@@ -246,8 +248,9 @@ struct BasicLogger <: Logger
 end
 ```
 
-Aside from the required parameters the `BasicLogger` also features a collection rate parameter
-to allow the user to specify how often they wish for the `LoggerRecipe` to log progress.
+Aside from the required parameters the `BasicLogger` also features a `collection rate` 
+parameter to allow the user to specify how often they wish for the `LoggerRecipe` to log 
+progress.
 
 ##### LoggerRecipe
 The `LoggerRecipe` will contain the user-controlled parameters from the `Logger` as well as 
@@ -273,7 +276,7 @@ end
 ```
 
 ##### complete_logger
-As with the other `complete_[type]` this function takes a `Logger` data structure and 
+As with the other techniques, `complete_logger`  takes a `Logger` data structure and 
 performs the appropriate allocations to generate a `LoggerRecipe`. An example of this 
 function for BasicLogger is presented below.
 ```
@@ -299,7 +302,7 @@ end
 ```
 
 ##### update_logger!
-As with the compressors this is a function that performs an in-place update of the 
+As with the compressors `update_logger!` performs an in-place update of the 
 LoggerRecipe using the inputted progress metric and iteration of the method. An example of 
 the `update_logger!` function for the BasicLoggerRecipe is included below.
 ```
@@ -323,8 +326,8 @@ end
 As was noted in the description of the required fields for the `Logger` the user should 
 have the opportunity to input a stopping function that should take the input of a 
 LoggerRecipe to which it updates the value of the `converged` field if stopping should 
-occur. An example, this type of function for threshold stopping, stop when progress metric
-falls below a particular threshold is presented below.
+occur. An example implementation of function for threshold stopping, stop when progress 
+the metric falls below a particular threshold is presented below.
 ```
 function threshold_stop(log::LoggerRecipe)
     return log.err < log.threshold_info
@@ -337,10 +340,11 @@ compressed residual, but could be more complicated techniques like an estimate o
 stability. 
 
 ##### SolverError
-This is a structure that holds user-controlled parameters for a progress estimation technique.
-For basic techniques like the residual where no user-controlled parameters are required this
-will simply be an empty structure. We have included an example of a `SolverError` structure
-for the residual computations.
+This is a structure that holds user-controlled parameters for a progress estimation 
+technique. For basic techniques like the residual where no user-controlled parameters are 
+required this will simply be an empty structure. We have included an example of a 
+`SolverError` structure for the residual computations. It is important to note that 
+constructors for these techniques should have keyword inputs with predefined defaults.
 ```
 struct FullResidual <: SolverError
 
@@ -348,7 +352,7 @@ end
 ```
 
 ##### SolverErrorRecipe
-This is strcuture containing the user-controlled parameters from the `SolverError` as well 
+This structure contains the user-controlled parameters from the `SolverError` as well 
 memory allocations of a size determined based on the linear system. An example for a 
 residual technique has been included below.
 
@@ -359,8 +363,10 @@ end
 ```
 ##### complete_error
 To generate the `SolverErrorRecipe` from the information in the linear system and 
-`SolverError` we use the function `complete_error`. An example of this function for the 
-residual error technique has been included below.
+`SolverError` we use the function `complete_error`. This function should be implemented to
+take the inputs of the SolverError`, a matrix `A` representing the linear system, and a 
+vector `b` representing the constant vector of the linear system. An example of this 
+function for the residual error technique has been included below.
 
 ```
 function complete_error(error::FullResidual, A::AbstractMatrix, b::AbstractVector)
@@ -403,7 +409,8 @@ methods there could be extensive user-controlled parameters included in this str
 example, for a LSQR SubSolver the user could input the maximum of iterations, a 
 preconditioner type, or stopping thresholds. We have included an example of the `SubSolver`
 structure for the `LQSolver`, which is an approach for solving undetermined linear systems 
-and does not have any user-controlled parameters associated with it.
+and does not have any user-controlled parameters associated with it. It is important to note 
+that constructors for these techniques should have keyword inputs with predefined defaults.
 ```
 struct LQSolver <: SubSolver
 
@@ -450,8 +457,9 @@ end
 
 ##### SolverRecipe
 The SolverRecipe will contain all the preallocated memory associate with the solver, the 
-solver specific user-controlled parameters, and all recipes associated with the sub-techniques
-included in the Solver. We have included an example for the `KaczmarzRecipe` below.
+solver specific user-controlled parameters, and all recipes associated with the 
+sub-techniques included in the `Solver` structure. We have included an example for the 
+`KaczmarzRecipe` below.
 ```
 mutable struct KaczmarzRecipe{T<:Number, 
                               V<:AbstractVector,
@@ -485,9 +493,9 @@ The `complete_solver` function performs the necessary computations and allocatio
 a `Solver` structure into a `SolverRecipe`. In the example code below for a Kaczmarz solver
 these computations include running `complete_[technique]` for the compression, logging, 
 error, and sub solver techniques, as well as allocating memory for storing the compressed 
-matrix and compressed vector, the solution vector, and update vector. **The views allocated
-by this function should be replicated in other solver structures to allow for varying sizes
-of the compression matrix.**
+matrix and compressed vector, the solution vector, and update vector. **The `views` 
+allocated by this function should be replicated in other multi-compression solver structures 
+to allow for varying sizes of the compression matrix.**
 ```
 function complete_solver(
         solver::Kaczmarz, 
@@ -606,7 +614,10 @@ implementation of the following data structures and functions.
 
 #### Approximator
 This is a data structure that contains the user defined parameters for an approximator. An 
-example of this structure for the RangeFinder decomposition is included below.
+example of this structure for the RangeFinder decomposition is included below. In the case 
+of the randomized range finder the only real user controlled parameter is the sketch size,
+which is controlled by the `Compressor`. It should be noted that constructors for these 
+structures should be based around keyword inputs with preset defaults. 
 ```
 mutable struct RangeFinder <: Approximator
     S::Compressor
@@ -615,8 +626,8 @@ end
 ```
 
 #### ApproximatorRecipe
-This a data structure that contains preallocated memory and the user-controlled parameters for 
-a specific approximation method. An example of this data structure for a RangeFinder 
+This a data structure that contains preallocated memory and the user-controlled parameters 
+for a specific approximation method. An example of this data structure for a RangeFinder 
 decomposition is included below.
 ```
 mutable struct RangeFinderRecipe <: ApproximatorRecipe
@@ -628,7 +639,7 @@ end
 ```
 
 #### complete_approximator
-A function that takes the linear system information through the matrix `A` and the 
+The `complete_approximator` function takes the matrix `A` and the 
 `Approximator` data structure to output an `ApproximatorRecipe` with properly allocated 
 storage for the low-rank approximation. An example of this function for the 
 `RangeFinderRecipe` is included below.
@@ -644,13 +655,13 @@ function complete_approximator(approx::RangeFinder, A::AbstractMatrix)
 end
 ```
 
-#### r_approximate
+#### rapproximate!
 A function that returns an `ApproximatorRecipe` and approximation error value for a
 particular approximation method. The returned `ApproximatorRecipe` can then be used for 
 matrix multiplication or preconditioning through the use of the `mul!` and `ldiv!` functions
 respectively. An example of this function for the `RangeFinderRecipe` is included below.
 ```
-function r_approximate(
+function r_approximate!(
     approximator::RangeFinderRecipe
     A::AbstractMatrix
 )
@@ -672,11 +683,25 @@ use the low rank approximation to solve this system the implementation will be t
 the implementation for `mul!`.
 
 #### mul!
-A function that multiplies a low rank approximation with a matrix.
+A function that multiplies a low rank approximation with a matrix. This should be 
+implemented as the five input `mul!` function. For these functions we follow the conventions 
+laid out in the LinearAlgebra library where there are five inputs (C, A, S, alpha, beta) and 
+it outputs `C = beta * C + alpha * A * S`.
+
+### Approximation Error
+For the `Approximator`s an important sub-techniques are those that verify the accuracy of a
+particular approximation. These methods can be exact, as in the case of computing
+``\|A - QQ'A\|_F``, where ``Q`` is a row-space approximator or approximate such as the 
+``\|AS - QQ'AS\|_F`` where ``S`` is a Gaussian matrix with 10 column vectors.
 
 #### ApproximatorError
-A data structure that takes the user controlled parameters for a method that computes the 
-approximation error, e.g `A - QQ'A` for a particular approximation method.  
+The `ApproximatorError` data structure is a data structure that takes the user controlled 
+parameters for a method that computes the approximation error, e.g ``A - QQ'A`` for a 
+particular approximation method. In cases where this error is an exact approximation no 
+user-controlled parameters may be needed and the `ApproximatorError` can be implemented as 
+an empty data structure. If user-controlled parameters are necessary then constructors
+should be implemented that take in keyword arguments with defaults. We have included an 
+example data structure for a method that computes the projected error, ``A - QQ'A``, below.
 ```
 mutable struct ProjectedError <: ApproximatorError
 
@@ -685,9 +710,9 @@ end
 ```
 
 #### ApproximatorErrorRecipe
-A data structure that takes the user controlled parameters and preallocated memory for a 
-method that computes the approximation error, e.g `A - QQ'A` for a particular approximation 
-method.  
+An `ApproximatorErrorRecipe` contains the user-controlled parameters and preallocated memory 
+for a method that computes the approximation error, e.g `A - QQ'A` for a particular 
+approximation method.  
 ```
 mutable struct ProjectedErrorRecipe{T, M{T}} <: ApproximatorErrorRecipe 
     where M <: AbstractMatrix
@@ -697,7 +722,7 @@ mutable struct ProjectedErrorRecipe{T, M{T}} <: ApproximatorErrorRecipe
 end
 ```
 #### complete_error
-A function that takes the information from a `ApproximatorError`, `CompressorRecipe`, and an
+The `complete_error` function takes the information from a `ApproximatorError` and an
 `AbstractMatrix` to create an `ApproximatorErrorRecipe`. An example for the 
 `ProjectedError` structure is included below.
 ```
