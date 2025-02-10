@@ -21,14 +21,14 @@ makedocs(
                 "Solvers Overview" => "api/solvers.md",
                 "Solver Sub-routines" => [
                     "SubSolvers" => "api/sub_solvers.md",
-                    "SolverErrors" => "api/solver_error.md",
+                    "SolverErrors" => "api/solver_errors.md",
                     "Loggers" => "api/loggers.md"
                 ],
             ],
             "Approximators" => [
                 "Approximators Overview" => "api/approximators.md",
                 "Approximator Sub-routines" => [
-                    "ApproximatorErrors" => "api/approximator_error.md"
+                    "ApproximatorErrors" => "api/approximator_errors.md"
                                            ],
             ],
         ],
