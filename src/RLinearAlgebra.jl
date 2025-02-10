@@ -3,14 +3,13 @@ module RLinearAlgebra
     import Base: transpose, adjoint 
     import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ
     import StatsBase: sample!
-    import Random: bitrand, seed!
+    import Random: bitrand, seed!, rand!
+    import SparseArrays: SparseMatrixCSC
    
     # Include the files correspoding to the top-level techniques
     include("Compressors.jl")
     include("Solvers.jl")
     include("Approximators.jl")
-    include("Solvers/Loggers.jl")
-    include("Solvers/SubSolvers.jl")
 
     # Export the complete_ functions 
     export complete_compressor, complete_solver, complete_approximator
@@ -32,6 +31,7 @@ module RLinearAlgebra
 
     # Export Compressor types
     export Compressor, CompressorRecipe, CompressorAdjoint
+    export SparseSign, SparseSignRecipe
 
     # Export Solver types
     export Solver, SolverRecipe 

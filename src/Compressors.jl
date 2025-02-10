@@ -87,11 +87,7 @@ function (*)(S::CompressorRecipe, A::AbstractMatrix)
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
     @assert a_rows == s_cols "Matrix A has $a_rows rows while S has $s_cols columns."
-    if typeof(S) <: CompressorAdjoint
-        B = zeros(s_rows, a_cols)
-    else
-        B = zeros(s_rows, a_cols)
-    end
+    B = zeros(s_rows, a_cols)
     mul!(B, S, A, 1.0, 0.0)
     return B
 end
@@ -105,12 +101,7 @@ function (*)(A::AbstractMatrix, S::CompressorRecipe)
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
     @assert s_rows == a_cols "Matrix A has $a_cols cols while S has $s_rows rows."
-    if typeof(S) <: CompressorAdjoint
-        # Since size function flips dimenstions for adjoint
-        B = zeros(s_cols, a_rows)
-    else
-        B = zeros(a_rows, s_cols)
-    end
+    B = zeros(a_rows, s_cols)
     mul!(B, A, S, 1.0, 0.0)
     return B
 end
@@ -284,4 +275,4 @@ end
 ###################################
 # Include Compressor Files
 ###################################
-
+include("Compressors/sparse_sign.jl")
