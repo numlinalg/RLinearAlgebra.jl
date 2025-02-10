@@ -45,6 +45,7 @@ function sample(
     if iter == 1
         # Allocate space for blocks and intialize cycle
         init_blocks_cyclic!(type, n) 
+        type.block_size = div(n, type.n_blocks)
     end
     # Use iter - 1 to ensure first iteration gives b_idx 1
     b_idx = rem(iter - 1, type.n_blocks) + 1
@@ -62,7 +63,6 @@ function sample(
     # Normal equation residual in the Sketched Block
     grad = AS' * (A * x - b)
     
-    type.block_size = div(n, type.n_blocks)
     bsize = size(col_idx, 1)
     # Create sketching matrix
     S = zeros(n, bsize)

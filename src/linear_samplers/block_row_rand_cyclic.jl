@@ -45,6 +45,7 @@ function sample(
     if iter == 1
         # Allocate space for blocks and intialize cycle
         init_blocks_cyclic!(type, m) 
+        type.block_size = div(m, type.n_blocks)
     end
 
     # So that iteration 1 corresponds to bIndx 1 use iter - 1 
@@ -59,7 +60,6 @@ function sample(
     SA = A[row_idx, :]
     Sb = b[row_idx]
 
-    type.block_size = div(m, type.n_blocks)
     bsize = size(row_idx,1)
     # Residual of the linear system
     res = SA * x - Sb

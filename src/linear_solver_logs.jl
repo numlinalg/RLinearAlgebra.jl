@@ -64,7 +64,8 @@ end
 #############################################
 # Logger Helper Structs and Functions
 #############################################
-include("linear_solver_logs/linear_solver_logs_helpers/structs_functions_ma.jl")
+include("linear_solver_logs/linear_solver_logs_helpers/ma_info.jl")
+include("linear_solver_logs/linear_solver_logs_helpers/distribution_info_4_ma.jl")
 #############################################
 # Loggers
 #############################################

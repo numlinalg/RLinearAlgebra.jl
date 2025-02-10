@@ -134,7 +134,8 @@ Random.seed!(1010)
 
         for sampler in samplers
             logger = LSLogMA()
-
+            # Ensure no warnings are thrown (valid constants exist)
+            # @test_logs RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
             RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
         end
     end
@@ -145,7 +146,6 @@ Random.seed!(1010)
         x = rand(5)  
         b = A * x         
         z = rand(5)
-        # block_size = 2   
         samplers = [ LinSysBlkRowGaussSampler(),
                      LinSysBlkRowRandCyclic(),
                      LinSysBlkRowReplace(),
