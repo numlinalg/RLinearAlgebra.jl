@@ -196,6 +196,8 @@ include("linear_samplers/block_col_sparse_sign.jl")
 include("linear_samplers/linear_sampler_helpers/helpers_cyclic.jl")
 include("linear_samplers/linear_sampler_helpers/hadamard.jl")
 include("linear_samplers/linear_sampler_helpers/induced_distributions/approximate_leverage_scores.jl")
+include("linear_samplers/linear_sampler_helpers/induced_distributions/frobenius_norm.jl")
+include("linear_samplers/linear_sampler_helpers/induced_distributions/leverage_scores.jl")
 #############################################
 # Export Statements
 #############################################
