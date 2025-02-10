@@ -2,10 +2,12 @@
    SparseSign <: Compressor
 
 An implementation of the sparse sign sketching method. This method forms a sparse matrix 
-with a fixed number of non-zeros per row or column depending on the direction that the 
-sketch is being applied. If sketching from the left, then the number of nonzeros is 
-fixed for each column. For sketching from the right, then the number of nonzeros is fixed
-for each row. Each nonzero entry takes a value of {-1, 1} * sqrt(1/nnz).
+    with a fixed number of non-zeros per row or column depending on the direction that the 
+    sketch is being applied. If sketching from the left, then the number of nonzeros is 
+    fixed for each column. For sketching from the right, then the number of nonzeros is
+    fixed for each row. Each nonzero entry takes a value of {-1, 1} * sqrt(1/nnz) 
+    [martinsson2020randomized](@cite).
+
 # Fields
  - `n_rows::Int64`, the number of rows in the sketching matrix.
  - `n_cols::Int64`, the number of columns in the sketching matrix.
@@ -30,6 +32,7 @@ If you are compressing rows, you should set it to be same dimension as the numbe
 of rows in the matrix you wish to compress.
 - `nnz::Int64`, the number of non-zeros per row/column in the sampling matrix. By default 
 this is set to 8.
+
 """
 struct SparseSign <: Compressor
     n_rows::Int64
@@ -59,6 +62,7 @@ The recipe containing all allocations and information for the SparseSign compres
  - `signs::Vector{Bool}`, the sign of each non-zero entry in each row if column 
  compression or each column if row compression.  As a boolean vector `0`s indicate negative 
  signs while `1`s indicate positive signs.
+
 """
 mutable struct SparseSignRecipe <: CompressorRecipe
     n_rows::Int64
