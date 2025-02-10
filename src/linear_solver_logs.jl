@@ -61,13 +61,18 @@ function log_update!(
     return nothing
 end
 
-
+#############################################
+# Logger Helper Structs and Functions
+#############################################
+include("linear_solver_logs/linear_solver_logs_helpers/ma_info.jl")
+include("linear_solver_logs/linear_solver_logs_helpers/distribution_info_4_ma.jl")
 #############################################
 # Loggers
 #############################################
 include("linear_solver_logs/solve_log_oracle.jl")
 include("linear_solver_logs/solve_log_full.jl")
 include("linear_solver_logs/solve_log_ma.jl")
+include("linear_solver_logs/solve_log_full_ma.jl")
 #############################################
 # Exports
 #############################################

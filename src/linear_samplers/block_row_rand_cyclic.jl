@@ -9,6 +9,8 @@ a new random ordering is created.
 - `n_blocks::Int64`, Variable that contains the number of blocks overall.
 - `order::Union{Vector{Int64}, Nothing}`, The order that the blocks will be used to generate updates.
 - `blocks::Union{Vector{Vector{Int64}}, Nothing}`, The list of all the row in each block.
+- `block_size::Int64`, Variable that represents the smallest sketching block size in iterations. 
+    Used in moving average method. 
 
 # Constructors
 Calling `LinSysBlkColRandCyclic()` defaults to setting `n_blocks` to 2 and `blocks` to be sequentially ordered. 
@@ -19,9 +21,17 @@ mutable struct LinSysBlkRowRandCyclic <: LinSysBlkRowSampler
     n_blocks::Int64
     order::Union{Vector{Int64}, Nothing}
     blocks::Union{Vector{Vector{Int64}}, Nothing}
+    block_size::Union{Int64, Nothing}
 end
 
-LinSysBlkRowRandCyclic(;n_blocks=2, blocks = nothing) = LinSysBlkRowRandCyclic(n_blocks, nothing, blocks)
+LinSysBlkRowRandCyclic(;
+                       n_blocks=2, 
+                       blocks = nothing
+                      ) = LinSysBlkRowRandCyclic( n_blocks, 
+                                                  nothing, 
+                                                  blocks,
+                                                  nothing
+                                                )
 
 # Common sample interface for linear systems
 function sample(
@@ -35,6 +45,7 @@ function sample(
     if iter == 1
         # Allocate space for blocks and intialize cycle
         init_blocks_cyclic!(type, m) 
+        type.block_size = div(m, type.n_blocks)
     end
 
     # So that iteration 1 corresponds to bIndx 1 use iter - 1 
@@ -48,6 +59,7 @@ function sample(
     row_idx = type.blocks[block]
     SA = A[row_idx, :]
     Sb = b[row_idx]
+
     bsize = size(row_idx,1)
     # Residual of the linear system
     res = SA * x - Sb

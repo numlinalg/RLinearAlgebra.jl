@@ -12,15 +12,17 @@ Random.seed!(1010)
     @test supertype(LSLogMA) == LinSysSolverLog
 
     # Verify Required Fields
-    @test :iteration in fieldnames(LSLogMA)
+    @test :iterations in fieldnames(LSLogMA)
     @test :converged in fieldnames(LSLogMA)
 
+    # Initialize data
+    A = rand(2,2)
+    x = rand(2)
+    b = A * x
+    z = rand(2)
+
     # Verify log_update initialization
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
+    let A = A, x = x, b = b, z = z
 
         sampler = LinSysVecRowOneRandCyclic()
         logger = LSLogMA()
@@ -34,7 +36,7 @@ Random.seed!(1010)
         @test length(logger.resid_hist) == 1
         @test norm(logger.resid_hist[1] - 2 * norm(dot(A[1, :], z) - b[1])^2) < 1e2 * eps()
         @test norm(logger.iota_hist[1] - 4 * norm(dot(A[1, :], z) - b[1])^4) < 1e2 * eps()
-        @test logger.iteration == 0
+        @test logger.iterations == 0
         @test logger.converged == false
         
         struct MadeUpSampler <: LinSysSampler  
@@ -45,11 +47,7 @@ Random.seed!(1010)
     end
 
     # Verify late moving average 
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
+    let A = A, x = x, b = b, z = z
 
         sampler = LinSysVecRowOneRandCyclic()
         logger = LSLogMA(lambda2 = 2)
@@ -67,9 +65,9 @@ Random.seed!(1010)
         @test length(logger.resid_hist) == 11
         @test norm(logger.resid_hist[3:11] - vcat(obs_res[3], 
                                          [(obs_res[i] + obs_res[i-1])/2 for i = 4:11])) < 1e2 * eps()
-        @test_skip norm(logger.iota_hist[3:11] - vcat(obs_res2[3], 
+        @test norm(logger.iota_hist[3:11] - vcat(obs_res2[3], 
                                         [(obs_res2[i] + obs_res2[i-1])/2 for i = 4:11])) < 1e2 * eps()
-        @test logger.iteration == 10
+        @test logger.iterations == 10
         @test logger.converged == false
         
         #Test uncertainty set 
@@ -79,12 +77,10 @@ Random.seed!(1010)
         @test norm((Uncertainty_set[2] - logger.resid_hist) ./ sqrt.(2 * log(2/.05) * logger.iota_hist * 
                     logger.dist_info.sigma2 .* (1 .+ log.(logger.lambda_hist)) ./  logger.lambda_hist) .- 1) < 1e2 * eps()
     end
+
+
     # Verify early moving average
-    let
-        A = rand(2,2)
-        x = rand(2)
-        b = A * x
-        z = rand(2)
+    let A = A, x = x, b = b, z = z
 
         sampler = LinSysVecRowOneRandCyclic()
         logger = LSLogMA(lambda1 = 2,
@@ -103,7 +99,7 @@ Random.seed!(1010)
         @test length(logger.resid_hist) == 11
         @test norm(logger.resid_hist[3:11] - vcat( [(obs_res[i] + obs_res[i-1])/2 for i = 3:11])) < 1e2 * eps()
         @test norm(logger.iota_hist[3:11] - vcat( [(obs_res2[i] + obs_res2[i-1])/2 for i = 3:11])) < 1e2 * eps()
-        @test logger.iteration == 10
+        @test logger.iterations == 10
         @test logger.converged == false
         
         #Test uncertainty set 
@@ -113,8 +109,72 @@ Random.seed!(1010)
         @test norm((Uncertainty_set[2] - logger.resid_hist) ./ sqrt.(2 * log(2/.05) * logger.iota_hist * 
                     logger.dist_info.sigma2 .* (1 .+ log.(logger.lambda_hist)) ./  logger.lambda_hist) .- 1) < 1e2 * eps()
     end
-    
-   
+
+    # Verify it can work with all types of samplers
+    # Vector samplers 
+    let A = A, x = x, b = b, z = z
+        samplers = [ LinSysVecRowDetermCyclic(),
+                     LinSysVecRowHopRandCyclic(),
+                     LinSysVecRowOneRandCyclic(),
+                     LinSysVecRowPropToNormSampler(),
+                     LinSysVecRowSVSampler(),
+                     LinSysVecRowRandCyclic(),
+                     LinSysVecRowUnidSampler(),
+                     LinSysVecRowUnifSampler(),
+                     LinSysVecRowGaussSampler(),
+                     LinSysVecRowSparseUnifSampler(),
+                     LinSysVecRowSparseGaussSampler(),
+                     LinSysVecRowMaxResidual(),
+                     LinSysVecRowMaxDistance(),
+                     LinSysVecRowResidCyclic(),
+                     LinSysVecRowDistCyclic(),
+                     LinSysVecColDetermCyclic(),
+                     LinSysVecColOneRandCyclic()
+                    ]
+
+        for sampler in samplers
+            logger = LSLogMA()
+            # Ensure no warnings are thrown (valid constants exist)
+            # @test_logs RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
+            RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
+        end
+    end
+
+    # Block samplers
+    let
+        A = rand(10, 5) 
+        x = rand(5)  
+        b = A * x         
+        z = rand(5)
+        samplers = [ LinSysBlkRowGaussSampler(),
+                     LinSysBlkRowRandCyclic(),
+                     LinSysBlkRowReplace(),
+                     LinSysBlkRowFJLT(),
+                     LinSysBlkRowSRHT(),
+                     LinSysBlkRowCountSketch(),
+                     LinSysBlkRowSelectWoReplacement(),
+                     LinSysBlkRowSparseSign(),
+                     LinSysBlkColRandCyclic(),
+                     LinSysBlkColGaussSampler(),
+                     LinSysBlkColReplace(),
+                     LinSysBlkColFJLT(),
+                     LinSysBlkColSRHT(),
+                     LinSysBlkColCountSketch(),
+                     LinSysBlkColSelectWoReplacement(),
+                     LinSysBlkColSparseSign()
+                    ]
+        
+        block_size = 2
+        block_indices = 1:block_size     
+        residual_block = A[block_indices, :] * z - b[block_indices] 
+
+        for sampler in samplers
+            _ = RLinearAlgebra.sample(sampler, A, b, x, 1)
+            logger = LSLogMA()
+            RLinearAlgebra.log_update!(logger, sampler, z, (A[1:2, 1:2], b[1:2], residual_block), 0, A, b)
+        end
+    end
+ 
 
 
 end
