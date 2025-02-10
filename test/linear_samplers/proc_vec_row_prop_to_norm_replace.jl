@@ -56,7 +56,7 @@ Random.seed!(1010)
         @test b[eqn_ind] == output[2]
     end
 
-    # test sampling is done correctly for an arbitrary iteration
+    # teest sampling is done correctly for an arbitrary iteration
     let A = A, b = b, x = x, iter = iter
 
         ## initialize
@@ -72,7 +72,7 @@ Random.seed!(1010)
         Random.seed!(1010)
         eqn_ind = StatsBase.sample(1:length(sampler.dist), Weights(sampler.dist))
 
-        ## check correctness
+        ## chek correctness
         @test sampler.dist == RLinearAlgebra.frobenius_norm_distribution(A, true)
         @test A[eqn_ind, :] == output[1]
         @test b[eqn_ind] == output[2] 

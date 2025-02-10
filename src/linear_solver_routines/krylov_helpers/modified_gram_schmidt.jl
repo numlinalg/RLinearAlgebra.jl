@@ -5,7 +5,7 @@
 """
     mgs!(q::AbstractVector, basis::AbstractMatrix)
 
-Perform the modified Gram-Schmidt to orthogonalize `q`
+Perform the modified gram-schmidt to orthogonalize `q`
 with respect to the set of vectors in `basis`. 
 
 !!! note
@@ -40,7 +40,7 @@ end
 """
     mgs!(q::AbstractVector, h::AbstractVector, basis::AbstractMatrix)
 
-Perform the modified Gram-Schmidt to orthogonalize `q` against
+Perform the modified gram-schmidt to orthogonalize `q` against
 the vectors in `basis`.
 
 !!! note
