@@ -111,10 +111,16 @@ RLinearAlgebra.init_blocks_cyclic!
 RLinearAlgebra.fwht!
 ```
 
-## Matrix Induced Probability Distributions
-
+## Matrix Induced Probability Distributions 
 ```@docs
 RLinearAlgebra.frobenius_norm_distribution
 
 RLinearAlgebra.leverage_score_distribution
+
+RLinearAlgebra.approximate_leverage_score_distribution
+```
+
+### Helper
+```@docs
+RLinearAlgebra._approximate_leverage_score
 ```
