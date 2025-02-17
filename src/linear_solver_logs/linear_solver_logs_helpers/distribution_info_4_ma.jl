@@ -125,6 +125,7 @@ function get_SE_constants!(log::LinSysSolverLog, sampler::Type{T}) where T<:LinS
         log.dist_info.scaling = 1 
 end
 
+# TODO add vector sampler
 for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
              LinSysVecRowSVSampler, LinSysVecRowUnidSampler,
              LinSysVecRowOneRandCyclic, LinSysVecRowDistCyclic,

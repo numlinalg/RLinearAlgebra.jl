@@ -13,7 +13,7 @@
 
 A mutable structure that stores information relevant to the moving average of the 
 progress estimator. This struct is used and updated in functions `update_ma`, 
-and the log_update! of methods `solve_log_ma` and `solve_log_full_ma`.
+and the `log_update!` of methods `solve_log_ma` and `solve_log_full_ma`.
 
 # Fields
 - `lambda1::Int64`, the width of the moving average during the fast convergence phase of the algorithm. 

@@ -133,9 +133,10 @@ Random.seed!(1010)
                     ]
 
         for sampler in samplers
-            logger = LSLogMA()
+            logger = LSLogMA(lambda2 = 2)
             # Ensure no warnings are thrown (valid constants exist)
-            # @test_logs RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
+            # See above test_logs TODO
+            # @test_logs (:warn, "No constants defined for method of type $(typeof(samplers)). By default we set sigma2 to 1 and scaling to 1.") RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
             RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
         end
     end
@@ -170,7 +171,7 @@ Random.seed!(1010)
 
         for sampler in samplers
             _ = RLinearAlgebra.sample(sampler, A, b, x, 1)
-            logger = LSLogMA()
+            logger = LSLogMA(lambda2 = 2)
             RLinearAlgebra.log_update!(logger, sampler, z, (A[1:2, 1:2], b[1:2], residual_block), 0, A, b)
         end
     end
