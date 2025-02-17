@@ -31,7 +31,7 @@ function collect_samplers(collect_type::String)
                continue
           end
           
-
+# TODO fix the blkcountsketch <: sysvec sampler, create a github issue for that.
           if startswith(string(T), prefix) && T <: Union{eval(Symbol(prefix * "RowSampler")), eval(Symbol(prefix * "RowSelect")), eval(Symbol(prefix * "ColSampler")), eval(Symbol(prefix * "ColSelect"))}
                # Check whether we can call with no arguments
                if hasmethod(T, ())
