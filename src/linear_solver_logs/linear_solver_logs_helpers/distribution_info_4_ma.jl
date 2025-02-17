@@ -125,13 +125,11 @@ function get_SE_constants!(log::LinSysSolverLog, sampler::Type{T}) where T<:LinS
         log.dist_info.scaling = 1 
 end
 
-# TODO add vector sampler
 for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
-             LinSysVecRowSVSampler, LinSysVecRowUnidSampler,
-             LinSysVecRowOneRandCyclic, LinSysVecRowDistCyclic,
-             LinSysVecRowResidCyclic, LinSysVecRowMaxResidual,
-             LinSysVecRowRandCyclic,
-             LinSysVecRowMaxDistance,)
+             LinSysVecRowOneRandCyclic, LinSysVecRowSVSampler, 
+             LinSysVecRowRandCyclic, LinSysVecRowUnidSampler, 
+             LinSysVecRowDistCyclic, LinSysVecRowResidCyclic, 
+             LinSysVecRowMaxResidual, LinSysVecRowMaxDistance,)
     @eval begin
         function get_SE_constants!(log::LinSysSolverLog, sampler::Type{$type})
             log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
@@ -143,7 +141,7 @@ for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
 end
 
 
-#Column subsetting methods have same constants as in row case
+# Column subsetting methods have same constants as in row case
 for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
     @eval begin
         function get_SE_constants!(log::LinSysSolverLog, sampler::Type{$type})
