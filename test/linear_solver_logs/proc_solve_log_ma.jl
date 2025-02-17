@@ -115,26 +115,8 @@ Random.seed!(1010)
     # Verify it can work with all types of samplers
     # Vector samplers 
     let A = A, x = x, b = b, z = z
-        # sampler_types = collect_samplers("vec")
-        # samplers = [T() for T in sampler_types]
-        samplers = [ LinSysVecRowDetermCyclic(),
-                     LinSysVecRowHopRandCyclic(),
-                     LinSysVecRowOneRandCyclic(),
-                     LinSysVecRowPropToNormSampler(),
-                     LinSysVecRowSVSampler(),
-                     LinSysVecRowRandCyclic(),
-                     LinSysVecRowUnidSampler(),
-                     LinSysVecRowUnifSampler(),
-                     LinSysVecRowGaussSampler(),
-                     LinSysVecRowSparseUnifSampler(),
-                     LinSysVecRowSparseGaussSampler(),
-                     LinSysVecRowMaxResidual(),
-                     LinSysVecRowMaxDistance(),
-                     LinSysVecRowResidCyclic(),
-                     LinSysVecRowDistCyclic(),
-                     LinSysVecColDetermCyclic(),
-                     LinSysVecColOneRandCyclic()
-                    ]
+        sampler_types = collect_samplers("vec")
+        samplers = [T() for T in sampler_types]
 
         for sampler in samplers
             logger = LSLogMA(lambda2 = 2)
@@ -142,37 +124,39 @@ Random.seed!(1010)
             
             if typeof(sampler) <: Union{RLinearAlgebra.LinSysVecRowUnifSampler, RLinearAlgebra.LinSysVecRowSparseUnifSampler}
                 @test_logs (:warn, "No constants defined for method of type $(typeof(sampler)). By default we set sigma2 to 1 and scaling to 1.") RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
+            else
+                @test_logs RLinearAlgebra.log_update!(logger, sampler, z, (A[1, :], b[1]), 0, A, b)
             end
         end
     end
 
-    # # Block samplers
-    # let
-    #     A = rand(10, 5) 
-    #     x = rand(5)  
-    #     b = A * x         
-    #     z = rand(5)
+    # Block samplers
+    let
+        A = rand(10, 5) 
+        x = rand(5)  
+        b = A * x         
+        z = rand(5)
 
-    #     sampler_types = collect_samplers("blk")
-    #     samplers = [T() for T in sampler_types]
-    #     types_to_add = [LinSysBlkRowCountSketch, LinSysBlkRowSelectWoReplacement, LinSysBlkColCountSketch, LinSysBlkColSelectWoReplacement]
+        sampler_types = collect_samplers("blk")
+        samplers = [T() for T in sampler_types]
+        types_to_add = [LinSysBlkRowCountSketch, LinSysBlkRowSelectWoReplacement, LinSysBlkColCountSketch, LinSysBlkColSelectWoReplacement]
 
-    #     for BlkSamplerType in types_to_add
-    #         if !any(T === BlkSamplerType for T in sampler_types)
-    #             push!(samplers, BlkSamplerType())
-    #         end
-    #     end
+        for BlkSamplerType in types_to_add
+            if !any(T === BlkSamplerType for T in sampler_types)
+                push!(samplers, BlkSamplerType())
+            end
+        end
         
-    #     block_size = 2
-    #     block_indices = 1:block_size     
-    #     residual_block = A[block_indices, :] * z - b[block_indices] 
+        block_size = 2
+        block_indices = 1:block_size     
+        residual_block = A[block_indices, :] * z - b[block_indices] 
 
-    #     for sampler in samplers
-    #         _ = RLinearAlgebra.sample(sampler, A, b, x, 1)
-    #         logger = LSLogMA(lambda2 = 2)
-    #         @test_logs (:warn, "No constants defined for method of type $(typeof(sampler)). By default we set sigma2 to 1 and scaling to 1.") RLinearAlgebra.log_update!(logger, sampler, z, (A[1:2, 1:2], b[1:2], residual_block), 0, A, b)
-    #     end
-    # end
+        for sampler in samplers
+            _ = RLinearAlgebra.sample(sampler, A, b, x, 1)
+            logger = LSLogMA(lambda2 = 2)
+            @test_logs (:warn, "No constants defined for method of type $(typeof(sampler)). By default we set sigma2 to 1 and scaling to 1.") RLinearAlgebra.log_update!(logger, sampler, z, (A[1:2, 1:2], b[1:2], residual_block), 0, A, b)
+        end
+    end
  
 
 

@@ -12,8 +12,7 @@
     SEDistInfo
 
 A mutable structure that stores information about a distribution (i.e., sampling method)
-in the sub-Exponential family. This stuct is used or updated in functions 
-`get_SE_constants!`, `get_uncertainty`, and the `log_update!` of method `solve_log_ma`.
+in the sub-Exponential family.
 
 # Fields
 - `sampler::Union{DataType, Nothing}`, the type of sampling method.
