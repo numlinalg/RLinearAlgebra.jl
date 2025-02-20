@@ -4,9 +4,9 @@ authors = [
     "Christian Varner <cvarner@wisc.edu>", 
     "Daniel Adrian Maldonado <maldonadod@anl.gov>", 
     "Nathaniel Pritchard <Nathaniel.Pritchard@maths.ox.ac.uk>", 
-    "TongTong Jin <ttjin@uchicago.edu>"
+    "TongTong Jin <ttjin@uchicago.edu>",
     "Tunan Wang <tunan.wang@wisc.edu>", 
-    "Vivak Patel <vivak.patel@wisc.edu>", 
+    "Vivak Patel <vivak.patel@wisc.edu>" 
 ]
 version = "0.2.0"
 
