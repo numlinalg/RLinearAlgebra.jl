@@ -7,7 +7,7 @@ to techniques that compress a matrix.
 abstract type Compressor end
 
 """
-   CompressorRecipe
+    CompressorRecipe
 
 An abstract supertype for structures that contain both the user-controlled
 parameters in the `Compressor` and the memory allocations necessary for applying the 
