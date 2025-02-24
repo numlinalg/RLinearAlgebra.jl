@@ -13,7 +13,7 @@ Random.seed!(1010)
 @testset "LSBC Count Sketch -- Procedural" begin
 
     ## Verify appropriate super type
-    @test supertype(LinSysBlkColCountSketch) <: LinSysVecColSelect
+    @test supertype(LinSysBlkColCountSketch) <: LinSysBlkColSampler
     
     # test first constructor -- S is nothing
     sampler = LinSysBlkColCountSketch(10, nothing)

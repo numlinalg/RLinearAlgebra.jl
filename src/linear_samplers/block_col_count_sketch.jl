@@ -8,7 +8,7 @@
 # Purpose: Implement the column sketching algorithm called CountSketch.
 
 """
-    LinSysBlkColCountSketch <: LinSysVecColSelect
+    LinSysBlkColCountSketch <: LinSysBlkColSampler
 
 A mutable structure that represents the CountSketch algorithm for columns.
 The assumption is that `A` is fully known (that is, the sampling procedure
@@ -35,7 +35,7 @@ Calling `LinSysBlkColCountSketch()` defaults to `LinSysBlkColCountSketch(2, noth
 !!! Remark "Implementation Note"
     Current implementation does not take advantage of sparse matrix data structures or operations.
 """
-mutable struct LinSysBlkColCountSketch <: LinSysVecColSelect
+mutable struct LinSysBlkColCountSketch <: LinSysBlkColSampler
     block_size::Int64
     S::Union{Matrix{Int64}, Nothing}
 end

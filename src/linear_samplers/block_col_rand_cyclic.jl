@@ -7,8 +7,12 @@ After all blocks are called, a new random ordering is created.
 
 # Fields
 - `n_blocks::Int64`, Variable that contains the number of blocks overall.
-- `order::Vector{Int64}`, The order that the blocks will be used to generate updates.
-- `blocks::Vector{Vector{Int64}}`, The vector containing all the groupings of column indices.
+- `order::Union{Vector{Int64}, Nothing}`, The order that the blocks will be used 
+    to generate updates.
+- `blocks::Union{Vector{Vector{Int64}}, Nothing}`, The vector containing all the groupings 
+    of column indices.
+- `block_size::Union{Int64, Nothing}`, Variable that represents the smallest sketching 
+    block size in iterations. Used in moving average method. 
 
 # Constructors
 Calling `LinSysBlkColRandCyclic()` defaults to setting `n_blocks` to 2 and `blocks` to be sequentially ordered. 
@@ -19,9 +23,17 @@ mutable struct LinSysBlkColRandCyclic <: LinSysBlkColSampler
     n_blocks::Int64
     order::Union{Vector{Int64}, Nothing}
     blocks::Union{Vector{Vector{Int64}}, Nothing}
+    block_size::Union{Int64, Nothing}
 end
 
-LinSysBlkColRandCyclic(;n_blocks = 2, blocks = nothing) = LinSysBlkColRandCyclic(n_blocks, nothing, blocks)
+LinSysBlkColRandCyclic(;
+                       n_blocks = 2, 
+                       blocks = nothing
+                      ) = LinSysBlkColRandCyclic( n_blocks, 
+                                                  nothing, 
+                                                  blocks, 
+                                                  nothing
+                                                )
 
 # Common sample interface for linear systems
 function sample(
@@ -35,6 +47,7 @@ function sample(
     if iter == 1
         # Allocate space for blocks and intialize cycle
         init_blocks_cyclic!(type, n) 
+        type.block_size = div(n, type.n_blocks)
     end
     # Use iter - 1 to ensure first iteration gives b_idx 1
     b_idx = rem(iter - 1, type.n_blocks) + 1

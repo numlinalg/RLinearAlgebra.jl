@@ -9,7 +9,7 @@
 # columns without replacement from an arbitrary probability distribution.
 
 """
-    LinSysBlkColSelectWoReplacement <: LinSysVecColSelect
+    LinSysBlkColSelectWoReplacement <: LinSysBlkColSampler
 
 A mutable struct that represents sampling columns from `A` without replacement using an
 arbitrary weight/probability vector.
@@ -26,7 +26,7 @@ Calling `LinSysBlkColSelectWoReplacement()` defaults to `LinSysBlkColSelectWoRep
 
 An additional constructor is provided with the keyword arguments `block_size` and `probability`.
 """
-mutable struct LinSysBlkColSelectWoReplacement <: LinSysVecColSelect
+mutable struct LinSysBlkColSelectWoReplacement <: LinSysBlkColSampler
     block_size::Int64
     probability::Union{Weights, Vector{Float64}, Nothing}
     population::Union{Vector{Int64}, Nothing}

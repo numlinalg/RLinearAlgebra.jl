@@ -12,6 +12,8 @@ Random.seed!(1010)
 
 @testset "LSBC Without Replacement -- Procedural" begin
 
+    @test supertype(LinSysBlkColSelectWoReplacement) == LinSysBlkColSampler
+
     #####################
     # test constructors #
     #####################
