@@ -8,7 +8,7 @@
 # Purpose: Implement a row sketching algorithm called CountSketch.
 
 """
-    LinSysBlkRowCountSketch <: LinSysVecRowSelect
+    LinSysBlkRowCountSketch <: LinSysBlkRowSampler
 
 A mutable structure that represents the CountSketch algorithm for rows. 
 The assumption is that `A` is fully known (that is, the sampling procedure is not used in a streaming context).
@@ -34,7 +34,7 @@ Calling `LinSysBlkRowCountSketch()` defaults to `LinSysBlkRowCountSketch(2, noth
 !!! Remark "Implementation Note" 
     Current implementation does not take advantage of sparse matrix data structures or operations.
 """
-mutable struct LinSysBlkRowCountSketch <: LinSysVecRowSelect 
+mutable struct LinSysBlkRowCountSketch <: LinSysBlkRowSampler
     block_size::Int64
     S::Union{Matrix{Int64}, Nothing}
 end

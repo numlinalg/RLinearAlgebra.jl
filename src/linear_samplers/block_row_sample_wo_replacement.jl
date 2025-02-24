@@ -9,7 +9,7 @@
 # rows without replacement from an arbitrary probability distribution.
 
 """
-    LinSysBlkRowSelectWoReplacement <: LinSysVecRowSelect
+    LinSysBlkRowSelectWoReplacement <: LinSysBlkRowSampler
 
 A mutable struct that represents sampling rows from `A` without replacement using an
 arbitrary weight/probability vector.
@@ -26,7 +26,7 @@ Calling `LinSysBlkRowSelectWoReplacement()` defaults to `LinSysBlkRowSelectWoRep
 
 An additional constructor is provided with keyword arguments `block_size` and `probability`.
 """
-mutable struct LinSysBlkRowSelectWoReplacement <: LinSysVecRowSelect
+mutable struct LinSysBlkRowSelectWoReplacement <: LinSysBlkRowSampler
     block_size::Int64
     probability::Union{Weights, Vector{Float64}, Nothing}
     population::Union{Vector{Int64}, Nothing}
