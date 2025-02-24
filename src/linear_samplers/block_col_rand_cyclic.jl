@@ -7,10 +7,12 @@ After all blocks are called, a new random ordering is created.
 
 # Fields
 - `n_blocks::Int64`, Variable that contains the number of blocks overall.
-- `order::Vector{Int64}`, The order that the blocks will be used to generate updates.
-- `blocks::Vector{Vector{Int64}}`, The vector containing all the groupings of column indices.
-- `block_size::Int64`, Variable that represents the smallest sketching block size in iterations. 
-    Used in moving average method. 
+- `order::Union{Vector{Int64}, Nothing}`, The order that the blocks will be used 
+    to generate updates.
+- `blocks::Union{Vector{Vector{Int64}}, Nothing}`, The vector containing all the groupings 
+    of column indices.
+- `block_size::Union{Int64, Nothing}`, Variable that represents the smallest sketching 
+    block size in iterations. Used in moving average method. 
 
 # Constructors
 Calling `LinSysBlkColRandCyclic()` defaults to setting `n_blocks` to 2 and `blocks` to be sequentially ordered. 
