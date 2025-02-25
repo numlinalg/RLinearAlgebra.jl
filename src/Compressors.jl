@@ -46,6 +46,7 @@ information contained in `A::AbstractMatrix` and `b::AbstractMatrix`.
 - `S::CompressorRecipe`, A preallocated CompressorRecipe.
 - `A::AbstractMatrix`, a matrix that could be used to update the compressor.
 - `b::AbstractVector`, a vector that could be used to update the compressor.
+- `x::AbstractVector`, a vector that could be used to update the compresso.
 
 ### Outputs
 - Will generate an updated version of `S` based on the information obtained from A, b.
@@ -69,8 +70,10 @@ end
 # Implement the * operator  for matrix matrix multiplication
 function (*)(S::CompressorRecipe, v::AbstractVector)
     s_rows, s_cols = size(S)
-    len_v = size(v, 1)
-    @assert len_v == s_cols "Vector has $len_v entries and is not compatible with matrix with $s_cols columns."  
+    len_v = length(v)
+    if len_v != s_cols
+        DimensionMismatch("Vector has $len_v entries and is not compatible with matrix with $s_cols columns.") 
+    end
     output = zeros(s_rows)
     mul!(output, S, v, 1.0, 0.0)
     return output
@@ -86,12 +89,10 @@ end
 function (*)(S::CompressorRecipe, A::AbstractMatrix)
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
-    @assert a_rows == s_cols "Matrix A has $a_rows rows while S has $s_cols columns."
-    if typeof(S) <: CompressorAdjoint
-        B = zeros(s_rows, a_cols)
-    else
-        B = zeros(s_rows, a_cols)
+    if a_rows != s_cols 
+        DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns.")
     end
+    B = zeros(s_rows, a_cols)
     mul!(B, S, A, 1.0, 0.0)
     return B
 end
@@ -144,12 +145,12 @@ struct CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
     parent::S
 end
 
-Adjoint(A::CompressorRecipe) = CompressorAdjoint{typeof(A)}(A)
-adjoint(A::CompressorRecipe) = Adjoint(A)
+CompressorAdjoint(A::CompressorRecipe) = CompressorAdjoint{typeof(A)}(A)
+adjoint(A::CompressorRecipe) = CompressorAdjoint(A)
 # Undo the transpose
 adjoint(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
 # Make transpose wrapper function
-transpose(A::CompressorRecipe) = Adjoint(A)
+transpose(A::CompressorRecipe) = CompressorAdjoint(A)
 # Undo the transpose wrapper
 transpose(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
 # Implement the size functions for adjoints

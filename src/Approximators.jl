@@ -45,12 +45,12 @@ struct ApproximatorAdjoint{S<:ApproximatorRecipe} <: ApproximatorRecipe
     parent::S
 end
 
-Adjoint(A::ApproximatorRecipe) = ApproximatorAdjoint{typeof(A)}(A)
-adjoint(A::ApproximatorRecipe) = Adjoint(A)
+ApproximatorAdjoint(A::ApproximatorRecipe) = ApproximatorAdjoint{typeof(A)}(A)
+adjoint(A::ApproximatorRecipe) = ApproximatorAdjoint(A)
 # Undo the transpose
 adjoint(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 # Make transpose wrapper function
-transpose(A::ApproximatorRecipe) = Adjoint(A)
+transpose(A::ApproximatorRecipe) = ApproximatorAdjoint(A)
 # Undo the transpose wrapper
 transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 
