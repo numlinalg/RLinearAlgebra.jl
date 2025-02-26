@@ -17,6 +17,24 @@ abstract type CompressorRecipe end
 
 # Function skeletons
 """
+    complete_compressor(compressor::Compressor, A::AbstractMatrix)
+
+A function that uses the information in the `Compressor`, the matrix  to form a 
+`CompressorRecipe` that can then be multiplied with matrices and vectors.
+
+### Arguments
+- `compress::Compressor`, a compressor object.
+- `A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
+
+### Outputs
+- A `CompressorRecipe` that can be applied to matrices and vectors through the use of the 
+    multiplication functions.
+"""
+function complete_compressor(compress::Compressor, A::AbstractMatrix)
+    return 
+end
+
+"""
     complete_compressor(compressor::Compressor, A::AbstractMatrix, b::AbstractVector)
 
 A function that uses the information in the `Compressor`, the matrix `A`, 
@@ -33,7 +51,72 @@ matrices and vectors.
     multiplication functions.
 """
 function complete_compressor(compress::Compressor, A::AbstractMatrix, b::AbstractVector)
-    return 
+    # If this variant is not defined for a compressor call the one with input matrix A 
+    return complete_compressor(comprees, A)
+end
+
+"""
+    complete_compressor(
+        compressor::Compressor, 
+        A::AbstractMatrix, 
+        b::AbstractVector, 
+        x::AbstractVector
+    )
+
+A function that uses the information in the `Compressor`, the matrix `A`, the constrant 
+vector `b`, and the solution vector `x` to form a `CompressorRecipe` that can then be 
+multiplied with matrices and vectors.
+
+### Arguments
+- `compress::Compressor`, a compressor object.
+- `A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
+- `b::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
+- `x::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
+
+### Outputs
+- A `CompressorRecipe` that can be applied to matrices and vectors through the use of the 
+    multiplication functions.
+"""
+function complete_compressor(
+            compress::Compressor, 
+            A::AbstractMatrix, 
+            b::AbstractVector,
+            x::AbstractVector
+    )
+    # If this variant is not defined for a compressor call the one with input matrix A 
+    return complete_compressor(comprees, A, b)
+end
+
+"""
+    update_compressor!(
+        S::CompressorRecipe, 
+        A::AbstractMatrix, 
+        b::AbstractVector,
+        x::AbstractMatrix
+    )
+
+A function that updates a `CompressorRecipe` with new random components, possibly based on
+information contained in `A::AbstractMatrix`, `b::AbstractMatrix`, and `x::AbstractMatrix`.
+
+### Arguments
+- `S::CompressorRecipe`, A preallocated CompressorRecipe.
+- `A::AbstractMatrix`, a matrix that could be used to update the compressor.
+- `b::AbstractVector`, a vector that could be used to update the compressor.
+- `x::AbstractVector`, a vector that could be used to update the compresso.
+
+### Outputs
+- Will generate an updated version of `S` based on the information obtained from A, b, and 
+    x. For some compression techniques that are data oblivious this simply means generating 
+    new random entries in `S`.
+"""
+function update_compressor!(
+        S::CompressorRecipe, 
+        A::AbstractMatrix, 
+        b::AbstractVector, 
+        x::AbstractVector
+    )
+    update_compressor!(S, A, b)
+    return nothing
 end
 
 """
@@ -46,33 +129,61 @@ information contained in `A::AbstractMatrix` and `b::AbstractMatrix`.
 - `S::CompressorRecipe`, A preallocated CompressorRecipe.
 - `A::AbstractMatrix`, a matrix that could be used to update the compressor.
 - `b::AbstractVector`, a vector that could be used to update the compressor.
-- `x::AbstractVector`, a vector that could be used to update the compresso.
 
 ### Outputs
 - Will generate an updated version of `S` based on the information obtained from A, b.
     For some compression techniques that are data oblivious this simply means generating new
     random entries in `S`.
 """
-function update_compressor!(
-        S::CompressorRecipe, 
-        A::AbstractMatrix, 
-        b::AbstractVector, 
-        x::AbstractVector
-    )
-    update_compressor!(S, A, b)
-    return nothing
-end
-
 function update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
     update_compressor!(S, A)
     return nothing
 end
+
+"""
+    update_compressor!(S::CompressorRecipe, A::AbstractMatrix)
+
+A function that updates a `CompressorRecipe` with new random components, possibly based on
+information contained in `A::AbstractMatrix`.
+
+### Arguments
+- `S::CompressorRecipe`, A preallocated CompressorRecipe.
+- `A::AbstractMatrix`, a matrix that could be used to update the compressor.
+
+### Outputs
+- Will generate an updated version of `S` based on the information obtained from A.
+    For some compression techniques that are data oblivious this simply means generating new
+    random entries in `S`.
+"""
+function update_compressor!(S::CompressorRecipe, A::AbstractMatrix)
+    return 
+end
+
 # Implement the * operator  for matrix matrix multiplication
+function mul!(
+        A::AbstractArray,
+        B::Union{AbstractArray, CompressorRecipe},
+        C::Union{AbstractArray, CompressorRecipe},
+        alpha::Float64,
+        beta::Float64
+    )
+    if typeof(B) <: CompressorRecipe
+        type_B = typeof(B)
+        return ArgumentError("Multiplication not defined for $type_B.")
+    elseif typeof(B) <: CompressorRecipe
+        type_C = typeof(C)
+        return ArgumentError("Multiplication not defined for $type_C.")
+    end
+    
+    return
+end
+
 function (*)(S::CompressorRecipe, v::AbstractVector)
     s_rows, s_cols = size(S)
     len_v = length(v)
     if len_v != s_cols
-        DimensionMismatch("Vector has $len_v entries and is not compatible with matrix with $s_cols columns.") 
+        throw(DimensionMismatch("Vector has $len_v entries while matrix has $s_cols//
+            columns.")) 
     end
     output = zeros(s_rows)
     mul!(output, S, v, 1.0, 0.0)
@@ -90,7 +201,7 @@ function (*)(S::CompressorRecipe, A::AbstractMatrix)
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
     if a_rows != s_cols 
-        DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns.")
+        throw(DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns."))
     end
     B = zeros(s_rows, a_cols)
     mul!(B, S, A, 1.0, 0.0)
@@ -105,13 +216,11 @@ end
 function (*)(A::AbstractMatrix, S::CompressorRecipe)
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
-    @assert s_rows == a_cols "Matrix A has $a_cols cols while S has $s_rows rows."
-    if typeof(S) <: CompressorAdjoint
-        # Since size function flips dimenstions for adjoint
-        B = zeros(s_cols, a_rows)
-    else
-        B = zeros(a_rows, s_cols)
+    if s_rows != a_cols 
+        throw(DimensionMismatch("Matrix A has $a_cols cols while S has $s_rows rows."))
     end
+
+    B = zeros(a_rows, s_cols)
     mul!(B, A, S, 1.0, 0.0)
     return B
 end
@@ -227,9 +336,17 @@ function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::Abstra
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
     c_rows, c_cols = size(C)
-    @assert a_rows == s_cols "Matrix A has $a_rows rows while S has $s_cols columns."
-    @assert a_cols == c_cols "Matrix A has $a_cols columns while C has $c_cols columns."
-    @assert c_rows == s_rows "Matrix C has $c_rows rows while S has $s_rows rows."
+    if a_rows != s_cols
+        throw(DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns."))
+    elseif a_cols != c_cols
+        throw(
+              DimensionMismatch("Matrix A has $a_cols columns while C has $c_cols columns//
+                .")
+             )
+    elseif c_rows != s_rows
+        throw(DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows."))
+    end
+
     return
 end
 
@@ -252,9 +369,15 @@ function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::Compres
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
     c_rows, c_cols = size(C)
-    @assert a_cols == s_rows "Matrix A has $a_cols columns while S has $s_rows rows."
-    @assert c_cols == s_cols "Matrix C has $c_cols columns while S has $s_cols columns."
-    @assert c_rows == a_rows "Matrix C has $c_rows rows while A has $a_rows rows."
+    if a_cols != s_rows
+        throw(DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows."))
+    elseif c_cols != s_cols
+        throw(DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns\\
+            ."))
+    elseif c_rows != a_rows
+        throw(DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows."))
+    end
+
     return
 end
 
@@ -277,8 +400,18 @@ function vec_mul_dimcheck(x::AbstractVector, S::CompressorRecipe, y::AbstractVec
     s_rows, s_cols = size(S)
     len_y = size(y, 1)
     len_x = size(x, 1)
-    @assert len_y == s_cols "Vector y is of dimension $len_y while S has $s_cols columns."
-    @assert len_x == s_rows "Vector x is of dimension $len_x while S has $s_rows rows."
+    if len_y != s_cols
+        throw(
+            DimensionMismatch("Vector y is of dimension $len_y \\
+                              while S has $s_cols columns.")
+             )
+    elseif len_x != s_rows
+        throw(
+            DimensionMismatch("Vector x is of dimension $len_x\\ 
+            while S has $s_rows rows.")
+            )
+    end
+
     return
 end
 

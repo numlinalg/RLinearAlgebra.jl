@@ -26,50 +26,50 @@ module compressor_bound_checking
         let
             y = zeros(5)
             x = zeros(3)
-            @test_throws AssertionError RLinearAlgebra.vec_mul_dimcheck(x, S, y)
+            @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
         end
     
         let
             y = zeros(4)
             x = zeros(2)
-            @test_throws AssertionError RLinearAlgebra.vec_mul_dimcheck(x, S, y)
+            @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
         end
     
         # Test the mat mat multiplication errors
         let
             A = zeros(5, 2)
             C = zeros(3, 2)
-            @test_throws AssertionError RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+            @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
         end
     
         let
             A = zeros(4, 2)
             C = zeros(4, 2)
-            @test_throws AssertionError RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+            @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
         end
     
         let
             A = zeros(4, 2)
             C = zeros(3, 3)
-            @test_throws AssertionError RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+            @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
         end
     
         let
             A = zeros(4, 3)
             C = zeros(4, 3)
-            @test_throws AssertionError RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
+            @test_throws DimensionMismatch RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
         end
     
         let
             A = zeros(4, 4)
             C = zeros(4, 2) 
-            @test_throws AssertionError RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
+            @test_throws DimensionMismatch RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
         end
     
         let
             A = zeros(4, 4)
             C = zeros(5, 3)
-            @test_throws AssertionError RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
+            @test_throws DimensionMismatch RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
         end
 
     end
