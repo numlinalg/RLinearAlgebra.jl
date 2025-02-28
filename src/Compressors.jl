@@ -19,12 +19,13 @@ abstract type CompressorRecipe end
 """
     complete_compressor(compressor::Compressor, A::AbstractMatrix)
 
-A function that uses the information in the `Compressor`, the matrix  to form a 
-`CompressorRecipe` that can then be multiplied with matrices and vectors.
+A function that uses the information in the `Compressor` and the matrix, `A`, to form a 
+`CompressorRecipe`.
 
 ### Arguments
-- `compress::Compressor`, a compressor object.
-- `A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
+- `compress::Compressor`, User-provided specifications for compressing the target matrix 
+    and constant vector.
+- `A::AbstractMatrix`, a target matrix for the CompressorRecipe.
 
 ### Outputs
 - A `CompressorRecipe` that can be applied to matrices and vectors through the use of the 
@@ -38,13 +39,13 @@ end
     complete_compressor(compressor::Compressor, A::AbstractMatrix, b::AbstractVector)
 
 A function that uses the information in the `Compressor`, the matrix `A`, 
-and the constrant vector `b` to form a `CompressorRecipe` that can then be multiplied with
-matrices and vectors.
+and the constant vector `b` to form a `CompressorRecipe`.
 
 ### Arguments
-- `compress::Compressor`, a compressor object.
-- `A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
-- `b::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
+- `compress::Compressor`,  User-provided specifications for compressing the target matrix 
+    and constant vector.
+- `A::AbstractMatrix`, a target matrix for the CompressorRecipe.
+- `b::AbstractVector`, a target vector for the CompressorRecipe.
 
 ### Outputs
 - A `CompressorRecipe` that can be applied to matrices and vectors through the use of the 
@@ -63,14 +64,14 @@ end
         x::AbstractVector
     )
 
-A function that uses the information in the `Compressor`, the matrix `A`, the constrant 
-vector `b`, and the solution vector `x` to form a `CompressorRecipe` that can then be 
-multiplied with matrices and vectors.
+A function that uses the information in the `Compressor`, the matrix `A`, the constant 
+vector `b`, and the solution vector `x` to form a `CompressorRecipe`.
 
 ### Arguments
-- `compress::Compressor`, a compressor object.
-- `A::AbstractMatrix`, a matrix that the returned CompressorRecipe may be applied to.
-- `b::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
+- `compress::Compressor`, User-provided specifications for compressing the target matrix 
+    and constant vector.
+- `A::AbstractMatrix`, a target matrix for the CompressorRecipe.
+- `b::AbstractVector`, a target vector for the CompressorRecipe.
 - `x::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
 
 ### Outputs
@@ -156,7 +157,7 @@ information contained in `A::AbstractMatrix`.
     random entries in `S`.
 """
 function update_compressor!(S::CompressorRecipe, A::AbstractMatrix)
-    return 
+    return nothing
 end
 
 # Implement the * operator  for matrix matrix multiplication
@@ -167,6 +168,8 @@ function mul!(
         alpha::Float64,
         beta::Float64
     )
+    # This is a default functionality that only runs when multiplication is not defined for
+    # the CompressorRecipe, where it returns an error in the worse case
     if typeof(B) <: CompressorRecipe
         type_B = typeof(B)
         return ArgumentError("Multiplication not defined for $type_B.")
@@ -175,7 +178,7 @@ function mul!(
         return ArgumentError("Multiplication not defined for $type_C.")
     end
     
-    return
+    return nothing
 end
 
 function (*)(S::CompressorRecipe, v::AbstractVector)
@@ -192,7 +195,7 @@ end
 
 function mul!(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
     mul!(x, S, y, 1.0, 0.0)
-    return
+    return nothing
 end
 
 # Implement the * operator for matrix matrix multiplication
@@ -210,6 +213,7 @@ end
 
 function mul!(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
     mul!(C, S, A, 1.0, 0.0)
+    return nothing
 end
 
 # The right multiplication version
@@ -227,7 +231,7 @@ end
 
 function mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
     mul!(C, A, S, 1.0, 0.0)
-    return
+    return nothing
 end
 
 # Now implement the size functions for Compressors
@@ -282,7 +286,7 @@ function mul!(
     # To advoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
     # this will give us C = S' * A as desired
     mul!(transpose(C), transpose(A), S.parent, alpha, beta)
-    return
+    return nothing
 end
 
 function mul!(
@@ -295,7 +299,7 @@ function mul!(
     # To advoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
     # this will give us C = A * S' as desired
     mul!(transpose(C), S.parent, transpose(A), alpha, beta)
-    return
+    return nothing
 end
 
 function mul!(
@@ -313,7 +317,7 @@ function mul!(
     # Return the sizes to the original values which is inverse order of size S
     S.parent.n_rows = n_cols
     S.parent.n_cols = n_rows
-    return
+    return nothing
 end
 
 # Dimension testing for Compressors 
@@ -347,7 +351,7 @@ function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::Abstra
         throw(DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows."))
     end
 
-    return
+    return nothing
 end
 
 """
@@ -378,7 +382,7 @@ function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::Compres
         throw(DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows."))
     end
 
-    return
+    return nothing
 end
 
 """
@@ -412,7 +416,7 @@ function vec_mul_dimcheck(x::AbstractVector, S::CompressorRecipe, y::AbstractVec
             )
     end
 
-    return
+    return nothing
 end
 
 ###################################

@@ -54,7 +54,7 @@ function complete_solver(
         A::AbstractMatrix,
         b::AbstractVector
     )
-    return 
+    return nothing
 end
 
 """
@@ -85,7 +85,7 @@ function rsolve!(
         A::AbstractMatrix, 
         b::AbstractVector
     ) 
-    return
+    return nothing
 end
 
 """

@@ -71,7 +71,7 @@ A function that uses information in the matrix `A` and user-controlled parameter
     the desired low rank approximation.
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
-    return
+    return nothing
 end
 
 """

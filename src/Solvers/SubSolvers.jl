@@ -30,7 +30,7 @@ A function that takes the user-controlled parameters from the `SubSolver` data s
 - Will return a SubSolverRecipe that can be applied to a vector.
 """
 function complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
-    return 
+    return nothing
 end
 
 
@@ -49,11 +49,11 @@ A function that updates the structure of `SubSolverRecipe` with information from
 - Modifies the `SubSolverRecipe` in place and returns nothing.
 """
 function update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
-    return
+    return nothing
 end
 
 function ldiv!(x::AbstractVector, solver::SubSolverRecipe, b::AbstractVector)
-    return
+    return nothing
 end
 
 ###########################################

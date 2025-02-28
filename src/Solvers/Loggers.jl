@@ -50,7 +50,7 @@ A function that updates the history and convergence information in the logger re
     LoggerRecipe.
 """
 function update_logger!(logger::LoggerRecipe, err::Float64, iteration::Int64)
-    return
+    return nothing
 end
 
 ##############################
