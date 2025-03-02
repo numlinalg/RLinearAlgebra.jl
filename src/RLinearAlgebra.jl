@@ -11,15 +11,15 @@ module RLinearAlgebra
     include("Approximators.jl")
 
     # Export the complete_ functions 
-    export complete_compressor, complete_solver, complete_approximator
-    export complete_sub_solver, complete_approximator_error
+    export complete_compressor, complete_solver, complete_approximator, update_approximator!
+    export complete_sub_solver, complete_approximator_error, complete_approximator_error!
     export complete_solver_error, complete_logger
 
     # Export the update_ functions
     export update_compressor!, update_logger!, update_sub_solver!
 
     # Export the compute error functions
-    export compute_solver_error, compute_approximator_error
+    export compute_solver_error, compute_approximator_error, compute_approximator_error!
 
     # Export the Solve and Approximate functions
     export rsolve, rsolve!, rapproximate, rapproximate!

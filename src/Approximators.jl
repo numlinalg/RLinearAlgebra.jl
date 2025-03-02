@@ -32,6 +32,40 @@ quality of a low-rank approximation of a matrix `A`.
 """
 abstract type ApproximatorErrorRecipe end
 
+# Docstring Components
+approx_arg_list = Dict{Symbol, String}(
+    :approximator => "`approximator::Approximator`, a data structure containing the\
+    user-defined parameters associated with a particular low-rank approximation.",
+    :approximator_recipe => "`approximator::ApproximatorRecipe`, a fully initialized\
+    realization for a low rank approximation method for a particular matrix.",
+    :approximator_error => "`error::ApproximatorError`, a data structure containing\
+    the user-defined parameters assoxiated with a particular low-rank approximation error\
+    method.",
+    :approximator_error_recipe => "`error::ApproximatorErrorRecipe`, a fully initialized\
+    realization for a low rank approximation error method for a particular matrix.",
+    :A => "`A::AbstractMatrix`, a target matrix for compression.",
+    :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a \
+    compression method for a specific matrix or collection of matrices and vectors.",
+)
+
+approx_output_list = Dict{Symbol, String}(
+    :approximator_recipe => "An `ApproximatorRecipe` object.",
+    :approximator_error_recipe => "An `ApproximatorErrorRecipe` object."
+)
+
+approx_method_description = Dict{Symbol, String}(
+    :complete_approximator => "A function that generates a `ApproximatorRecipe` given the \
+    arguments.",
+    :update_approximator => "A function that updates the `ApproximatorRecipe` in place\
+    given arguments.",
+    :rapproximate => "A function that computes a low-rank approximation of the matrix `A`\
+    using the information in the provided `Approximator` data structure.",
+    :complete_approximator_error => "A function that generates a `ApproximatorErrorRecipe`\
+    given the arguments.",
+    :compute_approximator_error => "A function that computes the approximation error of an\
+    `ApproximatorRecipe` for a matrix `A`."
+)
+
 # Implement the Adjoint structures for the ApproximatorRecipes
 """
     ApproximatorAdjoint{S<:ApproximatorRecipe} <: ApproximatorRecipe 
@@ -58,35 +92,46 @@ transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 """
     complete_approximator(approximator::Approximator, A::AbstractMatrix)
 
-A function that uses information in the matrix `A` and user-controlled parameters in the 
-    `Approximator` to form an `ApproximatorRecipe` with appropiate memory allocations.
+$(approx_method_description[:complete_approximator])
 
 ### Arguments
-- `approximator::Approximator`, a data structure containing the user-controlled parameters
-    relating to a particular low rank approximation.
--`A::AbstractMatrix`, a matrix that we wish to approximate.
+- $(approx_arg_list[:approximator_recipe])
+- $(approx_arg_list[:A]) 
 
 ### Outputs
-- Returns an `ApproximatorRecipe` with memory preallocated for forming and storing
-    the desired low rank approximation.
+- $(approx_output_list[:approximator_recipe])
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
     return nothing
 end
 
 """
-    rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
+    update_approximator!(approximator::ApproximatorRecipe, A::AbstractMatrix)
 
-A function that computes a low-rank approximation of the matrix `A` using the information 
-    in the provided `ApproximatorRecipe` data structure.
+$(approx_method_description[:update_approximator])
 
 ### Arguments
-- `approximator::ApproximatorRecipe`, a data structure for storing the low rank 
-    approximation to the matrix `A`.
-- `A::AbstractMatrix`, the matrix being approximated.
+- $(approx_arg_list[:approximator_recipe])
+- $(approx_arg_list[:A]) 
 
 ### Outputs
-- Performs an inplace update of the `ApproximatorRecipe`.
+- $(approx_output_list[:approximator_recipe])
+"""
+function update_approximator!(approximator::ApproximatorRecipe, A::AbstractMatrix)
+    return nothing
+end
+
+"""
+    rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
+
+    $(approx_method_description[:rapproximate])
+
+### Arguments
+- $(approx_arg_list[:approximator_recipe])
+- $(approx_arg_list[:A]) 
+
+### Outputs
+- $(approx_output_list[:approximator_recipe])
 """
 function rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
     return nothing
@@ -95,16 +140,14 @@ end
 """
     rapproximate(approximator::Approximator, A::AbstractMatrix)
 
-A function that computes a low-rank approximation of the matrix `A` using the information 
-    in the provided `Approximator` data structure.
+    $(approx_method_description[:rapproximate])
 
 ### Arguments
-- `approximator::Approximator`, an approximation technique for computing a low-rank 
-    approximation of the matrix `A`.
-- `A::AbstractMatrix`, the matrix being approximated.
+- $(approx_arg_list[:approximator])
+- $(approx_arg_list[:A]) 
 
 ### Outputs
-- An `ApproximatorRecipe` containing a low rank approximation of the matrix `A`.
+- $(approx_output_list[:approximator_recipe])
 """
 function rapproximate(approximator::Approximator, A::AbstractMatrix)
     approx_recipe = complete_approximator(approximator, A)
@@ -119,17 +162,15 @@ end
         A::AbstractMatrix
     )
 
-A function that produces an `ApproximatorErrorRecipe` from an `ApproximatorError`, 
-    `CompressorRecipe`, and `AbstractMatrix`.
+    $(approx_method_description[:complete_approximator_error])
 
 ### Arguments
-- `error::ApproximatorError`, the user controlled parameters associated with the 
-    approximation error.
-- `S::CompressorRecipe`, the compressor information used for the low rank approximation.
-- `A::AbstractMatrix`, the matrix being approximated.
+- $(approx_arg_list[:approximator_error])
+- $(approx_arg_list[:A]) 
+- $(approx_arg_list[:compressor_recipe])
 
 ### Outputs
-- The `ApproximatorErrorRecipe` corresponding to the `ApproximatorError` technique.
+- $(approx_output_list[:approximator_error_recipe])
 """
 function complete_approximator_error(
         error::ApproximatorError,
@@ -146,18 +187,17 @@ end
         A::AbstractMatrix
     )
 
-A function that evaluates the quality of an `ApproximatorRecipe`.
+    $(approx_method_description[:compute_approximator_error])
 
 ### Arguments
-- `error::ApproximatorErrorRecipe`, the method for computing the 
-    approximation error.
-- `approx::ApproximatorRecipe`, the low rank of the approximation of the matrix.
-- `A::AbstractMatrix`, the matrix.
+- $(approx_arg_list[:approximator_error])
+- $(approx_arg_list[:approximator_recipe])
+- $(approx_arg_list[:A]) 
 
 ### Outputs
-- This function will return an error metric for the approximation of the matrix.
+- Returns the error 
 """
-function compute_approximator_error(
+function compute_approximator_error!(
         error::ApproximatorErrorRecipe,
         approx::ApproximatorRecipe,
         A::AbstractMatrix,
@@ -166,6 +206,23 @@ function compute_approximator_error(
 end
 
 # Implement a version of the compute error function that works without the recipe
+"""
+    compute_approximator_error(
+        error::ApproximatorErrorMethod, 
+        approximator::Approximator, 
+        A::AbstractMatrix
+    )
+
+    $(approx_method_description[:compute_approximator_error])
+
+### Arguments
+- $(approx_arg_list[:approximator_error])
+- $(approx_arg_list[:approximator])
+- $(approx_arg_list[:A]) 
+
+### Outputs
+- Returns the error 
+"""
 function compute_approximator_error(
         error::ApproximatorError,
         approx::ApproximatorRecipe,

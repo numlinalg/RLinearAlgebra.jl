@@ -15,21 +15,39 @@ compression technique to a particular linear system.
 """
 abstract type CompressorRecipe end
 
+# Docstring Components
+comp_arg_list = Dict{Symbol, String}(
+    :compressor => "`compressor::Compressor`, a user-specified compression method.",
+    :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a \
+    compression method for a specific matrix or collection of matrices and vectors.",
+    :A => "`A::AbstractMatrix`, a target matrix for compression.",
+    :b => "`b::AbstractVector`, a possible target vector for compression.",
+    :x => " x::AbstractVector`, a vector that ususally represents a current iterrate \
+    typically used in a solver"
+)
+
+comp_output_list = Dict{Symbol, String}(
+    :compressor_recipe => "A `CompressorRecipe` object."
+)
+
+comp_method_description = Dict{Symbol, String}(
+    :complete_compressor => "A function that generates a `CompressorRecipe` given the \
+    arguments.",
+    :update_compressor => "A function that updates the `CompressorRecipe` in place given \
+    arguments."
+)
 # Function skeletons
 """
     complete_compressor(compressor::Compressor, A::AbstractMatrix)
 
-A function that uses the information in the `Compressor` and the matrix, `A`, to form a 
-`CompressorRecipe`.
+$(comp_method_description[:complete_compressor])
 
 ### Arguments
-- `compress::Compressor`, User-provided specifications for compressing the target matrix 
-    and constant vector.
-- `A::AbstractMatrix`, a target matrix for the CompressorRecipe.
+- $(comp_arg_list[:compressor])
+- $(comp_arg_list[:A]) 
 
 ### Outputs
-- A `CompressorRecipe` that can be applied to matrices and vectors through the use of the 
-    multiplication functions.
+- $(comp_output_list[:compressor_recipe])
 """
 function complete_compressor(compress::Compressor, A::AbstractMatrix)
     return 
@@ -38,18 +56,15 @@ end
 """
     complete_compressor(compressor::Compressor, A::AbstractMatrix, b::AbstractVector)
 
-A function that uses the information in the `Compressor`, the matrix `A`, 
-and the constant vector `b` to form a `CompressorRecipe`.
+$(comp_method_description[:complete_compressor])
 
 ### Arguments
-- `compress::Compressor`,  User-provided specifications for compressing the target matrix 
-    and constant vector.
-- `A::AbstractMatrix`, a target matrix for the CompressorRecipe.
-- `b::AbstractVector`, a target vector for the CompressorRecipe.
+- $(comp_arg_list[:compressor])
+- $(comp_arg_list[:A]) 
+- $(comp_arg_list[:b]) 
 
 ### Outputs
-- A `CompressorRecipe` that can be applied to matrices and vectors through the use of the 
-    multiplication functions.
+- $(comp_output_list[:compressor_recipe])
 """
 function complete_compressor(compress::Compressor, A::AbstractMatrix, b::AbstractVector)
     # If this variant is not defined for a compressor call the one with input matrix A 
@@ -64,19 +79,16 @@ end
         x::AbstractVector
     )
 
-A function that uses the information in the `Compressor`, the matrix `A`, the constant 
-vector `b`, and the solution vector `x` to form a `CompressorRecipe`.
+$(comp_method_description[:complete_compressor])
 
 ### Arguments
-- `compress::Compressor`, User-provided specifications for compressing the target matrix 
-    and constant vector.
-- `A::AbstractMatrix`, a target matrix for the CompressorRecipe.
-- `b::AbstractVector`, a target vector for the CompressorRecipe.
-- `x::AbstractVector`, a vector that the returned CompressorRecipe may be applied to.
+- $(comp_arg_list[:compressor])
+- $(comp_arg_list[:A]) 
+- $(comp_arg_list[:b]) 
+- $(comp_arg_list[:x]) 
 
 ### Outputs
-- A `CompressorRecipe` that can be applied to matrices and vectors through the use of the 
-    multiplication functions.
+- $(comp_output_list[:compressor_recipe])
 """
 function complete_compressor(
             compress::Compressor, 
@@ -89,6 +101,40 @@ function complete_compressor(
 end
 
 """
+    update_compressor!(S::CompressorRecipe, A::AbstractMatrix)
+
+$(comp_method_description[:update_compressor])
+
+### Arguments
+- $(comp_arg_list[:compressor_recipe])
+- $(comp_arg_list[:A]) 
+
+### Outputs
+- `Nothing` 
+"""
+function update_compressor!(S::CompressorRecipe, A::AbstractMatrix)
+    return nothing
+end
+
+"""
+    update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
+
+$(comp_method_description[:update_compressor])
+
+### Arguments
+- $(comp_arg_list[:compressor_recipe])
+- $(comp_arg_list[:A]) 
+- $(comp_arg_list[:b]) 
+
+### Outputs
+- `Nothing` 
+"""
+function update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
+    update_compressor!(S, A)
+    return nothing
+end
+
+"""
     update_compressor!(
         S::CompressorRecipe, 
         A::AbstractMatrix, 
@@ -96,19 +142,16 @@ end
         x::AbstractMatrix
     )
 
-A function that updates a `CompressorRecipe` with new random components, possibly based on
-information contained in `A::AbstractMatrix`, `b::AbstractMatrix`, and `x::AbstractMatrix`.
+$(comp_method_description[:update_compressor])
 
 ### Arguments
-- `S::CompressorRecipe`, A preallocated CompressorRecipe.
-- `A::AbstractMatrix`, a matrix that could be used to update the compressor.
-- `b::AbstractVector`, a vector that could be used to update the compressor.
-- `x::AbstractVector`, a vector that could be used to update the compresso.
+- $(comp_arg_list[:compressor_recipe])
+- $(comp_arg_list[:A]) 
+- $(comp_arg_list[:b]) 
+- $(comp_arg_list[:x]) 
 
 ### Outputs
-- Will generate an updated version of `S` based on the information obtained from A, b, and 
-    x. For some compression techniques that are data oblivious this simply means generating 
-    new random entries in `S`.
+- `Nothing` 
 """
 function update_compressor!(
         S::CompressorRecipe, 
@@ -117,46 +160,6 @@ function update_compressor!(
         x::AbstractVector
     )
     update_compressor!(S, A, b)
-    return nothing
-end
-
-"""
-    update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
-
-A function that updates a `CompressorRecipe` with new random components, possibly based on
-information contained in `A::AbstractMatrix` and `b::AbstractMatrix`.
-
-### Arguments
-- `S::CompressorRecipe`, A preallocated CompressorRecipe.
-- `A::AbstractMatrix`, a matrix that could be used to update the compressor.
-- `b::AbstractVector`, a vector that could be used to update the compressor.
-
-### Outputs
-- Will generate an updated version of `S` based on the information obtained from A, b.
-    For some compression techniques that are data oblivious this simply means generating new
-    random entries in `S`.
-"""
-function update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
-    update_compressor!(S, A)
-    return nothing
-end
-
-"""
-    update_compressor!(S::CompressorRecipe, A::AbstractMatrix)
-
-A function that updates a `CompressorRecipe` with new random components, possibly based on
-information contained in `A::AbstractMatrix`.
-
-### Arguments
-- `S::CompressorRecipe`, A preallocated CompressorRecipe.
-- `A::AbstractMatrix`, a matrix that could be used to update the compressor.
-
-### Outputs
-- Will generate an updated version of `S` based on the information obtained from A.
-    For some compression techniques that are data oblivious this simply means generating new
-    random entries in `S`.
-"""
-function update_compressor!(S::CompressorRecipe, A::AbstractMatrix)
     return nothing
 end
 
