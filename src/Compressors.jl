@@ -189,8 +189,7 @@ function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::Abstra
         throw(DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns."))
     elseif a_cols != c_cols
         throw(
-              DimensionMismatch("Matrix A has $a_cols columns while C has $c_cols columns\
-                .")
+              DimensionMismatch("Matrix A has $a_cols columns while C has $c_cols columns.")
              )
     elseif c_rows != s_rows
         throw(DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows."))
