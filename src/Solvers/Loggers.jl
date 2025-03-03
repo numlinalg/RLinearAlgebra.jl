@@ -15,19 +15,39 @@ solver and evaluating convergence.
 """
 abstract type LoggerRecipe end
 
+# Docstring Components
+logger_arg_list = Dict{Symbol, String}(
+    :logger => "`logger::Logger`, a user-specified logging method.",
+    :logger_recipe => "`logger::LoggerRecipe`, a fully initialized realization for a \
+    logging method for a specific linwar solver.",
+    :A => "`A::AbstractMatrix`, a target matrix for compression.",
+    :b => "`b::AbstractVector`, a possible target vector for compression.",
+    :err => "`err::Float64`, an error value to be logged.",
+    :iteration => "`iteration::Int64`, the iteration of the solver." 
+)
+
+logger_output_list = Dict{Symbol, String}(
+    :logger_recipe => "A `LoggerRecipe` object."
+)
+
+logger_method_description = Dict{Symbol, String}(
+    :complete_logger => "A function that generates a `LoggerRecipe` given the \
+    arguments.",
+    :update_logger => "A function that updates the `LoggerRecipe` in place given \
+    arguments."
+)
 """
     complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
 
-A function that combines the user-controlled information contained in the `Logger`, 
-    the matrix `A`, and vector `b`. to produce a logger recipe.
+$(logger_method_description[:complete_logger])
 
 ### Arguments
-- `logger::Logger`, the `Logger` data structure containing user-controlled parameters.
-- `A::AbstractMatrix`, the matrix in the linear system.
-- `b::AbstractVector`, the constant vector in the linear system.
+- $(logger_arg_list[:logger])
+- $(logger_arg_list[:A]) 
+- $(logger_arg_list[:b]) 
 
 ### Outputs
-- Returns a `LoggerRecipe` with appropiate parameter and memory allocations.
+- $(logger_output_list[:logger_recipe])
 """
 function complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
     # By default the LoggerRecipe formed by applying the version of this function that only
@@ -38,16 +58,15 @@ end
 """
     update_logger!(logger::LoggerRecipe, err::Float64, iteration::Int64)
 
-A function that updates the history and convergence information in the logger recipe.
+$(logger_method_description[:update_logger])
 
 ### Arguments
-- `loggger::LoggerRecipe`, the LoggerRecipe being updated.
-- `err::Float64`, the value of the progress estimator.
-- `iteration::Int64`, the iteration of the linear solver.
+- $(logger_arg_list[:logger_recipe])
+- $(logger_arg_list[:err]) 
+- $(logger_arg_list[:iteration]) 
 
 ### Outputs
-- Performs an inplace update to the history and convergence information contained in the 
-    LoggerRecipe.
+- Performs an inplace update to the `LoggerRecipe` and returns nothing.
 """
 function update_logger!(logger::LoggerRecipe, err::Float64, iteration::Int64)
     return nothing
