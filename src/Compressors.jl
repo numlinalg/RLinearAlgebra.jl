@@ -218,8 +218,8 @@ function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::Compres
     if a_cols != s_rows
         throw(DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows."))
     elseif c_cols != s_cols
-        throw(DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns\
-            ."))
+        throw(DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns.")
+             )
     elseif c_rows != a_rows
         throw(DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows."))
     end
