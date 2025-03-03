@@ -21,12 +21,12 @@ comp_arg_list = Dict{Symbol, String}(
     :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a 
     compression method for a specific matrix or collection of matrices and vectors.",
     :A => "`A::AbstractMatrix`, a target matrix for compression.",
-    :C => "`C::AbstractMatrix`, A matrix where the output will be stored.",
+    :C => "`C::AbstractMatrix`, a matrix where the output will be stored.",
     :b => "`b::AbstractVector`, a possible target vector for compression.",
-    :x => " x::AbstractVector`, a vector that ususally represents a current iterrate 
+    :x => " x::AbstractVector`, a vector that ususally represents a current iterate 
     typically used in a solver",
-    :y => "`x::AbstractVector`, a vector.",
-    :z => "`x::AbstractVector`, a vector."
+    :y => "`y::AbstractVector`, a vector.",
+    :z => "`z::AbstractVector`, a vector."
 )
 
 comp_output_list = Dict{Symbol, String}(
@@ -38,7 +38,7 @@ comp_method_description = Dict{Symbol, String}(
     arguments.",
     :update_compressor => "A function that updates the `CompressorRecipe` in place given 
     arguments.",
-    :mul_check => "A function that checks the compatability of arguments for multiplcation",
+    :mul_check => "A function that checks the compatability of arguments for multiplication",
 )
 # Function skeletons
 """
@@ -53,7 +53,9 @@ $(comp_method_description[:complete_compressor])
 ### Outputs
 - $(comp_output_list[:compressor_recipe])
 """
-function complete_compressor(compress::Compressor, A::AbstractMatrix)
+function complete_compressor(compressor::Compressor, A::AbstractMatrix)
+    throw(ArgumentError("No method exists for compressor of type $(typeof(compressor)) and \
+    matrix of type $(typeof(A))."))
     return 
 end
 
@@ -70,9 +72,9 @@ $(comp_method_description[:complete_compressor])
 ### Outputs
 - $(comp_output_list[:compressor_recipe])
 """
-function complete_compressor(compress::Compressor, A::AbstractMatrix, b::AbstractVector)
+function complete_compressor(compressor::Compressor, A::AbstractMatrix, b::AbstractVector)
     # If this variant is not defined for a compressor call the one with input matrix A 
-    return complete_compressor(comprees, A)
+    return complete_compressor(compressor, A)
 end
 
 """
@@ -95,13 +97,13 @@ $(comp_method_description[:complete_compressor])
 - $(comp_output_list[:compressor_recipe])
 """
 function complete_compressor(
-            compress::Compressor, 
+            compressor::Compressor, 
             A::AbstractMatrix, 
             b::AbstractVector,
             x::AbstractVector
     )
     # If this variant is not defined for a compressor call the one with input matrix A 
-    return complete_compressor(comprees, A, b)
+    return complete_compressor(compressor, A, b)
 end
 
 """
@@ -117,6 +119,8 @@ $(comp_method_description[:update_compressor])
 - `Nothing` 
 """
 function update_compressor!(S::CompressorRecipe, A::AbstractMatrix)
+    throw(ArgumentError("No method exists for compressor recipe of type \
+    $(typeof(S)) and matrix of type $(typeof(A))."))
     return nothing
 end
 
@@ -199,7 +203,7 @@ function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::Abstra
 end
 
 """
-    right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe
+    right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe)
 
 $(comp_method_description[:mul_check] * " from the right.") 
 
@@ -240,55 +244,43 @@ $(comp_method_description[:mul_check] * " with a vector.")
 # Outputs
 - `Nothing`. 
 """
-function vec_mul_dimcheck(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
+function vec_mul_dimcheck(z::AbstractVector, S::CompressorRecipe, y::AbstractVector)
     s_rows, s_cols = size(S)
     len_y = size(y, 1)
-    len_x = size(x, 1)
+    len_z = size(z, 1)
     if len_y != s_cols
         throw(
             DimensionMismatch(
                 "Vector y is of dimension $len_y while S has $s_cols columns."
-                             )
-             )
-    elseif len_x != s_rows
-        throw(
-            DimensionMismatch("Vector x is of dimension $len_x while S has $s_rows rows.")
             )
+        )
+    elseif len_z != s_rows
+        throw(
+            DimensionMismatch("Vector z is of dimension $len_z while S has $s_rows rows.")
+        )
     end
 
     return nothing
 end
 # Implement the * operator  for matrix matrix multiplication
-function mul!(
-        C::AbstractArray,
-        S::Union{CompressorRecipe, AbstractArray},
-        A::Union{CompressorRecipe, AbstractArray},
-        alpha::Float64,
-        beta::Float64
-    )
-    # This is a default functionality that only runs when multiplication is not defined for
-    # the CompressorRecipe, where it returns an error in the worse case
-    if typeof(B) <: CompressorRecipe
-        type_B = typeof(B)
-        return ArgumentError("Multiplication not defined for $type_B.")
-    elseif typeof(B) <: CompressorRecipe
-        type_C = typeof(C)
-        return ArgumentError("Multiplication not defined for $type_C.")
-    end
-    
+function mul!(C::AbstractArray, S::CompressorRecipe, A::AbstractArray, alpha::Float64, 
+    beta::Float64)
+    throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(S)), \
+    $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."))
     return nothing
 end
 
+function mul!(C::AbstractArray, A::AbstractArray, S::CompressorRecipe, alpha::Float64, 
+    beta::Float64)
+    throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
+    $(typeof(S)), $(typeof(alpha)), $(typeof(beta)))."))
+    return nothing 
+end
+
 function (*)(S::CompressorRecipe, v::AbstractVector)
-    s_rows, s_cols = size(S)
-    len_v = length(v)
-    if len_v != s_cols
-        throw(DimensionMismatch(
-            "Vector has $len_v entries while matrix has $s_cols columns."
-           )
-        ) 
-    end
+    s_rows = size(S, 1)
     output = zeros(s_rows)
+    vec_mul_dimcheck(output, S, v)
     mul!(output, S, v, 1.0, 0.0)
     return output
 end
@@ -301,14 +293,12 @@ end
 # Implement the * operator for matrix matrix multiplication
 # The left multiplication version
 function (*)(S::CompressorRecipe, A::AbstractMatrix)
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
-    if a_rows != s_cols 
-        throw(DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns."))
-    end
-    B = zeros(s_rows, a_cols)
-    mul!(B, S, A, 1.0, 0.0)
-    return B
+    s_rows = size(S, 1)
+    a_cols = size(A, 2)
+    C = zeros(s_rows, a_cols)
+    left_mat_mul_dimcheck(B, S, A)
+    mul!(C, S, A, 1.0, 0.0)
+    return C
 end
 
 function mul!(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
@@ -318,15 +308,12 @@ end
 
 # The right multiplication version
 function (*)(A::AbstractMatrix, S::CompressorRecipe)
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
-    if s_rows != a_cols 
-        throw(DimensionMismatch("Matrix A has $a_cols cols while S has $s_rows rows."))
-    end
-
-    B = zeros(a_rows, s_cols)
-    mul!(B, A, S, 1.0, 0.0)
-    return B
+    s_cols = size(S, 2)
+    a_rows = size(A, 1)
+    C = zeros(a_rows, s_cols)
+    right_mat_mul_dimcheck(C, A, S)
+    mul!(C, A, S, 1.0, 0.0)
+    return C
 end
 
 function mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
@@ -383,7 +370,7 @@ function mul!(
         alpha, 
         beta
     )
-    # To advoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
+    # To avoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
     # this will give us C = S' * A as desired
     mul!(transpose(C), transpose(A), S.parent, alpha, beta)
     return nothing
@@ -396,12 +383,13 @@ function mul!(
         alpha, 
         beta
     )
-    # To advoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
+    # To avoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
     # this will give us C = A * S' as desired
     mul!(transpose(C), S.parent, transpose(A), alpha, beta)
     return nothing
 end
 
+# Computes alpha * S' * y + beta and stores it in x 
 function mul!(
         x::AbstractVector, 
         S::CompressorAdjoint{<:CompressorRecipe}, 
