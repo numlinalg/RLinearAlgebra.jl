@@ -39,11 +39,11 @@ approx_arg_list = Dict{Symbol, String}(
     :approximator_recipe => "`approximator::ApproximatorRecipe`, a fully initialized
     realization for a low rank approximation method for a particular matrix.",
     :approximator_error => "`error::ApproximatorError`, a data structure containing
-    the user-defined parameters assoxiated with a particular low-rank approximation error
+    the user-defined parameters associated with a particular low-rank approximation error
     method.",
     :approximator_error_recipe => "`error::ApproximatorErrorRecipe`, a fully initialized
     realization for a low rank approximation error method for a particular matrix.",
-    :A => "`A::AbstractMatrix`, a target matrix for compression.",
+    :A => "`A::AbstractMatrix`, a target matrix for approximation.",
     :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a 
     compression method for a specific matrix or collection of matrices and vectors.",
 )
@@ -162,7 +162,7 @@ end
         A::AbstractMatrix
     )
 
-    $(approx_method_description[:complete_approximator_error])
+$(approx_method_description[:complete_approximator_error])
 
 ### Arguments
 - $(approx_arg_list[:approximator_error])
@@ -187,7 +187,7 @@ end
         A::AbstractMatrix
     )
 
-    $(approx_method_description[:compute_approximator_error])
+$(approx_method_description[:compute_approximator_error])
 
 ### Arguments
 - $(approx_arg_list[:approximator_error])
@@ -213,7 +213,7 @@ end
         A::AbstractMatrix
     )
 
-    $(approx_method_description[:compute_approximator_error])
+$(approx_method_description[:compute_approximator_error])
 
 ### Arguments
 - $(approx_arg_list[:approximator_error])
