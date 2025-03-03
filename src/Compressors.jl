@@ -284,7 +284,7 @@ function (*)(S::CompressorRecipe, v::AbstractVector)
     s_rows, s_cols = size(S)
     len_v = length(v)
     if len_v != s_cols
-        throw(DimensionMismatch("Vector has $len_v entries while matrix has $s_cols//
+        throw(DimensionMismatch("Vector has $len_v entries while matrix has $s_cols\
             columns.")) 
     end
     output = zeros(s_rows)
