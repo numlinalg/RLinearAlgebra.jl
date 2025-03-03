@@ -246,13 +246,13 @@ function vec_mul_dimcheck(x::AbstractVector, S::CompressorRecipe, y::AbstractVec
     len_x = size(x, 1)
     if len_y != s_cols
         throw(
-            DimensionMismatch("Vector y is of dimension $len_y \
-                              while S has $s_cols columns.")
+            DimensionMismatch(
+                "Vector y is of dimension $len_y while S has $s_cols columns."
+                             )
              )
     elseif len_x != s_rows
         throw(
-            DimensionMismatch("Vector x is of dimension $len_x\
-            while S has $s_rows rows.")
+            DimensionMismatch("Vector x is of dimension $len_x while S has $s_rows rows.")
             )
     end
 
