@@ -18,11 +18,11 @@ abstract type CompressorRecipe end
 # Docstring Components
 comp_arg_list = Dict{Symbol, String}(
     :compressor => "`compressor::Compressor`, a user-specified compression method.",
-    :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a \
+    :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a 
     compression method for a specific matrix or collection of matrices and vectors.",
     :A => "`A::AbstractMatrix`, a target matrix for compression.",
     :b => "`b::AbstractVector`, a possible target vector for compression.",
-    :x => " x::AbstractVector`, a vector that ususally represents a current iterrate \
+    :x => " x::AbstractVector`, a vector that ususally represents a current iterrate 
     typically used in a solver"
 )
 
