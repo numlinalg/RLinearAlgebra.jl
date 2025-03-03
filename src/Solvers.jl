@@ -35,10 +35,10 @@ abstract type SolverErrorRecipe end
 # Docstring Components
 solver_arg_list = Dict{Symbol, String}(
     :solver => "`solver::Solver`, a user-specified solver method.",
-    :solver_recipe => "`solver::SolverRecipe`, a fully initialized realization for a \
+    :solver_recipe => "`solver::SolverRecipe`, a fully initialized realization for a 
     solver method for a specific linear system.",
     :solver_error => "`solver::SolverError`, a user-specified solver error method.",
-    :solver_error_recipe => "`solver::ErrorRecipe`, a fully initialized realization for\
+    :solver_error_recipe => "`solver::ErrorRecipe`, a fully initialized realization for
     a solver error method for a specific linear system.",
     :A => "`A::AbstractMatrix`, the coeficient matrix of a linear system.",
     :b => "`b::AbstractVector`, The constant vector for a linear system.",
@@ -52,11 +52,11 @@ solver_output_list = Dict{Symbol, String}(
 )
 
 solver_method_description = Dict{Symbol, String}(
-    :complete_solver => "A function that generates a `SolverRecipe` given the \
+    :complete_solver => "A function that generates a `SolverRecipe` given the 
     arguments.",
-    :complete_solver_error => "A function that generates a `SolverErorRecipe` given the \
+    :complete_solver_error => "A function that generates a `SolverErorRecipe` given the 
     arguments.",
-    :compute_solver_error => "A function that evaluates the solution quality of a linear\
+    :compute_solver_error => "A function that evaluates the solution quality of a linear
     system for a solution vector `x`.",
     :rsolve => "A function that solves a linear system given the arguments."
 )

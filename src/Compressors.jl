@@ -21,9 +21,12 @@ comp_arg_list = Dict{Symbol, String}(
     :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a 
     compression method for a specific matrix or collection of matrices and vectors.",
     :A => "`A::AbstractMatrix`, a target matrix for compression.",
+    :C => "`C::AbstractMatrix`, A matrix where the output will be stored.",
     :b => "`b::AbstractVector`, a possible target vector for compression.",
     :x => " x::AbstractVector`, a vector that ususally represents a current iterrate 
-    typically used in a solver"
+    typically used in a solver",
+    :y => "`x::AbstractVector`, a vector.",
+    :z => "`x::AbstractVector`, a vector."
 )
 
 comp_output_list = Dict{Symbol, String}(
@@ -31,10 +34,11 @@ comp_output_list = Dict{Symbol, String}(
 )
 
 comp_method_description = Dict{Symbol, String}(
-    :complete_compressor => "A function that generates a `CompressorRecipe` given the \
+    :complete_compressor => "A function that generates a `CompressorRecipe` given the 
     arguments.",
-    :update_compressor => "A function that updates the `CompressorRecipe` in place given \
-    arguments."
+    :update_compressor => "A function that updates the `CompressorRecipe` in place given 
+    arguments.",
+    :mul_check => "A function that checks the compatability of arguments for multiplcation",
 )
 # Function skeletons
 """
@@ -163,11 +167,103 @@ function update_compressor!(
     return nothing
 end
 
+# Dimension testing for Compressors 
+"""
+    left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+
+$(comp_method_description[:mul_check] * " from the left.") 
+
+### Arguments
+- $(comp_arg_list[:C]) 
+- $(comp_arg_list[:compressor_recipe])
+- $(comp_arg_list[:A]) 
+
+# Outputs
+- `Nothing`. 
+"""
+function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    c_rows, c_cols = size(C)
+    if a_rows != s_cols
+        throw(DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns."))
+    elseif a_cols != c_cols
+        throw(
+              DimensionMismatch("Matrix A has $a_cols columns while C has $c_cols columns\
+                .")
+             )
+    elseif c_rows != s_rows
+        throw(DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows."))
+    end
+
+    return nothing
+end
+
+"""
+    right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe
+
+$(comp_method_description[:mul_check] * " from the right.") 
+
+### Arguments
+- $(comp_arg_list[:C]) 
+- $(comp_arg_list[:A]) 
+- $(comp_arg_list[:compressor_recipe])
+
+# Outputs
+- `Nothing`. 
+"""
+function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    c_rows, c_cols = size(C)
+    if a_cols != s_rows
+        throw(DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows."))
+    elseif c_cols != s_cols
+        throw(DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns\
+            ."))
+    elseif c_rows != a_rows
+        throw(DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows."))
+    end
+
+    return nothing
+end
+
+"""
+    vec_mul_dimcheck(z::AbstractMatrix, S::CompressorRecipe, y::AbstractMatrix)
+
+$(comp_method_description[:mul_check] * " with a vector.") 
+
+### Arguments
+- $(comp_arg_list[:z]) 
+- $(comp_arg_list[:compressor_recipe])
+- $(comp_arg_list[:y]) 
+
+# Outputs
+- `Nothing`. 
+"""
+function vec_mul_dimcheck(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
+    s_rows, s_cols = size(S)
+    len_y = size(y, 1)
+    len_x = size(x, 1)
+    if len_y != s_cols
+        throw(
+            DimensionMismatch("Vector y is of dimension $len_y \
+                              while S has $s_cols columns.")
+             )
+    elseif len_x != s_rows
+        throw(
+            DimensionMismatch("Vector x is of dimension $len_x\
+            while S has $s_rows rows.")
+            )
+    end
+
+    return nothing
+end
 # Implement the * operator  for matrix matrix multiplication
 function mul!(
-        A::AbstractArray,
-        B::Union{AbstractArray, CompressorRecipe},
-        C::Union{AbstractArray, CompressorRecipe},
+        C::AbstractArray,
+        S::Union{CompressorRecipe, AbstractArray},
+        A::Union{CompressorRecipe, AbstractArray},
         alpha::Float64,
         beta::Float64
     )
@@ -323,104 +419,6 @@ function mul!(
     return nothing
 end
 
-# Dimension testing for Compressors 
-"""
-    left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
-
-Function to test the dimensions of the CompressorRecipe and matrices when applying a 
-    compression matrix to a matrix from the left.
-
-# Arguments
-- `C::AbstractMatrix`, A matrix where the output will be stored.
-- `S::CompressorRecipe`, The compression matrix information.
-- `A::AbstractMatrix`, The matrix the compressor is being applied to from the left.
-
-# Outputs
-- Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
-    with the others.
-"""
-function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
-    c_rows, c_cols = size(C)
-    if a_rows != s_cols
-        throw(DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns."))
-    elseif a_cols != c_cols
-        throw(
-              DimensionMismatch("Matrix A has $a_cols columns while C has $c_cols columns//
-                .")
-             )
-    elseif c_rows != s_rows
-        throw(DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows."))
-    end
-
-    return nothing
-end
-
-"""
-    right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe
-
-Function to test the dimensions of the CompressorRecipe and matrices when applying a 
-    compression matrix to a matrix from the right. 
-
-### Arguments
-- `C::AbstractMatrix`, A matrix where the output will be stored.
-- `S::CompressorRecipe`, The compression matrix information.
-- `A::AbstractMatrix`, The matrix the compressor is being applied to from the right.
-
-### Outputs
-- Will assert an error if one of the relevant dimensions of the three inputs is incompatible
-    with the others.
-"""
-function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
-    c_rows, c_cols = size(C)
-    if a_cols != s_rows
-        throw(DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows."))
-    elseif c_cols != s_cols
-        throw(DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns\\
-            ."))
-    elseif c_rows != a_rows
-        throw(DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows."))
-    end
-
-    return nothing
-end
-
-"""
-    vec_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
-
-Function to test the dimensions of the CompressorRecipe and matrices when applying a 
-    compression matrix to a vector.
-
-### Arguments
-- `x::AbstractVector`, A vector where the output will be stored.
-- `S::CompressorRecipe`, The compression matrix information.
-- `A::AbstractVector`, The vector that the compressor is being applied to.
-
-### Outputs
-- Will assert an error if one of the relevant dimensions of the three inputs is incompatible 
-    with the others.
-"""
-function vec_mul_dimcheck(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
-    s_rows, s_cols = size(S)
-    len_y = size(y, 1)
-    len_x = size(x, 1)
-    if len_y != s_cols
-        throw(
-            DimensionMismatch("Vector y is of dimension $len_y \\
-                              while S has $s_cols columns.")
-             )
-    elseif len_x != s_rows
-        throw(
-            DimensionMismatch("Vector x is of dimension $len_x\\ 
-            while S has $s_rows rows.")
-            )
-    end
-
-    return nothing
-end
 
 ###################################
 # Include Compressor Files

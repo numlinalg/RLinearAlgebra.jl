@@ -18,7 +18,7 @@ abstract type SubSolverRecipe end
 # Docstring Components
 sub_solver_arg_list = Dict{Symbol, String}(
     :sub_solver => "`solver::SubSolver`, a user-specified sub-solving method.",
-    :sub_solver_recipe => "`solver::SubSolverRecipe`, a fully initialized realization for a\
+    :sub_solver_recipe => "`solver::SubSolverRecipe`, a fully initialized realization for a
     logging method for a specific linear sub solver.",
     :A => "`A::AbstractMatrix`, a target matrix for compression.",
 )
@@ -28,9 +28,9 @@ sub_solver_output_list = Dict{Symbol, String}(
 )
 
 sub_solver_method_description = Dict{Symbol, String}(
-    :complete_sub_solver => "A function that generates a `SubSolverRecipe` given the \
+    :complete_sub_solver => "A function that generates a `SubSolverRecipe` given the 
     arguments.",
-    :update_sub_solver => "A function that updates the `SubSolver` in place given \
+    :update_sub_solver => "A function that updates the `SubSolver` in place given 
     arguments."
 )
 """
