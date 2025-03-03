@@ -79,7 +79,6 @@ struct ApproximatorAdjoint{S<:ApproximatorRecipe} <: ApproximatorRecipe
     parent::S
 end
 
-ApproximatorAdjoint(A::ApproximatorRecipe) = ApproximatorAdjoint{typeof(A)}(A)
 adjoint(A::ApproximatorRecipe) = ApproximatorAdjoint(A)
 # Undo the transpose
 adjoint(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent

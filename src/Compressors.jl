@@ -345,7 +345,6 @@ struct CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
     parent::S
 end
 
-CompressorAdjoint(A::CompressorRecipe) = CompressorAdjoint{typeof(A)}(A)
 adjoint(A::CompressorRecipe) = CompressorAdjoint(A)
 # Undo the transpose
 adjoint(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent

@@ -1,9 +1,11 @@
 
 module compressor_bound_checking
     using Test, RLinearAlgebra
+    import LinearAlgebra: mul!
+
     include("../test_helpers/field_test_macros.jl")
     include("../test_helpers/approx_tol.jl")
-    @testset "Multipication Dimension Checks" begin 
+    @testset "Multiplication Dimension Checks" begin 
         # Test the matrix multiplication assertions
         mutable struct TestCompressorRecipe <: CompressorRecipe
             n_rows::Int64
@@ -33,6 +35,8 @@ module compressor_bound_checking
             y = zeros(4)
             x = zeros(2)
             @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
+            # Test that argument error is thrown when S is on the left
+            @test_throws ArgumentError mul!(x, S, y, 1.0, 1.0)
         end
     
         # Test the mat mat multiplication errors
@@ -52,6 +56,8 @@ module compressor_bound_checking
             A = zeros(4, 2)
             C = zeros(3, 3)
             @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+            # Test that argument error is thrown when S is on the right 
+            @test_throws ArgumentError mul!(C, A, S, 1.0, 1.0)
         end
     
         let
