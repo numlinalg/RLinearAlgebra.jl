@@ -3,7 +3,7 @@
 ```@contents
 Pages=[
   "approximators.md",  
-  "approximator_error.md",
+  "approximator_errors.md",
   "compressors.md",
   "solvers.md",
   "solver_error.md",

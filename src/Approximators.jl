@@ -16,7 +16,7 @@ approximations of the matrix `A`.
 abstract type ApproximatorRecipe end
 
 """
-    ApproxmatorError
+    ApproximatorError
 
 An abstract supertype for structures containing user-controlled parameters corresponding to 
 methods that evaluate the quality of a low-rank approximation of a matrix `A`.
@@ -228,8 +228,8 @@ function compute_approximator_error(
         A::AbstractMatrix,
     )
     error_recipe = complete_approximator_error(error, approx.S, A)
-    return complete_approximator_error(error_recipe, approx, A) 
+    return  compute_approximator_error!(error_recipe, approx, A)
 end
 ###########################################
 # Include the Approximator files
-###########################################
+###########u################################

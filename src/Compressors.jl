@@ -295,8 +295,8 @@ end
 function (*)(S::CompressorRecipe, A::AbstractMatrix)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
-    C = zeros(s_rows, a_cols)
-    left_mat_mul_dimcheck(B, S, A)
+    C = zeros(eltype(A),s_rows, a_cols)
+    left_mat_mul_dimcheck(C, S, A)
     mul!(C, S, A, 1.0, 0.0)
     return C
 end
@@ -310,7 +310,7 @@ end
 function (*)(A::AbstractMatrix, S::CompressorRecipe)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
-    C = zeros(a_rows, s_cols)
+    C = zeros(eltype(A), a_rows, s_cols)
     right_mat_mul_dimcheck(C, A, S)
     mul!(C, A, S, 1.0, 0.0)
     return C
