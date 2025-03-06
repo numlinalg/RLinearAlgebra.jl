@@ -16,25 +16,23 @@ solver and evaluating convergence.
 abstract type LoggerRecipe end
 
 # Docstring Components
-logger_arg_list = Dict{Symbol, String}(
+logger_arg_list = Dict{Symbol,String}(
     :logger => "`logger::Logger`, a user-specified logging method.",
     :logger_recipe => "`logger::LoggerRecipe`, a fully initialized realization for a 
     logging method for a specific linwar solver.",
     :A => "`A::AbstractMatrix`, a target matrix for compression.",
     :b => "`b::AbstractVector`, a possible target vector for compression.",
     :err => "`err::Float64`, an error value to be logged.",
-    :iteration => "`iteration::Int64`, the iteration of the solver." 
+    :iteration => "`iteration::Int64`, the iteration of the solver.",
 )
 
-logger_output_list = Dict{Symbol, String}(
-    :logger_recipe => "A `LoggerRecipe` object."
-)
+logger_output_list = Dict{Symbol,String}(:logger_recipe => "A `LoggerRecipe` object.")
 
-logger_method_description = Dict{Symbol, String}(
+logger_method_description = Dict{Symbol,String}(
     :complete_logger => "A function that generates a `LoggerRecipe` given the 
     arguments.",
     :update_logger => "A function that updates the `LoggerRecipe` in place given 
-    arguments."
+    arguments.",
 )
 """
     complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)

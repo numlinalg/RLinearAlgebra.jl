@@ -33,7 +33,7 @@ quality of a low-rank approximation of a matrix `A`.
 abstract type ApproximatorErrorRecipe end
 
 # Docstring Components
-approx_arg_list = Dict{Symbol, String}(
+approx_arg_list = Dict{Symbol,String}(
     :approximator => "`approximator::Approximator`, a data structure containing the
     user-defined parameters associated with a particular low-rank approximation.",
     :approximator_recipe => "`approximator::ApproximatorRecipe`, a fully initialized
@@ -48,12 +48,12 @@ approx_arg_list = Dict{Symbol, String}(
     compression method for a specific matrix or collection of matrices and vectors.",
 )
 
-approx_output_list = Dict{Symbol, String}(
+approx_output_list = Dict{Symbol,String}(
     :approximator_recipe => "An `ApproximatorRecipe` object.",
-    :approximator_error_recipe => "An `ApproximatorErrorRecipe` object."
+    :approximator_error_recipe => "An `ApproximatorErrorRecipe` object.",
 )
 
-approx_method_description = Dict{Symbol, String}(
+approx_method_description = Dict{Symbol,String}(
     :complete_approximator => "A function that generates a `ApproximatorRecipe` given the 
     arguments.",
     :update_approximator => "A function that updates the `ApproximatorRecipe` in place
@@ -63,7 +63,7 @@ approx_method_description = Dict{Symbol, String}(
     :complete_approximator_error => "A function that generates a `ApproximatorErrorRecipe`
     given the arguments.",
     :compute_approximator_error => "A function that computes the approximation error of an
-    `ApproximatorRecipe` for a matrix `A`."
+    `ApproximatorRecipe` for a matrix `A`.",
 )
 
 # Implement the Adjoint structures for the ApproximatorRecipes
@@ -172,10 +172,8 @@ $(approx_method_description[:complete_approximator_error])
 - $(approx_output_list[:approximator_error_recipe])
 """
 function complete_approximator_error(
-        error::ApproximatorError,
-        S::CompressorRecipe,
-        A::AbstractMatrix,
-    )
+    error::ApproximatorError, S::CompressorRecipe, A::AbstractMatrix
+)
     return nothing
 end
 
@@ -197,10 +195,8 @@ $(approx_method_description[:compute_approximator_error])
 - Returns the error 
 """
 function compute_approximator_error!(
-        error::ApproximatorErrorRecipe,
-        approx::ApproximatorRecipe,
-        A::AbstractMatrix,
-    )
+    error::ApproximatorErrorRecipe, approx::ApproximatorRecipe, A::AbstractMatrix
+)
     return nothing
 end
 
@@ -223,12 +219,10 @@ $(approx_method_description[:compute_approximator_error])
 - Returns the error 
 """
 function compute_approximator_error(
-        error::ApproximatorError,
-        approx::ApproximatorRecipe,
-        A::AbstractMatrix,
-    )
+    error::ApproximatorError, approx::ApproximatorRecipe, A::AbstractMatrix
+)
     error_recipe = complete_approximator_error(error, approx.S, A)
-    return  compute_approximator_error!(error_recipe, approx, A)
+    return compute_approximator_error!(error_recipe, approx, A)
 end
 ###########################################
 # Include the Approximator files
