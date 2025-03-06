@@ -43,8 +43,8 @@ module FieldTest
     """
         @test_comprtessor(type)
     
-    Macro for implementing Compressor routines. It checks that every CompressorRecipe  includes 
-    the fields `n_rows::Int64` and `n_cols::Int64` to 
+    Macro for implementing Compressor routines. It checks that every `CompressorRecipe`  
+    includes the fields `n_rows::Int64` and `n_cols::Int64` to 
     ensure a common interface.
     """
     
