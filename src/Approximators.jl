@@ -1,16 +1,16 @@
 """
-   Approximator 
+    Approximator
 
-An abstract supertype for structures that store user-controlled parameters corresponding to 
+An abstract supertype for structures that store user-controlled parameters corresponding to
 techniques that form low-rank approximations of the matrix `A`.
 """
 abstract type Approximator end
 
 """
-   ApproximatorRecipe
+    ApproximatorRecipe
 
 An abstract supertype for structures that store user-controlled parameters, linear system
-dependent parameters and preallocated memory corresponding to techniques that form low-rank 
+dependent parameters and preallocated memory corresponding to techniques that form low-rank
 approximations of the matrix `A`.
 """
 abstract type ApproximatorRecipe end
@@ -18,7 +18,7 @@ abstract type ApproximatorRecipe end
 """
     ApproximatorError
 
-An abstract supertype for structures containing user-controlled parameters corresponding to 
+An abstract supertype for structures containing user-controlled parameters corresponding to
 methods that evaluate the quality of a low-rank approximation of a matrix `A`.
 """
 abstract type ApproximatorError end
@@ -27,7 +27,7 @@ abstract type ApproximatorError end
     ApproxmatorErrorRecipe
 
 An abstract supertype for structures containing user-controlled parameters, linear system
-dependent parameters and preallocated memory corresponding to methods that evaluate the 
+dependent parameters and preallocated memory corresponding to methods that evaluate the
 quality of a low-rank approximation of a matrix `A`.
 """
 abstract type ApproximatorErrorRecipe end
@@ -54,13 +54,13 @@ approx_output_list = Dict{Symbol,String}(
 )
 
 approx_method_description = Dict{Symbol,String}(
-    :complete_approximator => "A function that generates a `ApproximatorRecipe` given the 
+    :complete_approximator => "A function that generates an `ApproximatorRecipe` given 
     arguments.",
     :update_approximator => "A function that updates the `ApproximatorRecipe` in place
-    given arguments.",
+    given the arguments.",
     :rapproximate => "A function that computes a low-rank approximation of the matrix `A`
     using the information in the provided `Approximator` data structure.",
-    :complete_approximator_error => "A function that generates a `ApproximatorErrorRecipe`
+    :complete_approximator_error => "A function that generates an `ApproximatorErrorRecipe`
     given the arguments.",
     :compute_approximator_error => "A function that computes the approximation error of an
     `ApproximatorRecipe` for a matrix `A`.",
@@ -73,7 +73,8 @@ approx_method_description = Dict{Symbol,String}(
 A structure for the adjoint of an `ApproximatorRecipe`.
 
 ### Fields
--`Parent::ApproximatorRecipe`, the approximator that we compute the adjoint of.
+
+- `Parent::ApproximatorRecipe`, the approximator that we compute the adjoint of.
 """
 struct ApproximatorAdjoint{S<:ApproximatorRecipe} <: ApproximatorRecipe
     parent::S
@@ -101,6 +102,10 @@ $(approx_method_description[:complete_approximator])
 - $(approx_output_list[:approximator_recipe])
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
+    throw(
+        ArgumentError("No method exists for compressor of type $(typeof(approximator)) and \
+  matrix of type $(typeof(A)).")
+    )
     return nothing
 end
 
@@ -123,7 +128,7 @@ end
 """
     rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
 
-    $(approx_method_description[:rapproximate])
+$(approx_method_description[:rapproximate])
 
 ### Arguments
 - $(approx_arg_list[:approximator_recipe])
@@ -133,13 +138,17 @@ end
 - $(approx_output_list[:approximator_recipe])
 """
 function rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
+    throw(
+        ArgumentError("No method exists for compressor of type $(typeof(approximator)) and \
+  matrix of type $(typeof(A)).")
+    )
     return nothing
 end
 
 """
     rapproximate(approximator::Approximator, A::AbstractMatrix)
 
-    $(approx_method_description[:rapproximate])
+$(approx_method_description[:rapproximate])
 
 ### Arguments
 - $(approx_arg_list[:approximator])
@@ -155,7 +164,7 @@ function rapproximate(approximator::Approximator, A::AbstractMatrix)
 end
 
 """
-   complete_approximator_error(
+    complete_approximator_error(
         error::ApproximatorError, 
         S::CompressorRecipe, 
         A::AbstractMatrix
@@ -174,36 +183,44 @@ $(approx_method_description[:complete_approximator_error])
 function complete_approximator_error(
     error::ApproximatorError, S::CompressorRecipe, A::AbstractMatrix
 )
+    throw(
+          ArgumentError("No method exists for compressor of type $(typeof(error)), \
+        $(typeof(S)), and matrix of type $(typeof(A)).")
+    )
     return nothing
 end
 
 """
-    compute_approximator_error(
-        error::ApproximatorErrorMethod, 
-        approximator::Approximator, 
+    compute_approximator_error!(
+        error::ApproximatorErrorRecipe, 
+        approximator::ApproximatorRecipe, 
         A::AbstractMatrix
     )
 
 $(approx_method_description[:compute_approximator_error])
 
 ### Arguments
-- $(approx_arg_list[:approximator_error])
+- $(approx_arg_list[:approximator_error_recipe])
 - $(approx_arg_list[:approximator_recipe])
 - $(approx_arg_list[:A]) 
 
 ### Outputs
-- Returns the error 
+- Returns the `error::Float64` 
 """
 function compute_approximator_error!(
-    error::ApproximatorErrorRecipe, approx::ApproximatorRecipe, A::AbstractMatrix
+    error::ApproximatorErrorRecipe, approximator::ApproximatorRecipe, A::AbstractMatrix
 )
+    throw(
+          ArgumentError("No method exists for compressor of type $(typeof(error)), \
+        $(typeof(approxmator)), and matrix of type $(typeof(A)).")
+    )
     return nothing
 end
 
 # Implement a version of the compute error function that works without the recipe
 """
     compute_approximator_error(
-        error::ApproximatorErrorMethod, 
+        error::ApproximatorError, 
         approximator::Approximator, 
         A::AbstractMatrix
     )
@@ -216,13 +233,14 @@ $(approx_method_description[:compute_approximator_error])
 - $(approx_arg_list[:A]) 
 
 ### Outputs
-- Returns the error 
+- Returns the `error::Float64` 
 """
 function compute_approximator_error(
-    error::ApproximatorError, approx::ApproximatorRecipe, A::AbstractMatrix
+    error::ApproximatorError, approxmator::ApproximatorRecipe, A::AbstractMatrix
 )
-    error_recipe = complete_approximator_error(error, approx.S, A)
-    return compute_approximator_error!(error_recipe, approx, A)
+    error_recipe = complete_approximator_error(error, approximator.S, A)
+    error_val = compute_approximator_error!(error_recipe, approximator, A)
+    return error_val
 end
 ###########################################
 # Include the Approximator files

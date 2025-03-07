@@ -1,7 +1,7 @@
 """
     Solver
 
-An abstract supertype for structures that contain the user-controlled parameters for 
+An abstract supertype for structures that contain the user-controlled parameters for
 techniques that solve a linear system ``Ax = b``.
 """
 abstract type Solver end
@@ -10,7 +10,7 @@ abstract type Solver end
     SolverRecipe
 
 An abstract supertype for structures that contain the user-controlled parameters, linear
-system dependent parameters, and preallocated memory for techniques that solve a linear 
+system dependent parameters, and preallocated memory for techniques that solve a linear
 system ``Ax = b``.
 """
 abstract type SolverRecipe end
@@ -26,8 +26,8 @@ abstract type SolverError end
 """
     SolverErrorRecipe
 
-An abstract supertype for structures that contain the user-controlled parameters, linear 
-system dependent parameters, and preallocated memory for techniques that evaluate the 
+An abstract supertype for structures that contain the user-controlled parameters, linear
+system dependent parameters, and preallocated memory for techniques that evaluate the
 solution to a liear solver..
 """
 abstract type SolverErrorRecipe end

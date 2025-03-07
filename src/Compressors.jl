@@ -10,7 +10,7 @@ abstract type Compressor end
     CompressorRecipe
 
 An abstract supertype for structures that contain both the user-controlled
-parameters in the `Compressor` and the memory allocations necessary for applying the 
+parameters in the `Compressor` and the memory allocations necessary for applying the
 compression technique to a particular linear system.
 """
 abstract type CompressorRecipe end
@@ -336,7 +336,8 @@ end
 A structure for the adjoint of a compression recipe.
 
 ### Fields
-- `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to..
+
+  - `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to..
 """
 struct CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
     parent::S

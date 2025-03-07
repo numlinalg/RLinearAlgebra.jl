@@ -1,7 +1,7 @@
 """
     Logger
 
-An abstract supertype for structures that contain user-controlled parameters for a logger, 
+An abstract supertype for structures that contain user-controlled parameters for a logger,
 which has the goal of recording the progress of a linear solver and evaluating convergence.
 """
 abstract type Logger end
@@ -10,7 +10,7 @@ abstract type Logger end
     LoggerRecipe
 
 An abstract supertype for structures that contain user-controlled parameters and
-preallocated memory for a logger, which has the goal of recording the progress of a linear 
+preallocated memory for a logger, which has the goal of recording the progress of a linear
 solver and evaluating convergence.
 """
 abstract type LoggerRecipe end

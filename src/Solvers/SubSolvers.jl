@@ -1,8 +1,8 @@
 """
     SubSolver
 
-An abstract supertype for structures that contain user-controlled parameters 
-for a linear solver applied to compressed matrix blocks. 
+An abstract supertype for structures that contain user-controlled parameters
+for a linear solver applied to compressed matrix blocks.
 """
 abstract type SubSolver end
 
@@ -11,7 +11,7 @@ abstract type SubSolver end
 
 An abstract supertype for structures that contain user-controlled parameters, linear system
 specific parameters and preallocated memory for a linear solver applied to compressed matrix
-blocks. 
+blocks.
 """
 abstract type SubSolverRecipe end
 
