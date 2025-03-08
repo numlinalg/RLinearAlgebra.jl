@@ -36,7 +36,7 @@ comp_method_description = Dict{Symbol,String}(
     arguments.",
     :update_compressor => "A function that updates the `CompressorRecipe` in place given 
     arguments.",
-    :mul_check => "A function that checks the compatability of arguments for multiplication",
+    :mul_check => "A function that checks the compatability of arguments for multiplication.",
 )
 # Function skeletons
 """
