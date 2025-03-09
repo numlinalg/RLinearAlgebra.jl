@@ -95,7 +95,7 @@ transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 $(approx_method_description[:complete_approximator])
 
 ### Arguments
-- $(approx_arg_list[:approximator_recipe])
+- $(approx_arg_list[:approximator])
 - $(approx_arg_list[:A]) 
 
 ### Outputs
@@ -104,7 +104,7 @@ $(approx_method_description[:complete_approximator])
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
     throw(
         ArgumentError("No method exists for compressor of type $(typeof(approximator)) and \
-  matrix of type $(typeof(A)).")
+                      matrix of type $(typeof(A)).")
     )
     return nothing
 end
@@ -140,7 +140,7 @@ $(approx_method_description[:rapproximate])
 function rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
     throw(
         ArgumentError("No method exists for compressor of type $(typeof(approximator)) and \
-  matrix of type $(typeof(A)).")
+                      matrix of type $(typeof(A)).")
     )
     return nothing
 end
@@ -185,7 +185,7 @@ function complete_approximator_error(
 )
     throw(
           ArgumentError("No method exists for compressor of type $(typeof(error)), \
-        $(typeof(S)), and matrix of type $(typeof(A)).")
+                        $(typeof(S)), and matrix of type $(typeof(A)).")
     )
     return nothing
 end
@@ -211,8 +211,8 @@ function compute_approximator_error!(
     error::ApproximatorErrorRecipe, approximator::ApproximatorRecipe, A::AbstractMatrix
 )
     throw(
-          ArgumentError("No method exists for compressor of type $(typeof(error)), \
-        $(typeof(approxmator)), and matrix of type $(typeof(A)).")
+          ArgumentError("No method exists for compressor of type $(typeof(error)),/
+                        $(typeof(approxmator)), and matrix of type $(typeof(A)).")
     )
     return nothing
 end

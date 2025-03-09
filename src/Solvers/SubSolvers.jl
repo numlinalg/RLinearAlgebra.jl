@@ -1,17 +1,16 @@
 """
     SubSolver
 
-An abstract supertype for structures that contain user-controlled parameters
-for a linear solver applied to compressed matrix blocks.
+An abstract supertype for structures specifying solution methods for a linear system or 
+least squares problem.
 """
 abstract type SubSolver end
 
 """
     SubSolverRecipe
 
-An abstract supertype for structures that contain user-controlled parameters, linear system
-specific parameters and preallocated memory for a linear solver applied to compressed matrix
-blocks.
+An abstract supertype for structures with pre-allocated memory for methods that solve a 
+linear system or least squares problem.
 """
 abstract type SubSolverRecipe end
 
@@ -19,8 +18,8 @@ abstract type SubSolverRecipe end
 sub_solver_arg_list = Dict{Symbol,String}(
     :sub_solver => "`solver::SubSolver`, a user-specified sub-solving method.",
     :sub_solver_recipe => "`solver::SubSolverRecipe`, a fully initialized realization for a
-    logging method for a specific linear sub solver.",
-    :A => "`A::AbstractMatrix`, a target matrix for compression.",
+    linear sub-solver.",
+    :A => "`A::AbstractMatrix`, a coefficient matrix.",
 )
 
 sub_solver_output_list = Dict{Symbol,String}(
@@ -55,7 +54,7 @@ end
 $(sub_solver_method_description[:update_sub_solver])
 
 ### Arguments
-- $(sub_solver_arg_list[:sub_solver])
+- $(sub_solver_arg_list[:sub_solver_recipe])
 - $(sub_solver_arg_list[:A]) 
 
 ### Outputs
