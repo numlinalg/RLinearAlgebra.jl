@@ -9,8 +9,8 @@ abstract type Logger end
 """
     LoggerRecipe
 
-An abstract supertype for a structure that contains pre-allocated memory for a method that 
-records the progress of a `SolverRecipe`. 
+An abstract supertype for a structure that contains pre-allocated memory for a method that
+records the progress of a `SolverRecipe`.
 """
 abstract type LoggerRecipe end
 
@@ -34,6 +34,26 @@ logger_method_description = Dict{Symbol,String}(
     arguments.",
 )
 """
+    complete_logger(logger::Logger, A::AbstractMatrix)
+
+$(logger_method_description[:complete_logger])
+
+### Arguments
+- $(logger_arg_list[:logger])
+- $(logger_arg_list[:A]) 
+
+### Outputs
+- $(logger_output_list[:logger_recipe])
+"""
+function complete_logger(logger::Logger, A::AbstractMatrix)
+    throw(
+        ArgumentError("No `complete_logger` method defined for logger of type \
+        $(typeof(logger)) and $(typeof(A)).")
+    )
+    return nothing
+end
+
+"""
     complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
 
 $(logger_method_description[:complete_logger])
@@ -53,26 +73,6 @@ function complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
 end
 
 """
-    complete_logger(logger::Logger, A::AbstractMatrix)
-
-$(logger_method_description[:complete_logger])
-
-### Arguments
-- $(logger_arg_list[:logger])
-- $(logger_arg_list[:A]) 
-
-### Outputs
-- $(logger_output_list[:logger_recipe])
-"""
-function complete_logger(logger::Logger, A::AbstractMatrix)
-    throw(
-        ArgumentError("No `complete_logger` method defined for $(typeof(logger)) logger and
-        $(typeof(A)).")
-    )
-    return nothing 
-end
-
-"""
     update_logger!(logger::LoggerRecipe, err::Float64, iteration::Int64)
 
 $(logger_method_description[:update_logger])
@@ -85,11 +85,9 @@ $(logger_method_description[:update_logger])
 ### Outputs
 - Performs an inplace update to the `LoggerRecipe` and returns nothing.
 """
-function update_logger!(logger::LoggerRecipe, err::Float64, iteration::Int64)
-    throw(
-        ArgumentError("No `update_logger!` method defined for $(typeof(logger)) 
-        `LoggerRecipe`, $(typeof(err)), and $(typeof(iteration)).")
-    )
+function update_logger!(logger::LoggerRecipe, err::Real, iteration::Int64)
+    throw(ArgumentError("No `update_logger!` method defined for a logger of type \
+    $(typeof(logger)), $(typeof(err)), and $(typeof(iteration))."))
     return nothing
 end
 

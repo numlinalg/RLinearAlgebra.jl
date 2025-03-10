@@ -24,7 +24,7 @@ export complete_solver, update_solver!, rsolve, rsolve!
 
 # Export Logger types and functions
 export Logger, LoggerRecipe
-export complete_logger, update_logger! 
+export complete_logger, update_logger!
 
 # Export SubSolver types and functions
 export SubSolver, SubSolverRecipe
