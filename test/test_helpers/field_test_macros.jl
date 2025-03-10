@@ -7,8 +7,8 @@ module FieldTest
         :converged => Bool,
         :hist => Vector{Float64},
         :stopping_criterion => Function,
-    
     )
+
     """
         @test_logger(type)
     
@@ -16,7 +16,6 @@ module FieldTest
     fields `error::Real`, `threshold_info::Union{Float64, Tuple}`, `converged::Bool`, 
     `hist::Vector{Float64}`, and `stopping_criterion::Function` to ensure a common interface.
     """
-    
     macro test_logger(type)
         expr = quote
             @testset verbose = true "Logger: $(string($(esc(type))))" begin
@@ -40,6 +39,7 @@ module FieldTest
         :n_rows => Int64,
         :n_cols => Int64
     )
+
     """
         @test_comprtessor(type)
     
@@ -47,7 +47,6 @@ module FieldTest
     includes the fields `n_rows::Int64` and `n_cols::Int64` to 
     ensure a common interface.
     """
-    
     macro test_compressor(type)
         expr = quote
             @testset verbose = true "Compressor: $(string($(esc(type))))" begin
@@ -87,7 +86,6 @@ module FieldTest
     `compressed_mat::AbstractMatrix`, `sub_solver::SubSolverRecipe`, `error::SolverErrorRecipe`,
     `S::CompressorRecipe`, and `log::LoggerRecipe` to ensure a common interface.
     """
-    
     macro test_projection_solver(type)
         expr = quote
             @testset verbose = true "Projection Solver: $(string($(esc(type))))" begin
@@ -109,4 +107,3 @@ module FieldTest
 
     export test_projection_solver, test_compressor, test_logger
 end
-

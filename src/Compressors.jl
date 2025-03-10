@@ -11,7 +11,7 @@ abstract type Compressor end
 
 An abstract supertype for structures that contain both the user-controlled
 parameters in the `Compressor` and the memory allocations necessary for applying the
-compression technique to a particular linear system.
+compression technique to a particular set of matrices and vectors.
 """
 abstract type CompressorRecipe end
 
@@ -36,7 +36,7 @@ comp_method_description = Dict{Symbol,String}(
     arguments.",
     :update_compressor => "A function that updates the `CompressorRecipe` in place given 
     arguments.",
-    :mul_check => "A function that checks the compatability of arguments for multiplication.",
+    :mul_check => "A function that checks the compatability of arguments for multiplication"
 )
 # Function skeletons
 """
@@ -236,7 +236,7 @@ $(comp_method_description[:mul_check] * " with a vector.")
 - $(comp_arg_list[:compressor_recipe])
 - $(comp_arg_list[:y]) 
 
-# Outputs
+# Output
 - Returns `nothing` 
 """
 function vec_mul_dimcheck(z::AbstractVector, S::CompressorRecipe, y::AbstractVector)

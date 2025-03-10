@@ -1,7 +1,7 @@
 """
     Logger
 
-An abstrct supertype for structures that record the progress of a `SolverRecipe` applied to
+An abstract supertype for structures that record the progress of a `SolverRecipe` applied to
 a coefficient matrix and constant vector.
 """
 abstract type Logger end

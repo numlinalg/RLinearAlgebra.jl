@@ -26,7 +26,7 @@ abstract type ApproximatorError end
 """
     ApproxmatorErrorRecipe
 
-An abstract supertype for structures containing user-controlled parameters, linear system
+An abstract supertype for structures containing user-controlled parameters, matrix 
 dependent parameters and preallocated memory corresponding to methods that evaluate the
 quality of a low-rank approximation of a matrix `A`.
 """
@@ -174,8 +174,8 @@ $(approx_method_description[:complete_approximator_error])
 
 ### Arguments
 - $(approx_arg_list[:approximator_error])
-- $(approx_arg_list[:A]) 
 - $(approx_arg_list[:compressor_recipe])
+- $(approx_arg_list[:A]) 
 
 ### Outputs
 - $(approx_output_list[:approximator_error_recipe])

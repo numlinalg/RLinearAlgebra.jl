@@ -27,7 +27,7 @@ abstract type SolverError end
 
 An abstract supertype for structures that contain the user-controlled parameters, linear
 system dependent parameters, and preallocated memory for techniques that evaluate the
-solution to a liear solver..
+solution to a linear solver.
 """
 abstract type SolverErrorRecipe end
 
@@ -41,7 +41,7 @@ solver_arg_list = Dict{Symbol,String}(
     a solver error method for a specific linear system or least squares problem.",
     :A => "`A::AbstractMatrix`, a coefficient matrix.",
     :b => "`b::AbstractVector`, a constant vector.",
-    :x => " x::AbstractVector`, a vector for the proposed solution.",
+    :x => "`x::AbstractVector`, a vector for the proposed solution.",
 )
 
 solver_output_list = Dict{Symbol,String}(
