@@ -54,7 +54,7 @@ $(comp_method_description[:complete_compressor])
 function complete_compressor(compressor::Compressor, A::AbstractMatrix)
     throw(
         ArgumentError("No method exists for compressor of type $(typeof(compressor)) and \
-  matrix of type $(typeof(A)).")
+        matrix of type $(typeof(A)).")
     )
     return nothing
 end

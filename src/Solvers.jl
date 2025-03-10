@@ -192,7 +192,7 @@ $(solver_method_description[:compute_solver_error])
 - $(solver_arg_list[:b]) 
 
 ### Outputs
-- A Float64 representing the progress of the solver. 
+-  Returns `nothing`
 """
 function compute_solver_error(
     error::SolverErrorRecipe,

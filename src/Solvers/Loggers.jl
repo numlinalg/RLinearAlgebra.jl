@@ -21,7 +21,7 @@ logger_arg_list = Dict{Symbol,String}(
     logging method for a specific linear or least squares solver.",
     :A => "`A::AbstractMatrix`, a coefficient matrix.",
     :b => "`b::AbstractVector`, a constant vector.",
-    :err => "`err::Float64`, an error value to be logged.",
+    :err => "`err::Real`, an error value to be logged.",
     :iteration => "`iteration::Int64`, the iteration of the solver.",
 )
 
@@ -67,7 +67,7 @@ $(logger_method_description[:complete_logger])
 function complete_logger(logger::Logger, A::AbstractMatrix)
     throw(
         ArgumentError("No `complete_logger` method defined for $(typeof(logger)) logger and
-                      $(typeof(A)).")
+        $(typeof(A)).")
     )
     return nothing 
 end
@@ -88,7 +88,7 @@ $(logger_method_description[:update_logger])
 function update_logger!(logger::LoggerRecipe, err::Float64, iteration::Int64)
     throw(
         ArgumentError("No `update_logger!` method defined for $(typeof(logger)) 
-                      `LoggerRecipe`, $(typeof(err)), and $(typeof(iteration)).")
+        `LoggerRecipe`, $(typeof(err)), and $(typeof(iteration)).")
     )
     return nothing
 end

@@ -211,8 +211,8 @@ function compute_approximator_error!(
     error::ApproximatorErrorRecipe, approximator::ApproximatorRecipe, A::AbstractMatrix
 )
     throw(
-          ArgumentError("No method exists for compressor of type $(typeof(error)),/
-                        $(typeof(approxmator)), and matrix of type $(typeof(A)).")
+            ArgumentError("No method exists for compressor of type $(typeof(error)),/
+            $(typeof(approxmator)), and matrix of type $(typeof(A)).")
     )
     return nothing
 end
@@ -221,7 +221,7 @@ end
 """
     compute_approximator_error(
         error::ApproximatorError, 
-        approximator::Approximator, 
+        approximator::ApproximatorRecipe, 
         A::AbstractMatrix
     )
 
@@ -229,14 +229,14 @@ $(approx_method_description[:compute_approximator_error])
 
 ### Arguments
 - $(approx_arg_list[:approximator_error])
-- $(approx_arg_list[:approximator])
+- $(approx_arg_list[:approximator_recipe])
 - $(approx_arg_list[:A]) 
 
 ### Outputs
 - Returns the `error::Float64` 
 """
 function compute_approximator_error(
-    error::ApproximatorError, approxmator::ApproximatorRecipe, A::AbstractMatrix
+    error::ApproximatorError, approximator::ApproximatorRecipe, A::AbstractMatrix
 )
     error_recipe = complete_approximator_error(error, approximator.S, A)
     error_val = compute_approximator_error!(error_recipe, approximator, A)
@@ -244,4 +244,4 @@ function compute_approximator_error(
 end
 ###########################################
 # Include the Approximator files
-###########u################################
+############################################
