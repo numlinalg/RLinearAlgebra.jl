@@ -53,8 +53,8 @@ $(comp_method_description[:complete_compressor])
 """
 function complete_compressor(compressor::Compressor, A::AbstractMatrix)
     throw(
-        ArgumentError("No method exists for compressor of type $(typeof(compressor)) and \
-        matrix of type $(typeof(A)).")
+        ArgumentError("No `complete_compressor` method exists for compressor of type\
+        $(typeof(compressor)) and matrix of type $(typeof(A)).")
     )
     return nothing
 end
@@ -115,7 +115,7 @@ $(comp_method_description[:update_compressor])
 - Returns `nothing` 
 """
 function update_compressor!(S::CompressorRecipe)
-    throw(ArgumentError("No method exists for compressor recipe of type \
+    throw(ArgumentError("No method `update_compressor` exists for compressor recipe of type\
     $(typeof(S))."))
     return nothing
 end

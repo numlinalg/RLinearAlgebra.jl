@@ -104,8 +104,8 @@ $(approx_method_description[:complete_approximator])
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
     throw(
         ArgumentError(
-            "No method exists for  approximator of type $(typeof(approximator)) and \
-            matrix of type $(typeof(A))."
+            "No method `complete_approximator` exists for approximator of type\
+            $(typeof(approximator)) and matrix of type $(typeof(A))."
         )
     )
     return nothing
@@ -126,8 +126,8 @@ $(approx_method_description[:update_approximator])
 function update_approximator!(approximator::ApproximatorRecipe, A::AbstractMatrix)
     throw(
         ArgumentError(
-            "No method exists for approximator of type $(typeof(approximator)) and \
-            matrix of type $(typeof(A))."
+            "No method `update_approximator!` exists for approximator of type\
+            $(typeof(approximator)) and matrix of type $(typeof(A))."
         )
     )
     return nothing
@@ -148,8 +148,8 @@ $(approx_method_description[:rapproximate])
 function rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
     throw(
         ArgumentError(
-            "No method exists for approximator of type $(typeof(approximator)) and \
-            matrix of type $(typeof(A))."
+            "No `rapproximate` method exists for approximator of type\
+            $(typeof(approximator)) and matrix of type $(typeof(A))."
         )
     )
     return nothing
@@ -193,8 +193,8 @@ $(approx_method_description[:complete_approximator_error])
 function complete_approximator_error(
     error::ApproximatorError, approximator::Approximator, A::AbstractMatrix
 )
-    throw(ArgumentError("No method exists for error of type $(typeof(error)), \
-                        $(typeof(approximator)), and matrix of type $(typeof(A))."))
+    throw(ArgumentError("No `complete_approximator_error! defined for error of type/
+    $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."))
     return nothing
 end
 
@@ -218,8 +218,8 @@ $(approx_method_description[:compute_approximator_error])
 function compute_approximator_error!(
     error::ApproximatorErrorRecipe, approximator::ApproximatorRecipe, A::AbstractMatrix
 )
-    throw(ArgumentError("No method exists for error of type $(typeof(error)),/
-          $(typeof(approximator)), and matrix of type $(typeof(A))."))
+    throw(ArgumentError("No `complete_approximator_error! defined for error of type/
+    $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."))
     return nothing
 end
 
