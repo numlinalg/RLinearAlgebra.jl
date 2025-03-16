@@ -24,4 +24,6 @@ rapproximate
 rapproximate!
 
 complete_approximator
+
+update_approximator!
 ```

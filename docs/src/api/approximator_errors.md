@@ -20,4 +20,6 @@ ApproximatorErrorRecipe
 complete_approximator_error
 
 compute_approximator_error
+
+compute_approximator_error!
 ```
