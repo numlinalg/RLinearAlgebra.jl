@@ -94,3 +94,4 @@ end
 ##############################
 # Include Logger Files
 ###############################
+include("Loggers/basic_logger.jl")
