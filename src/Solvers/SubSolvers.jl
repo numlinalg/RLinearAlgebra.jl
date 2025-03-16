@@ -19,7 +19,7 @@ sub_solver_arg_list = Dict{Symbol,String}(
     :sub_solver => "`solver::SubSolver`, a user-specified sub-solving method.",
     :sub_solver_recipe => "`solver::SubSolverRecipe`, a fully initialized realization for a
     linear sub-solver.",
-    :A => "`A::AbstractMatrix`, a coefficient matrix.",
+    :A => "`A::AbstractArray`, a coefficient matrix or vector.",
 )
 
 sub_solver_output_list = Dict{Symbol,String}(
@@ -33,7 +33,7 @@ sub_solver_method_description = Dict{Symbol,String}(
     arguments.",
 )
 """
-    complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
+    complete_sub_solver(solver::SubSolver, A::AbstractArray)
 
 $(sub_solver_method_description[:complete_sub_solver])
 
@@ -44,14 +44,14 @@ $(sub_solver_method_description[:complete_sub_solver])
 ### Outputs
 - $(sub_solver_output_list[:sub_solver_recipe])
 """
-function complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
+function complete_sub_solver(solver::SubSolver, A::AbstractArray)
     throw(ArgumentError("No `complete_sub_solver!` method defined for a solver of type \
     $(typeof(solver)) and $(typeof(A))."))
     return nothing
 end
 
 """
-    update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
+    update_sub_solver!(solver::SubSolverRecipe, A::AbstractArray)
 
 $(sub_solver_method_description[:update_sub_solver])
 
@@ -62,7 +62,7 @@ $(sub_solver_method_description[:update_sub_solver])
 ### Outputs
 - Modifies the `SubSolverRecipe` in place and returns nothing.
 """
-function update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
+function update_sub_solver!(solver::SubSolverRecipe, A::AbstractArray)
     throw(ArgumentError("No `update_sub_solver!` method defined for a solver of type \
     $(typeof(solver)) and $(typeof(A))."))
     return nothing
