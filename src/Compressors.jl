@@ -11,7 +11,7 @@ abstract type Compressor end
 
 An abstract supertype for structures that contain both the user-controlled
 parameters in the `Compressor` and the memory allocations necessary for applying the
-compression technique to a particular linear system.
+compression technique to a particular set of matrices and vectors.
 """
 abstract type CompressorRecipe end
 
@@ -24,7 +24,7 @@ comp_arg_list = Dict{Symbol,String}(
     :C => "`C::AbstractMatrix`, a matrix where the output will be stored.",
     :b => "`b::AbstractVector`, a possible target vector for compression.",
     :x => "`x::AbstractVector`, a vector that ususally represents a current iterate 
-    typically used in a solver",
+    typically used in a solver.",
     :y => "`y::AbstractVector`, a vector.",
     :z => "`z::AbstractVector`, a vector.",
 )
@@ -53,8 +53,8 @@ $(comp_method_description[:complete_compressor])
 """
 function complete_compressor(compressor::Compressor, A::AbstractMatrix)
     throw(
-        ArgumentError("No method exists for compressor of type $(typeof(compressor)) and \
-  matrix of type $(typeof(A)).")
+        ArgumentError("No `complete_compressor` method exists for compressor of type\
+        $(typeof(compressor)) and matrix of type $(typeof(A)).")
     )
     return nothing
 end
@@ -80,27 +80,44 @@ end
 """
     complete_compressor(
         compressor::Compressor, 
+        x::AbstractVector
         A::AbstractMatrix, 
         b::AbstractVector, 
-        x::AbstractVector
     )
 
 $(comp_method_description[:complete_compressor])
 
 ### Arguments
 - $(comp_arg_list[:compressor])
+- $(comp_arg_list[:x]) 
 - $(comp_arg_list[:A]) 
 - $(comp_arg_list[:b]) 
-- $(comp_arg_list[:x]) 
 
 ### Outputs
 - $(comp_output_list[:compressor_recipe])
 """
 function complete_compressor(
-    compressor::Compressor, A::AbstractMatrix, b::AbstractVector, x::AbstractVector
+    compressor::Compressor, x::AbstractVector, A::AbstractMatrix, b::AbstractVector 
 )
     # If this variant is not defined for a compressor call the one with input matrix A 
     return complete_compressor(compressor, A, b)
+end
+
+"""
+    update_compressor!(S::CompressorRecipe)
+
+$(comp_method_description[:update_compressor])
+
+### Arguments
+- $(comp_arg_list[:compressor_recipe])
+
+### Outputs
+- Returns `nothing` 
+"""
+function update_compressor!(S::CompressorRecipe)
+    throw(ArgumentError("No method `update_compressor` exists for compressor recipe of type\
+    $(typeof(S))."))
+    return nothing
 end
 
 """
@@ -113,11 +130,10 @@ $(comp_method_description[:update_compressor])
 - $(comp_arg_list[:A]) 
 
 ### Outputs
-- `Nothing` 
+- Returns `nothing` 
 """
 function update_compressor!(S::CompressorRecipe, A::AbstractMatrix)
-    throw(ArgumentError("No method exists for compressor recipe of type \
-    $(typeof(S)) and matrix of type $(typeof(A))."))
+    update_compressor!(S)
     return nothing
 end
 
@@ -132,7 +148,7 @@ $(comp_method_description[:update_compressor])
 - $(comp_arg_list[:b]) 
 
 ### Outputs
-- `Nothing` 
+- Returns `nothing` 
 """
 function update_compressor!(S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector)
     update_compressor!(S, A)
@@ -151,15 +167,15 @@ $(comp_method_description[:update_compressor])
 
 ### Arguments
 - $(comp_arg_list[:compressor_recipe])
+- $(comp_arg_list[:x]) 
 - $(comp_arg_list[:A]) 
 - $(comp_arg_list[:b]) 
-- $(comp_arg_list[:x]) 
 
 ### Outputs
-- `Nothing` 
+- Returns `nothing` 
 """
 function update_compressor!(
-    S::CompressorRecipe, A::AbstractMatrix, b::AbstractVector, x::AbstractVector
+    S::CompressorRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector 
 )
     update_compressor!(S, A, b)
     return nothing
@@ -177,7 +193,7 @@ $(comp_method_description[:mul_check] * " from the left.")
 - $(comp_arg_list[:A]) 
 
 # Outputs
-- `Nothing`. 
+- Returns `nothing` 
 """
 function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
     s_rows, s_cols = size(S)
@@ -207,7 +223,7 @@ $(comp_method_description[:mul_check] * " from the right.")
 - $(comp_arg_list[:compressor_recipe])
 
 # Outputs
-- `Nothing`. 
+- Returns `nothing` 
 """
 function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
     s_rows, s_cols = size(S)
@@ -236,19 +252,16 @@ $(comp_method_description[:mul_check] * " with a vector.")
 - $(comp_arg_list[:compressor_recipe])
 - $(comp_arg_list[:y]) 
 
-# Outputs
-- `Nothing`. 
+# Output
+- Returns `nothing` 
 """
 function vec_mul_dimcheck(z::AbstractVector, S::CompressorRecipe, y::AbstractVector)
     s_rows, s_cols = size(S)
     len_y = size(y, 1)
     len_z = size(z, 1)
     if len_y != s_cols
-        throw(
-            DimensionMismatch(
-                "Vector y is of dimension $len_y while S has $s_cols columns."
-            ),
-        )
+        throw(DimensionMismatch("Vector y is of dimension $len_y while S has $s_cols \
+              columns."))
     elseif len_z != s_rows
         throw(
             DimensionMismatch("Vector z is of dimension $len_z while S has $s_rows rows.")
