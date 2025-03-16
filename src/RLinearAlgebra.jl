@@ -1,7 +1,7 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
-import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ
+import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq!, LQ
 import StatsBase: sample!
 import Random: bitrand, seed!
 
@@ -29,7 +29,7 @@ export Approximator, ApproximatorRecipe, ApproximatorAdjoint
 export ApproximatorError, ApproximatorErrorRecipe
 
 # Export Compressor types
-export Compressor, CompressorRecipe, CompressorAdjoint
+export Compressor, CompressorRecipe, CompressorAdjoint, mul!
 
 # Export Solver types
 export Solver, SolverRecipe
@@ -38,7 +38,8 @@ export Solver, SolverRecipe
 export Logger, LoggerRecipe
 
 # Export SubSolver types
-export SubSolver, SubSolverRecipe
+export SubSolver, SubSolverRecipe, ldiv!
+export LQSolver, LQSolverRecipe
 
 # Export SolverError types
 export SolverError, SolverErrorRecipe
