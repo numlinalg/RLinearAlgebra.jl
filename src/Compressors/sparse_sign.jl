@@ -175,14 +175,26 @@ end
 
 
 # Do the right version
-function mul!(x::AbstractVector, S::SparseSignRecipe, y::AbstractVector, alpha::Real, beta::Real)
+function mul!(
+    x::AbstractVector, 
+    S::SparseSignRecipe, 
+    y::AbstractVector, 
+    alpha::Float64, 
+    beta::Float64
+)
     # Check the compatability of the sizes of the things being multiplied
     vec_mul_dimcheck(x, S, y)
     mul!(x, S.Mat, y, alpha, beta)
     return
 end
 
-function mul!(x::AbstractVector, S::CompressorAdjoint{SparseSignRecipe}, y::AbstractVector, alpha::Real, beta::Real)
+function mul!(
+    x::AbstractVector, 
+    S::CompressorAdjoint{SparseSignRecipe}, 
+    y::AbstractVector, 
+    alpha::Float64, 
+    beta::Float64
+)
     # Check the compatability of the sizes of the things being multiplied
     vec_mul_dimcheck(x, S, y)
     mul!(x, S.parent.Mat', y, alpha, beta)
@@ -191,14 +203,26 @@ end
 
 # Implement the matrix-Matrix Multiplication operators
 # Begin with the left version
-function mul!(C::AbstractMatrix, S::SparseSignRecipe, A::AbstractMatrix, alpha::Real, beta::Real)
+function mul!(
+    C::AbstractMatrix, 
+    S::SparseSignRecipe, 
+    A::AbstractMatrix, 
+    alpha::Float64, 
+    beta::Float64
+)
     left_mat_mul_dimcheck(C, S, A)
     mul!(C, S.Mat, A, alpha, beta)
     return
 end
 
 # Now implement the right versions
-function mul!(C::AbstractMatrix, A::AbstractMatrix, S::SparseSignRecipe, alpha::Real, beta::Real)
+function mul!(
+    C::AbstractMatrix, 
+    A::AbstractMatrix, 
+    S::SparseSignRecipe, 
+    alpha::Float64, 
+    beta::Float64
+)
     right_mat_mul_dimcheck(C, A, S)
     mul!(C, A, S.Mat, alpha, beta) 
     return

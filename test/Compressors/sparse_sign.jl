@@ -28,7 +28,7 @@ module sparse_sign
     	    @test typeof(S_method.Mat) <: SparseMatrixCSC
     	    # Test that update_compressor updates the entries
     	    signs = deepcopy(S_method.Mat.nzval)
-    	    update_compressor!(S_method, A, b, zeros(4))
+    	    update_compressor!(S_method, zeros(4), A, b)
     	    # Check that at least one of the entries is different
     	    @test sum(signs .== S_method.Mat.nzval) < 4 * 2 
     	end

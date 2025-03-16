@@ -374,10 +374,10 @@ end
 
 function mul!(
     C::AbstractMatrix,
-    S::CompressorAdjoint{<:CompressorRecipe},
+    S::CompressorAdjoint,
     A::AbstractMatrix,
-    alpha,
-    beta,
+    alpha::Float64,
+    beta::Float64,
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
     # this will give us C = S' * A as desired
@@ -388,9 +388,9 @@ end
 function mul!(
     C::AbstractMatrix,
     A::AbstractMatrix,
-    S::CompressorAdjoint{<:CompressorRecipe},
-    alpha,
-    beta,
+    S::CompressorAdjoint,
+    alpha::Float64,
+    beta::Float64,
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
     # this will give us C = A * S' as desired
@@ -401,10 +401,10 @@ end
 # Computes alpha * S' * y + beta and stores it in x 
 function mul!(
     x::AbstractVector,
-    S::CompressorAdjoint{<:CompressorRecipe},
+    S::CompressorAdjoint,
     y::AbstractVector,
-    alpha,
-    beta,
+    alpha::Float64,
+    beta::Float64,
 )
     # Because the direction of multiplication is based on size compatability no transposing 
     n_rows, n_cols = size(S)
