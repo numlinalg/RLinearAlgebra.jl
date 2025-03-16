@@ -99,7 +99,6 @@ end
 Function that takes an input threshold and stops when the most recent entry in the history
 vector is less than the threshold.
 """
-
 function threshold_stop(log::LoggerRecipe)
     return log.error < log.threshold_info
 end
