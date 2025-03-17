@@ -43,13 +43,12 @@ comp_method_description = Dict{Symbol,String}(
 
 #Define wrappers for the adjoint and transpose of a compressoor
 """
-    CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
+    CompressorAdjoint{S<:CompressorRecipe}
 
 A structure for the adjoint of a compression recipe.
 
 ### Fields
-
-  - `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to.
+- `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to.
 """
 struct CompressorAdjoint{S<:CompressorRecipe}
     parent::S
