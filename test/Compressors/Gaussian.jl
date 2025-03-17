@@ -1,6 +1,7 @@
 module Gaussian_compressor
     using Test, RLinearAlgebra, Random, LinearAlgebra
     import Base.:*
+    include("../../src/Compressors/Gaussian.jl")
     include("../test_helpers/field_test_macros.jl")
     include("../test_helpers/approx_tol.jl")
     using .FieldTest
