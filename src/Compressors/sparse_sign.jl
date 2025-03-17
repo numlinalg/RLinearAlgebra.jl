@@ -147,10 +147,7 @@ function complete_compressor(sparse_info::SparseSign, A::AbstractMatrix, b::Abst
 end
 
 # allocations in this function are entirely due to bitrand call
-function update_compressor!(
-                            S::SparseSignRecipe, 
-                            A::AbstractMatrix 
-                        )
+function update_compressor!(S::SparseSignRecipe)
     # Sample_size will be the minimum of the two size dimensions of `S`
     sample_size = min(S.n_rows, S.n_cols)
     initial_size = max(S.n_rows, S.n_cols)
@@ -159,9 +156,10 @@ function update_compressor!(
         # every grouping of nnz entries corresponds to each row/column in sample
         stop = start + S.nnz - 1
         # Sample indices from the intial_size
-        @views sample!(
+        @allocated mv = view(S.Mat.rowval, start:stop)
+        @allocated @views sample!(
             1:sample_size, 
-            S.Mat.rowval[start:stop], 
+            mv, 
             replace = false, 
             ordered = true
         )
@@ -169,8 +167,8 @@ function update_compressor!(
     end
 
     # There is no inplace update of bitrand and using sample is slower
-    rand!(S.Mat, [S.scale, -S.scale])
-    return
+    @allocated rand!(S.Mat.nzval, [S.scale, -S.scale])
+    return 
 end
 
 
@@ -212,7 +210,6 @@ function mul!(
 )
     left_mat_mul_dimcheck(C, S, A)
     mul!(C, S.Mat, A, alpha, beta)
-    return
 end
 
 # Now implement the right versions
