@@ -96,5 +96,5 @@ macro test_projection_solver(type)
     return expr
 end
 
-export test_projection_solver, test_compressor, test_logger
+export @test_projection_solver, @test_compressor, @test_logger
 end
