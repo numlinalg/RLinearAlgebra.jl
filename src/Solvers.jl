@@ -105,8 +105,8 @@ $(solver_method_description[:rsolve])
 function rsolve!(
     solver::SolverRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector
 )
-    throw(ArgumentError("No `rsolve!` method defined for a $(typeof(solver)) 
-    solver, $(typeof(x)), $(typeof(A)), and $(typeof(b))."))
+    throw(ArgumentError("No `rsolve!` method defined for a $(typeof(solver))solver, \
+    $(typeof(x)), $(typeof(A)), and $(typeof(b))."))
     return nothing
 end
 
@@ -161,11 +161,9 @@ function complete_solver_error(
     A::AbstractMatrix, 
     b::AbstractVector 
 )
-    throw(
-        ArgumentError("There is no `complete_solver_error` method defined for 
+    throw(ArgumentError("There is no `complete_solver_error` method defined for \
         a $(typeof(error)) `SolverError`,  $(typeof(solver)) `SolverRecipe`, $(typeof(A)),\
-        and $(typeof(b)).")
-    )
+        and $(typeof(b))."))
     return nothing
 end
 
@@ -197,8 +195,8 @@ function compute_solver_error(
     A::AbstractMatrix,
     b::AbstractVector,
 )
-    throw(ArgumentError("No `complete_solver_error` method defined for 
-          a $(typeof(error)) `SolverErrorRecipe`,  $(typeof(solver)) `SolverRecipe`, 
+    throw(ArgumentError("No `complete_solver_error` method defined for\
+          a $(typeof(error)) `SolverErrorRecipe`,  $(typeof(solver)) `SolverRecipe`, \
           $(typeof(x)), $(typeof(A)), and $(typeof(b)).")
     )
     return nothing
