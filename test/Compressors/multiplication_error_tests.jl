@@ -1,0 +1,102 @@
+
+module compressor_bound_checking
+using Test, RLinearAlgebra
+import LinearAlgebra: mul!
+
+include("../test_helpers/field_test_macros.jl")
+include("../test_helpers/approx_tol.jl")
+@testset "Multiplication Dimension Checks" begin
+    # Test the matrix multiplication assertions
+    mutable struct TestCompressorRecipe <: CompressorRecipe
+        n_rows::Int64
+        n_cols::Int64
+    end
+    s = 3
+    n_rows = 4
+    n_cols = 5
+    # S is 3 by 4
+    S = TestCompressorRecipe(s, n_rows)
+    # Test the sizes
+    let
+        m, n = size(S)
+        @test m == s
+        @test n == n_rows
+        @test n_rows == size(S, 2)
+        @test s == size(S, 1)
+        # Make sure transpose size are opposite of original size
+        @test size(S, 1) == size(S', 2)
+        @test size(S, 2) == size(S', 1)
+    end
+
+    # Test the matvec multiplications errors
+    let
+        # test y is incorrect x is correct dimension
+        y = zeros(5)
+        x = zeros(3)
+        @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
+    end
+
+    let
+        # test y is correct x is correct dimension
+        y = zeros(4)
+        x = zeros(2)
+        @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
+        # Test that argument error is thrown 
+        @test_throws ArgumentError mul!(x, S, y, 1.0, 1.0)
+        @test_throws ArgumentError mul!(y, S', x, 1.0, 1.0)
+    end
+
+    # Test the mat mat multiplication errors
+    let
+        # Here C has correct column dimension and row dimension A has incorrect row dim
+        A = zeros(5, 2)
+        C = zeros(3, 2)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+    end
+
+    let
+        # C has the wrong row dimension but correct column dimension and A two correct 
+        # dimensions
+        A = zeros(4, 2)
+        C = zeros(4, 2)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+    end
+
+    let
+        # Here A has correct row and column dimensions and C has incorrect column 
+        # dimension
+        A = zeros(4, 2)
+        C = zeros(3, 3)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+        # Test that argument error is thrown when S is on the right 
+        @test_throws ArgumentError mul!(C, A, S, 1.0, 1.0)
+    end
+
+    # Test right multiplication using S' to avoid generating another S
+    # S' has a dimension 4 by 3
+    let
+        # Here A has the correct row dimension and incorrect column dimension
+        # C has the correct row and column dimensions
+        A = zeros(4, 3)
+        C = zeros(4, 3)
+        @test_throws DimensionMismatch RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
+    end
+
+    let
+        # Here A has the correct row dimension and correct column dimension
+        # C has the correct row and incorrect column dimensions
+        A = zeros(4, 4)
+        C = zeros(4, 2)
+        @test_throws DimensionMismatch RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
+    end
+
+    let
+        # Here A has the correct row dimension and correct column dimension
+        # C has the incorrect row and correct column dimensions
+        A = zeros(4, 4)
+        C = zeros(5, 3)
+        @test_throws DimensionMismatch RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
+    end
+end
+
+end
