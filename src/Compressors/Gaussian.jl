@@ -66,14 +66,14 @@ end
 
 # Implement the matrix-vector multiplication
 # Do the right version
-function mul!(x::AbstractVector, S::GaussianRecipe, y::AbstractVector, alpha::Real, beta::Real)
+function mul!(x::AbstractVector, S::GaussianRecipe, y::AbstractVector, alpha::Float64, beta::Float64)
     # Check the compatability of the sizes of the things being multiplied
     vec_mul_dimcheck(x, S, y)
     mul!(x, S.sketch_matrix, y, alpha, beta)
     return
 end
 
-function mul!(x::AbstractVector, S::CompressorAdjoint{GaussianRecipe}, y::AbstractVector, alpha::Real, beta::Real)
+function mul!(x::AbstractVector, S::CompressorAdjoint{GaussianRecipe}, y::AbstractVector, alpha::Float64, beta::Float64)
     # Check the compatability of the sizes of the things being multiplied
     vec_mul_dimcheck(x, S, y)
     mul!(x, S.parent.sketch_matrix', y, alpha, beta)
@@ -82,7 +82,7 @@ end
 
 # Implement the matrix-Matrix Multiplication operators
 # Begin with the left version
-function mul!(C::AbstractMatrix, S::GaussianRecipe, A::AbstractMatrix, alpha::Real, beta::Real)
+function mul!(C::AbstractMatrix, S::GaussianRecipe, A::AbstractMatrix, alpha::Float64, beta::Float64)
     left_mat_mul_dimcheck(C, S, A) 
     # Built-in multiplication
     mul!(C, S.sketch_matrix, A, alpha, beta)
@@ -90,7 +90,7 @@ function mul!(C::AbstractMatrix, S::GaussianRecipe, A::AbstractMatrix, alpha::Re
 end
 
 # Now implement the right versions
-function mul!(C::AbstractMatrix, A::AbstractMatrix, S::GaussianRecipe, alpha::Real, beta::Real)
+function mul!(C::AbstractMatrix, A::AbstractMatrix, S::GaussianRecipe, alpha::Float64, beta::Float64)
     right_mat_mul_dimcheck(C, A, S)
     # Built-in multiplication
     mul!(C, A, S.sketch_matrix, alpha, beta)

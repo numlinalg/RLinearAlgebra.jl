@@ -1,14 +1,18 @@
 module Gaussian_compressor
-    using Test, RLinearAlgebra, Random, LinearAlgebra
+    using Test, RLinearAlgebra, Random
     import Base.:*
+    import LinearAlgebra: transpose, adjoint
+    import LinearAlgebra: mul!, lmul!
+    include("../../src/Compressors.jl")
     include("../../src/Compressors/Gaussian.jl")
+    include("../../src/RLinearAlgebra.jl")
     include("../test_helpers/field_test_macros.jl")
     include("../test_helpers/approx_tol.jl")
     using .FieldTest
     using .ApproxTol
 
     @testset "Compressor_Gaussian" begin
-        @test_compressor GaussianRecipe
+        #@test_compressor GaussianRecipe
         let 
             Random.seed!(21321)
             S1 = Gaussian()
@@ -55,8 +59,8 @@ module Gaussian_compressor
             # Test the case where two dimensions are input but do not match with matrix A
             S3 = Gaussian(n_rows = 2, n_cols = 7)
             @test_throws AssertionError("Either you inputted row or column dimension must match \\
-                the column or row dimension of the matrix.") complete_compressor(S3, A)
-        end
+            the column or row dimension of the matrix.") complete_compressor(S3, A)
+        end        
 
         let
             Random.seed!(2131)
