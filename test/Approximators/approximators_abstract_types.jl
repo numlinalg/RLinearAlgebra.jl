@@ -2,8 +2,12 @@ module approximators_abstract_types
 using Test, RLinearAlgebra
 include("../test_helpers/field_test_macros.jl")
 include("../test_helpers/approx_tol.jl")
+struct TestCompressorRecipe <: CompressorRecipe end
 struct TestApproximator <: Approximator end
-struct TestApproximatorRecipe <: ApproximatorRecipe end
+struct TestApproximatorRecipe <: ApproximatorRecipe 
+    S::CompressorRecipe
+end
+TestApproximatorRecipe() = TestApproximatorRecipe(TestCompressorRecipe())
 struct TestApproximatorError <: ApproximatorError end
 struct TestApproximatorErrorRecipe <: ApproximatorErrorRecipe end
 
@@ -21,6 +25,7 @@ end
     @test_throws ArgumentError complete_approximator(TestApproximator(), A)
     @test_throws ArgumentError update_approximator!(TestApproximatorRecipe(), A)
     @test_throws ArgumentError rapproximate!(TestApproximatorRecipe(), A)
+    @test_throws ArgumentError rapproximate(TestApproximator(), A)
 end
 
 # Test ApproximatorError argment error
@@ -34,6 +39,9 @@ end
     )
     @test_throws ArgumentError compute_approximator_error!(
         TestApproximatorErrorRecipe(), TestApproximatorRecipe(), A
+    )
+    @test_throws MethodError compute_approximator_error(
+        TestApproximatorError(), TestApproximatorRecipe(), A
     )
 end
 
