@@ -429,6 +429,31 @@ function mul!(
     return nothing
 end
 
+function (*)(S::CompressorAdjoint, A::AbstractMatrix)
+    s_rows = size(S, 1)
+    a_cols = size(A, 2)
+    C = zeros(eltype(A), s_rows, a_cols)
+    left_mat_mul_dimcheck(C, S, A)
+    mul!(C, S, A, 1.0, 0.0)
+    return C
+end
+
+function (*)(A::AbstractMatrix, S::CompressorAdjoint)
+    s_cols = size(S, 2)
+    a_rows = size(A, 1)
+    C = zeros(eltype(A), a_rows, s_cols)
+    right_mat_mul_dimcheck(C, A, S)
+    mul!(C, A, S, 1.0, 0.0)
+    return C
+end
+
+function (*)(S::CompressorAdjoint, v::AbstractVector)
+    s_rows = size(S, 1)
+    output = zeros(s_rows)
+    vec_mul_dimcheck(output, S, v)
+    mul!(output, S, v, 1.0, 0.0)
+    return output
+end
 ###################################
 # Include Compressor Files
 ###################################
