@@ -18,8 +18,9 @@ abstract type CompressorRecipe end
 # Docstring Components
 comp_arg_list = Dict{Symbol,String}(
     :compressor => "`compressor::Compressor`, a user-specified compression method.",
-    :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a 
-    compression method for a specific matrix or collection of matrices and vectors.",
+    :compressor_recipe => "`Union{S::CompressorRecipe, CompressorAdjoint}`, a fully 
+    initialized realization for a compression method for a specific matrix or collection 
+    of matrices and vectors.",
     :A => "`A::AbstractMatrix`, a target matrix for compression.",
     :C => "`C::AbstractMatrix`, a matrix where the output will be stored.",
     :b => "`b::AbstractVector`, a possible target vector for compression.",
@@ -36,8 +37,38 @@ comp_method_description = Dict{Symbol,String}(
     arguments.",
     :update_compressor => "A function that updates the `CompressorRecipe` in place given 
     arguments.",
-    :mul_check => "A function that checks the compatability of arguments for multiplication",
+    :mul_check => "A function that checks the compatibility of arguments for multiplication",
 )
+# Wrapper functions for all compressors
+
+#Define wrappers for the adjoint and transpose of a compressoor
+"""
+    CompressorAdjoint{S<:CompressorRecipe}
+
+A structure for the adjoint of a compression recipe.
+
+### Fields
+- `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to.
+"""
+struct CompressorAdjoint{S<:CompressorRecipe}
+    parent::S
+end
+
+adjoint(A::CompressorRecipe) = CompressorAdjoint(A)
+# Undo the transpose
+adjoint(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
+# Make transpose wrapper function
+transpose(A::CompressorRecipe) = CompressorAdjoint(A)
+# Undo the transpose wrapper
+transpose(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
+# Implement the size functions for adjoints
+function Base.size(S::CompressorAdjoint{<:CompressorRecipe})
+    return S.parent.n_cols, S.parent.n_rows
+end
+
+function Base.size(S::CompressorAdjoint{<:CompressorRecipe}, dim::Int64)
+    return dim == 1 ? S.parent.n_cols : S.parent.n_rows
+end
 # Function skeletons
 """
     complete_compressor(compressor::Compressor, A::AbstractMatrix)
@@ -195,7 +226,11 @@ $(comp_method_description[:mul_check] * " from the left.")
 # Outputs
 - Returns `nothing` 
 """
-function left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+function left_mat_mul_dimcheck(
+        C::AbstractMatrix, 
+        S::Union{CompressorRecipe,CompressorAdjoint},
+        A::AbstractMatrix
+    )
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
     c_rows, c_cols = size(C)
@@ -225,7 +260,11 @@ $(comp_method_description[:mul_check] * " from the right.")
 # Outputs
 - Returns `nothing` 
 """
-function right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
+function right_mat_mul_dimcheck(
+        C::AbstractMatrix, 
+        A::AbstractMatrix, 
+        S::Union{CompressorRecipe,CompressorAdjoint}
+    )
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
     c_rows, c_cols = size(C)
@@ -255,7 +294,11 @@ $(comp_method_description[:mul_check] * " with a vector.")
 # Output
 - Returns `nothing` 
 """
-function vec_mul_dimcheck(z::AbstractVector, S::CompressorRecipe, y::AbstractVector)
+function vec_mul_dimcheck(
+        z::AbstractVector, 
+        S::Union{CompressorRecipe,CompressorAdjoint}, 
+        y::AbstractVector
+    )
     s_rows, s_cols = size(S)
     len_y = size(y, 1)
     len_z = size(z, 1)
@@ -340,37 +383,6 @@ function Base.size(S::CompressorRecipe, dim::Int64)
     return dim == 1 ? S.n_rows : S.n_cols
 end
 
-# Wrapper functions for all compressors
-
-#Define wrappers for the adjoint and transpose of a compressoor
-"""
-    CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
-
-A structure for the adjoint of a compression recipe.
-
-### Fields
-
-  - `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to..
-"""
-struct CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
-    parent::S
-end
-
-adjoint(A::CompressorRecipe) = CompressorAdjoint(A)
-# Undo the transpose
-adjoint(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
-# Make transpose wrapper function
-transpose(A::CompressorRecipe) = CompressorAdjoint(A)
-# Undo the transpose wrapper
-transpose(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
-# Implement the size functions for adjoints
-function Base.size(S::CompressorAdjoint{<:CompressorRecipe})
-    return S.parent.n_cols, S.parent.n_rows
-end
-
-function Base.size(S::CompressorAdjoint{<:CompressorRecipe}, dim::Int64)
-    return dim == 1 ? S.parent.n_cols : S.parent.n_rows
-end
 
 function mul!(
     C::AbstractMatrix,

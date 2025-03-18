@@ -24,7 +24,7 @@ methods that evaluate the quality of a low-rank approximation of a matrix `A`.
 abstract type ApproximatorError end
 
 """
-    ApproxmatorErrorRecipe
+    ApproximatorErrorRecipe
 
 An abstract supertype for structures containing user-controlled parameters, matrix
 dependent parameters and preallocated memory corresponding to methods that evaluate the
@@ -193,7 +193,7 @@ $(approx_method_description[:complete_approximator_error])
 function complete_approximator_error(
     error::ApproximatorError, approximator::Approximator, A::AbstractMatrix
 )
-    throw(ArgumentError("No `complete_approximator_error! defined for error of type/
+    throw(ArgumentError("No `complete_approximator_error! defined for error of type\
     $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."))
     return nothing
 end
@@ -218,7 +218,7 @@ $(approx_method_description[:compute_approximator_error])
 function compute_approximator_error!(
     error::ApproximatorErrorRecipe, approximator::ApproximatorRecipe, A::AbstractMatrix
 )
-    throw(ArgumentError("No `complete_approximator_error! defined for error of type/
+    throw(ArgumentError("No `complete_approximator_error! defined for error of type\
     $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."))
     return nothing
 end
