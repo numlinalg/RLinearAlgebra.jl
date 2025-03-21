@@ -54,7 +54,7 @@ module sparse_sign
     	    # Only test sizes here as all type issues should be caught in the first testset
     	    @test S_method.n_cols == 3 
             @test S_method.scale == [-1 / sqrt(3), 1 / sqrt(3)]
-    	    @test size(S_method) == (3, 4)
+    	    @test size(S_method) == (3, 3)
         end
     
         let

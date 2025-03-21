@@ -23,13 +23,13 @@ left or the right.
 abstract type Cardinality end
 
 """
-    Left <:Cardinality
+    Left <: Cardinality
 An abstract type specifying that a matrix should be applied from the left.
 """
 abstract type Left <: Cardinality end
 
 """
-    Right <:Cardinality
+    Right <: Cardinality
 An abstract type specifying that a matrix should be applied from the right.
 """
 abstract type Right <: Cardinality end
@@ -334,7 +334,7 @@ function vec_mul_dimcheck(
 end
 # Implement the * operator  for matrix matrix multiplication
 function mul!(
-    C::AbstractArray, S::CompressorRecipe, A::AbstractArray, alpha::Float64, beta::Float64
+    C::AbstractArray, S::CompressorRecipe, A::AbstractArray, alpha::Number, beta::Number
 )
     throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(S)), \
     $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."))
@@ -342,7 +342,7 @@ function mul!(
 end
 
 function mul!(
-    C::AbstractArray, A::AbstractArray, S::CompressorRecipe, alpha::Float64, beta::Float64
+    C::AbstractArray, A::AbstractArray, S::CompressorRecipe, alpha::Number, beta::Number
 )
     throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
     $(typeof(S)), $(typeof(alpha)), $(typeof(beta)))."))
@@ -407,8 +407,8 @@ function mul!(
     C::AbstractMatrix,
     S::CompressorAdjoint,
     A::AbstractMatrix,
-    alpha::Float64,
-    beta::Float64,
+    alpha::Number,
+    beta::Number,
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
     # this will give us C = S' * A as desired
@@ -420,8 +420,8 @@ function mul!(
     C::AbstractMatrix,
     A::AbstractMatrix,
     S::CompressorAdjoint,
-    alpha::Float64,
-    beta::Float64,
+    alpha::Number,
+    beta::Number,
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
     # this will give us C = A * S' as desired
@@ -434,8 +434,8 @@ function mul!(
     x::AbstractVector,
     S::CompressorAdjoint,
     y::AbstractVector,
-    alpha::Float64,
-    beta::Float64,
+    alpha::Number,
+    beta::Number,
 )
     # Because the direction of multiplication is based on size compatability no transposing 
     n_rows, n_cols = size(S)
@@ -488,6 +488,7 @@ function (*)(S::CompressorAdjoint, v::AbstractVector)
     mul!(output, S, v, 1.0, 0.0)
     return output
 end
+
 ###################################
 # Include Compressor Files
 ###################################

@@ -1,18 +1,26 @@
 """
    SparseSign <: Compressor
 
-An implementation of the sparse sign sketching method. This method forms a sparse matrix 
+An implementation of the sparse sign compression method. This method forms a sparse matrix 
     with a fixed number of non-zeros per row or column depending on the direction that the 
-    sketch is being applied. If sketching from the left, then the number of nonzeros is 
-    fixed for each column. For sketching from the right, then the number of nonzeros is
+    compressor is being applied. If compressing from the left, then the number of nonzeros 
+    is fixed for each column. For compressing from the right, then the number of nonzeros is
     fixed for each row. Each nonzero entry takes a value of 
-    ``{-\\sqrt{\\text{nnz}}, \\sqrt{\\text{nnz}}}``  [martinsson2020randomized](@cite).
+    ``\\{-1/\\sqrt{\\text{nnz}}, 1/\\sqrt{\\text{nnz}}\\}``[martinsson2020randomized](@cite).
+    More concretely, if compressing from the left, we form ``m`` independent vectors 
+    ``g_i \\in \\mathbb{R}^{s}`` with nnz nonzero entries which take a value of either 
+    ``\\{-1/\\sqrt{\\text{nnz}}, 1/\\sqrt{\\text{nnz}}\\}``,  where ``m`` is the number of 
+    rows in the matrix and ``s`` is the compression dimension. The final matrix will then be
+    ```math 
+    S=\\begin{bmatrix} g_1 g_2 \\hdots g_m \\end{bmatrix}
+    ```
+    .
 
 # Fields
  - `cardinality::cardinality`, the direction the compression matrix is intended to be 
 applied from.
- - `n_rows::Int64`, the number of rows in the sketching matrix.
- - `n_cols::Int64`, the number of columns in the sketching matrix.
+ - `n_rows::Int64`, the number of rows in the compression matrix.
+ - `n_cols::Int64`, the number of columns in the compression matrix.
  - `nnz::Int64`, the number of non-zero entries in each row if column compression or the 
  number of non-zero entries in each column if row compression.
 
@@ -24,7 +32,6 @@ intended to be applied from.
 - `compression_dim`, the dimension of the vector/matrix after applying the compressor.
 - `nnz::Int64`, the number of non-zeros per row/column in the sampling matrix. By default 
 this is set to 8.
-
 """
 struct SparseSign <: Compressor
     cardinality::Type{<:Cardinality}
