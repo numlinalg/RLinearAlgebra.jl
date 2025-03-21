@@ -1,37 +1,63 @@
 """
-   SparseSign <: Compressor
+    SparseSign <: Compressor
 
 An implementation of the sparse sign compression method. This method forms a sparse matrix 
     with a fixed number of non-zeros per row or column depending on the direction that the 
-    compressor is being applied. If compressing from the left, then the number of nonzeros 
-    is fixed for each column. For compressing from the right, then the number of nonzeros is
-    fixed for each row. Each nonzero entry takes a value of 
-    ``\\{-1/\\sqrt{\\text{nnz}}, 1/\\sqrt{\\text{nnz}}\\}``[martinsson2020randomized](@cite).
-    More concretely, if compressing from the left, we form ``m`` independent vectors 
-    ``g_i \\in \\mathbb{R}^{s}`` with nnz nonzero entries which take a value of either 
-    ``\\{-1/\\sqrt{\\text{nnz}}, 1/\\sqrt{\\text{nnz}}\\}``,  where ``m`` is the number of 
-    rows in the matrix and ``s`` is the compression dimension. The final matrix will then be
-    ```math 
-    S=\\begin{bmatrix} g_1 g_2 \\hdots g_m \\end{bmatrix}
-    ```
-    .
+    compressor is being applied. See Section 9.2 of [martinsson2020randomized](@cite) for 
+    additional details.
+    
+# Mathematical Description
+    
+Let ``A`` be an ``m \\times n`` matrix that we want to compress. If we want 
+    to compress ``A`` from the left (i.e., we reduce the number of rows), then 
+    we create a sparse sign matrix, ``S``, with dimension ``s \\times m`` where 
+    ``s`` is the compression dimension that is supplied by the user. 
+    In this case, each column of ``S`` is generated independently by the following
+    steps:
+    
+1. Randomly choose `nnz` components of the the ``s`` components of the column. Note, `nnz`
+    is supplied by the user. 
+2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or 
+    ``1/\\sqrt{\\text{nnz}}`` with equal probability.
+3. Set the remaining components of the column to zero. 
+
+If ``A`` is compressed from the right, then we create a sparse sign matrix, ``S``,
+    with dimension ``n \\times s``, where ``s`` is the compression dimension that 
+    is supplied by the user. 
+    In this case, each row of ``S`` is generated independently by the following steps: 
+
+1. Randomly choose `nnz` coomponents fo the ``s`` components of the row. Note, `nnz`
+    is supplied by the user.
+2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or 
+    ``1/\\sqrt{\\text{nnz}}`` with equal probability.
+3. Set the remaining components of the row to zero. 
 
 # Fields
- - `cardinality::cardinality`, the direction the compression matrix is intended to be 
-applied from.
- - `n_rows::Int64`, the number of rows in the compression matrix.
- - `n_cols::Int64`, the number of columns in the compression matrix.
- - `nnz::Int64`, the number of non-zero entries in each row if column compression or the 
- number of non-zero entries in each column if row compression.
+- `cardinality::Type{<:Cardinality}`, the direction the compression matrix is intended to be 
+    applied to a target matrix or operator. Values allowed are `Left` or `Right`.
+- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
+    mathematical description. 
+- `nnz::Int64`, the target number of nonzeros for each column or row of the spares sign 
+    matrix.
+
+!!! warn
+    `nnz` must be no larger than `compression_dim`.
 
 # Constructor
-Will be constructed with 
-`SparseSign(;carinality = Left, compression_dim = 2, nnz::Int64 = 8)` where
-- `carinality::Cardinality`, the direction `Left` or `Right` the compression matrix is 
-intended to be applied from.
-- `compression_dim`, the dimension of the vector/matrix after applying the compressor.
+    
+    SparseSign(;carinality=Left, compression_dim=2, nnz::Int64=8)
+
+## Arguments 
+- `carinality::Type{<:Cardinality}`, the direction the compression matrix is intended to be 
+    applied to a target matrix or operator. Values allowed are `Left` or `Right`. By default 
+    `Left` is chosen. 
+- `compression_dim`, the target compression dimension. Referred to as ``s`` in the
+    mathemtical description. By default this is set to 2.
 - `nnz::Int64`, the number of non-zeros per row/column in the sampling matrix. By default 
-this is set to 8.
+    this is set to 8.
+
+## Returns 
+- A `SparseSign` object. 
 """
 struct SparseSign <: Compressor
     cardinality::Type{<:Cardinality}
@@ -58,14 +84,15 @@ end
 The recipe containing all allocations and information for the SparseSign compressor.
 
 # Fields
- - `cardinality::cardinality`, the direction the compression matrix is intended to be 
-applied from.
- - `n_rows::Int64`, the number of rows in the compression matrix.
- - `n_cols::Int64`, the number of columns in the compression matrix.
- - `nnz::Int64`, the number of non-zero entries in each row if column compression or the 
- number of non-zero entries each column if row compression.
- - `scale::Vector{Number}`, the value of the non-zero entries.
-
+- `cardinality::Type{<:Cardinality}`, the direction the compression matrix is intended to be 
+    applied to a target matrix or operator. Values allowed are `Left` or `Right`.
+- `n_rows::Int64`, the number of rows of the compression matrix.
+- `n_cols::Int64`, the number of columns of the compression matrix.
+- `nnz::Int64`, the number of non-zero entries in each row if `cardinality==Left` or the 
+    number of non-zero entries each column if `cardinality==Right`.
+- `scale::Vector{Number}`, the set of values of the non-zero entries of the Spares Sign
+    compression matrix. 
+- `op::SparseMatrixCSC`, the Spares Sign compression matrix.
 """
 mutable struct SparseSignRecipe <: CompressorRecipe
     cardinality::Type{<:Cardinality}
