@@ -9,40 +9,40 @@ An implementation of the sparse sign sketching method. This method forms a spars
     ``{-\\sqrt{\\text{nnz}}, \\sqrt{\\text{nnz}}}``  [martinsson2020randomized](@cite).
 
 # Fields
+ - `cardinality::cardinality`, the direction the compression matrix is intended to be 
+applied from.
  - `n_rows::Int64`, the number of rows in the sketching matrix.
  - `n_cols::Int64`, the number of columns in the sketching matrix.
  - `nnz::Int64`, the number of non-zero entries in each row if column compression or the 
- number of non-zero entries each column if row compression.
- - `scale::Float64`, the value of the non-zero entries.
- - `idxs::Vector{Int64}`, the index of each non-zero entry in each row if column 
- compression or each column if row compression. 
- - `signs::Vector{Bool}`, the sign of each non-zero entry in each row if column 
- compression or each column if row compression.  As a boolean vector `0`s indicate negative 
- signs while `1`s indicate positive signs.
+ number of non-zero entries in each column if row compression.
 
 # Constructor
-Will be constructed with `SparseSign(n_rows, n_cols; nnz = 8)` where
-- `n_rows::Int64`, the number of rows in the compression matrix. If compressing rows,
-you should set it to be less than number of rows in the matrix you wish to compress. 
-If you are compressing columns, you should set it to be same dimension as the number 
-of columns in the matrix you wish to compress.
-- `n_cols::Int64`, the number of columns in the compression matrix. If compressing columns,
-you should set it to be less than number of columns in the matrix you wish to compress. 
-If you are compressing rows, you should set it to be same dimension as the number 
-of rows in the matrix you wish to compress.
+Will be constructed with 
+`SparseSign(;carinality = Left, compression_dim = 2, nnz::Int64 = 8)` where
+- `carinality::Cardinality`, the direction `Left` or `Right` the compression matrix is 
+intended to be applied from.
+- `compression_dim`, the dimension of the vector/matrix after applying the compressor.
 - `nnz::Int64`, the number of non-zeros per row/column in the sampling matrix. By default 
 this is set to 8.
 
 """
 struct SparseSign <: Compressor
-    n_rows::Int64
-    n_cols::Int64
+    cardinality::Type{<:Cardinality}
+    compression_dim::Int64
     nnz::Int64
+    # perform checks on the number of non-zeros
+    SparseSign(cardinality, compression_dim, nnz) = begin
+        if nnz > compression_dim 
+            throw(DimensionMismatch("Number of non-zero indices, $nnz, must be less than\
+            or equal to compression dimension, $compression_dim."))
+        end
+        return new(cardinality, compression_dim, nnz)
+    end
 end
 
-function SparseSign(;n_rows::Int64 = 0, n_cols::Int64 = 0, nnz::Int64 = 8)
+function SparseSign(;cardinality = Left, compression_dim = 8, nnz::Int64 = 8)
     # Partially construct the sparse sign datatype
-    return SparseSign(n_rows, n_cols, nnz)
+    return SparseSign(cardinality, compression_dim, nnz)
 end
 
 """
@@ -51,67 +51,35 @@ end
 The recipe containing all allocations and information for the SparseSign compressor.
 
 # Fields
- - `n_rows::Int64`, the number of rows in the sketching matrix.
- - `n_cols::Int64`, the number of columns in the sketching matrix.
- - `max_idx::Int64`, the maximum index in idxs.
+ - `cardinality::cardinality`, the direction the compression matrix is intended to be 
+applied from.
+ - `n_rows::Int64`, the number of rows in the compression matrix.
+ - `n_cols::Int64`, the number of columns in the compression matrix.
  - `nnz::Int64`, the number of non-zero entries in each row if column compression or the 
  number of non-zero entries each column if row compression.
- - `scale::Float64`, the value of the non-zero entries.
- - `idxs::Vector{Int64}`, the index of each non-zero entry in each row if column 
- compression or each column if row compression. 
- - `signs::Vector{Bool}`, the sign of each non-zero entry in each row if column 
- compression or each column if row compression.  As a boolean vector `0`s indicate negative 
- signs while `1`s indicate positive signs.
+ - `scale::Vector{Number}`, the value of the non-zero entries.
 
 """
 mutable struct SparseSignRecipe <: CompressorRecipe
+    cardinality::Type{<:Cardinality}
     n_rows::Int64
     n_cols::Int64
     nnz::Int64
-    scale::Float64
-    Mat::SparseMatrixCSC
+    scale::Vector{Number}
+    op::SparseMatrixCSC
 end
 
 # This runs sparse sign assuming the keyword version had been previously run
-function complete_compressor(sparse_info::SparseSign, A::AbstractMatrix)
-    n_rows = sparse_info.n_rows
-    n_cols = sparse_info.n_cols
+function complete_compressor(ingredients::SparseSign, A::AbstractMatrix)
+    a_rows, a_cols = size(A)
+    # decide row and column dimensions based on inputted cardinality
+    (n_rows, n_cols) = ingredients.cardinality == Left ? (ingredients.compression_dim, 
+        a_rows) : (a_cols, ingredients.compression_dim)
+    compression_dim = ingredients.compression_dim
+    initial_size = ingredients.cardinality == Left ? a_rows : a_cols
     # get the element type of the matrix
     T = eltype(A)
-    # FInd the zero dimension and set it to be the dimension of A
-    if n_rows == 0 && n_cols == 0
-        # by default we will compress the row dimension to size 2
-        n_cols = size(A, 1)
-        n_rows = 2
-        # correct these sizes
-        initial_size = max(n_rows, n_cols)
-        sample_size = min(n_rows, n_cols)
-    elseif n_rows == 0 && n_cols > 0
-        # Assuming that if n_rows is not specified we compress column dimension
-         n_rows = size(A, 2)
-         # If the user specifies one size as nonzero that is the sample size
-         sample_size = n_cols
-         initial_size = n_rows
-    elseif n_rows > 0 && n_cols == 0
-        n_cols = size(A, 1)
-        sample_size = n_rows
-        initial_size = n_cols
-    else
-        if n_rows == size(A, 2)
-            initial_size = n_rows
-            sample_size = n_cols
-        elseif n_cols == size(A, 2)
-            initial_size = n_cols
-            sample_size == n_rows
-        else
-            @assert false "Either you inputted row or column dimension must match \\
-            the column or row dimension of the matrix."
-        end
-    end
-
-    nnz = (sparse_info.nnz == 8) ? min(8, sample_size) : sparse_info.nnz
-    @assert nnz <= sample_size "Number of non-zero indices, $nnz, must be less than compression
-    dimension, $sample_size."
+    nnz = (ingredients.nnz == 8) ? min(8, compression_dim) : ingredients.nnz
     idxs = Vector{Int64}(undef, nnz * initial_size)
     start = 1
     for i in 1:initial_size
@@ -119,7 +87,7 @@ function complete_compressor(sparse_info::SparseSign, A::AbstractMatrix)
         stop = start + nnz - 1
         # Sample indices from the intial_size
         @views sample!(
-            1:sample_size, 
+            1:compression_dim, 
             idxs[start:stop], 
             replace = false, 
             ordered = true
@@ -127,38 +95,43 @@ function complete_compressor(sparse_info::SparseSign, A::AbstractMatrix)
         start = stop + 1
     end
     
-    # Store signs as a boolean to save memory
-    scale = 1 / sqrt(nnz)
-    signs = rand([-scale, scale], nnz * initial_size)  
-    ptr = collect(1:nnz:(nnz * initial_size + 1)) 
+    # store the number in the type equivalent to the matrix A
+    sc = convert(T, 1 / sqrt(nnz))
+    # store as a vector to prevent reallocation during upadate
+    total_nnz = initial_size * nnz
+    scale = [-sc, sc]
+    signs = rand(scale, total_nnz)  
+    ptr = collect(1:nnz:total_nnz+1)  
+
     #If left sketching store as a sparse matrix if right store as sparse matrix transpose
-    if initial_size == n_rows
-        Mat = SparseMatrixCSC{T, Int64}(n_cols, n_rows, ptr, idxs, signs)'
+    if ingredients.cardinality != Left
+        op = SparseMatrixCSC{T, Int64}(n_cols, n_rows, ptr, idxs, signs)'
     else
-        Mat = SparseMatrixCSC{T, Int64}(n_rows, n_cols, ptr, idxs, signs)
+        op = SparseMatrixCSC{T, Int64}(n_rows, n_cols, ptr, idxs, signs)
     end
 
-    return SparseSignRecipe(n_rows, n_cols, nnz, scale, Mat)
+    return SparseSignRecipe(ingredients.cardinality, n_rows, n_cols, nnz, scale, op)
 end
 
 # This runs sparse Sign with both a matrix and vector input (for linear solver)
-function complete_compressor(sparse_info::SparseSign, A::AbstractMatrix, b::AbstractVector)
-    complete_compressor(sparse_info, A)
+function complete_compressor(ingredients::SparseSign, A::AbstractMatrix, b::AbstractVector)
+    complete_compressor(ingredients, A)
 end
 
 # allocations in this function are entirely due to bitrand call
 function update_compressor!(S::SparseSignRecipe)
-    # Sample_size will be the minimum of the two size dimensions of `S`
-    sample_size = min(S.n_rows, S.n_cols)
-    initial_size = max(S.n_rows, S.n_cols)
+    # get compression dimension and initial size based on the cardinality if left just use 
+    # size function which returns (n_rows, n_cols) otherwise reverse order
+    (compression_dim, initial_size) = S.cardinality == Left ? size(S) : (S.n_cols, S.n_rows)
     start = 1
-    for i in 1:sample_size
+    n_col_ptr = length(S.op.colptr)
+    for i in 1:n_col_ptr-1
         # every grouping of nnz entries corresponds to each row/column in sample
         stop = start + S.nnz - 1
         # Sample indices from the intial_size
-        @allocated mv = view(S.Mat.rowval, start:stop)
-        @allocated @views sample!(
-            1:sample_size, 
+        mv = view(S.op.rowval, start:stop)
+        @views sample!(
+            1:compression_dim, 
             mv, 
             replace = false, 
             ordered = true
@@ -167,7 +140,7 @@ function update_compressor!(S::SparseSignRecipe)
     end
 
     # There is no inplace update of bitrand and using sample is slower
-    @allocated rand!(S.Mat.nzval, [S.scale, -S.scale])
+    rand!(S.op.nzval, S.scale)
     return 
 end
 
@@ -177,12 +150,12 @@ function mul!(
     x::AbstractVector, 
     S::SparseSignRecipe, 
     y::AbstractVector, 
-    alpha::Float64, 
-    beta::Float64
+    alpha::Number, 
+    beta::Number
 )
     # Check the compatability of the sizes of the things being multiplied
     vec_mul_dimcheck(x, S, y)
-    mul!(x, S.Mat, y, alpha, beta)
+    mul!(x, S.op, y, alpha, beta)
     return
 end
 
@@ -190,12 +163,12 @@ function mul!(
     x::AbstractVector, 
     S::CompressorAdjoint{SparseSignRecipe}, 
     y::AbstractVector, 
-    alpha::Float64, 
-    beta::Float64
+    alpha::Number, 
+    beta::Number
 )
     # Check the compatability of the sizes of the things being multiplied
     vec_mul_dimcheck(x, S, y)
-    mul!(x, S.parent.Mat', y, alpha, beta)
+    mul!(x, S.parent.op', y, alpha, beta)
     return
 end
 
@@ -205,11 +178,11 @@ function mul!(
     C::AbstractMatrix, 
     S::SparseSignRecipe, 
     A::AbstractMatrix, 
-    alpha::Float64, 
-    beta::Float64
+    alpha::Number, 
+    beta::Number
 )
     left_mat_mul_dimcheck(C, S, A)
-    mul!(C, S.Mat, A, alpha, beta)
+    mul!(C, S.op, A, alpha, beta)
 end
 
 # Now implement the right versions
@@ -217,11 +190,11 @@ function mul!(
     C::AbstractMatrix, 
     A::AbstractMatrix, 
     S::SparseSignRecipe, 
-    alpha::Float64, 
-    beta::Float64
+    alpha::Number, 
+    beta::Number
 )
     right_mat_mul_dimcheck(C, A, S)
-    mul!(C, A, S.Mat, alpha, beta) 
+    mul!(C, A, S.op, alpha, beta) 
     return
 end
 

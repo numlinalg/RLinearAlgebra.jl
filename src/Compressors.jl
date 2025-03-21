@@ -15,6 +15,25 @@ compression technique to a particular set of matrices and vectors.
 """
 abstract type CompressorRecipe end
 
+"""
+    Cardinality
+An abstract type for types that specify whether a compressor will be applied from the 
+left or the right.
+"""
+abstract type Cardinality end
+
+"""
+    Left <:Cardinality
+An abstract type specifying that a matrix should be applied from the left.
+"""
+abstract type Left <: Cardinality end
+
+"""
+    Right <:Cardinality
+An abstract type specifying that a matrix should be applied from the right.
+"""
+abstract type Right <: Cardinality end
+
 # Docstring Components
 comp_arg_list = Dict{Symbol,String}(
     :compressor => "`compressor::Compressor`, a user-specified compression method.",
@@ -426,6 +445,21 @@ function mul!(
     # Return the sizes to the original values which is inverse order of size S
     S.parent.n_rows = n_cols
     S.parent.n_cols = n_rows
+    return nothing
+end
+
+function mul!(x::AbstractVector, S::CompressorAdjoint, y::AbstractVector)
+    mul!(x, S, y, 1.0, 0.0)
+    return nothing
+end
+
+function mul!(C::AbstractMatrix, S::CompressorAdjoint, A::AbstractMatrix)
+    mul!(C, S, A, 1.0, 0.0)
+    return nothing
+end
+
+function mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorAdjoint)
+    mul!(C, A, S, 1.0, 0.0)
     return nothing
 end
 

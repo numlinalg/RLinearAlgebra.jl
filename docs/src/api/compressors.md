@@ -10,6 +10,12 @@ Compressor
 CompressorRecipe
 
 CompressorAdjoint
+
+Cardinality
+
+Left
+
+Right
 ```
 
 ## Compressor Structures
