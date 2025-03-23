@@ -65,6 +65,7 @@ applied from.
  - `nnz::Int64`, the number of non-zero entries in each row if column compression or the 
  number of non-zero entries each column if row compression.
  - `scale::Vector{Number}`, the value of the non-zero entries.
+ - `op::SparseMatrixCSC`, the SparseSign compressor matrix.
 
 """
 mutable struct SparseSignRecipe <: CompressorRecipe
@@ -76,26 +77,31 @@ mutable struct SparseSignRecipe <: CompressorRecipe
     op::SparseMatrixCSC
 end
 
-# This runs sparse sign assuming the keyword version had been previously run
 function complete_compressor(ingredients::SparseSign, A::AbstractMatrix)
-    a_rows, a_cols = size(A)
-    # decide row and column dimensions based on inputted cardinality
-    (n_rows, n_cols) = ingredients.cardinality == Left ? (ingredients.compression_dim, 
-        a_rows) : (a_cols, ingredients.compression_dim)
+    if ingredients.cardinality == Left
+        n_rows = ingredients.compression_dim
+        n_cols = size(A, 1)
+        initial_size = n_cols
+    else
+        n_rows = size(A, 2)
+        n_cols = ingredients.compression_dim
+        initial_size = n_rows
+    end
+    nnz = ingredients.nnz
     compression_dim = ingredients.compression_dim
-    initial_size = ingredients.cardinality == Left ? a_rows : a_cols
     # get the element type of the matrix
     T = eltype(A)
-    nnz = (ingredients.nnz == 8) ? min(8, compression_dim) : ingredients.nnz
-    idxs = Vector{Int64}(undef, nnz * initial_size)
+    total_nnz = initial_size * nnz
+    idxs = Vector{Int64}(undef, total_nnz)
     start = 1
     for i in 1:initial_size
         # every grouping of nnz entries corresponds to each row/column in sample
         stop = start + nnz - 1
         # Sample indices from the intial_size
-        @views sample!(
+        idx_view = view(idxs, start:stop)
+        sample!(
             1:compression_dim, 
-            idxs[start:stop], 
+            idx_view, 
             replace = false, 
             ordered = true
         )
@@ -105,7 +111,6 @@ function complete_compressor(ingredients::SparseSign, A::AbstractMatrix)
     # store the number in the type equivalent to the matrix A
     sc = convert(T, 1 / sqrt(nnz))
     # store as a vector to prevent reallocation during upadate
-    total_nnz = initial_size * nnz
     scale = [-sc, sc]
     signs = rand(scale, total_nnz)  
     ptr = collect(1:nnz:total_nnz+1)  
