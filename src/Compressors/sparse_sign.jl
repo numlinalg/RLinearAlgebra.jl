@@ -26,7 +26,7 @@ If ``A`` is compressed from the right, then we create a sparse sign matrix, ``S`
     is supplied by the user. 
     In this case, each row of ``S`` is generated independently by the following steps: 
 
-1. Randomly choose `nnz` coomponents fo the ``s`` components of the row. Note, `nnz`
+1. Randomly choose `nnz` components fo the ``s`` components of the row. Note, `nnz`
     is supplied by the user.
 2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or 
     ``1/\\sqrt{\\text{nnz}}`` with equal probability.
@@ -65,15 +65,21 @@ struct SparseSign <: Compressor
     nnz::Int64
     # perform checks on the number of non-zeros
     SparseSign(cardinality, compression_dim, nnz) = begin
-        if nnz > compression_dim 
-            throw(DimensionMismatch("Number of non-zero indices, $nnz, must be less than\
+        if compression_dim < 0
+            throw(ArgumentError("Field `compression_dim` must be positive."))
+        elseif nnz > compression_dim 
+            throw(DimensionMismatch("Number of non-zero indices, $nnz, must be less than \
             or equal to compression dimension, $compression_dim."))
+        elseif nnz < 0
+            throw(ArgumentError("Field `nnz` must be positive."))
         end
+
         return new(cardinality, compression_dim, nnz)
     end
+
 end
 
-function SparseSign(;cardinality = Left, compression_dim = 8, nnz::Int64 = 8)
+function SparseSign(;cardinality = Left, compression_dim = 8, nnz = 8)
     # Partially construct the sparse sign datatype
     return SparseSign(cardinality, compression_dim, nnz)
 end
@@ -100,10 +106,14 @@ mutable struct SparseSignRecipe <: CompressorRecipe
     n_cols::Int64
     nnz::Int64
     scale::Vector{Number}
-    op::SparseMatrixCSC
+    op::Union{SparseMatrixCSC, Adjoint}
 end
 
-function complete_compressor(ingredients::SparseSign, A::AbstractMatrix)
+function complete_compressor(
+        ingredients::SparseSign, 
+        A::AbstractMatrix; 
+        type::DataType=eltype(A)
+    )
     if ingredients.cardinality == Left
         n_rows = ingredients.compression_dim
         n_cols = size(A, 1)
@@ -116,7 +126,7 @@ function complete_compressor(ingredients::SparseSign, A::AbstractMatrix)
     nnz = ingredients.nnz
     compression_dim = ingredients.compression_dim
     # get the element type of the matrix
-    T = eltype(A)
+    T = type
     total_nnz = initial_size * nnz
     idxs = Vector{Int64}(undef, total_nnz)
     start = 1
@@ -151,24 +161,22 @@ function complete_compressor(ingredients::SparseSign, A::AbstractMatrix)
     return SparseSignRecipe(ingredients.cardinality, n_rows, n_cols, nnz, scale, op)
 end
 
-# This runs sparse Sign with both a matrix and vector input (for linear solver)
-function complete_compressor(ingredients::SparseSign, A::AbstractMatrix, b::AbstractVector)
-    complete_compressor(ingredients, A)
-end
 
 # allocations in this function are entirely due to bitrand call
 function update_compressor!(S::SparseSignRecipe)
     # get compression dimension and initial size based on the cardinality if left just use 
     # size function which returns (n_rows, n_cols) otherwise reverse order
     (compression_dim, initial_size) = S.cardinality == Left ? size(S) : (S.n_cols, S.n_rows)
+    #alias whether the sparse matrix is transposed
+    op = S.cardinality == Left ? S.op : S.op.parent
     start = 1
-    n_col_ptr = length(S.op.colptr)
+    n_col_ptr = length(op.colptr)
     for i in 1:n_col_ptr-1
         # every grouping of nnz entries corresponds to each row/column in sample
         stop = start + S.nnz - 1
         # Sample indices from the intial_size
-        mv = view(S.op.rowval, start:stop)
-        @views sample!(
+        mv = view(op.rowval, start:stop)
+        sample!(
             1:compression_dim, 
             mv, 
             replace = false, 
@@ -178,7 +186,7 @@ function update_compressor!(S::SparseSignRecipe)
     end
 
     # There is no inplace update of bitrand and using sample is slower
-    rand!(S.op.nzval, S.scale)
+    rand!(op.nzval, S.scale)
     return 
 end
 

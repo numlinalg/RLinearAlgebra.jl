@@ -1,7 +1,7 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
-import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ
+import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ, Adjoint
 import StatsBase: sample!
 import Random: bitrand, rand!
 import SparseArrays: SparseMatrixCSC
@@ -16,7 +16,8 @@ export Approximator, ApproximatorRecipe, ApproximatorAdjoint
 export complete_approximator, update_approximator!, rapproximate, rapproximate!
 
 # Export Compressor types and functions
-export Compressor, CompressorRecipe, CompressorAdjoint, Cardinality, Left, Right
+export Compressor, CompressorRecipe, CompressorAdjoint 
+export Cardinality, Left, Right
 export complete_compressor, update_compressor!
 export SparseSign, SparseSignRecipe
 
