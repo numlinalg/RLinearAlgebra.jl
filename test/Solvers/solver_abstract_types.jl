@@ -21,6 +21,7 @@ end
 
     @test_throws ArgumentError complete_solver(TestSolver(), x, A, b)
     @test_throws ArgumentError rsolve!(TestSolverRecipe(), x, A, b)
+    @test_throws ArgumentError rsolve(TestSolver(), x, A, b)
 end
 
 # Test SolverError argment error
