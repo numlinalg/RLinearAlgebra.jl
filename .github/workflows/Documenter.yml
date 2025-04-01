@@ -3,8 +3,14 @@ on:
   push:
     branches:
       - master
+      - main
+      - v0.2-main
     tags: '*'
   pull_request:
+    branches:
+      - master
+      - main
+      - v0.2-main
 jobs:
   build:
     runs-on: ubuntu-latest
