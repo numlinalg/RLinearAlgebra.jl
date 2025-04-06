@@ -15,6 +15,25 @@ compression technique to a particular set of matrices and vectors.
 """
 abstract type CompressorRecipe end
 
+"""
+    Cardinality
+An abstract type for types that specify whether a compressor will be applied from the 
+left or the right.
+"""
+abstract type Cardinality end
+
+"""
+    Left <: Cardinality
+An abstract type specifying that a matrix should be applied from the left.
+"""
+abstract type Left <: Cardinality end
+
+"""
+    Right <: Cardinality
+An abstract type specifying that a matrix should be applied from the right.
+"""
+abstract type Right <: Cardinality end
+
 # Docstring Components
 comp_arg_list = Dict{Symbol,String}(
     :compressor => "`compressor::Compressor`, a user-specified compression method.",
@@ -43,13 +62,12 @@ comp_method_description = Dict{Symbol,String}(
 
 #Define wrappers for the adjoint and transpose of a compressoor
 """
-    CompressorAdjoint{S<:CompressorRecipe} <: CompressorRecipe
+    CompressorAdjoint{S<:CompressorRecipe}
 
 A structure for the adjoint of a compression recipe.
 
 ### Fields
-
-  - `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to.
+- `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to.
 """
 struct CompressorAdjoint{S<:CompressorRecipe}
     parent::S
@@ -316,7 +334,7 @@ function vec_mul_dimcheck(
 end
 # Implement the * operator  for matrix matrix multiplication
 function mul!(
-    C::AbstractArray, S::CompressorRecipe, A::AbstractArray, alpha::Float64, beta::Float64
+    C::AbstractArray, S::CompressorRecipe, A::AbstractArray, alpha::Number, beta::Number
 )
     throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(S)), \
     $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."))
@@ -324,7 +342,7 @@ function mul!(
 end
 
 function mul!(
-    C::AbstractArray, A::AbstractArray, S::CompressorRecipe, alpha::Float64, beta::Float64
+    C::AbstractArray, A::AbstractArray, S::CompressorRecipe, alpha::Number, beta::Number
 )
     throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
     $(typeof(S)), $(typeof(alpha)), $(typeof(beta)))."))
@@ -389,8 +407,8 @@ function mul!(
     C::AbstractMatrix,
     S::CompressorAdjoint,
     A::AbstractMatrix,
-    alpha::Float64,
-    beta::Float64,
+    alpha::Number,
+    beta::Number,
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
     # this will give us C = S' * A as desired
@@ -402,8 +420,8 @@ function mul!(
     C::AbstractMatrix,
     A::AbstractMatrix,
     S::CompressorAdjoint,
-    alpha::Float64,
-    beta::Float64,
+    alpha::Number,
+    beta::Number,
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
     # this will give us C = A * S' as desired
@@ -416,8 +434,8 @@ function mul!(
     x::AbstractVector,
     S::CompressorAdjoint,
     y::AbstractVector,
-    alpha::Float64,
-    beta::Float64,
+    alpha::Number,
+    beta::Number,
 )
     # Because the direction of multiplication is based on size compatability no transposing 
     n_rows, n_cols = size(S)
@@ -427,6 +445,21 @@ function mul!(
     # Return the sizes to the original values which is inverse order of size S
     S.parent.n_rows = n_cols
     S.parent.n_cols = n_rows
+    return nothing
+end
+
+function mul!(x::AbstractVector, S::CompressorAdjoint, y::AbstractVector)
+    mul!(x, S, y, 1.0, 0.0)
+    return nothing
+end
+
+function mul!(C::AbstractMatrix, S::CompressorAdjoint, A::AbstractMatrix)
+    mul!(C, S, A, 1.0, 0.0)
+    return nothing
+end
+
+function mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorAdjoint)
+    mul!(C, A, S, 1.0, 0.0)
     return nothing
 end
 
@@ -447,7 +480,7 @@ function (*)(A::AbstractMatrix, S::CompressorAdjoint)
     mul!(C, A, S, 1.0, 0.0)
     return C
 end
-  
+
 function (*)(S::CompressorAdjoint, v::AbstractVector)
     s_rows = size(S, 1)
     output = zeros(s_rows)
