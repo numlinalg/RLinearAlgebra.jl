@@ -16,7 +16,7 @@ export Approximator, ApproximatorRecipe, ApproximatorAdjoint
 export complete_approximator, update_approximator!, rapproximate, rapproximate!
 
 # Export Compressor types and functions
-export Compressor, CompressorRecipe, CompressorAdjoint 
+export Compressor, CompressorRecipe, CompressorAdjoint
 export Cardinality, Left, Right
 export complete_compressor, update_compressor!
 export Gaussian, GaussianRecipe
