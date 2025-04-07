@@ -17,19 +17,22 @@ abstract type CompressorRecipe end
 
 """
     Cardinality
-An abstract type for types that specify whether a compressor will be applied from the 
+
+An abstract type for types that specify whether a compressor will be applied from the
 left or the right.
 """
 abstract type Cardinality end
 
 """
     Left <: Cardinality
+
 An abstract type specifying that a matrix should be applied from the left.
 """
 abstract type Left <: Cardinality end
 
 """
     Right <: Cardinality
+
 An abstract type specifying that a matrix should be applied from the right.
 """
 abstract type Right <: Cardinality end
@@ -67,7 +70,8 @@ comp_method_description = Dict{Symbol,String}(
 A structure for the adjoint of a compression recipe.
 
 ### Fields
-- `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to.
+
+  - `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to.
 """
 struct CompressorAdjoint{S<:CompressorRecipe}
     parent::S
@@ -102,10 +106,8 @@ $(comp_method_description[:complete_compressor])
 - $(comp_output_list[:compressor_recipe])
 """
 function complete_compressor(compressor::Compressor, A::AbstractMatrix)
-    throw(
-        ArgumentError("No `complete_compressor` method exists for compressor of type\
-        $(typeof(compressor)) and matrix of type $(typeof(A)).")
-    )
+    throw(ArgumentError("No `complete_compressor` method exists for compressor of type\
+          $(typeof(compressor)) and matrix of type $(typeof(A))."))
     return nothing
 end
 
@@ -147,7 +149,7 @@ $(comp_method_description[:complete_compressor])
 - $(comp_output_list[:compressor_recipe])
 """
 function complete_compressor(
-    compressor::Compressor, x::AbstractVector, A::AbstractMatrix, b::AbstractVector 
+    compressor::Compressor, x::AbstractVector, A::AbstractMatrix, b::AbstractVector
 )
     # If this variant is not defined for a compressor call the one with input matrix A 
     return complete_compressor(compressor, A, b)
@@ -165,8 +167,10 @@ $(comp_method_description[:update_compressor])
 - Returns `nothing` 
 """
 function update_compressor!(S::CompressorRecipe)
-    throw(ArgumentError("No method `update_compressor` exists for compressor recipe of type\
-    $(typeof(S))."))
+    throw(
+        ArgumentError("No method `update_compressor` exists for compressor recipe of type\
+  $(typeof(S)).")
+    )
     return nothing
 end
 
@@ -225,7 +229,7 @@ $(comp_method_description[:update_compressor])
 - Returns `nothing` 
 """
 function update_compressor!(
-    S::CompressorRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector 
+    S::CompressorRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector
 )
     update_compressor!(S, A, b)
     return nothing
@@ -246,10 +250,8 @@ $(comp_method_description[:mul_check] * " from the left.")
 - Returns `nothing` 
 """
 function left_mat_mul_dimcheck(
-        C::AbstractMatrix, 
-        S::Union{CompressorRecipe,CompressorAdjoint},
-        A::AbstractMatrix
-    )
+    C::AbstractMatrix, S::Union{CompressorRecipe,CompressorAdjoint}, A::AbstractMatrix
+)
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
     c_rows, c_cols = size(C)
@@ -280,10 +282,8 @@ $(comp_method_description[:mul_check] * " from the right.")
 - Returns `nothing` 
 """
 function right_mat_mul_dimcheck(
-        C::AbstractMatrix, 
-        A::AbstractMatrix, 
-        S::Union{CompressorRecipe,CompressorAdjoint}
-    )
+    C::AbstractMatrix, A::AbstractMatrix, S::Union{CompressorRecipe,CompressorAdjoint}
+)
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
     c_rows, c_cols = size(C)
@@ -314,10 +314,8 @@ $(comp_method_description[:mul_check] * " with a vector.")
 - Returns `nothing` 
 """
 function vec_mul_dimcheck(
-        z::AbstractVector, 
-        S::Union{CompressorRecipe,CompressorAdjoint}, 
-        y::AbstractVector
-    )
+    z::AbstractVector, S::Union{CompressorRecipe,CompressorAdjoint}, y::AbstractVector
+)
     s_rows, s_cols = size(S)
     len_y = size(y, 1)
     len_z = size(z, 1)
@@ -402,13 +400,8 @@ function Base.size(S::CompressorRecipe, dim::Int64)
     return dim == 1 ? S.n_rows : S.n_cols
 end
 
-
 function mul!(
-    C::AbstractMatrix,
-    S::CompressorAdjoint,
-    A::AbstractMatrix,
-    alpha::Number,
-    beta::Number,
+    C::AbstractMatrix, S::CompressorAdjoint, A::AbstractMatrix, alpha::Number, beta::Number
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
     # this will give us C = S' * A as desired
@@ -417,11 +410,7 @@ function mul!(
 end
 
 function mul!(
-    C::AbstractMatrix,
-    A::AbstractMatrix,
-    S::CompressorAdjoint,
-    alpha::Number,
-    beta::Number,
+    C::AbstractMatrix, A::AbstractMatrix, S::CompressorAdjoint, alpha::Number, beta::Number
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
     # this will give us C = A * S' as desired
@@ -431,11 +420,7 @@ end
 
 # Computes alpha * S' * y + beta and stores it in x 
 function mul!(
-    x::AbstractVector,
-    S::CompressorAdjoint,
-    y::AbstractVector,
-    alpha::Number,
-    beta::Number,
+    x::AbstractVector, S::CompressorAdjoint, y::AbstractVector, alpha::Number, beta::Number
 )
     # Because the direction of multiplication is based on size compatability no transposing 
     n_rows, n_cols = size(S)

@@ -1,7 +1,6 @@
 using Test
 using RLinearAlgebra
 
-
 # Include the test for recipes
 include("./test_helpers/field_test_macros.jl")
 
