@@ -13,7 +13,7 @@ recipe.
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
 
-function rand_power_it(A::AbstractMatrix, approx::RangeFinderRecipe)
+function rand_power_it(A::AbstractMatrix, approx::RangeApproximator)
     S = approx.compressor
     a_rows, a_cols = size(A)
     s_rows, s_cols = size(comp_mat)
@@ -51,7 +51,7 @@ recipe.
 # OUTPUTS
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
-function rand_subspace_it(A::AbstractMatrix, approx::RangeFinderRecipe)
+function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximator)
     S = approx.compressor
     a_rows, a_cols = size(A)
     s_rows, s_cols = size(comp_mat)

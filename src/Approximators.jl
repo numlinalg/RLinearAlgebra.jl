@@ -32,6 +32,27 @@ quality of a low-rank approximation of a matrix `A`.
 """
 abstract type ApproximatorErrorRecipe end
 
+"""
+    RangeApproximator
+
+A abstract type for the structures that contain the user-controlled parameters 
+corresponding to the Approximator methods that use the Q matrix from the QR factorization
+of the right compression of a matrix A. This includes methods like the RandomizedSVD and 
+randomized rangefinder.
+"""
+abstract type RangeApproximator <: Approximator end
+
+"""
+    RangeApproximatorRecipe
+
+A abstract type for the structures that contain the user-controlled parameters, 
+linear ssytem information, and preallocated memory for methods
+corresponding to the Approximator methods that use the Q matrix from the QR factorization
+of the right compression of a matrix A. This includes methods like the RandomizedSVD and 
+randomized rangefinder.
+"""
+abstract type RangeApproximatorRecipe <: ApproximatorRecipe end
+
 # Docstring Components
 approx_arg_list = Dict{Symbol,String}(
     :approximator => "`approximator::Approximator`, a data structure containing the
@@ -248,6 +269,21 @@ function compute_approximator_error(
     error_val = compute_approximator_error!(error_recipe, approximator, A)
     return error_val
 end
+# add the behavior of mul functions with an approximator
+function (*)(R::ApproximatorRecipe, A::AbstractArray)
+    r_rows = size(R, 1)
+    a_cols = size(A, 2)
+    C = zeros(eltype(A), r_rows, a_cols)
+    left_mat_mul_dimcheck(R, S, A)
+    mul!(C, S, A, 1.0, 0.0)
+    return C
+end
+
+function mul!(C::AbstractArray, S::CompressorRecipe, A::AbstractArray)
+    mul!(C, S, A, 1.0, 0.0)
+    return nothing
+end
+
 ###########################################
 # Include the Approximator files
 ############################################
