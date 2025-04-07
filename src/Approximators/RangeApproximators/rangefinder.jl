@@ -52,10 +52,12 @@ A struct that contains the preallocated memory and completed compressor to form 
 - `range::AbstractMatrix`, the orthogonal matrix that approximates the range of ``A``.
 """
 mutable struct RangeFinderRecipe
+    n_rows::Int64
+    n_cols::Int64
     compressor::CompressorRecipe
     power_its::Int64
     rand_subspace::Bool
-    range::Union{Nothing, AbstractMatrix}
+    range::AbstractMatrix
 end
 
 function rapproximate!(approx::RangeFinderRecipe, A::AbstractMatrix)
@@ -77,8 +79,12 @@ function rapproximate(approx::RangeFinder, A::AbstractMatrix)
         approx.compress.carindality = Right
     end
     compress = complete_compressor(approx.compressor, A)
-    
+    # Determine the dimensions of the range approximator
+    a_rows = size(A, 1)
+    c_cols = size(compress, 2)
     approx_recipe = RangeFinderRecipe(
+        a_rows,
+        c_cols,
         compress, 
         approx.rand_subspace, 
         approx.power_its,
