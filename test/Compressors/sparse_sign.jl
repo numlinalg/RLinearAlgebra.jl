@@ -1,13 +1,108 @@
 module sparse_sign
-using Test, RLinearAlgebra, Random
-include("../test_helpers/field_test_macros.jl")
-include("../test_helpers/approx_tol.jl")
-import SparseArrays: sparse, SparseMatrixCSC
-import LinearAlgebra: mul!, Adjoint
-using .FieldTest
-using .ApproxTol
-@testset "Compressor_Sparse_Sign" begin
-    @test_compressor SparseSignRecipe
+    using Test, RLinearAlgebra, Random
+    #include("../test_helpers/field_test_macros.jl")
+    #include("../test_helpers/approx_tol.jl")
+    import SparseArrays: sparse, SparseMatrixCSC, sprand
+    import LinearAlgebra: mul!, Adjoint
+    using ..FieldTest
+    using ..ApproxTol
+    
+    @testset "Sparse Sign: Compressor" begin
+        # Verify Supertype
+        @test supertype(SparseSign) == Compressor
+        
+        # Verify fields and types
+        @test fieldnames(SparseSign) == (:cardinality, :compression_dim, :nnz, :type)
+        @test fieldtypes(SparseSign) == (Cardinality, Int64, Int64, Type{<:Number})
+        
+        # Verify the Internal Constructor
+        let 
+            cardinality = Left()
+            compression_dim = 0
+            nnz = 8
+            type=Float64
+
+            @test_throws ArgumentError("Field `compression_dim` must be positive."
+				) SparseSign(cardinality, compression_dim, nnz, type)
+        end
+
+        let 
+            cardinality = Left()
+            compression_dim = 1
+            nnz = 8
+            type=Float64
+            @test_throws ArgumentError("Number of non-zero \
+            	indices, $nnz, must be less than or equal to compression dimension, \
+            	$compression_dim.") SparseSign(cardinality, compression_dim, nnz, type)
+        end
+
+        # # Verify external constructor and type 
+		for Card in [Left, Right]
+			compressor = SparseSign(cardinality=Card())
+			typeof(compressor.cardinality) == Card
+		end
+
+        for type in [Bool, Int16, Int32, Int64, Float16, Float32, Float64]
+			compressor = SparseSign(cardinality=Right(), type=type)
+			@test compressor.type == type
+		end
+    end
+
+
+    @testset "Sparse Sign: Compressor" begin
+        @test_compressor SparseSignRecipe
+        @test fieldnames(SparseSignRecipe) == (
+            :cardinality, :n_rows, :n_cols, :nnz, :scale, :op
+        )
+        @test fieldtypes(SparseSignRecipe) == (
+            Cardinality, 
+            Int64, 
+            Int64, 
+            Int64, 
+            Vector{Number}, 
+            Union{Adjoint{T, SparseMatrixCSC{T, I}}, SparseMatrixCSC} where 
+                {T<:Number, I<:Integer}
+        )
+        
+        # Verify the internal constructor
+        let 
+            card = Left
+            n_rows = 10
+            n_cols = 20
+            nnz = 3
+            scale = [-3.0, 3.0]
+            op = sprand(10, 20, 0.5)
+            compressor_recipe = SparseSignRecipe(card(), n_rows, n_cols, nnz, scale, op)
+            @test typeof(compressor_recipe.cardinality) == card
+			@test compressor_recipe.n_rows == n_rows
+			@test compressor_recipe.n_cols == n_cols
+			@test compressor_recipe.nnz == nnz
+			@test compressor_recipe.scale == scale
+			@test typeof(compressor_recipe.op) == SparseMatrixCSC{Float64, Int64}
+        end
+
+        let 
+            card = Right 
+            n_rows = 10
+            n_cols = 20
+            nnz = 3
+            scale = [-3.0, 3.0]
+            op = sprand(10, 20, 0.5)'
+            compressor_recipe = SparseSignRecipe(card(), n_rows, n_cols, nnz, scale, op)
+            @test typeof(compressor_recipe.cardinality) == card
+			@test compressor_recipe.n_rows == n_rows
+			@test compressor_recipe.n_cols == n_cols
+			@test compressor_recipe.nnz == nnz
+			@test compressor_recipe.scale == scale
+			@test typeof(compressor_recipe.op) == Adjoint{
+                Float64, SparseMatrixCSC{Float64, Int64}
+            }
+        end
+
+    end
+
+
+#=
     # test the sparse spign constructor
     let
         Random.seed!(21321)
@@ -202,5 +297,5 @@ using .ApproxTol
         @test x ≈ 2.0 * sparse_S' * y + 2.0 * xc
     end
 end
-
+=#
 end

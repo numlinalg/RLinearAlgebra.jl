@@ -25,17 +25,15 @@ abstract type Cardinality end
 
 """
     Left <: Cardinality
-
-An abstract type specifying that a matrix should be applied from the left.
+A struct indicating matrix multiplication from the left. 
 """
-abstract type Left <: Cardinality end
+struct Left <: Cardinality end
 
 """
     Right <: Cardinality
-
-An abstract type specifying that a matrix should be applied from the right.
+A struct indicating matrix multiplication from the right.
 """
-abstract type Right <: Cardinality end
+struct Right <: Cardinality end
 
 # Docstring Components
 comp_arg_list = Dict{Symbol,String}(
