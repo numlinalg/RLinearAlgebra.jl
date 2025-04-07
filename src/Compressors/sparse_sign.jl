@@ -65,6 +65,8 @@ struct SparseSign <: Compressor
     nnz::Int64
     # perform checks on the number of non-zeros
     SparseSign(cardinality, compression_dim, nnz) = begin
+        # the compression dimension must be positive and larger than the number of 
+        # nonzeros
         if compression_dim < 0
             throw(ArgumentError("Field `compression_dim` must be positive."))
         elseif nnz > compression_dim 
@@ -114,6 +116,8 @@ function complete_compressor(
         A::AbstractMatrix; 
         type::DataType=eltype(A)
     )
+    # differentiate the number of rows and columns in the compressor based on the 
+    # whether we intend to apply if from the left or right
     if ingredients.cardinality == Left
         n_rows = ingredients.compression_dim
         n_cols = size(A, 1)
@@ -123,6 +127,7 @@ function complete_compressor(
         n_cols = ingredients.compression_dim
         initial_size = n_rows
     end
+
     nnz = ingredients.nnz
     compression_dim = ingredients.compression_dim
     # get the element type of the matrix
@@ -174,7 +179,7 @@ function update_compressor!(S::SparseSignRecipe)
     for i in 1:n_col_ptr-1
         # every grouping of nnz entries corresponds to each row/column in sample
         stop = start + S.nnz - 1
-        # Sample indices from the intial_size
+        # Fill in new indices to update the compressor 
         mv = view(op.rowval, start:stop)
         sample!(
             1:compression_dim, 

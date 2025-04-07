@@ -89,7 +89,7 @@ module sparse_sign
     	    @test S_method.n_cols == size(A, 1)
     	    @test S_method.scale == [-1 / sqrt(2), 1 / sqrt(2)]
     	    @test size(S_method) == (2, 4)
-
+            # Test construction with keywords when right cardinality is assigned
     	    S2 = SparseSign(cardinality = Right, compression_dim = 2, nnz = 2)
     	    S_method = complete_compressor(S2, A, b)
     	    # Only test sizes here as all type issues should be caught in the first testset
@@ -110,12 +110,14 @@ module sparse_sign
     		A = rand(n_rows, n_cols)
     	    B = rand(sketch_size, n_cols)
     	    C1 = rand(sketch_size, n_cols)
-            C1c = deepcopy(C1) 
     	    C2 = rand(n_rows, n_cols)
+            # copies are for comparing with the "true version"
+            C1c = deepcopy(C1) 
             C2c = deepcopy(C2) 
     	    x = rand(n_rows)
     	    y = rand(sketch_size)
             yc = deepcopy(y)
+            # Start by testing left sketching multiplications
     		S_info = SparseSign(compression_dim = sketch_size)
     		S = complete_compressor(S_info, A)
     		
