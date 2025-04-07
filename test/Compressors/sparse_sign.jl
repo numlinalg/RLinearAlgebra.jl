@@ -77,7 +77,7 @@ module sparse_sign
     
         # Test the construction with keyword arguements changing dimensions
         let
-    		Random.seed!(2131)
+            Random.seed!(2131)
     	    n_rows = 4
     	    n_cols = 3
     	    A = rand(n_rows, n_cols)
@@ -101,13 +101,13 @@ module sparse_sign
    
         # Teset the different multiplications with the left
         let
-    		Random.seed!(2131)
-    		n_rows = 20
-    		n_cols = 3
-    		nnz = 8
-    		sketch_size = 10 
+            Random.seed!(2131)
+            n_rows = 20
+            n_cols = 3
+            nnz = 8
+            sketch_size = 10 
     	
-    		A = rand(n_rows, n_cols)
+            A = rand(n_rows, n_cols)
     	    B = rand(sketch_size, n_cols)
     	    C1 = rand(sketch_size, n_cols)
     	    C2 = rand(n_rows, n_cols)
@@ -118,15 +118,15 @@ module sparse_sign
     	    y = rand(sketch_size)
             yc = deepcopy(y)
             # Start by testing left sketching multiplications
-    		S_info = SparseSign(compression_dim = sketch_size)
-    		S = complete_compressor(S_info, A)
+            S_info = SparseSign(compression_dim = sketch_size)
+            S = complete_compressor(S_info, A)
     		
-    		# Form a vector corresponding to the columns to be generate the sparse mat
-    		nnz_cols = reduce(vcat, [repeat(i:i, S.nnz) for i = 1:n_rows])
+            # Form a vector corresponding to the columns to be generate the sparse mat
+            nnz_cols = reduce(vcat, [repeat(i:i, S.nnz) for i = 1:n_rows])
             # Form the compressor to form the actual compressor
-    		sparse_S = sparse(S.op.rowval, nnz_cols, S.op.nzval)
+            sparse_S = sparse(S.op.rowval, nnz_cols, S.op.nzval)
     	    # Test matrix multiplication from the left
-    		@test S * A ≈ sparse_S * A
+            @test S * A ≈ sparse_S * A
     	    # test transpose multiplication from the left 
     	    @test S' * B ≈ sparse_S' * B
             # Test multiplication from the right
@@ -154,12 +154,12 @@ module sparse_sign
 
         # Teset the different multiplications with the right 
         let
-    		Random.seed!(2131)
-    		n = 20 
-    		nnz = 8
-    		sketch_size = 10 
+            Random.seed!(2131)
+            n = 20 
+            nnz = 8
+            sketch_size = 10 
     	
-    		A = rand(n, sketch_size)
+            A = rand(n, sketch_size)
     	    B = rand(n, n)
     	    C1 = rand(sketch_size, sketch_size)
             C1c = deepcopy(C1)
@@ -168,15 +168,15 @@ module sparse_sign
     	    x = rand(sketch_size)
     	    y = rand(n)
             yc = deepcopy(y)
-    		S_info = SparseSign(cardinality = Right, compression_dim = sketch_size)
-    		S = complete_compressor(S_info, B)
+            S_info = SparseSign(cardinality = Right, compression_dim = sketch_size)
+            S = complete_compressor(S_info, B)
     		
-    		# Form a vector corresponding to the columns to be generate the sparse mat
-    		nnz_cols = reduce(vcat, [repeat(i:i, S.nnz) for i = 1:n])
+            # Form a vector corresponding to the columns to be generate the sparse mat
+            nnz_cols = reduce(vcat, [repeat(i:i, S.nnz) for i = 1:n])
             # Form the compressor to form the actual compressor
-    		sparse_S = sparse(S.op.parent.rowval, nnz_cols, S.op.parent.nzval)'
+            sparse_S = sparse(S.op.parent.rowval, nnz_cols, S.op.parent.nzval)'
     	    # Test matrix multiplication from the left
-    		@test S' * A ≈ sparse_S' * A
+            @test S' * A ≈ sparse_S' * A
     	    # test transpose multiplication from the left 
     	    @test B * S ≈ B * sparse_S
             # Test multiplication from the right
