@@ -77,7 +77,7 @@ struct SparseSign <: Compressor
         elseif nnz > compression_dim
             throw(ArgumentError("Number of non-zero indices, $nnz, must be less than \
             or equal to compression dimension, $compression_dim."))
-        elseif nnz < 0
+        elseif nnz <= 0
             throw(ArgumentError("Field `nnz` must be positive."))
         end
 

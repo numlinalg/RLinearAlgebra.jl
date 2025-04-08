@@ -40,6 +40,16 @@ module sparse_sign
             ) SparseSign(cardinality, compression_dim, nnz, type)
         end
 
+        let 
+            cardinality = Left()
+            compression_dim = 1
+            nnz = 0
+            type=Float64
+            @test_throws ArgumentError(
+                "Field `nnz` must be positive."
+            ) SparseSign(cardinality, compression_dim, nnz, type)
+        end
+
         # # Verify external constructor and type 
 		for Card in [Left, Right]
 			compressor = SparseSign(cardinality=Card())
@@ -50,6 +60,7 @@ module sparse_sign
 			compressor = SparseSign(cardinality=Right(), type=type)
 			@test compressor.type == type
 		end
+
     end
 
 
