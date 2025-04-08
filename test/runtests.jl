@@ -19,7 +19,7 @@ directs =
         ],
     )
 
-@testset verbose = true "RLinearAlbera.jl" begin
+@testset verbose = true "RLinearAlgera.jl" begin
     for direct in directs
         # Obtain all files in the directory
         files_in_direct = readdir(direct)

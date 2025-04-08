@@ -43,7 +43,8 @@ include("../test_helpers/approx_tol.jl")
         @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
         # Test that argument error is thrown 
         @test_throws ArgumentError mul!(x, S, y, 1.0, 1.0)
-        @test_throws ArgumentError mul!(y, S', x, 1.0, 1.0)
+        #Check that a method error is thrown
+        @test_throws MethodError mul!(y, S', x, 1.0, 1.0)
     end
 
     # Test the mat mat multiplication errors

@@ -418,16 +418,13 @@ end
 
 # Computes alpha * S' * y + beta and stores it in x 
 function mul!(
-    x::AbstractVector, S::CompressorAdjoint, y::AbstractVector, alpha::Number, beta::Number
+    x::AbstractVector, 
+    S::CompressorAdjoint{C} where C <: Compressor, 
+    y::AbstractVector, 
+    alpha::Number, 
+    beta::Number
 )
-    # Because the direction of multiplication is based on size compatability no transposing 
-    n_rows, n_cols = size(S)
-    S.parent.n_rows = n_rows
-    S.parent.n_cols = n_cols
-    mul!(x, S.parent, y, alpha, beta)
-    # Return the sizes to the original values which is inverse order of size S
-    S.parent.n_rows = n_cols
-    S.parent.n_cols = n_rows
+    throw(MethodError("No mul! defined for Compressor of type $(typeof(S.parent))."))
     return nothing
 end
 

@@ -41,7 +41,5 @@ RLinearAlgebra.right_mat_mul_dimcheck
 
 RLinearAlgebra.vec_mul_dimcheck
 
-RLinearAlgebra.cardinality_based_update_idxs!
-
 RLinearAlgebra.update_row_idxs!
 ```

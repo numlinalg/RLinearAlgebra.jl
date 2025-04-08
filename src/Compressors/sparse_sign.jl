@@ -112,12 +112,12 @@ The recipe containing all allocations and information for the SparseSign compres
     compression matrix.
   - `op::SparseMatrixCSC`, the Spares Sign compression matrix.
 """
-mutable struct SparseSignRecipe <: CompressorRecipe
-    cardinality::Cardinality
+mutable struct SparseSignRecipe{C<:Cardinality} <: CompressorRecipe
+    cardinality::C
     n_rows::Int64
     n_cols::Int64
     nnz::Int64
-    scale::Vector{Number}
+    scale::Vector{<:Number}
     op::Union{SparseMatrixCSC, Adjoint{T, SparseMatrixCSC{T, I}}} where 
         {T<:Number, I<:Integer}
 end
@@ -159,38 +159,46 @@ end
 function SparseSignRecipe(
     cardinality::Left,
     compression_dim::Int64,
-    A::AbastractMatrix,
+    A::AbstractMatrix,
     nnz::Int64,
     type::Type{<:Number}
 )
     
     n_rows = compression_dim
     n_cols = size(A, 1)
-    initial_size = n_cols
-    total_nnz = initial_size * nnz
+    initial_dim = n_cols
+    total_nnz = initial_dim * nnz
     idxs = Vector{Int64}(undef, total_nnz)
     update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
     # store the number in the type equivalent to the matrix A
-    sc = convert(T, 1 / sqrt(nnz))
+    sc = convert(type, 1 / sqrt(nnz))
     # store as a vector to prevent reallocation during update
     scale = [-sc, sc]
     signs = rand(scale, total_nnz)
     # Allocatet the column pointers
     col_ptr = collect(1:nnz:(total_nnz + 1))
     op = SparseMatrixCSC{type, Int64}(n_rows, n_cols, col_ptr, idxs, signs)
+    return SparseSignRecipe{typeof(cardinality)}(
+        cardinality, 
+        n_rows, 
+        n_cols, 
+        nnz, 
+        scale, 
+        op
+    )
 end
 
 function SparseSignRecipe(
     cardinality::Right,
     compression_dim::Int64,
-    A::AbastractMatrix,
+    A::AbstractMatrix,
     nnz::Int64,
     type::Type{<:Number}
 )
     n_rows = size(A, 2)
     n_cols = compression_dim
-    initial_size = n_rows
-    total_nnz = initial_size * nnz
+    initial_dim = n_rows
+    total_nnz = initial_dim * nnz
     idxs = Vector{Int64}(undef, total_nnz)
     update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
     # store the number in the type equivalent to the matrix A
@@ -201,7 +209,14 @@ function SparseSignRecipe(
     # Allocate the column pointers from 1:total_nnz+1
     col_ptr = collect(1:nnz:(total_nnz + 1))
     op = adjoint(SparseMatrixCSC{type,Int64}(n_cols, n_rows, col_ptr, idxs, signs))
-    return SparseSignRecipe(ingredients.cardinality, n_rows, n_cols, nnz, scale, op)
+    return SparseSignRecipe{typeof(cardinality)}(
+        cardinality, 
+        n_rows, 
+        n_cols, 
+        nnz, 
+        scale, 
+        op
+    )
 
 end
 
@@ -210,7 +225,7 @@ function complete_compressor(
 )
 
     return SparseSignRecipe(
-        S.cardinality,
+        ingredients.cardinality,
         ingredients.compression_dim,
         A,
         ingredients.nnz,
@@ -219,34 +234,24 @@ function complete_compressor(
 
 end
 
-"""
-    cardinality_based_update_idxs!
-
-A function that updates the row indices of a sparse vector in a `SparseSignRecipe`.
-
-# INPUTS
- - `S::SparseSignRecipe`, the sparse sign compressor to be updated.
- - `cardinality::Cardinality`, the cardinality of the compressor.
-"""
-function cardinality_based_update_idxs!(S::SparseSignRecipe, cardinality::Left)
-    (compression_dim, initial_size) = size(S)
+# allocations in this function are entirely due to bitrand call
+function update_compressor!(S::SparseSignRecipe{Left})
+    (compression_dim, initial_dim) = size(S)
     op = S.op
     nnz = S.nnz
-    update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
+    update_row_idxs!(op.rowval, compression_dim, initial_dim, nnz)
+    # Update the nonzero values
+    rand!(op.nzval, S.scale)
+    return nothing
 end
 
-function cardinality_based_update_idxs!(S::SparseSignRecipe, cardinality::Right)
+# allocations in this function are entirely due to bitrand call
+function update_compressor!(S::SparseSignRecipe{Right})
     (compression_dim, initial_dim) = (S.n_cols, S.n_rows)
     # If adjoint need to access the parent of the operator
     op = S.op.parent
     nnz = S.nnz
-    update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
-end
-
-# allocations in this function are entirely due to bitrand call
-function update_compressor!(S::SparseSignRecipe)
-    # update the row indices
-    cardinality_based_update_idxs!(S, S.cardinality)
+    update_row_idxs!(op.rowval, compression_dim, initial_dim, nnz)
     # Update the nonzero values
     rand!(op.nzval, S.scale)
     return nothing
@@ -264,7 +269,7 @@ end
 
 function mul!(
     x::AbstractVector,
-    S::CompressorAdjoint{SparseSignRecipe},
+    S::CompressorAdjoint{SparseSignRecipe{C}} where C <: Cardinality,
     y::AbstractVector,
     alpha::Number,
     beta::Number,
