@@ -123,11 +123,11 @@ mutable struct SparseSignRecipe <: CompressorRecipe
 end
 
 function complete_compressor(
-    ingredients::SparseSign, A::AbstractMatrix; type::DataType=eltype(A)
+    ingredients::SparseSign, A::AbstractMatrix
 )
     # differentiate the number of rows and columns in the compressor based on the 
     # whether we intend to apply if from the left or right
-    if ingredients.cardinality == Left
+    if typeof(ingredients.cardinality) == Left
         n_rows = ingredients.compression_dim
         n_cols = size(A, 1)
         initial_size = n_cols
@@ -140,7 +140,7 @@ function complete_compressor(
     nnz = ingredients.nnz
     compression_dim = ingredients.compression_dim
     # get the element type of the matrix
-    T = type
+    T = ingredients.type
     total_nnz = initial_size * nnz
     idxs = Vector{Int64}(undef, total_nnz)
     first_idx = 1
@@ -165,10 +165,10 @@ function complete_compressor(
     # If left sketching store as a sparse matrix if right store as sparse matrix adjoint 
     # Use `SparseMatrixCSC` rather than `sparse` to ensure correct dimensions of the sparse 
     # matrix. Sparse has at times created matrices with too few rows/columns
-    if ingredients.cardinality != Left
-        op = adjoint(SparseMatrixCSC{T,Int64}(n_cols, n_rows, col_ptr, idxs, signs))
-    else
+    if typeof(ingredients.cardinality) == Left
         op = SparseMatrixCSC{T,Int64}(n_rows, n_cols, col_ptr, idxs, signs)
+    else
+        op = adjoint(SparseMatrixCSC{T,Int64}(n_cols, n_rows, col_ptr, idxs, signs))
     end
 
     return SparseSignRecipe(ingredients.cardinality, n_rows, n_cols, nnz, scale, op)
@@ -178,9 +178,10 @@ end
 function update_compressor!(S::SparseSignRecipe)
     # get compression dimension and initial size based on the cardinality if left just use 
     # size function which returns (n_rows, n_cols) otherwise reverse order
-    (compression_dim, initial_size) = S.cardinality <: Left ? size(S) : (S.n_cols, S.n_rows)
+    cardinality = typeof(S.cardinality)
+    (compression_dim, initial_size) = cardinality <: Left ? size(S) : (S.n_cols, S.n_rows)
     #alias whether the sparse matrix is transposed
-    op = S.cardinality <: Left ? S.op : S.op.parent
+    op = cardinality <: Left ? S.op : S.op.parent
     first_idx = 1
     n_col_ptr = length(op.colptr)
     # For every pair of column pointers you need to allocate row entries
@@ -188,8 +189,8 @@ function update_compressor!(S::SparseSignRecipe)
         # every grouping of nnz entries corresponds to each row/column in sample
         last_idx = first_idx + S.nnz - 1
         # Fill in new indices to update the compressor 
-        mv = view(op.rowval, first_idx:last_idx)
-        sample!(1:compression_dim, mv; replace=false, ordered=true)
+        #mv = view(op.rowval, first_idx:last_idx)
+        sample!(1:compression_dim, view(op.rowval, first_idx:last_idx), replace=false, ordered=true)
         first_idx = last_idx + 1
     end
 

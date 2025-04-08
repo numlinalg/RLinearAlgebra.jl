@@ -22,8 +22,9 @@ module sparse_sign
             nnz = 8
             type=Float64
 
-            @test_throws ArgumentError("Field `compression_dim` must be positive."
-				) SparseSign(cardinality, compression_dim, nnz, type)
+            @test_throws ArgumentError(
+                "Field `compression_dim` must be positive."
+			) SparseSign(cardinality, compression_dim, nnz, type)
         end
 
         let 
@@ -31,9 +32,10 @@ module sparse_sign
             compression_dim = 1
             nnz = 8
             type=Float64
-            @test_throws ArgumentError("Number of non-zero \
-            	indices, $nnz, must be less than or equal to compression dimension, \
-            	$compression_dim.") SparseSign(cardinality, compression_dim, nnz, type)
+            @test_throws ArgumentError(
+                "Number of non-zero indices, $nnz, must be less than or equal to \
+                compression dimension, $compression_dim."
+            ) SparseSign(cardinality, compression_dim, nnz, type)
         end
 
         # # Verify external constructor and type 
@@ -101,7 +103,126 @@ module sparse_sign
 
     end
 
+@testset "Sparse Sign: Complete Compressor" begin
+    # test with left compressor
+    let
+        card = Left()
+        n_rows = 10
+        n_cols = 10
+        c_dim = 4
+        nnz = 3
+        type = Float16
+        A = rand(n_rows, n_cols)
+        compressor_recipe = complete_compressor(
+            SparseSign(cardinality = card, compression_dim = c_dim, nnz = nnz, type = type),
+            A
+        )
+        # Test the values and types
+        @test compressor_recipe.cardinality == card
+		@test compressor_recipe.n_rows == c_dim
+		@test compressor_recipe.n_cols == n_cols
+		@test compressor_recipe.nnz == nnz
+        sc = type(1 / sqrt(nnz))
+        @test compressor_recipe.scale == [-sc, sc] 
+		@test typeof(compressor_recipe.op) == SparseMatrixCSC{type, Int64}
+        # Test the number of nonzeros per row is correct
+        correct_nnz = [sum(compressor_recipe.op[:, i] .!= 0) != nnz for i = 1:n_rows]
+        @test sum(correct_nnz) == 0
+    end
 
+    # test with right compressor
+    let
+        card = Right()
+        n_rows = 10
+        n_cols = 10
+        c_dim = 4
+        nnz = 3
+        type = Float16
+        A = rand(n_rows, n_cols)
+        compressor_recipe = complete_compressor(
+            SparseSign(cardinality = card, compression_dim = c_dim, nnz = nnz, type = type),
+            A
+        )
+        # Test the values and types
+        @test compressor_recipe.cardinality == card
+		@test compressor_recipe.n_rows == n_cols 
+		@test compressor_recipe.n_cols == c_dim
+		@test compressor_recipe.nnz == nnz
+        sc = type(1 / sqrt(nnz))
+        @test compressor_recipe.scale == [-sc, sc] 
+		@test typeof(compressor_recipe.op) == Adjoint{type, SparseMatrixCSC{type, Int64}}
+
+        # Test the number of nonzeros per row is correct
+        correct_nnz = [sum(compressor_recipe.op[i, :] .!= 0) != nnz for i = 1:n_rows]
+        @test sum(correct_nnz) == 0
+    end
+    
+end
+
+@testset "Sparse Sign: Update Compressor" begin
+    # test with left compressor
+    let
+        card = Left()
+        n_rows = 10
+        n_cols = 10
+        c_dim = 4
+        nnz = 3
+        type = Float16
+        A = rand(n_rows, n_cols)
+        compressor_recipe = complete_compressor(
+            SparseSign(cardinality = card, compression_dim = c_dim, nnz = nnz, type = type),
+            A
+        )
+        # copy to test that the compressor has changed
+        oldmat = deepcopy(compressor_recipe.op)
+        update_compressor!(compressor_recipe)
+        # Test the values and types
+        @test compressor_recipe.cardinality == card
+		@test compressor_recipe.n_rows == c_dim
+		@test compressor_recipe.n_cols == n_cols
+		@test compressor_recipe.nnz == nnz
+        sc = type(1 / sqrt(nnz))
+        @test compressor_recipe.scale == [-sc, sc] 
+		@test typeof(compressor_recipe.op) == SparseMatrixCSC{type, Int64}
+        # Test that the matrix has changed
+        @test compressor_recipe.op != oldmat
+        # Test the number of nonzeros per row is correct
+        correct_nnz = [sum(compressor_recipe.op[:, i] .!= 0) != nnz for i = 1:n_rows]
+        @test sum(correct_nnz) == 0
+    end
+
+    # test with right compressor
+    let
+        card = Right()
+        n_rows = 10
+        n_cols = 10
+        c_dim = 4
+        nnz = 3
+        type = Float16
+        A = rand(n_rows, n_cols)
+        compressor_recipe = complete_compressor(
+            SparseSign(cardinality = card, compression_dim = c_dim, nnz = nnz, type = type),
+            A
+        )
+        # copy to test that the compressor has changed
+        oldmat = deepcopy(compressor_recipe.op)
+        update_compressor!(compressor_recipe)
+        # Test the values and types
+        @test compressor_recipe.cardinality == card
+		@test compressor_recipe.n_rows == n_cols 
+		@test compressor_recipe.n_cols == c_dim
+		@test compressor_recipe.nnz == nnz
+        sc = type(1 / sqrt(nnz))
+        @test compressor_recipe.scale == [-sc, sc] 
+		@test typeof(compressor_recipe.op) == Adjoint{type, SparseMatrixCSC{type, Int64}}
+        # Test that the matrix has changed
+        @test compressor_recipe.op != oldmat
+        # Test the number of nonzeros per row is correct
+        correct_nnz = [sum(compressor_recipe.op[i, :] .!= 0) != nnz for i = 1:n_rows]
+        @test sum(correct_nnz) == 0
+    end
+    
+end
 #=
     # test the sparse spign constructor
     let
