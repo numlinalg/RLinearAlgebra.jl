@@ -122,38 +122,54 @@ mutable struct SparseSignRecipe <: CompressorRecipe
         {T<:Number, I<:Integer}
 end
 
-function complete_compressor(
-    ingredients::SparseSign, A::AbstractMatrix
-)
-    # differentiate the number of rows and columns in the compressor based on the 
-    # whether we intend to apply if from the left or right
-    if typeof(ingredients.cardinality) == Left
-        n_rows = ingredients.compression_dim
-        n_cols = size(A, 1)
-        initial_size = n_cols
-    else
-        n_rows = size(A, 2)
-        n_cols = ingredients.compression_dim
-        initial_size = n_rows
-    end
+"""
+    update_row_idxs!
 
-    nnz = ingredients.nnz
-    compression_dim = ingredients.compression_dim
-    # get the element type of the matrix
-    T = ingredients.type
-    total_nnz = initial_size * nnz
-    idxs = Vector{Int64}(undef, total_nnz)
+Function that performs `n_samples` without replacement of size `sample_size` from a list
+    of values `1:max_sample_val` and edits the vector `values` in-place.
+
+# INPUT
+ - `idxs::Vector{Int64}`, the indice to be replaced.
+ - `max_sample_val::In64`, the last value we sample from.
+ - `n_samples::Int64`, the number samples taken.
+ - `sample_size::Int64`, the size of the sample.
+ 
+# OUTPUTS
+ - returns nothing
+"""
+function update_row_idxs!(
+        values::Vector{Int64}, 
+        max_sample_val::Int64, 
+        n_samples::Int64, 
+        sample_size::Int64
+    )
     first_idx = 1
-    # For every pair of column pointers you need to allocate row entries
-    for i in 1:initial_size
-        # every grouping of nnz entries corresponds to each row/column in sample
-        last_idx = first_idx + nnz - 1
+    for i in 1:n_samples
+        # correct for one indexing to find sample size
+        last_idx = first_idx + sample_size - 1
         # Sample indices from the intial_size
-        idx_view = view(idxs, first_idx:last_idx)
-        sample!(1:compression_dim, idx_view; replace=false, ordered=true)
+        idx_view = view(values, first_idx:last_idx)
+        sample!(1:max_sample_val, idx_view; replace=false, ordered=true)
         first_idx = last_idx + 1
     end
 
+    return nothing
+end
+
+function SparseSignRecipe(
+    cardinality::Left,
+    compression_dim::Int64,
+    A::AbastractMatrix,
+    nnz::Int64,
+    type::Type{<:Number}
+)
+    
+    n_rows = compression_dim
+    n_cols = size(A, 1)
+    initial_size = n_cols
+    total_nnz = initial_size * nnz
+    idxs = Vector{Int64}(undef, total_nnz)
+    update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
     # store the number in the type equivalent to the matrix A
     sc = convert(T, 1 / sqrt(nnz))
     # store as a vector to prevent reallocation during update
@@ -161,40 +177,77 @@ function complete_compressor(
     signs = rand(scale, total_nnz)
     # Allocatet the column pointers
     col_ptr = collect(1:nnz:(total_nnz + 1))
+    op = SparseMatrixCSC{type, Int64}(n_rows, n_cols, col_ptr, idxs, signs)
+end
 
-    # If left sketching store as a sparse matrix if right store as sparse matrix adjoint 
-    # Use `SparseMatrixCSC` rather than `sparse` to ensure correct dimensions of the sparse 
-    # matrix. Sparse has at times created matrices with too few rows/columns
-    if typeof(ingredients.cardinality) == Left
-        op = SparseMatrixCSC{T,Int64}(n_rows, n_cols, col_ptr, idxs, signs)
-    else
-        op = adjoint(SparseMatrixCSC{T,Int64}(n_cols, n_rows, col_ptr, idxs, signs))
-    end
-
+function SparseSignRecipe(
+    cardinality::Right,
+    compression_dim::Int64,
+    A::AbastractMatrix,
+    nnz::Int64,
+    type::Type{<:Number}
+)
+    n_rows = size(A, 2)
+    n_cols = compression_dim
+    initial_size = n_rows
+    total_nnz = initial_size * nnz
+    idxs = Vector{Int64}(undef, total_nnz)
+    update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
+    # store the number in the type equivalent to the matrix A
+    sc = convert(type, 1 / sqrt(nnz))
+    # store as a vector to prevent reallocation during update
+    scale = [-sc, sc]
+    signs = rand(scale, total_nnz)
+    # Allocate the column pointers from 1:total_nnz+1
+    col_ptr = collect(1:nnz:(total_nnz + 1))
+    op = adjoint(SparseMatrixCSC{type,Int64}(n_cols, n_rows, col_ptr, idxs, signs))
     return SparseSignRecipe(ingredients.cardinality, n_rows, n_cols, nnz, scale, op)
+
+end
+
+function complete_compressor(
+    ingredients::SparseSign, A::AbstractMatrix
+)
+
+    return SparseSignRecipe(
+        S.cardinality,
+        ingredients.compression_dim,
+        A,
+        ingredients.nnz,
+        ingredients.type
+    )
+
+end
+
+"""
+    cardinality_based_update_idxs!
+
+A function that updates the row indices of a sparse vector in a `SparseSignRecipe`.
+
+# INPUTS
+ - `S::SparseSignRecipe`, the sparse sign compressor to be updated.
+ - `cardinality::Cardinality`, the cardinality of the compressor.
+"""
+function cardinality_based_update_idxs!(S::SparseSignRecipe, cardinality::Left)
+    (compression_dim, initial_size) = size(S)
+    op = S.op
+    nnz = S.nnz
+    update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
+end
+
+function cardinality_based_update_idxs!(S::SparseSignRecipe, cardinality::Right)
+    (compression_dim, initial_dim) = (S.n_cols, S.n_rows)
+    # If adjoint need to access the parent of the operator
+    op = S.op.parent
+    nnz = S.nnz
+    update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
 end
 
 # allocations in this function are entirely due to bitrand call
 function update_compressor!(S::SparseSignRecipe)
-    # get compression dimension and initial size based on the cardinality if left just use 
-    # size function which returns (n_rows, n_cols) otherwise reverse order
-    cardinality = typeof(S.cardinality)
-    (compression_dim, initial_size) = cardinality <: Left ? size(S) : (S.n_cols, S.n_rows)
-    #alias whether the sparse matrix is transposed
-    op = cardinality <: Left ? S.op : S.op.parent
-    first_idx = 1
-    n_col_ptr = length(op.colptr)
-    # For every pair of column pointers you need to allocate row entries
-    for i in 1:(n_col_ptr - 1)
-        # every grouping of nnz entries corresponds to each row/column in sample
-        last_idx = first_idx + S.nnz - 1
-        # Fill in new indices to update the compressor 
-        #mv = view(op.rowval, first_idx:last_idx)
-        sample!(1:compression_dim, view(op.rowval, first_idx:last_idx), replace=false, ordered=true)
-        first_idx = last_idx + 1
-    end
-
-    # There is no inplace update of bitrand and using sample is slower
+    # update the row indices
+    cardinality_based_update_idxs!(S, S.cardinality)
+    # Update the nonzero values
     rand!(op.nzval, S.scale)
     return nothing
 end
