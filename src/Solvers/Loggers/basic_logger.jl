@@ -1,20 +1,33 @@
 """
     BasicLogger <: Logger
 
-This is a mutable struct that contains the `max_it` parameter and stores the error metric in a vector.
-Checks convergence of the solver based on the log information.
+This is a mutable struct that contains the `max_it` parameter and stores the error metric 
+    in a vector. Checks convergence of the solver based on the log information.
 
 # Fields
-- `max_it::Int64`, The maximum number of iterations for the solver.
-- `threshold_info::Union{Float64, Tuple}`, The parameters used for stopping the algorithm.
-- `collection_rate::Int64`, the rate that history is gathered.
-- `stopping_criterion::Function`, function that evaluates the stopping criterion.
+ - `max_it::Int64`, The maximum number of iterations for the solver. If not specified by the
+    user, it is set to 3 times the number of rows in the matrix.
+ - `threshold_info::Union{Float64, Tuple}`, The parameters used for stopping the algorithm.
+ - `collection_rate::Int64`, the rate that history is gathered.
+ - `stopping_criterion::Function`, function that evaluates the stopping criterion.
 """
 struct BasicLogger <: Logger
     max_it::Int64
     collection_rate::Int64
     threshold_info::Union{Float64, Tuple}
     stopping_criterion::Function
+    function BasicLogger(max_it, collection_rate, threshold_info, stopping_criterion)
+        if max_it < 0 
+            throw(ArgumentError("Field `max_it` must be positive or 0."))
+        elseif collection_rate < 1
+            throw(ArgumentError("Field `colection_rate` must be positive."))
+        elseif collection_rate > max_it && max_it > 0
+            throw(ArgumentError("Field `colection_rate` must be smaller than `max_it`."))
+        end
+
+        return new(max_it, collection_rate, threshold_info, stopping_criterion)
+    end
+
 end
 
 BasicLogger(;
@@ -27,19 +40,19 @@ BasicLogger(;
 """
     BasicLoggerRecipe <: LoggerRecipe
 
-This is a mutable struct that contains the `max_it` parameter and stores the error metric in a vector.
-Checks convergence of the solver based on the log information.
+This is a mutable struct that contains the `max_it` parameter and stores the error metric 
+    in a vector. Checks convergence of the solver based on the log information.
 
 # Fields
-- `max_it::Int64`, The maximum number of iterations for the solver.
-- `error::Float64`, The current error metric.
-- `threshold_info::Union{Float64, Tuple}`, The parameters used for stopping the algorithm.
-- `iteration::Int64`, the current iteration of the solver.
-- `record_location::Int64`, the location in the history vector of the most recent entry.
-- `collection_rate::Int64`, the rate that history is gathered.
-- `converged::Bool`, A boolean indicating whether the stopping criterion is satisfied.
-- `StoppingCriterion::Function`, function that evaluates the stopping criterion.
-- `hist:AbstractVector`, vector that contains the history of the error metric.
+ - `max_it::Int64`, The maximum number of iterations for the solver.
+ - `error::Float64`, The current error metric.
+ - `threshold_info::Union{Float64, Tuple}`, The parameters used for stopping the algorithm.
+ - `iteration::Int64`, the current iteration of the solver.
+ - `record_location::Int64`, the location in the history vector of the most recent entry.
+ - `collection_rate::Int64`, the rate that history is gathered.
+ - `converged::Bool`, A boolean indicating whether the stopping criterion is satisfied.
+ - `StoppingCriterion::Function`, function that evaluates the stopping criterion.
+ - `hist:AbstractVector`, vector that contains the history of the error metric.
 """
 mutable struct BasicLoggerRecipe{F<:Function} <: LoggerRecipe
     max_it::Int64
@@ -83,14 +96,20 @@ function update_logger!(logger::BasicLoggerRecipe, error::Float64, iteration::In
     end
     # Always check max_it stopping criterion
     # Compute in this way to avoid bounds error from searching in the max_it + 1 location
-    logger.converged = iteration <= logger.max_it ? logger.stopping_criterion(logger) : false
-    # If the algorithm has converged set the record location to 1 so the function  can be 
-    # rerun
-    if logger.converged || iteration == logger.max_it
-        logger.record_location = 1
-    end
-    return
+    logger.converged = iteration <= logger.max_it ? 
+        logger.stopping_criterion(logger) : 
+        true 
+    return nothing
 
+end
+
+function reset_logger!(logger::BasicLoggerRecipe)
+    logger.error = 0.0
+    logger.iteration = 1
+    logger.record_location = 1
+    logger.converged = false
+    fill!(logger.hist, 0.0)
+    return nothing
 end
 
 """

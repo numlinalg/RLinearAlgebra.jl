@@ -32,7 +32,9 @@ logger_method_description = Dict{Symbol,String}(
     arguments.",
     :update_logger => "A function that updates the `LoggerRecipe` in place given 
     arguments.",
+    :reset_logger => "A function that resets the `LoggerRecipe` in place.", 
 )
+
 """
     complete_logger(logger::Logger, A::AbstractMatrix)
 
@@ -88,6 +90,24 @@ $(logger_method_description[:update_logger])
 function update_logger!(logger::LoggerRecipe, err::Real, iteration::Int64)
     throw(ArgumentError("No `update_logger!` method defined for a logger of type \
     $(typeof(logger)), $(typeof(err)), and $(typeof(iteration))."))
+    return nothing
+end
+
+
+"""
+    reset_logger!(logger::LoggerRecipe)
+
+$(logger_method_description[:reset_logger])
+
+### Arguments
+- $(logger_arg_list[:logger_recipe])
+
+### Outputs
+- Performs an inplace update to the `LoggerRecipe` and returns nothing.
+"""
+function reset_logger!(logger::LoggerRecipe)
+    throw(ArgumentError("No `reset_logger!` method defined for a logger of type \
+    $(typeof(logger))."))
     return nothing
 end
 

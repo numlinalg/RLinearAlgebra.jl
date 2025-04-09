@@ -17,5 +17,6 @@ end
     @test_throws ArgumentError complete_logger(TestLogger(), A)
     @test_throws ArgumentError complete_logger(TestLogger(), A, b)
     @test_throws ArgumentError update_logger!(TestLoggerRecipe(), 1.0, 1)
+    @test_throws ArgumentError reset_logger!(TestLoggerRecipe())
 end
 end

@@ -24,5 +24,7 @@ complete_logger
 
 update_logger!
 
+reset_logger!
+
 threshold_stop
 ```
