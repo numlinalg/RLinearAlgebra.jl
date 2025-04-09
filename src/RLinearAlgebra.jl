@@ -3,7 +3,7 @@ import Base.:*
 import Base: transpose, adjoint
 import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ, Adjoint
 import StatsBase: sample!
-import Random: bitrand, rand!
+import Random: bitrand, rand!, randn!
 import SparseArrays: SparseMatrixCSC
 
 # Include the files correspoding to the top-level techniques

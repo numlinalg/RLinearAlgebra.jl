@@ -1,20 +1,16 @@
 module Gaussian_compressor
-    using Test, RLinearAlgebra, Random
+    using Test, RLinearAlgebra
     import Base.:*
     import LinearAlgebra: transpose, adjoint
     import LinearAlgebra: mul!, lmul!
-    include("../../src/Compressors.jl")
-    include("../../src/Compressors/Gaussian.jl")
-    include("../../src/RLinearAlgebra.jl")
-    include("../test_helpers/field_test_macros.jl")
-    include("../test_helpers/approx_tol.jl")
-    using .FieldTest
-    using .ApproxTol
+    import Random: randn!, seed!
+    using ..FieldTest
+    using ..ApproxTol
 
     @testset "Compressor_Gaussian" begin
         @test_compressor GaussianRecipe
         let 
-            Random.seed!(21321)
+            seed!(21321)
             S1 = Gaussian()
             @test typeof(S1) <: Compressor
             @test S1.cardinality == Left
@@ -25,7 +21,7 @@ module Gaussian_compressor
         
         # Test the left compressor recipe construction and updating wirh default parameters
         let
-            Random.seed!(21321)
+            seed!(21321)
             S1 = Gaussian()
             @test typeof(S1) <: Compressor
             @test S1.cardinality == Left
@@ -52,7 +48,7 @@ module Gaussian_compressor
 
         # Test the right compressor recipe construction and updating wirh default parameters
         let
-            Random.seed!(21321)
+            seed!(21321)
             S2 = Gaussian(cardinality = Right)
             @test typeof(S2) <: Compressor
             @test S2.cardinality == Right
@@ -79,7 +75,7 @@ module Gaussian_compressor
 
         # Test the different multiplications with the left
         let
-            Random.seed!(2131)
+            seed!(2131)
             n_rows = 10
             n_cols = 3
             sketch_size = 6
@@ -97,11 +93,11 @@ module Gaussian_compressor
             S_test = S.op
             # Test matrix multiplication from the left
             @test S * A ≈ S_test * A
-            # Using transpose will test matrix multiplication from right
+            # Using transpose will test matrix multiplication from the right
             @test S' * B ≈ S_test' * B
             # Test matrix vector multiplication from the left
             @test S * x ≈ S_test * x
-            # Test multiplication from the right using transpose
+            # Using transpose will test vec multiplication from the right
             @test S' * y ≈ S_test' * y
 
             # Test the scalar addition portion of the multiplications
@@ -117,7 +113,7 @@ module Gaussian_compressor
 
         # Test the different multiplications with the right
         let
-            Random.seed!(2131)
+            seed!(2131)
             n_rows = 3
             n_cols = 10
             sketch_size = 6
