@@ -1,58 +1,73 @@
-@testset "SubSolver_LQ" begin
+@testset "LQ SubSolver Tests" begin
     using Test, RLinearAlgebra, Random, LinearAlgebra
     include("../../test_helpers/field_test_macros.jl")
     include("../../test_helpers/approx_tol.jl")
     using .FieldTest
     using .ApproxTol
-    let
-	    Random.seed!(21321)
-        n_rows = 3
-        n_cols = 10
-	    S1 = LQSolver()
-	    @test typeof(S1) <: SubSolver
-	    A = rand(n_rows, n_cols)
-        # Because A gets overwritten copy it for the test
-        C = deepcopy(A)
-	    b = rand(n_rows)
-	    S_method = complete_sub_solver(S1, A, b)
-	    @test typeof(S_method) <: SubSolverRecipe
-	    # Check that default values are correct
-	    # and appropiate allocations have been made
-	    @test S_method.A == A
-        # Test the solver produces the correct solution
-	    x = rand(n_cols)
-        ldiv!(x, S_method, b)
-        @test x ≈ lq(C) \ b
-        # Now test update solver
-        B = rand(n_rows, n_cols)
-        update_sub_solver!(S_method, B)
-        @test S_method.A ≈ B
+    
+    A = rand(3, 10)
+    b = rand(3)
+    @testset "LQ SubSolver" begin
+        @test supertype(LQSolver) == SubSolver
+        @test fieldnames(LQSolver) == ()
+        @test fieldtypes(LQSolver) == ()
+        # Checks that the compressor produces a SubSolver
+        ss = LQSolver()
+        @test typeof(ss) <: SubSolver
     end
 
-    let
-	    Random.seed!(21321)
-        n_rows = 1
-        n_cols = 10
-	    S1 = LQSolver()
-	    @test typeof(S1) <: SubSolver
-	    A = rand(n_cols)
-        # Because A gets overwritten copy it for the test
-        C = deepcopy(A)
-	    b = rand()
-	    S_method = complete_sub_solver(S1, A, b)
-	    @test typeof(S_method) <: SubSolverRecipe
-	    # Check that default values are correct
-	    # and appropiate allocations have been made
-	    @test S_method.A == A
-        # Test the solver produces the correct solution
-	    x = rand(n_cols)
-        d = deepcopy(x)
-        ldiv!(x, S_method, b)
-        @test x ≈ (b - dot(A,d)) / dot(A,A) * A
-        # Now test update solver
-        B = rand(n_cols)
-        update_sub_solver!(S_method, B)
-        @test S_method.A ≈ B
+    @testset "LQ SubSolver Recipe" begin
+        @test supertype(LQSolverRecipe) == SubSolverRecipe
+        @test fieldnames(LQSolverRecipe) == (:A, )
+        @test fieldtypes(LQSolverRecipe) == (AbstractArray,)
+    end
+    
+    @testset "LQ SubSolver: Complete SubSolver" begin
+        let
+            ss = LQSolver()
+            ss_recipe = complete_sub_solver(ss, A)
+            # test the attributes of the outputs of the complete function
+            @test typeof(ss_recipe) == LQSolverRecipe{Matrix{Float64}}
+            @test ss_recipe.A == A
+        end
+
+    end
+
+    @testset "LQ SubSolver: Update SubSolver" begin
+        let 
+            B = rand(10, 3)
+            ss = LQSolver()
+            ss_recipe = complete_sub_solver(ss, A)
+            update_sub_solver!(ss_recipe, B)
+            @test ss_recipe.A == B
+        end
+
+    end
+
+    @testset "LQ SubSolver: ldiv!" begin
+        # begin by testing the matrix case
+        let  
+            ss = LQSolver()
+            ss_recipe = complete_sub_solver(ss, A)
+            x_sol = rand(10)
+            x_true = lq(A) \ b
+            ldiv!(x_sol, ss_recipe, b)
+            @test x_sol ≈ x_true
+        end
+
+        # test the solver when using vectors
+        let  
+            a = rand(10)
+            b = rand()
+            ss = LQSolver()
+            ss_recipe = complete_sub_solver(ss, a)
+            x_sol = rand(10)
+            xc = deepcopy(x_sol)
+            x_true = (b - dot(a, xc)) / dot(a, a) * a 
+            ldiv!(x_sol, ss_recipe, b)
+            @test x_sol ≈ x_true
+        end
+
     end
 
 end

@@ -23,11 +23,11 @@ mutable struct LQSolverRecipe{M<:AbstractArray} <: SubSolverRecipe
     A::M
 end
 
-function complete_sub_solver(solver::LQSolver, A::AbstractMatrix, b::AbstractVector)
+function complete_sub_solver(solver::LQSolver, A::AbstractMatrix)
     return LQSolverRecipe{typeof(A)}(A) 
 end
 
-function complete_sub_solver(solver::LQSolver, A::AbstractVector, b::Real)
+function complete_sub_solver(solver::LQSolver, A::AbstractVector)
     return LQSolverRecipe{typeof(A)}(A) 
 end
 
