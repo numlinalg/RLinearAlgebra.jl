@@ -42,7 +42,6 @@ If ``A`` is compressed from the right, then we create a Gaussian sketch matrix, 
 ## Returns 
 - A `Gaussian` object. 
 """
-
 struct Gaussian <: Compressor
     cardinality::Type{<:Cardinality}
     compression_dim::Int64

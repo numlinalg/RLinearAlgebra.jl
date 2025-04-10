@@ -10,10 +10,19 @@ Compressor
 CompressorRecipe
 
 CompressorAdjoint
+
+Cardinality
+
+Left
+
+Right
 ```
 
 ## Compressor Structures
 ```@docs
+Gaussian
+
+GaussianRecipe
 
 ```
 
