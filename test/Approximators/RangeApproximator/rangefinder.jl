@@ -249,7 +249,7 @@ module  RangeApproximator
             size(approx_rec') == (approx_rec.n_cols, approx_rec.n_rows)
             # also test that the tranpose is the same as the parent
             ApproximatorAdjoint(approx_rec) == transpose(approx_rec)
-            approx_rec = tranpose(transpose(approx_rec))
+            approx_rec = transpose(transpose(approx_rec))
             let
                 @test approx_rec * A ≈ approx_rec.range * A
                 @test A * approx_rec ≈ A * approx_rec.range 
