@@ -257,7 +257,7 @@ function (*)(R::ApproximatorRecipe, A::AbstractArray)
     r_rows = size(R, 1)
     a_cols = size(A, 2)
     C = zeros(eltype(A), r_rows, a_cols)
-    mul!(C, R, A, 1.0, 0.0)
+    mul!(C, R, A)
     return C
 end
 
@@ -265,7 +265,7 @@ function (*)(A::AbstractArray, R::ApproximatorRecipe)
     r_cols = size(R, 2)
     a_rows = size(A, 1)
     C = zeros(eltype(A), a_rows, r_cols)
-    mul!(C, A, R, 1.0, 0.0)
+    mul!(C, A, R)
     return C
 end
 
