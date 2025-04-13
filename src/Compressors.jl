@@ -349,7 +349,7 @@ function (*)(S::CompressorRecipe, v::AbstractVector)
     s_rows = size(S, 1)
     output = zeros(s_rows)
     vec_mul_dimcheck(output, S, v)
-    mul!(output, S, v, 1.0, 0.0)
+    mul!(output, S, v)
     return output
 end
 
@@ -365,7 +365,7 @@ function (*)(S::CompressorRecipe, A::AbstractMatrix)
     a_cols = size(A, 2)
     C = zeros(eltype(A), s_rows, a_cols)
     left_mat_mul_dimcheck(C, S, A)
-    mul!(C, S, A, 1.0, 0.0)
+    mul!(C, S, A)
     return C
 end
 
@@ -380,7 +380,7 @@ function (*)(A::AbstractMatrix, S::CompressorRecipe)
     a_rows = size(A, 1)
     C = zeros(eltype(A), a_rows, s_cols)
     right_mat_mul_dimcheck(C, A, S)
-    mul!(C, A, S, 1.0, 0.0)
+    mul!(C, A, S)
     return C
 end
 
@@ -448,7 +448,7 @@ function (*)(S::CompressorAdjoint, A::AbstractMatrix)
     a_cols = size(A, 2)
     C = zeros(eltype(A), s_rows, a_cols)
     left_mat_mul_dimcheck(C, S, A)
-    mul!(C, S, A, 1.0, 0.0)
+    mul!(C, S, A)
     return C
 end
 
@@ -457,7 +457,7 @@ function (*)(A::AbstractMatrix, S::CompressorAdjoint)
     a_rows = size(A, 1)
     C = zeros(eltype(A), a_rows, s_cols)
     right_mat_mul_dimcheck(C, A, S)
-    mul!(C, A, S, 1.0, 0.0)
+    mul!(C, A, S)
     return C
 end
 
@@ -465,7 +465,7 @@ function (*)(S::CompressorAdjoint, v::AbstractVector)
     s_rows = size(S, 1)
     output = zeros(s_rows)
     vec_mul_dimcheck(output, S, v)
-    mul!(output, S, v, 1.0, 0.0)
+    mul!(output, S, v)
     return output
 end
 
