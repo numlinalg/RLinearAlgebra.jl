@@ -109,6 +109,10 @@ transpose(A::ApproximatorRecipe) = ApproximatorAdjoint(A)
 # Undo the transpose wrapper
 transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 
+Base.size(A::ApproximatorRecipe) = (A.n_rows, A.n_cols)
+Base.size(A::ApproximatorRecipe, i::Int64) = i == 1 ? A.n_rows : A.n_cols
+Base.size(A::ApproximatorAdjoint) = (A.parent.n_cols, A.parent.n_rows)
+Base.size(A::ApproximatorAdjoint, i::Int64) = i == 1 ? A.parent.n_cols : A.parent.n_rows
 # Function skeletons
 """
     complete_approximator(approximator::Approximator, A::AbstractMatrix)
@@ -253,16 +257,53 @@ function (*)(R::ApproximatorRecipe, A::AbstractArray)
     r_rows = size(R, 1)
     a_cols = size(A, 2)
     C = zeros(eltype(A), r_rows, a_cols)
-    left_mat_mul_dimcheck(R, S, A)
-    mul!(C, S, A, 1.0, 0.0)
+    mul!(C, R, A, 1.0, 0.0)
     return C
 end
 
-function mul!(C::AbstractArray, S::CompressorRecipe, A::AbstractArray)
-    mul!(C, S, A, 1.0, 0.0)
+function (*)(A::AbstractArray, R::ApproximatorRecipe)
+    r_cols = size(R, 2)
+    a_rows = size(A, 1)
+    C = zeros(eltype(A), a_rows, r_cols)
+    mul!(C, A, R, 1.0, 0.0)
+    return C
+end
+
+function mul!(C::AbstractArray, R::ApproximatorRecipe, A::AbstractArray)
+    mul!(C, R, A, 1.0, 0.0)
     return nothing
 end
 
+function mul!(C::AbstractArray, A::AbstractArray, R::ApproximatorRecipe)
+    mul!(C, A, R, 1.0, 0.0)
+    return nothing
+end
+
+function (*)(R::ApproximatorAdjoint, A::AbstractArray)
+    r_rows = size(R, 1)
+    a_cols = size(A, 2)
+    C = zeros(eltype(A), r_rows, a_cols)
+    mul!(C, R, A, 1.0, 0.0)
+    return C
+end
+
+function (*)(A::AbstractArray, R::ApproximatorAdjoint)
+    r_cols = size(R, 2)
+    a_rows = size(A, 1)
+    C = zeros(eltype(A), a_rows, r_cols)
+    mul!(C, A, R, 1.0, 0.0)
+    return C
+end
+
+function mul!(C::AbstractArray, R::ApproximatorAdjoint, A::AbstractArray)
+    mul!(C, R, A, 1.0, 0.0)
+    return nothing
+end
+
+function mul!(C::AbstractArray, A::AbstractArray, R::ApproximatorAdjoint)
+    mul!(C, A, R, 1.0, 0.0)
+    return nothing
+end
 ###########################################
 # Include the Approximator files
 ############################################

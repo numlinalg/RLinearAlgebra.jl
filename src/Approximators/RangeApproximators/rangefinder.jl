@@ -125,5 +125,26 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    mul!(C, R.range', A, alpha, beta)
+    mul!(C, R.parent.range', A, alpha, beta)
+end
+
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    R::RangeFinderRecipe, 
+    alpha::Number, 
+    beta::Number
+)
+    mul!(C, A, R.range, alpha, beta)
+end
+
+
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    R::ApproximatorAdjoint{RangeFinderRecipe}, 
+    alpha::Number, 
+    beta::Number
+)
+    mul!(C, A, R.parent.range', alpha, beta)
 end

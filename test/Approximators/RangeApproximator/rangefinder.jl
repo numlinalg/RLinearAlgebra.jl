@@ -170,11 +170,40 @@ module  RangeApproximator
                 for i = 1:compression_dim
                     @test diag_gram_matrix[i] ≈ 1
                 end
-
-                @test norm(A - approx_rec.range * approx_rec.range' * A) < ATOL
+                
+                # Test that this spans the range and that the mul! function work
+                @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
             end
     
         end
+
+        @testset "Randomized RangeFinder Recipe: mul!" begin
+            n_rows = 10
+            n_cols = 10
+            compression_dim = 10 
+            cardinality = Right()
+            A = rand(n_rows, n_cols)
+            v = rand(n_cols)
+            compressor = TestCompressor(cardinality, compression_dim)
+            approx = RangeFinder(compressor, 2, true)
+            approx_rec = rapproximate(approx, A)
+            let
+                @test approx_rec * A ≈ approx_rec.range * A
+                @test A * approx_rec ≈ A * approx_rec.range 
+                @test approx_rec' * A ≈ approx_rec.range' * A
+                @test A * approx_rec' ≈ A * approx_rec.range'
+            end
+
+            # Test the operations with a vector
+            let
+                @test approx_rec * v ≈ approx_rec.range * v
+                @test v' * approx_rec ≈ v' * approx_rec.range 
+                @test approx_rec' * v ≈ approx_rec.range' * v
+                @test v' * approx_rec' ≈ v' * approx_rec.range'
+            end
+
+        end
+
     
     end
 
