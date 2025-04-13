@@ -3,7 +3,7 @@
 
 A struct that implements the Randomized Range Finder technique which uses compression from 
     the right to form an low-dimensional orthogonal matrix ``Q`` thar approximates the 
-    range of ``A``. See [](@cite) for additional details.
+    range of ``A``. See [halko2011finding](@cite) for additional details.
 
 # Mathematical Description
 Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish to form a low 
@@ -12,7 +12,7 @@ Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish t
     this is is to choose a ``k`` representing the number of columns we wish to have in the
     subspace and generatign a compression matrix ``S\\in\\mathbb{R}^{n \\times k}``. Then by
     computing ``Q = \\text{qr}(AS)``, with high probability ``\\|A - QQ^\\top A\\|_2 \\leq
-    ``(k+1) \\sigma_{k+1}`` where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
+    (k+1) \\sigma_{k+1}`` where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
     of A. This bound is often too loose when the singular values of ``A`` decay quickly. 
     In the case where the singular values decay slowly, by computing the qr factorization of
     ``(AA^\\top)^q AS``, this is known as taking ``q`` power iterations. Power iterations 
@@ -26,10 +26,18 @@ Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish t
 - `rand_subspace::Bool`, a boolean indicating whether the power its should be performed 
     with orthogonalization.
 """
-mutable struct RangeFinder
+mutable struct RangeFinder <: RangeApproximator
     compressor::Compressor
     power_its::Int64
     rand_subspace::Bool
+    function RangeFinder(compressor, power_its, rand_subspace)
+        if power_its < 0
+            throw(ArgumentError("Field `power_its` must be non-negative."))
+        end
+        
+        return new(compressor, power_its, rand_subspace)
+    end
+
 end
 
 RangeFinder(;
@@ -51,7 +59,7 @@ A struct that contains the preallocated memory and completed compressor to form 
     with orthogonalization.
 - `range::AbstractMatrix`, the orthogonal matrix that approximates the range of ``A``.
 """
-mutable struct RangeFinderRecipe
+mutable struct RangeFinderRecipe <: RangeApproximatorRecipe
     n_rows::Int64
     n_cols::Int64
     compressor::CompressorRecipe
@@ -60,10 +68,31 @@ mutable struct RangeFinderRecipe
     range::AbstractMatrix
 end
 
+function complete_approximator(approx::RangeFinder, A::AbstractMatrix)
+    type = eltype(A)
+    # You need to make sure you orient the compressor in the correct direction
+    if typeof(approx.compressor.cardinality) <: Left
+        approx.compressor.cardinality = Right()
+    end
+
+    compress = complete_compressor(approx.compressor, A)
+    # Determine the dimensions of the range approximator
+    a_rows = size(A, 1)
+    c_cols = size(compress, 2)
+    approx_recipe = RangeFinderRecipe(
+        a_rows,
+        c_cols,
+        compress, 
+        approx.power_its,
+        approx.rand_subspace, 
+        Matrix{type}(undef, 2, 2)
+    )
+end
+
 function rapproximate!(approx::RangeFinderRecipe, A::AbstractMatrix)
     # we don't dispatch on this incase someone wishes to make multiple runs with the 
     # same recipe
-    if rand_subspace 
+    if approx.rand_subspace 
         approx.range = rand_power_it(A, approx)
     else
         approx.range = rand_subspace_it(A, approx)
@@ -73,27 +102,9 @@ function rapproximate!(approx::RangeFinderRecipe, A::AbstractMatrix)
 end
 
 function rapproximate(approx::RangeFinder, A::AbstractMatrix)
-    type = eltype(A)
-    # You need to make sure you orient the compressor in the correct direction
-    if approx.compress.carindality == Left
-        approx.compress.carindality = Right
-    end
-    compress = complete_compressor(approx.compressor, A)
-    # Determine the dimensions of the range approximator
-    a_rows = size(A, 1)
-    c_cols = size(compress, 2)
-    approx_recipe = RangeFinderRecipe(
-        a_rows,
-        c_cols,
-        compress, 
-        approx.rand_subspace, 
-        approx.power_its,
-        Matrix{type}(undef, 2, 2)
-    )
-
+    approx_recipe = complete_approximator(approx, A)
     rapproximate!(approx_recipe, A)
-
-    return nothing
+    return  approx_recipe
 end
 
 function mul!(

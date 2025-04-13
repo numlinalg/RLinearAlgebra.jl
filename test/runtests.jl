@@ -1,5 +1,8 @@
 using Test
 using RLinearAlgebra
+include("./test_helpers/field_test_macros.jl")
+include("./test_helpers/approx_tol.jl")
+
 # List all directories that have files to be tested 
 directs =
     joinpath.(
@@ -7,6 +10,7 @@ directs =
         [
             "./",
             "Approximators/",
+            "Approximators/RangeApproximator/",
             "Solvers/",
             "Solvers/Loggers/",
             "Solvers/SubSolvers/",

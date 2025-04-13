@@ -1,8 +1,8 @@
 """
-    rand_power_it(A::AbstractMatrix, approx::RangeFinderRecipe)
+    RLinearAlgebra.rand_power_it(A::AbstractMatrix, approx::RangeFinderRecipe)
 
 Function that performs the randomized rangefinder procedure presented in Algortihm 4.3 of 
-.
+[halko2011finding](@cite).
 
 INPUTS:
 - `A::AbstractMatrix`, the matrix being approximated.
@@ -12,14 +12,13 @@ recipe.
 # OUTPUTS
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
-
-function rand_power_it(A::AbstractMatrix, approx::RangeApproximator)
-    S = approx.compressor
+function rand_power_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
+    comp_mat = approx.compressor
     a_rows, a_cols = size(A)
     s_rows, s_cols = size(comp_mat)
     type = eltype(A)
     compressed_mat = Matrix{type}(undef, a_rows, s_cols)
-    mul!(compressed_mat, A, S)
+    mul!(compressed_mat, A, comp_mat)
     if approx.power_its > 0
         # If we are running power iterations an extra matrix is need to store multiplication
         # output
@@ -38,10 +37,10 @@ end
 
 
 """
-    rand_subspace_it(A::AbstractMatrix, approx::RangeFinderRecipe)
+    RLinearAlgebra.rand_subspace_it(A::AbstractMatrix, approx::RangeFinderRecipe)
 
 Function that performs the randomized rangefinder procedure presented in Algortihm 4.4 of 
-.
+[halko2011finding](@cite).
 
 INPUTS:
 - `A::AbstractMatrix`, the matrix being approximated.
@@ -51,13 +50,13 @@ recipe.
 # OUTPUTS
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
-function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximator)
-    S = approx.compressor
+function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
+    comp_mat = approx.compressor
     a_rows, a_cols = size(A)
     s_rows, s_cols = size(comp_mat)
     type = eltype(A)
     compressed_mat = Matrix{type}(undef, a_rows, s_cols)
-    mul!(compressed_mat, A, S)
+    mul!(compressed_mat, A, comp_mat)
     Q = Array(qr!(compressed_mat).Q)
     if approx.power_its > 0
         # If we are running power iterations an extra matrix is need to store multiplication
@@ -68,7 +67,7 @@ function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximator)
             # Q_i = qr(A*Q_{i'}).Q this helps limit rounding errors
             mul!(buff_mat, A', Q)
             Q = Array(qr!(buff_mat).Q) 
-            mul!(compressed_mat, A, buff_mat)
+            mul!(compressed_mat, A, Q)
             Q = Array(qr!(compressed_mat).Q)
         end
     

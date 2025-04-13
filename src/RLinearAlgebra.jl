@@ -1,7 +1,7 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
-import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ
+import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ, qr!
 import StatsBase: sample!
 import Random: bitrand, seed!
 
@@ -12,10 +12,13 @@ include("Approximators.jl")
 
 # Export Approximator types and functions
 export Approximator, ApproximatorRecipe, ApproximatorAdjoint
-export complete_approximator, update_approximator!, rapproximate, rapproximate!
+export rapproximate, rapproximate!, complete_approximator
+export RangeApproximator, RangeApproximatorRecipe
+export RangeFinder, RangeFinderRecipe
 
 # Export Compressor types and functions
 export Compressor, CompressorRecipe, CompressorAdjoint
+export Cardinality, Left, Right
 export complete_compressor, update_compressor!
 
 # Export Solver types and functions

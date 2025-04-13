@@ -1,49 +1,181 @@
-module  RangeApproximator_helper
-using Test, RLinearAlgebra, LinearAlgebra
-include("../../test_helpers/field_test_macros.jl")
-include("../../test_helpers/approx_tol.jl")
-struct TestCompressorRecipe <: CompressorRecipe 
-    n_rows::Int64
-    n_cols::Int64
-    op::AbstractMatrix
-end
+module  RangeApproximator
+    using Test, RLinearAlgebra, LinearAlgebra
+    import RLinearAlgebra: complete_compressor
+    import LinearAlgebra: mul!
+    using ..FieldTest
+    using ..ApproxTol
 
-# Define a mul function for the test compressor
-function mul!(
-    C::AbstractMatrix, 
-    A::AbstractMatrix, 
-    S::CompressorRecipe, 
-    alpha::Number, 
-    beta::Number
-)
-    mul!(C, A, S.op, alpha, beta)
-end
-
-@testset "Randomized_RangeFinder" begin 
-    @test_range_approximator RangeFinderRecipe
-    let 
-        n_rows = 6
-        n_cols = 4
-        compression_dim = 2
-        # Initialize the compressor with a Gaussian Sketch in this case scaling of matrix
-        # is unimportant
-        C = TestCompressorRecipe(n_cols, compression_dim, randn(n_cols, compression_dim)) 
-        A = rand(n_rows, n_cols)
-        # Start by testing the case with zero power iterations
-        approx = TestRangeApproximator(C, 0)
-        # Produce the Q from the function call
-        Q_func = rand_power_it(A, approx)
-        Q_test = Array(qr(A*C.op).Q)
-        Q_func ≈ Q_test
-
-        # Perform same test with 3 power iterations
-        approx.power_its = 3
-        Q_func = rand_power_it(A, approx)
-        Q_test = Array(qr(A * A' * A * A' * A * A'* A * C.op).Q)
-        Q_func ≈ Q_test
-
+    mutable struct TestCompressor <: Compressor
+        cardinality::Cardinality
+        compression_dim::Int64
     end
+    
+    TestCompressor() = TestCompressor(Right(), 5)
+    
+    mutable struct TestCompressorRecipe <: CompressorRecipe 
+        cardinality::Cardinality
+        n_rows::Int64
+        n_cols::Int64
+        op::AbstractMatrix
+    end
+    
+    function RLinearAlgebra.complete_compressor(comp::TestCompressor, A::AbstractMatrix)
+        n_cols = comp.compression_dim
+        n_rows = size(A, 2)
+        # Make a gaussian compressor
+        op = randn(n_rows, n_cols) ./ sqrt(n_cols)
+        return TestCompressorRecipe(comp.cardinality, n_rows, n_cols, op)
+    end
+    
+    # Define a mul function for the test compressor
+    function RLinearAlgebra.mul!(
+        C::AbstractMatrix, 
+        A::AbstractMatrix, 
+        S::Main.RangeApproximator.TestCompressorRecipe, 
+        alpha::Float64, 
+        beta::Float64
+    )
+        mul!(C, A, S.op, alpha, beta)
+    end
+    
+    @testset "Randomized RangeFinder" begin 
+        @testset "Randomized RangeFinder" begin
+            supertype(RangeFinder) == Approximator
+    
+            # test the fieldnames and types
+            fieldnames(RangeFinder) == (:compressor, :power_its, :rand_subspace)
+            fieldtypes(RangeFinder) == (Compressor, Int64, Bool)
+            
+            # test errors
+            let
+                compressor = TestCompressor()
+                power_its = -1
+                rand_subspace = false
+    
+                @test_throws ArgumentError(
+                    "Field `power_its` must be non-negative."
+                ) RangeFinder(compressor, power_its, rand_subspace)
+            end
+    
+            # Test constructor
+            let 
+                compressor = TestCompressor()
+                power_its = 2 
+                rand_subspace = false
+                rf = RangeFinder(compressor, power_its, rand_subspace) 
+                @test typeof(rf.compressor) == TestCompressor
+                @test rf.power_its == 2
+                @test rf.rand_subspace == false
+            end
+        
+        end
+    
+        @testset "Randomized RangeFinder Recipe" begin
+            @test_range_approximator RangeFinderRecipe
+            supertype(RangeFinderRecipe) == ApproximatorRecipe
+    
+            # test the fieldnames and types
+            @test fieldnames(RangeFinderRecipe) == (
+                :n_rows, :n_cols, :compressor, :power_its, :rand_subspace, :range
+            )
+            @test fieldtypes(RangeFinderRecipe) == (
+                Int64, Int64, CompressorRecipe, Int64, Bool, AbstractMatrix
+            )
+        end
+        
+        @testset "Randomized RangeFinder: Complete Approximator" begin
+            # Test when correct cardinality, right, is specified
+            let 
+                n_rows = 10
+                n_cols = 10
+                compression_dim = 5
+                cardinality = Right()
+                A = rand(n_rows, n_cols)
+                compressor = TestCompressor(cardinality, compression_dim)
+                approx = RangeFinder(compressor, 2, true)
+                approx_rec = complete_approximator(approx, A)
+                approx_rec.compressor.cardinality == Right()
+                @test approx_rec.power_its == 2
+                @test approx_rec.rand_subspace == true
+                @test approx_rec.n_rows == 10
+                @test approx_rec.n_cols == 5
+            end
+            
+            # Test when wrong cardinality, left, is specified
+            let 
+                n_rows = 10
+                n_cols = 10
+                compression_dim = 5
+                cardinality = Left()
+                A = rand(n_rows, n_cols)
+                compressor = TestCompressor(cardinality, compression_dim)
+                approx = RangeFinder(compressor, 2, true)
+                approx_rec = complete_approximator(approx, A)
+                approx_rec.compressor.cardinality == Right()
+                @test approx_rec.power_its == 2
+                @test approx_rec.rand_subspace == true
+                @test approx_rec.n_rows == 10
+                @test approx_rec.n_cols == 5
+            end
+            
+        end
+    
+        @testset "Randomized RangeFinder Recipe: rapproximate" begin
+   
+            # By testing the rapproximate function we also test rapproximate!
+            let 
+                n_rows = 10
+                n_cols = 10
+                compression_dim = 5
+                cardinality = Right()
+                A = rand(n_rows, n_cols)
+                compressor = TestCompressor(cardinality, compression_dim)
+                approx = RangeFinder(compressor, 2, true)
+                approx_rec = rapproximate(approx, A)
+                @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+                # Check that the matrix is orthogonal
+                gram_matrix = approx_rec.range' * approx_rec.range
+                # check that the norm is 1, the diagonal is all 1
+                @test opnorm(gram_matrix) ≈ 1
+                # test that the diagonal is all ones
+                diag_gram_matrix = diag(gram_matrix)
+                for i = 1:compression_dim
+                    @test diag_gram_matrix[i] ≈ 1
+                end
 
-end
+            end
+
+            # Test that compression_dim == n_rows gives a matrix that spans the range of A
+            let 
+                n_rows = 10
+                n_cols = 10
+                compression_dim = 10 
+                cardinality = Right()
+                A = rand(n_rows, n_cols)
+                compressor = TestCompressor(cardinality, compression_dim)
+                approx = RangeFinder(compressor, 2, true)
+                approx_rec = rapproximate(approx, A)
+                @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+                approx_rec.compressor.cardinality == Right()
+                @test approx_rec.power_its == 2
+                @test approx_rec.rand_subspace == true
+                @test approx_rec.n_rows == 10
+                @test approx_rec.n_cols == 10 
+                # Check that the matrix is orthogonal
+                gram_matrix = approx_rec.range' * approx_rec.range
+                # check that the norm is 1, the diagonal is all 1
+                @test opnorm(gram_matrix) ≈ 1
+                # test that the diagonal is all ones
+                diag_gram_matrix = diag(gram_matrix)
+                for i = 1:compression_dim
+                    @test diag_gram_matrix[i] ≈ 1
+                end
+
+                @test norm(A - approx_rec.range * approx_rec.range' * A) < ATOL
+            end
+    
+        end
+    
+    end
 
 end

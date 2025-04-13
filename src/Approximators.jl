@@ -132,27 +132,6 @@ function complete_approximator(approximator::Approximator, A::AbstractMatrix)
     return nothing
 end
 
-"""
-    update_approximator!(approximator::ApproximatorRecipe, A::AbstractMatrix)
-
-$(approx_method_description[:update_approximator])
-
-### Arguments
-- $(approx_arg_list[:approximator_recipe])
-- $(approx_arg_list[:A]) 
-
-### Outputs
-- $(approx_output_list[:approximator_recipe])
-"""
-function update_approximator!(approximator::ApproximatorRecipe, A::AbstractMatrix)
-    throw(
-        ArgumentError(
-            "No method `update_approximator!` exists for approximator of type\
-            $(typeof(approximator)) and matrix of type $(typeof(A))."
-        )
-    )
-    return nothing
-end
 
 """
     rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
@@ -287,3 +266,5 @@ end
 ###########################################
 # Include the Approximator files
 ############################################
+include("Approximators/RangeApproximators/rangefinder.jl")
+include("Approximators/RangeApproximators/helpers/power_its.jl")

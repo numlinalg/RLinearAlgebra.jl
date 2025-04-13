@@ -15,6 +15,25 @@ compression technique to a particular set of matrices and vectors.
 """
 abstract type CompressorRecipe end
 
+"""
+    Cardinality
+An abstract type for types that specify whether a compressor will be applied from the
+left or the right.
+"""
+abstract type Cardinality end
+
+"""
+    Left <: Cardinality
+A struct indicating matrix multiplication from the left. 
+"""
+struct Left <: Cardinality end
+
+"""
+    Right <: Cardinality
+A struct indicating matrix multiplication from the right.
+"""
+struct Right <: Cardinality end
+
 # Docstring Components
 comp_arg_list = Dict{Symbol,String}(
     :compressor => "`compressor::Compressor`, a user-specified compression method.",

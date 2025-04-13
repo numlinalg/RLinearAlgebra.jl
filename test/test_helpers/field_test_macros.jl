@@ -118,7 +118,7 @@ macro test_range_approximator(type)
     expr = quote
         @testset verbose = true "Range Approximator: $(string($(esc(type))))" begin
             # Test the super type
-            @test supertype($(esc(type))) == ApproximatorRecipe
+            @test supertype($(esc(type))) <: ApproximatorRecipe
 
             # Test the field names and types
             for (fname, ftype) in RangeApproximatorFields
@@ -131,6 +131,6 @@ macro test_range_approximator(type)
     return expr
 end
 
-export test_projection_solver, test_compressor, test_logger, test_range_approximator
+export @test_projection_solver, @test_compressor, @test_logger, @test_range_approximator
 end
 
