@@ -109,11 +109,11 @@ module  RangeApproximator
                 cardinality = Left()
                 A = rand(n_rows, n_cols)
                 compressor = TestCompressor(cardinality, compression_dim)
-                approx = RangeFinder(compressor, 2, true)
+                approx = RangeFinder(compressor, 2, false)
                 approx_rec = complete_approximator(approx, A)
                 approx_rec.compressor.cardinality == Right()
                 @test approx_rec.power_its == 2
-                @test approx_rec.rand_subspace == true
+                @test approx_rec.rand_subspace == false 
                 @test approx_rec.n_rows == 10
                 @test approx_rec.n_cols == 5
             end
@@ -123,6 +123,62 @@ module  RangeApproximator
         @testset "Randomized RangeFinder Recipe: rapproximate" begin
    
             # By testing the rapproximate function we also test rapproximate!
+            # with power iterations
+            let 
+                n_rows = 10
+                n_cols = 10
+                compression_dim = 5
+                cardinality = Right()
+                A = rand(n_rows, n_cols)
+                compressor = TestCompressor(cardinality, compression_dim)
+                approx = RangeFinder(compressor, 2, false)
+                approx_rec = rapproximate(approx, A)
+                @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+                # Check that the matrix is orthogonal
+                gram_matrix = approx_rec.range' * approx_rec.range
+                # check that the norm is 1, the diagonal is all 1
+                @test opnorm(gram_matrix) ≈ 1
+                # test that the diagonal is all ones
+                diag_gram_matrix = diag(gram_matrix)
+                for i = 1:compression_dim
+                    @test diag_gram_matrix[i] ≈ 1
+                end
+
+            end
+
+            # Test that compression_dim == n_rows gives a matrix that spans the range of A
+            # with power iterations
+            let 
+                n_rows = 10
+                n_cols = 10
+                compression_dim = 10 
+                cardinality = Right()
+                A = rand(n_rows, n_cols)
+                compressor = TestCompressor(cardinality, compression_dim)
+                approx = RangeFinder(compressor, 2, false)
+                approx_rec = rapproximate(approx, A)
+                @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+                approx_rec.compressor.cardinality == Right()
+                @test approx_rec.power_its == 2
+                @test approx_rec.rand_subspace == false
+                @test approx_rec.n_rows == 10
+                @test approx_rec.n_cols == 10 
+                # Check that the matrix is orthogonal
+                gram_matrix = approx_rec.range' * approx_rec.range
+                # check that the norm is 1, the diagonal is all 1
+                @test opnorm(gram_matrix) ≈ 1
+                # test that the diagonal is all ones
+                diag_gram_matrix = diag(gram_matrix)
+                for i = 1:compression_dim
+                    @test diag_gram_matrix[i] ≈ 1
+                end
+                
+                # Test that this spans the range and that the mul! function work
+                @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
+            end
+    
+            # By testing the rapproximate function we also test rapproximate!
+            # with subspace iterations
             let 
                 n_rows = 10
                 n_cols = 10
@@ -145,7 +201,8 @@ module  RangeApproximator
 
             end
 
-            # Test that compression_dim == n_rows gives a matrix that spans the range of A
+            # Test that compression_dim == n_rows gives a matrix that spans the range of A 
+            # with subspace iterations
             let 
                 n_rows = 10
                 n_cols = 10
@@ -187,6 +244,10 @@ module  RangeApproximator
             compressor = TestCompressor(cardinality, compression_dim)
             approx = RangeFinder(compressor, 2, true)
             approx_rec = rapproximate(approx, A)
+            # Check that the size function works
+            size(approx_rec) == (approx_rec.n_rows, approx_rec.n_cols)
+            # also test that the tranpose is the same as the parent
+            approx_rec == (approx_rec')'
             let
                 @test approx_rec * A ≈ approx_rec.range * A
                 @test A * approx_rec ≈ A * approx_rec.range 
