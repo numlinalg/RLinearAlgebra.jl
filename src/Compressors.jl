@@ -25,12 +25,14 @@ abstract type Cardinality end
 
 """
     Left <: Cardinality
-A struct indicating matrix multiplication from the left. 
+
+A struct indicating matrix multiplication from the left.
 """
 struct Left <: Cardinality end
 
 """
     Right <: Cardinality
+
 A struct indicating matrix multiplication from the right.
 """
 struct Right <: Cardinality end
@@ -167,7 +169,7 @@ $(comp_method_description[:update_compressor])
 function update_compressor!(S::CompressorRecipe)
     throw(
         ArgumentError("No method `update_compressor` exists for compressor recipe of type\
-  $(typeof(S)).")
+                      $(typeof(S)).")
     )
     return nothing
 end
@@ -418,11 +420,11 @@ end
 
 # Computes alpha * S' * y + beta and stores it in x 
 function mul!(
-    x::AbstractVector, 
-    S::CompressorAdjoint{C} where C <: Compressor, 
-    y::AbstractVector, 
-    alpha::Number, 
-    beta::Number
+    x::AbstractVector,
+    S::CompressorAdjoint{C} where {C<:CompressorRecipe},
+    y::AbstractVector,
+    alpha::Number,
+    beta::Number,
 )
     throw(MethodError("No mul! defined for Compressor of type $(typeof(S.parent))."))
     return nothing

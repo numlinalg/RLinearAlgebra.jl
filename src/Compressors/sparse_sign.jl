@@ -34,8 +34,8 @@ In this case, each row of ``S`` is generated independently by the following step
 
 # Fields
 
-  - `cardinality::Type{<:Cardinality}`, the direction the compression matrix is intended to be
-    applied to a target matrix or operator. Values allowed are `Left` or `Right`.
+  - `cardinality::Cardinality`, the direction the compression matrix is intended to be
+    applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
   - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
     mathematical description.
   - `nnz::Int64`, the target number of nonzeros for each column or row of the spares sign
@@ -47,18 +47,19 @@ In this case, each row of ``S`` is generated independently by the following step
 
 # Constructor
 
-    SparseSign(;carinality=Left, compression_dim=2, nnz::Int64=8)
+    SparseSign(;carinality=Left(), compression_dim=2, nnz::Int64=8)
 
 ## Arguments
 
   - `carinality::Cardinality`, the direction the compression matrix is intended to be
-    applied to a target matrix or operator. Values allowed are `Left` or `Right`. By default
-    `Left` is chosen.
+    applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
+    By default `Left()` is chosen.
   - `compression_dim`, the target compression dimension. Referred to as ``s`` in the
     mathemtical description. By default this is set to 2.
   - `nnz::Int64`, the number of non-zeros per row/column in the sampling matrix. By default
     this is set to min(compressiond_dim, 8).
   - `type::Type{<:Number}`, the type of elements in the compressor.
+
 ## Returns
 
   - A `SparseSign` object.
@@ -86,28 +87,28 @@ struct SparseSign <: Compressor
 end
 
 function SparseSign(;
-    cardinality=Left(), 
-    compression_dim::Int64=2, 
+    cardinality=Left(),
+    compression_dim::Int64=2,
     nnz::Int64=min(8, compression_dim),
-    type::Type{N}=Float64
-) where N<:Number
+    type::Type{N}=Float64,
+) where {N<:Number}
     # Partially construct the sparse sign datatype
     return SparseSign(cardinality, compression_dim, nnz, type)
 end
 
 """
-    SparseSignRecipe <: CompressorRecipe
+    SparseSignRecipe{C<:Cardinality} <: CompressorRecipe
 
 The recipe containing all allocations and information for the SparseSign compressor.
 
 # Fields
 
-  - `cardinality::Cardinality`, the direction the compression matrix is intended to 
+  - `cardinality::Cardinality`, the direction the compression matrix is intended to
     be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
   - `n_rows::Int64`, the number of rows of the compression matrix.
   - `n_cols::Int64`, the number of columns of the compression matrix.
-  - `nnz::Int64`, the number of non-zero entries in each row if `cardinality==Left` or the
-    number of non-zero entries each column if `cardinality==Right`.
+  - `nnz::Int64`, the number of non-zero entries in each row if `cardinality==Left()` or the
+    number of non-zero entries each column if `cardinality==Right()`.
   - `scale::Vector{Number}`, the set of values of the non-zero entries of the Spares Sign
     compression matrix.
   - `op::SparseMatrixCSC`, the Spares Sign compression matrix.
@@ -118,31 +119,29 @@ mutable struct SparseSignRecipe{C<:Cardinality} <: CompressorRecipe
     n_cols::Int64
     nnz::Int64
     scale::Vector{<:Number}
-    op::Union{SparseMatrixCSC, Adjoint{T, SparseMatrixCSC{T, I}}} where 
-        {T<:Number, I<:Integer}
+    op::Union{SparseMatrixCSC,Adjoint{T,SparseMatrixCSC{T,I}}} where {T<:Number,I<:Integer}
 end
 
 """
     update_row_idxs!
 
 Function that performs `n_samples` without replacement of size `sample_size` from a list
-    of values `1:max_sample_val` and edits the vector `values` in-place.
+of values `1:max_sample_val` and edits the vector `values` in-place.
 
-# INPUT
- - `idxs::Vector{Int64}`, the indice to be replaced.
- - `max_sample_val::In64`, the last value we sample from.
- - `n_samples::Int64`, the number samples taken.
- - `sample_size::Int64`, the size of the sample.
- 
-# OUTPUTS
- - returns nothing
+# Arguments
+
+  - `values::Vector{Int64}`, the indice to be replaced.
+  - `max_sample_val::In64`, the last value we sample from.
+  - `n_samples::Int64`, the number samples taken.
+  - `sample_size::Int64`, the size of the sample.
+
+# Returns
+
+  - returns nothing
 """
 function update_row_idxs!(
-        values::Vector{Int64}, 
-        max_sample_val::Int64, 
-        n_samples::Int64, 
-        sample_size::Int64
-    )
+    values::Vector{Int64}, max_sample_val::Int64, n_samples::Int64, sample_size::Int64
+)
     first_idx = 1
     for i in 1:n_samples
         # correct for one indexing to find sample size
@@ -161,9 +160,8 @@ function SparseSignRecipe(
     compression_dim::Int64,
     A::AbstractMatrix,
     nnz::Int64,
-    type::Type{<:Number}
+    type::Type{<:Number},
 )
-    
     n_rows = compression_dim
     n_cols = size(A, 1)
     initial_dim = n_cols
@@ -177,14 +175,9 @@ function SparseSignRecipe(
     signs = rand(scale, total_nnz)
     # Allocatet the column pointers
     col_ptr = collect(1:nnz:(total_nnz + 1))
-    op = SparseMatrixCSC{type, Int64}(n_rows, n_cols, col_ptr, idxs, signs)
+    op = SparseMatrixCSC{type,Int64}(n_rows, n_cols, col_ptr, idxs, signs)
     return SparseSignRecipe{typeof(cardinality)}(
-        cardinality, 
-        n_rows, 
-        n_cols, 
-        nnz, 
-        scale, 
-        op
+        cardinality, n_rows, n_cols, nnz, scale, op
     )
 end
 
@@ -193,7 +186,7 @@ function SparseSignRecipe(
     compression_dim::Int64,
     A::AbstractMatrix,
     nnz::Int64,
-    type::Type{<:Number}
+    type::Type{<:Number},
 )
     n_rows = size(A, 2)
     n_cols = compression_dim
@@ -210,28 +203,18 @@ function SparseSignRecipe(
     col_ptr = collect(1:nnz:(total_nnz + 1))
     op = adjoint(SparseMatrixCSC{type,Int64}(n_cols, n_rows, col_ptr, idxs, signs))
     return SparseSignRecipe{typeof(cardinality)}(
-        cardinality, 
-        n_rows, 
-        n_cols, 
-        nnz, 
-        scale, 
-        op
+        cardinality, n_rows, n_cols, nnz, scale, op
     )
-
 end
 
-function complete_compressor(
-    ingredients::SparseSign, A::AbstractMatrix
-)
-
+function complete_compressor(ingredients::SparseSign, A::AbstractMatrix)
     return SparseSignRecipe(
         ingredients.cardinality,
         ingredients.compression_dim,
         A,
         ingredients.nnz,
-        ingredients.type
+        ingredients.type,
     )
-
 end
 
 # allocations in this function are entirely due to bitrand call
@@ -269,7 +252,7 @@ end
 
 function mul!(
     x::AbstractVector,
-    S::CompressorAdjoint{SparseSignRecipe{C}} where C <: Cardinality,
+    S::CompressorAdjoint{SparseSignRecipe{C}} where {C<:Cardinality},
     y::AbstractVector,
     alpha::Number,
     beta::Number,
