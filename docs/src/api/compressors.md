@@ -41,5 +41,5 @@ RLinearAlgebra.right_mat_mul_dimcheck
 
 RLinearAlgebra.vec_mul_dimcheck
 
-RLinearAlgebra.update_row_idxs!
+RLinearAlgebra.sparse_idx_update!
 ```

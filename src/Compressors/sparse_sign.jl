@@ -97,33 +97,7 @@ function SparseSign(;
 end
 
 """
-    SparseSignRecipe{C<:Cardinality} <: CompressorRecipe
-
-The recipe containing all allocations and information for the SparseSign compressor.
-
-# Fields
-
-  - `cardinality::Cardinality`, the direction the compression matrix is intended to
-    be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
-  - `n_rows::Int64`, the number of rows of the compression matrix.
-  - `n_cols::Int64`, the number of columns of the compression matrix.
-  - `nnz::Int64`, the number of non-zero entries in each row if `cardinality==Left()` or the
-    number of non-zero entries each column if `cardinality==Right()`.
-  - `scale::Vector{Number}`, the set of values of the non-zero entries of the Spares Sign
-    compression matrix.
-  - `op::SparseMatrixCSC`, the Spares Sign compression matrix.
-"""
-mutable struct SparseSignRecipe{C<:Cardinality} <: CompressorRecipe
-    cardinality::C
-    n_rows::Int64
-    n_cols::Int64
-    nnz::Int64
-    scale::Vector{<:Number}
-    op::Union{SparseMatrixCSC,Adjoint{T,SparseMatrixCSC{T,I}}} where {T<:Number,I<:Integer}
-end
-
-"""
-    update_row_idxs!
+    sparse_idx_update!
 
 Function that performs `n_samples` without replacement of size `sample_size` from a list
 of values `1:max_sample_val` and edits the vector `values` in-place.
@@ -139,7 +113,7 @@ of values `1:max_sample_val` and edits the vector `values` in-place.
 
   - returns nothing
 """
-function update_row_idxs!(
+function sparse_idx_update!(
     values::Vector{Int64}, max_sample_val::Int64, n_samples::Int64, sample_size::Int64
 )
     first_idx = 1
@@ -155,6 +129,41 @@ function update_row_idxs!(
     return nothing
 end
 
+"""
+    SparseSignRecipe{C<:Cardinality} <: CompressorRecipe
+
+The recipe containing all allocations and information for the SparseSign compressor.
+
+# Fields
+
+  - `cardinality::Cardinality`, the direction the compression matrix is intended to
+    be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
+  - `n_rows::Int64`, the number of rows of the compression matrix.
+  - `n_cols::Int64`, the number of columns of the compression matrix.
+  - `nnz::Int64`, the number of non-zero entries in each row if `cardinality==Left` or the
+    number of non-zero entries each column if `cardinality==Right`.
+  - `scale::Vector{Number}`, the set of values of the non-zero entries of the Spares Sign
+    compression matrix.
+  - `op::SparseMatrixCSC`, the Spares Sign compression matrix.
+
+# Constructors
+
+    SparseSignRecipe(cardinality, compression_dim, A, nnz, type)
+
+!!! warning "Use complete_compressor"
+    To ensure cross library compatibility please defer to using `complete_compressor`
+    for forming the `SparseSignRecipe`.
+"""
+mutable struct SparseSignRecipe{C<:Cardinality} <: CompressorRecipe
+    cardinality::C
+    n_rows::Int64
+    n_cols::Int64
+    nnz::Int64
+    scale::Vector{<:Number}
+    op::Union{SparseMatrixCSC,Adjoint{T,SparseMatrixCSC{T,I}}} where {T<:Number,I<:Integer}
+end
+
+
 function SparseSignRecipe(
     cardinality::Left,
     compression_dim::Int64,
@@ -167,13 +176,13 @@ function SparseSignRecipe(
     initial_dim = n_cols
     total_nnz = initial_dim * nnz
     idxs = Vector{Int64}(undef, total_nnz)
-    update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
+    sparse_idx_update!(idxs, compression_dim, initial_dim, nnz)
     # store the number in the type equivalent to the matrix A
     sc = convert(type, 1 / sqrt(nnz))
     # store as a vector to prevent reallocation during update
     scale = [-sc, sc]
     signs = rand(scale, total_nnz)
-    # Allocatet the column pointers
+    # Allocate the column pointers
     col_ptr = collect(1:nnz:(total_nnz + 1))
     op = SparseMatrixCSC{type,Int64}(n_rows, n_cols, col_ptr, idxs, signs)
     return SparseSignRecipe{typeof(cardinality)}(
@@ -193,7 +202,7 @@ function SparseSignRecipe(
     initial_dim = n_rows
     total_nnz = initial_dim * nnz
     idxs = Vector{Int64}(undef, total_nnz)
-    update_row_idxs!(idxs, compression_dim, initial_dim, nnz)
+    sparse_idx_update!(idxs, compression_dim, initial_dim, nnz)
     # store the number in the type equivalent to the matrix A
     sc = convert(type, 1 / sqrt(nnz))
     # store as a vector to prevent reallocation during update
@@ -217,24 +226,22 @@ function complete_compressor(ingredients::SparseSign, A::AbstractMatrix)
     )
 end
 
-# allocations in this function are entirely due to bitrand call
 function update_compressor!(S::SparseSignRecipe{Left})
     (compression_dim, initial_dim) = size(S)
     op = S.op
     nnz = S.nnz
-    update_row_idxs!(op.rowval, compression_dim, initial_dim, nnz)
+    sparse_idx_update!(op.rowval, compression_dim, initial_dim, nnz)
     # Update the nonzero values
     rand!(op.nzval, S.scale)
     return nothing
 end
 
-# allocations in this function are entirely due to bitrand call
 function update_compressor!(S::SparseSignRecipe{Right})
     (compression_dim, initial_dim) = (S.n_cols, S.n_rows)
     # If adjoint need to access the parent of the operator
     op = S.op.parent
     nnz = S.nnz
-    update_row_idxs!(op.rowval, compression_dim, initial_dim, nnz)
+    sparse_idx_update!(op.rowval, compression_dim, initial_dim, nnz)
     # Update the nonzero values
     rand!(op.nzval, S.scale)
     return nothing
@@ -244,7 +251,7 @@ end
 function mul!(
     x::AbstractVector, S::SparseSignRecipe, y::AbstractVector, alpha::Number, beta::Number
 )
-    # Check the compatability of the sizes of the things being multiplied
+    # Check the compatibility of the sizes of the things being multiplied
     vec_mul_dimcheck(x, S, y)
     mul!(x, S.op, y, alpha, beta)
     return nothing
@@ -257,7 +264,7 @@ function mul!(
     alpha::Number,
     beta::Number,
 )
-    # Check the compatability of the sizes of the things being multiplied
+    # Check the compatibility of the sizes of the things being multiplied
     vec_mul_dimcheck(x, S, y)
     mul!(x, S.parent.op', y, alpha, beta)
     return nothing

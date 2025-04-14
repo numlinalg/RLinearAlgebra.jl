@@ -8,6 +8,7 @@ struct TestCompressorRecipe <: CompressorRecipe end
 @testset "Compressor Abstract Tyoes" begin
     @test isdefined(Main, :Compressor)
     @test isdefined(Main, :CompressorRecipe)
+    @test isdefined(Main, :CompressorAdjoint)
     @test isdefined(Main, :Cardinality)
     @test isdefined(Main, :Left)
     @test isdefined(Main, :Right)

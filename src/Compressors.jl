@@ -107,7 +107,7 @@ $(comp_method_description[:complete_compressor])
 """
 function complete_compressor(compressor::Compressor, A::AbstractMatrix)
     throw(ArgumentError("No `complete_compressor` method exists for compressor of type\
-          $(typeof(compressor)) and matrix of type $(typeof(A))."))
+                        $(typeof(compressor)) and matrix of type $(typeof(A))."))
     return nothing
 end
 
@@ -169,7 +169,7 @@ $(comp_method_description[:update_compressor])
 function update_compressor!(S::CompressorRecipe)
     throw(
         ArgumentError("No method `update_compressor` exists for compressor recipe of type\
-                      $(typeof(S)).")
+            $(typeof(S)).")
     )
     return nothing
 end
@@ -334,8 +334,8 @@ end
 function mul!(
     C::AbstractArray, S::CompressorRecipe, A::AbstractArray, alpha::Number, beta::Number
 )
-    throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(S)), \
-    $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."))
+    throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(S)),\
+              $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."))
     return nothing
 end
 
@@ -343,7 +343,7 @@ function mul!(
     C::AbstractArray, A::AbstractArray, S::CompressorRecipe, alpha::Number, beta::Number
 )
     throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
-    $(typeof(S)), $(typeof(alpha)), $(typeof(beta)))."))
+              $(typeof(S)), $(typeof(alpha)), $(typeof(beta)))."))
     return nothing
 end
 
