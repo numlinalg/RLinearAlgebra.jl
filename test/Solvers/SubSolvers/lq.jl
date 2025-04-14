@@ -1,12 +1,8 @@
 @testset "LQ SubSolver Tests" begin
     using Test, RLinearAlgebra, Random, LinearAlgebra
-    include("../../test_helpers/field_test_macros.jl")
-    include("../../test_helpers/approx_tol.jl")
-    using .FieldTest
-    using .ApproxTol
+    using ..FieldTest
+    using ..ApproxTol
     
-    A = rand(3, 10)
-    b = rand(3)
     @testset "LQ SubSolver" begin
         @test supertype(LQSolver) == SubSolver
         @test fieldnames(LQSolver) == ()
@@ -23,21 +19,27 @@
     end
     
     @testset "LQ SubSolver: Complete SubSolver" begin
-        let
-            ss = LQSolver()
-            ss_recipe = complete_sub_solver(ss, A)
-            # test the attributes of the outputs of the complete function
-            @test typeof(ss_recipe) == LQSolverRecipe{Matrix{Float64}}
-            @test ss_recipe.A == A
+        let ss = LQSolver()
+            # lq only works for floats and complex nums greater than 16 so we only test them 
+            for type in [Float32, Float64, ComplexF32, ComplexF64]
+                A = rand(type, 3, 10)
+                b = rand(type, 3)
+                ss_recipe = complete_sub_solver(ss, A)
+                # test the attributes of the outputs of the complete function
+                @test typeof(ss_recipe) == LQSolverRecipe{Matrix{type}}
+                @test ss_recipe.A == A
+            end
+
         end
 
     end
 
     @testset "LQ SubSolver: Update SubSolver" begin
-        let 
-            B = rand(10, 3)
-            ss = LQSolver()
+        let A = rand(3, 10),
+            B = rand(10, 3),
+            ss = LQSolver(),
             ss_recipe = complete_sub_solver(ss, A)
+
             update_sub_solver!(ss_recipe, B)
             @test ss_recipe.A == B
         end
@@ -46,26 +48,18 @@
 
     @testset "LQ SubSolver: ldiv!" begin
         # begin by testing the matrix case
-        let  
-            ss = LQSolver()
-            ss_recipe = complete_sub_solver(ss, A)
-            x_sol = rand(10)
-            x_true = lq(A) \ b
-            ldiv!(x_sol, ss_recipe, b)
-            @test x_sol ≈ x_true
-        end
+        let ss = LQSolver()
+            # lq only works for floats and complex nums greater than 16 so we only test them 
+            for type in [Float32, Float64, ComplexF32, ComplexF64]
+                A = rand(type, 3, 10)
+                b = rand(type, 3)
+                ss_recipe = complete_sub_solver(ss, A)
+                x_sol = rand(type, 10)
+                x_true = lq(A) \ b
+                ldiv!(x_sol, ss_recipe, b)
+                @test x_sol ≈ x_true
+            end
 
-        # test the solver when using vectors
-        let  
-            a = rand(10)
-            b = rand()
-            ss = LQSolver()
-            ss_recipe = complete_sub_solver(ss, a)
-            x_sol = rand(10)
-            xc = deepcopy(x_sol)
-            x_true = (b - dot(a, xc)) / dot(a, a) * a 
-            ldiv!(x_sol, ss_recipe, b)
-            @test x_sol ≈ x_true
         end
 
     end

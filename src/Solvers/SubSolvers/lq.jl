@@ -1,7 +1,7 @@
 """
     LQSolver <: SubSolver
 
-A type containing informtation relevant to solving the linear subsystems created by the 
+A type containing information relevant to solving the linear subsystems created by the 
     Solver routines with the LQ factorization. As there are no user controlled parameters, 
     if the user wishes to use this method they can simply specify `LQSolver()`.
 """
@@ -16,8 +16,7 @@ A mutable type containing informtation relevant to solving the linear subsytems 
     the Solver routines with the LQ factorization.
 
 # Fields
-- A::M, The matrix in the linear system that will be solved with 
-the LQ solver.
+ - `A::M`, The matrix in the linear system that will be solved with the LQ solver.
 """
 mutable struct LQSolverRecipe{M<:AbstractArray} <: SubSolverRecipe
     A::M
@@ -45,15 +44,5 @@ function ldiv!(
     fill!(x, zero(eltype(b)))
     # this will modify B in place so you cannot use it again
     ldiv!(x, lq!(solver.A), b)
-    return nothing
-end
-
-function ldiv!(
-    x::AbstractVector, 
-    solver::LQSolverRecipe{<:AbstractVector}, 
-    b::Real
-)
-    # compute the kaczmarz update vector when given a 1-d array(should copy to x beforehand)
-    x .= (b - dot(solver.A, x)) / dot(solver.A, solver.A) * solver.A
     return nothing
 end
