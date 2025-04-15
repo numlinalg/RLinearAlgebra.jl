@@ -70,8 +70,7 @@ comp_method_description = Dict{Symbol,String}(
 A structure for the adjoint of a compression recipe.
 
 ### Fields
-
-  - `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to.
+- `Parent::CompressorRecipe`, the CompressorRecipe the adjoint is being applied to.
 """
 struct CompressorAdjoint{S<:CompressorRecipe}
     parent::S
