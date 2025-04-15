@@ -398,7 +398,7 @@ function vec_mul_dimcheck(
 
     return nothing
 end
-# Implement the * operator  for matrix matrix multiplication
+# Implement the * operator for matrix-matrix and matrix-vector
 function mul!(
     C::AbstractArray, 
     S::CompressorRecipe, 
