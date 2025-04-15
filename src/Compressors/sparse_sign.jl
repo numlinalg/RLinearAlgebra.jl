@@ -15,54 +15,51 @@ we create a sparse sign matrix, ``S``, with dimension ``s \\times m`` where
 In this case, each column of ``S`` is generated independently by the following
 steps:
 
- 1. Randomly choose `nnz` components of the the ``s`` components of the column. Note, `nnz`
+1. Randomly choose `nnz` components of the the ``s`` components of the column. Note, `nnz`
     is supplied by the user.
- 2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or
+2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or
     ``1/\\sqrt{\\text{nnz}}`` with equal probability.
- 3. Set the remaining components of the column to zero.
+3. Set the remaining components of the column to zero.
 
 If ``A`` is compressed from the right, then we create a sparse sign matrix, ``S``,
 with dimension ``n \\times s``, where ``s`` is the compression dimension that
 is supplied by the user.
 In this case, each row of ``S`` is generated independently by the following steps:
 
- 1. Randomly choose `nnz` components fo the ``s`` components of the row. Note, `nnz`
+1. Randomly choose `nnz` components fo the ``s`` components of the row. Note, `nnz`
     is supplied by the user.
- 2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or
+2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or
     ``1/\\sqrt{\\text{nnz}}`` with equal probability.
- 3. Set the remaining components of the row to zero.
+3. Set the remaining components of the row to zero.
 
 # Fields
-
-  - `cardinality::Cardinality`, the direction the compression matrix is intended to be
+- `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
-  - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
+- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
     mathematical description.
-  - `nnz::Int64`, the target number of nonzeros for each column or row of the spares sign
+- `nnz::Int64`, the target number of nonzeros for each column or row of the spares sign
     matrix.
-
-!!! warn
-
-    `nnz` must be no larger than `compression_dim`.
 
 # Constructor
 
     SparseSign(;carinality=Left(), compression_dim=2, nnz::Int64=8)
 
-## Arguments
-
-  - `carinality::Cardinality`, the direction the compression matrix is intended to be
+## Keywords
+- `carinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
     By default `Left()` is chosen.
-  - `compression_dim`, the target compression dimension. Referred to as ``s`` in the
+- `compression_dim`, the target compression dimension. Referred to as ``s`` in the
     mathemtical description. By default this is set to 2.
-  - `nnz::Int64`, the number of non-zeros per row/column in the sampling matrix. By default
+- `nnz::Int64`, the number of non-zeros per row/column in the sampling matrix. By default
     this is set to min(compressiond_dim, 8).
-  - `type::Type{<:Number}`, the type of elements in the compressor.
+- `type::Type{<:Number}`, the type of elements in the compressor.
 
 ## Returns
+- A `SparseSign` object.
 
-  - A `SparseSign` object.
+## Throws
+- `ArgumentError` if `compression_dim` is non-positive, if `nnz` is exceeds
+    `compression_dim`, or if `nnz` is non-positive.
 """
 struct SparseSign <: Compressor
     cardinality::Cardinality
@@ -76,8 +73,11 @@ struct SparseSign <: Compressor
         if compression_dim <= 0
             throw(ArgumentError("Field `compression_dim` must be positive."))
         elseif nnz > compression_dim
-            throw(ArgumentError("Number of non-zero indices, $nnz, must be less than \
-            or equal to compression dimension, $compression_dim."))
+            throw(
+                ArgumentError("Number of non-zero indices, $nnz, must be less than \
+                or equal to compression dimension, $compression_dim."
+                )
+            )
         elseif nnz <= 0
             throw(ArgumentError("Field `nnz` must be positive."))
         end
@@ -103,11 +103,10 @@ Function that performs `n_samples` without replacement of size `sample_size` fro
 of values `1:max_sample_val` and edits the vector `values` in-place.
 
 # Arguments
-
-  - `values::Vector{Int64}`, the indice to be replaced.
-  - `max_sample_val::In64`, the last value we sample from.
-  - `n_samples::Int64`, the number samples taken.
-  - `sample_size::Int64`, the size of the sample.
+- `values::Vector{Int64}`, the indice to be replaced.
+- `max_sample_val::In64`, the last value we sample from.
+- `n_samples::Int64`, the number samples taken.
+- `sample_size::Int64`, the size of the sample.
 
 # Returns
 
