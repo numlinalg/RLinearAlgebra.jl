@@ -220,10 +220,11 @@ function SparseSignRecipe(
     # store as a vector to prevent reallocation during update
     scale = [-sc, sc]
     signs = rand(scale, total_nnz)
-    
+
     # Allocate the column pointers
     col_ptr = collect(1:nnz:(total_nnz + 1))
     op = SparseMatrixCSC{type,Int64}(n_rows, n_cols, col_ptr, idxs, signs)
+
     return SparseSignRecipe{typeof(cardinality)}(
         cardinality, n_rows, n_cols, nnz, scale, op
     )
@@ -236,20 +237,28 @@ function SparseSignRecipe(
     nnz::Int64,
     type::Type{<:Number},
 )
+    # For compressing from the right, the dimension of the compression matrix 
+    # should be size(A, 2) by compression_dim 
     n_rows = size(A, 2)
     n_cols = compression_dim
     initial_dim = n_rows
+
+    # Assign non-zeros of compression matrix 
     total_nnz = initial_dim * nnz
     idxs = Vector{Int64}(undef, total_nnz)
     sparse_idx_update!(idxs, compression_dim, initial_dim, nnz)
+
     # store the number in the type equivalent to the matrix A
     sc = convert(type, 1 / sqrt(nnz))
+
     # store as a vector to prevent reallocation during update
     scale = [-sc, sc]
     signs = rand(scale, total_nnz)
+
     # Allocate the column pointers from 1:total_nnz+1
     col_ptr = collect(1:nnz:(total_nnz + 1))
     op = adjoint(SparseMatrixCSC{type,Int64}(n_cols, n_rows, col_ptr, idxs, signs))
+    
     return SparseSignRecipe{typeof(cardinality)}(
         cardinality, n_rows, n_cols, nnz, scale, op
     )
