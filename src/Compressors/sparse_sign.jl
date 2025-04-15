@@ -258,7 +258,7 @@ function SparseSignRecipe(
     # Allocate the column pointers from 1:total_nnz+1
     col_ptr = collect(1:nnz:(total_nnz + 1))
     op = adjoint(SparseMatrixCSC{type,Int64}(n_cols, n_rows, col_ptr, idxs, signs))
-    
+
     return SparseSignRecipe{typeof(cardinality)}(
         cardinality, n_rows, n_cols, nnz, scale, op
     )
@@ -278,26 +278,40 @@ function update_compressor!(S::SparseSignRecipe{Left})
     (compression_dim, initial_dim) = size(S)
     op = S.op
     nnz = S.nnz
+    
+    # For each column of `S.op`, choose new non-zero entries at random without 
+    # replacement
     sparse_idx_update!(op.rowval, compression_dim, initial_dim, nnz)
-    # Update the nonzero values
+
+    # Resample the non-zero values 
     rand!(op.nzval, S.scale)
+
     return nothing
 end
 
 function update_compressor!(S::SparseSignRecipe{Right})
     (compression_dim, initial_dim) = (S.n_cols, S.n_rows)
-    # If adjoint need to access the parent of the operator
+
+    # For each column of `S.op.parent`, choose new non-zero entries at random 
+    # withour replacment. Equivalent to: for each row of `S.op.parent`, choose 
+    # new non-zero entries at random without replacement.
     op = S.op.parent
     nnz = S.nnz
     sparse_idx_update!(op.rowval, compression_dim, initial_dim, nnz)
+
     # Update the nonzero values
     rand!(op.nzval, S.scale)
+
     return nothing
 end
 
 # Do the right version
 function mul!(
-    x::AbstractVector, S::SparseSignRecipe, y::AbstractVector, alpha::Number, beta::Number
+    x::AbstractVector, 
+    S::SparseSignRecipe, 
+    y::AbstractVector, 
+    alpha::Number, 
+    beta::Number
 )
     # Check the compatibility of the sizes of the things being multiplied
     vec_mul_dimcheck(x, S, y)
@@ -321,7 +335,11 @@ end
 # Implement the matrix-Matrix Multiplication operators
 # Begin with the left version
 function mul!(
-    C::AbstractMatrix, S::SparseSignRecipe, A::AbstractMatrix, alpha::Number, beta::Number
+    C::AbstractMatrix, 
+    S::SparseSignRecipe, 
+    A::AbstractMatrix, 
+    alpha::Number, 
+    beta::Number
 )
     left_mat_mul_dimcheck(C, S, A)
     return mul!(C, S.op, A, alpha, beta)
@@ -329,7 +347,11 @@ end
 
 # Now implement the right versions
 function mul!(
-    C::AbstractMatrix, A::AbstractMatrix, S::SparseSignRecipe, alpha::Number, beta::Number
+    C::AbstractMatrix, 
+    A::AbstractMatrix, 
+    S::SparseSignRecipe, 
+    alpha::Number, 
+    beta::Number
 )
     right_mat_mul_dimcheck(C, A, S)
     mul!(C, A, S.op, alpha, beta)
