@@ -296,13 +296,17 @@ function left_mat_mul_dimcheck(
     a_rows, a_cols = size(A)
     c_rows, c_cols = size(C)
     if a_rows != s_cols
-        throw(DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns."))
+        throw(
+            DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns.")
+        )
     elseif a_cols != c_cols
         throw(
             DimensionMismatch("Matrix A has $a_cols columns while C has $c_cols columns.")
         )
     elseif c_rows != s_rows
-        throw(DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows."))
+        throw(
+            DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows.")
+        )
     end
 
     return nothing
@@ -332,13 +336,17 @@ function right_mat_mul_dimcheck(
     a_rows, a_cols = size(A)
     c_rows, c_cols = size(C)
     if a_cols != s_rows
-        throw(DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows."))
+        throw(
+            DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
+        )
     elseif c_cols != s_cols
         throw(
             DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns.")
         )
     elseif c_rows != a_rows
-        throw(DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows."))
+        throw(
+            DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
+        )
     end
 
     return nothing
@@ -368,8 +376,11 @@ function vec_mul_dimcheck(
     len_y = size(y, 1)
     len_z = size(z, 1)
     if len_y != s_cols
-        throw(DimensionMismatch("Vector y is of dimension $len_y while S has $s_cols \
-              columns."))
+        throw(
+            DimensionMismatch(
+                "Vector y is of dimension $len_y while S has $s_cols columns."
+            )
+        )
     elseif len_z != s_rows
         throw(
             DimensionMismatch("Vector z is of dimension $len_z while S has $s_rows rows.")
@@ -382,16 +393,24 @@ end
 function mul!(
     C::AbstractArray, S::CompressorRecipe, A::AbstractArray, alpha::Number, beta::Number
 )
-    throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(S)),\
-              $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."))
+    throw(
+        ArgumentError(
+            "No method `mul!` defined for ($(typeof(C)), $(typeof(S)), \
+            $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."
+        )
+    )
     return nothing
 end
 
 function mul!(
     C::AbstractArray, A::AbstractArray, S::CompressorRecipe, alpha::Number, beta::Number
 )
-    throw(ArgumentError("No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
-              $(typeof(S)), $(typeof(alpha)), $(typeof(beta)))."))
+    throw(
+        ArgumentError(
+            "No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
+            $(typeof(S)), $(typeof(alpha)), $(typeof(beta)))."
+        )
+    )
     return nothing
 end
 
