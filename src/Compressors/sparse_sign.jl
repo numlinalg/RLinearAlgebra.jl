@@ -305,7 +305,7 @@ function update_compressor!(S::SparseSignRecipe{Right})
     return nothing
 end
 
-# Do the right version
+# Calculate S.op * y and store it in X 
 function mul!(
     x::AbstractVector, 
     S::SparseSignRecipe, 
@@ -319,6 +319,7 @@ function mul!(
     return nothing
 end
 
+# Calculate S.op' * y and store it in X
 function mul!(
     x::AbstractVector,
     S::CompressorAdjoint{SparseSignRecipe{C}} where {C<:Cardinality},
@@ -332,8 +333,7 @@ function mul!(
     return nothing
 end
 
-# Implement the matrix-Matrix Multiplication operators
-# Begin with the left version
+# Calculates S.op * A and stores it in C 
 function mul!(
     C::AbstractMatrix, 
     S::SparseSignRecipe, 
@@ -345,7 +345,7 @@ function mul!(
     return mul!(C, S.op, A, alpha, beta)
 end
 
-# Now implement the right versions
+# Calculates A * S.op and stores it in C 
 function mul!(
     C::AbstractMatrix, 
     A::AbstractMatrix, 
