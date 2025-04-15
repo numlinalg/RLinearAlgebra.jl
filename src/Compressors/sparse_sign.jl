@@ -97,23 +97,36 @@ function SparseSign(;
 end
 
 """
-    sparse_idx_update!
+    sparse_idx_update!(
+        values::Vector{Int64}, 
+        max_sample_val::Int64, 
+        n_samples::Int64, 
+        sample_size::Int64
+    )
 
-Function that performs `n_samples` without replacement of size `sample_size` from a list
-of values `1:max_sample_val` and edits the vector `values` in-place.
+Implicitly splits `values` into `n_samples` components of size `sample_size`. 
+On each component, replaces the entries of each component with a random sample 
+without replacement of size `sample_size` from the set `1:max_sample_val`.
+
+!!! warn 
+    `values` should have length equal to `sample_size*n_samples`, but this 
+    is not checked. 
 
 # Arguments
 - `values::Vector{Int64}`, the indice to be replaced.
-- `max_sample_val::In64`, the last value we sample from.
-- `n_samples::Int64`, the number samples taken.
-- `sample_size::Int64`, the size of the sample.
+- `max_sample_val::In64`, implicitly supplies the set from which to sample,
+    `1:max_sample_val`.
+- `n_samples::Int64`, the components that `values` is implicitly split into. 
+- `sample_size::Int64`, the size each component that `values` is split into.
 
 # Returns
-
-  - returns nothing
+- `nothing`
 """
 function sparse_idx_update!(
-    values::Vector{Int64}, max_sample_val::Int64, n_samples::Int64, sample_size::Int64
+    values::Vector{Int64}, 
+    max_sample_val::Int64, 
+    n_samples::Int64, 
+    sample_size::Int64
 )
     first_idx = 1
     for i in 1:n_samples
@@ -134,23 +147,43 @@ end
 The recipe containing all allocations and information for the SparseSign compressor.
 
 # Fields
-
-  - `cardinality::Cardinality`, the direction the compression matrix is intended to
-    be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
-  - `n_rows::Int64`, the number of rows of the compression matrix.
-  - `n_cols::Int64`, the number of columns of the compression matrix.
-  - `nnz::Int64`, the number of non-zero entries in each row if `cardinality==Left` or the
-    number of non-zero entries each column if `cardinality==Right`.
-  - `scale::Vector{Number}`, the set of values of the non-zero entries of the Spares Sign
-    compression matrix.
-  - `op::SparseMatrixCSC`, the Spares Sign compression matrix.
+- `cardinality::Cardinality`, the direction the compression matrix is intended to
+be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
+- `n_rows::Int64`, the number of rows of the compression matrix.
+- `n_cols::Int64`, the number of columns of the compression matrix.
+- `nnz::Int64`, the number of non-zero entries in each row if `cardinality==Left` or the
+number of non-zero entries each column if `cardinality==Right`.
+- `scale::Vector{Number}`, the set of values of the non-zero entries of the Spares Sign
+compression matrix.
+- `op::SparseMatrixCSC`, the Spares Sign compression matrix.
 
 # Constructors
 
-    SparseSignRecipe(cardinality, compression_dim, A, nnz, type)
+    SparseSignRecipe(
+        cardinality::C where C<:Cardinality,
+        compression_dim::Int64, 
+        A::AbstractMatrix, 
+        nnz::Int64, 
+        type::Type{<:Number}
+    )
 
-!!! warning "Use complete_compressor"
-    To ensure cross library compatibility please defer to using `complete_compressor`
+An external constructor of `SparseSignRecipe` that is dispatched based on the 
+value of `cardinality`. See [SparseSign](@ref) for additional details. 
+
+## Arguments 
+- `cardinality::C where C<:Cardinality`, the cardinality of the compressor. The 
+    value is either `Left()` or `Right()`
+- `compression_dim::Int64`, the target compression dimension.
+- `A::AbstractMatrix`, a target matrix for compression. 
+- `nnz::Int64`, the number of nonzeros in the Sparse Sign compression matrix.
+- `type::Type{<:Number}`, the data type for the entries of the compression matrix.
+
+## Returns 
+- A `SparseSignRecipe` object.
+
+!!! warning "Use `complete_compressor`"
+    While an external constructor is provided, it is mainly for internal use.
+    To ensure cross library compatibility please use [`complete_compressor`](@ref)
     for forming the `SparseSignRecipe`.
 """
 mutable struct SparseSignRecipe{C<:Cardinality} <: CompressorRecipe
