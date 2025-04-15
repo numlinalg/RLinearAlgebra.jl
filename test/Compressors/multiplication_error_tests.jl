@@ -2,9 +2,8 @@
 module compressor_bound_checking
 using Test, RLinearAlgebra
 import LinearAlgebra: mul!
-
-include("../test_helpers/field_test_macros.jl")
-include("../test_helpers/approx_tol.jl")
+using ..FieldTest
+using ..ApproxTol
 @testset "Multiplication Dimension Checks" begin
     # Test the matrix multiplication assertions
     mutable struct TestCompressorRecipe <: CompressorRecipe
