@@ -203,17 +203,24 @@ function SparseSignRecipe(
     nnz::Int64,
     type::Type{<:Number},
 )
+    # For compressing from the left, the compressor's dimensions should be 
+    # compression_dim by size(A, 1)
     n_rows = compression_dim
     n_cols = size(A, 1)
     initial_dim = n_cols
+
+    # Assign non-zeros of sparse sign matrix 
     total_nnz = initial_dim * nnz
     idxs = Vector{Int64}(undef, total_nnz)
     sparse_idx_update!(idxs, compression_dim, initial_dim, nnz)
+
     # store the number in the type equivalent to the matrix A
     sc = convert(type, 1 / sqrt(nnz))
+
     # store as a vector to prevent reallocation during update
     scale = [-sc, sc]
     signs = rand(scale, total_nnz)
+    
     # Allocate the column pointers
     col_ptr = collect(1:nnz:(total_nnz + 1))
     op = SparseMatrixCSC{type,Int64}(n_rows, n_cols, col_ptr, idxs, signs)
