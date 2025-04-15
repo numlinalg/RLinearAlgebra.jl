@@ -265,7 +265,10 @@ $(comp_method_description[:update_compressor])
 - $(comp_error_list[:update_compressor])
 """
 function update_compressor!(
-    S::CompressorRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector
+    S::CompressorRecipe, 
+    x::AbstractVector, 
+    A::AbstractMatrix, 
+    b::AbstractVector
 )
     update_compressor!(S, A, b)
     return nothing
@@ -290,7 +293,9 @@ $(comp_method_description[:mul_check] * " from the left.")
     multiplication.
 """
 function left_mat_mul_dimcheck(
-    C::AbstractMatrix, S::Union{CompressorRecipe,CompressorAdjoint}, A::AbstractMatrix
+    C::AbstractMatrix, 
+    S::Union{CompressorRecipe,CompressorAdjoint}, 
+    A::AbstractMatrix
 )
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
@@ -330,7 +335,9 @@ $(comp_method_description[:mul_check] * " from the right.")
     multiplication.
 """
 function right_mat_mul_dimcheck(
-    C::AbstractMatrix, A::AbstractMatrix, S::Union{CompressorRecipe,CompressorAdjoint}
+    C::AbstractMatrix, 
+    A::AbstractMatrix, 
+    S::Union{CompressorRecipe,CompressorAdjoint}
 )
     s_rows, s_cols = size(S)
     a_rows, a_cols = size(A)
@@ -370,7 +377,9 @@ $(comp_method_description[:mul_check] * " with a vector.")
     multiplication.
 """
 function vec_mul_dimcheck(
-    z::AbstractVector, S::Union{CompressorRecipe,CompressorAdjoint}, y::AbstractVector
+    z::AbstractVector, 
+    S::Union{CompressorRecipe,CompressorAdjoint}, 
+    y::AbstractVector
 )
     s_rows, s_cols = size(S)
     len_y = size(y, 1)
@@ -391,7 +400,11 @@ function vec_mul_dimcheck(
 end
 # Implement the * operator  for matrix matrix multiplication
 function mul!(
-    C::AbstractArray, S::CompressorRecipe, A::AbstractArray, alpha::Number, beta::Number
+    C::AbstractArray, 
+    S::CompressorRecipe, 
+    A::AbstractArray, 
+    alpha::Number, 
+    beta::Number
 )
     throw(
         ArgumentError(
@@ -403,7 +416,11 @@ function mul!(
 end
 
 function mul!(
-    C::AbstractArray, A::AbstractArray, S::CompressorRecipe, alpha::Number, beta::Number
+    C::AbstractArray, 
+    A::AbstractArray, 
+    S::CompressorRecipe, 
+    alpha::Number, 
+    beta::Number
 )
     throw(
         ArgumentError(
@@ -468,7 +485,11 @@ function Base.size(S::CompressorRecipe, dim::Int64)
 end
 
 function mul!(
-    C::AbstractMatrix, S::CompressorAdjoint, A::AbstractMatrix, alpha::Number, beta::Number
+    C::AbstractMatrix, 
+    S::CompressorAdjoint, 
+    A::AbstractMatrix, 
+    alpha::Number, 
+    beta::Number
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
     # this will give us C = S' * A as desired
@@ -477,7 +498,11 @@ function mul!(
 end
 
 function mul!(
-    C::AbstractMatrix, A::AbstractMatrix, S::CompressorAdjoint, alpha::Number, beta::Number
+    C::AbstractMatrix, 
+    A::AbstractMatrix, 
+    S::CompressorAdjoint, 
+    alpha::Number, 
+    beta::Number
 )
     # To avoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
     # this will give us C = A * S' as desired
