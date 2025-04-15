@@ -358,6 +358,8 @@ Random.seed!(2131)
             @test A * S' ≈ A * sparse_S'
             # Test matrix vector multiplication from the left
             @test S * x ≈ sparse_S * x
+            # Test multiplying the matrix to a vector from the right
+            @test y' * S ≈ y' * sparse_S
             # Test multiplication from the right using transpose
             @test S' * y ≈ sparse_S' * y
 

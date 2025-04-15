@@ -51,10 +51,10 @@ end
     # Five argument muls for adjoint 
     @test_throws ArgumentError mul!(C, TestCompressorRecipe()', A, 1.0, 1.0)
     @test_throws ArgumentError mul!(C, A, TestCompressorRecipe()', 1.0, 1.0)
-    @test_throws MethodError mul!(y, TestCompressorRecipe()', x, 1.0, 1.0)
+    @test_throws ArgumentError mul!(y, TestCompressorRecipe()', x, 1.0, 1.0)
 
     # Three arguments muls for adjoint 
-    @test_throws MethodError mul!(y, TestCompressorRecipe()', x)
+    @test_throws ArgumentError mul!(y, TestCompressorRecipe()', x)
     @test_throws ArgumentError mul!(C, TestCompressorRecipe()', A)
     @test_throws ArgumentError mul!(C, A, TestCompressorRecipe()')
 

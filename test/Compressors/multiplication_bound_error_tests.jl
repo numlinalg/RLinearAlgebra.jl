@@ -44,7 +44,7 @@ using ..ApproxTol
     let S=deepcopy(S), s=s, y_dim=n_rows+1
         y = zeros(y_dim) 
         x = zeros(s)
-        @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(x, S, y)
         @test_throws DimensionMismatch S*y
     end
 
@@ -52,7 +52,7 @@ using ..ApproxTol
     let S = deepcopy(S), x_dim=s+1, n_rows=n_rows 
         y = zeros(n_rows)
         x = zeros(x_dim)
-        @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(x, S, y)
     end
 
     # Error for S'*y when y has incorrect dimension 
@@ -70,7 +70,7 @@ using ..ApproxTol
         # Here C has correct column dimension and row dimension A has incorrect row dim
         A = zeros(5, 2)
         C = zeros(3, 2)
-        @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
     end
 
     let
@@ -78,7 +78,7 @@ using ..ApproxTol
         # dimensions
         A = zeros(4, 2)
         C = zeros(4, 2)
-        @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
     end
 
     let
@@ -86,7 +86,7 @@ using ..ApproxTol
         # dimension
         A = zeros(4, 2)
         C = zeros(3, 3)
-        @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
     end
 
     # Test right multiplication using S' to avoid generating another S
@@ -96,7 +96,7 @@ using ..ApproxTol
         # C has the correct row and column dimensions
         A = zeros(4, 3)
         C = zeros(4, 3)
-        @test_throws DimensionMismatch RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
+        @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S')
     end
 
     let
@@ -104,7 +104,7 @@ using ..ApproxTol
         # C has the correct row and incorrect column dimensions
         A = zeros(4, 4)
         C = zeros(4, 2)
-        @test_throws DimensionMismatch RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
+        @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S')
     end
 
     let
@@ -112,7 +112,7 @@ using ..ApproxTol
         # C has the incorrect row and correct column dimensions
         A = zeros(4, 4)
         C = zeros(5, 3)
-        @test_throws DimensionMismatch RLinearAlgebra.right_mat_mul_dimcheck(C, A, S')
+        @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S')
     end
 end
 

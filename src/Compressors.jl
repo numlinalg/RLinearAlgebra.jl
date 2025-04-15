@@ -276,7 +276,7 @@ end
 
 # Dimension testing for Compressors 
 """
-    left_mat_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+    left_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
 
 $(comp_method_description[:mul_check] * " from the left.")
 
@@ -292,14 +292,16 @@ $(comp_method_description[:mul_check] * " from the left.")
 - `DimensionMismatch` if dimensions of arguments are not compatible for matrix-matrix 
     multiplication.
 """
-function left_mat_mul_dimcheck(
-    C::AbstractMatrix, 
+function left_mul_dimcheck(
+    C::AbstractArray, 
     S::Union{CompressorRecipe,CompressorAdjoint}, 
-    A::AbstractMatrix
+    A::AbstractArray
 )
     s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
-    c_rows, c_cols = size(C)
+    a_rows = size(A, 1)
+    a_cols = size(A, 2)
+    c_rows = size(C, 1)
+    c_cols = size(C, 2)
     if a_rows != s_cols
         throw(
             DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns.")
@@ -318,7 +320,7 @@ function left_mat_mul_dimcheck(
 end
 
 """
-    right_mat_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe)
+    right_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe)
 
 $(comp_method_description[:mul_check] * " from the right.")
 
@@ -334,14 +336,16 @@ $(comp_method_description[:mul_check] * " from the right.")
 - `DimensionMismatch` if dimensions of arguments are not compatible for matrix-matrix 
     multiplication.
 """
-function right_mat_mul_dimcheck(
-    C::AbstractMatrix, 
-    A::AbstractMatrix, 
+function right_mul_dimcheck(
+    C::AbstractArray, 
+    A::AbstractArray, 
     S::Union{CompressorRecipe,CompressorAdjoint}
 )
     s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
-    c_rows, c_cols = size(C)
+    a_rows = size(A, 1)
+    a_cols = size(A, 2)
+    c_rows = size(C, 1)
+    c_cols = size(C, 2)
     if a_cols != s_rows
         throw(
             DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
@@ -359,45 +363,6 @@ function right_mat_mul_dimcheck(
     return nothing
 end
 
-"""
-    vec_mul_dimcheck(z::AbstractMatrix, S::CompressorRecipe, y::AbstractMatrix)
-
-$(comp_method_description[:mul_check] * " with a vector.")
-
-# Arguments
-- $(comp_arg_list[:z])
-- $(comp_arg_list[:compressor_recipe])
-- $(comp_arg_list[:y])
-
-# Returns 
-- `nothing`
-
-# Throws 
-- `DimensionMismatch` if dimensions of arguments are not compatible for matrix-vector 
-    multiplication.
-"""
-function vec_mul_dimcheck(
-    z::AbstractVector, 
-    S::Union{CompressorRecipe,CompressorAdjoint}, 
-    y::AbstractVector
-)
-    s_rows, s_cols = size(S)
-    len_y = size(y, 1)
-    len_z = size(z, 1)
-    if len_y != s_cols
-        throw(
-            DimensionMismatch(
-                "Vector y is of dimension $len_y while S has $s_cols columns."
-            )
-        )
-    elseif len_z != s_rows
-        throw(
-            DimensionMismatch("Vector z is of dimension $len_z while S has $s_rows rows.")
-        )
-    end
-
-    return nothing
-end
 # Implement the * operator for matrix-matrix and matrix-vector
 function mul!(
     C::AbstractArray, 
@@ -431,46 +396,45 @@ function mul!(
     return nothing
 end
 
-function (*)(S::CompressorRecipe, v::AbstractVector)
-    s_rows = size(S, 1)
-    output = zeros(s_rows)
-    vec_mul_dimcheck(output, S, v)
-    mul!(output, S, v)
-    return output
-end
-
-function mul!(x::AbstractVector, S::CompressorRecipe, y::AbstractVector)
-    mul!(x, S, y, 1.0, 0.0)
-    return nothing
+# This is a multiplication to handle the case where we are multiplying vectors from the 
+# right of the matrix
+function mul!(
+    x::AbstractVector, 
+    y::AbstractVector, 
+    S::CompressorRecipe, 
+    alpha::Number, 
+    beta::Number
+)
+    mul!(transpose(x), transpose(y), S, alpha, beta) 
 end
 
 # Implement the * operator for matrix matrix multiplication
 # The left multiplication version
-function (*)(S::CompressorRecipe, A::AbstractMatrix)
+function (*)(S::CompressorRecipe, A::AbstractArray)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
     C = zeros(eltype(A), s_rows, a_cols)
-    left_mat_mul_dimcheck(C, S, A)
+    left_mul_dimcheck(C, S, A)
     mul!(C, S, A)
     return C
 end
 
-function mul!(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
+function mul!(C::AbstractArray, S::CompressorRecipe, A::AbstractArray)
     mul!(C, S, A, 1.0, 0.0)
     return nothing
 end
 
 # The right multiplication version
-function (*)(A::AbstractMatrix, S::CompressorRecipe)
+function (*)(A::AbstractArray, S::CompressorRecipe)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
     C = zeros(eltype(A), a_rows, s_cols)
-    right_mat_mul_dimcheck(C, A, S)
+    right_mul_dimcheck(C, A, S)
     mul!(C, A, S)
     return C
 end
 
-function mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
+function mul!(C::AbstractArray, A::AbstractArray, S::CompressorRecipe)
     mul!(C, A, S, 1.0, 0.0)
     return nothing
 end
@@ -485,9 +449,9 @@ function Base.size(S::CompressorRecipe, dim::Int64)
 end
 
 function mul!(
-    C::AbstractMatrix, 
+    C::AbstractArray, 
     S::CompressorAdjoint, 
-    A::AbstractMatrix, 
+    A::AbstractArray, 
     alpha::Number, 
     beta::Number
 )
@@ -498,8 +462,8 @@ function mul!(
 end
 
 function mul!(
-    C::AbstractMatrix, 
-    A::AbstractMatrix, 
+    C::AbstractArray, 
+    A::AbstractArray, 
     S::CompressorAdjoint, 
     alpha::Number, 
     beta::Number
@@ -510,59 +474,33 @@ function mul!(
     return nothing
 end
 
-# Computes alpha * S' * y + beta and stores it in x 
-function mul!(
-    x::AbstractVector,
-    S::CompressorAdjoint{C} where {C<:CompressorRecipe},
-    y::AbstractVector,
-    alpha::Number,
-    beta::Number,
-)
-    throw(MethodError("No mul! defined for Compressor of type $(typeof(S.parent))."))
-    return nothing
-end
-
-function mul!(x::AbstractVector, S::CompressorAdjoint, y::AbstractVector)
-    mul!(x, S, y, 1.0, 0.0)
-    return nothing
-end
-
-function mul!(C::AbstractMatrix, S::CompressorAdjoint, A::AbstractMatrix)
+function mul!(C::AbstractArray, S::CompressorAdjoint, A::AbstractArray)
     mul!(C, S, A, 1.0, 0.0)
     return nothing
 end
 
-function mul!(C::AbstractMatrix, A::AbstractMatrix, S::CompressorAdjoint)
+function mul!(C::AbstractArray, A::AbstractArray, S::CompressorAdjoint)
     mul!(C, A, S, 1.0, 0.0)
     return nothing
 end
 
-function (*)(S::CompressorAdjoint, A::AbstractMatrix)
+function (*)(S::CompressorAdjoint, A::AbstractArray)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
     C = zeros(eltype(A), s_rows, a_cols)
-    left_mat_mul_dimcheck(C, S, A)
+    left_mul_dimcheck(C, S, A)
     mul!(C, S, A)
     return C
 end
 
-function (*)(A::AbstractMatrix, S::CompressorAdjoint)
+function (*)(A::AbstractArray, S::CompressorAdjoint)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
     C = zeros(eltype(A), a_rows, s_cols)
-    right_mat_mul_dimcheck(C, A, S)
+    right_mul_dimcheck(C, A, S)
     mul!(C, A, S)
     return C
 end
-
-function (*)(S::CompressorAdjoint, v::AbstractVector)
-    s_rows = size(S, 1)
-    output = zeros(s_rows)
-    vec_mul_dimcheck(output, S, v)
-    mul!(output, S, v)
-    return output
-end
-
 ###################################
 # Include Compressor Files
 ###################################

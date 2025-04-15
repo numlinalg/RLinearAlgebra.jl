@@ -305,55 +305,27 @@ function update_compressor!(S::SparseSignRecipe{Right})
     return nothing
 end
 
-# Calculate S.op * y and store it in X 
-function mul!(
-    x::AbstractVector, 
-    S::SparseSignRecipe, 
-    y::AbstractVector, 
-    alpha::Number, 
-    beta::Number
-)
-    # Check the compatibility of the sizes of the things being multiplied
-    vec_mul_dimcheck(x, S, y)
-    mul!(x, S.op, y, alpha, beta)
-    return nothing
-end
-
-# Calculate S.op' * y and store it in X
-function mul!(
-    x::AbstractVector,
-    S::CompressorAdjoint{SparseSignRecipe{C}} where {C<:Cardinality},
-    y::AbstractVector,
-    alpha::Number,
-    beta::Number,
-)
-    # Check the compatibility of the sizes of the things being multiplied
-    vec_mul_dimcheck(x, S, y)
-    mul!(x, S.parent.op', y, alpha, beta)
-    return nothing
-end
-
 # Calculates S.op * A and stores it in C 
 function mul!(
-    C::AbstractMatrix, 
+    C::AbstractArray, 
     S::SparseSignRecipe, 
-    A::AbstractMatrix, 
+    A::AbstractArray, 
     alpha::Number, 
     beta::Number
 )
-    left_mat_mul_dimcheck(C, S, A)
+    left_mul_dimcheck(C, S, A)
     return mul!(C, S.op, A, alpha, beta)
 end
 
 # Calculates A * S.op and stores it in C 
 function mul!(
-    C::AbstractMatrix, 
-    A::AbstractMatrix, 
+    C::AbstractArray, 
+    A::AbstractArray, 
     S::SparseSignRecipe, 
     alpha::Number, 
     beta::Number
 )
-    right_mat_mul_dimcheck(C, A, S)
+    right_mul_dimcheck(C, A, S)
     mul!(C, A, S.op, alpha, beta)
     return nothing
 end
