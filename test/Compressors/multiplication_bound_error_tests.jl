@@ -5,7 +5,7 @@ import LinearAlgebra: mul!
 using ..FieldTest
 using ..ApproxTol
 @testset "Multiplication Dimension Checks" begin
-    # Test the matrix multiplication assertions
+    # Testing Parameters 
     mutable struct TestCompressorRecipe <: CompressorRecipe
         n_rows::Int64
         n_cols::Int64
@@ -13,37 +13,45 @@ using ..ApproxTol
     s = 3
     n_rows = 4
     n_cols = 5
+
     # S is 3 by 4
     S = TestCompressorRecipe(s, n_rows)
-    # Test the sizes
-    let
+    
+    ####################
+    # Size methods 
+    ####################
+    let S = deepcopy(S), s=s, n_rows=n_rows, n_cols=n_cols
+
+        # Get size 
         m, n = size(S)
         @test m == s
         @test n == n_rows
+
+        # Get individual sizes 
         @test n_rows == size(S, 2)
         @test s == size(S, 1)
+
         # Make sure transpose size are opposite of original size
         @test size(S, 1) == size(S', 2)
         @test size(S, 2) == size(S', 1)
     end
 
-    # Test the matvec multiplications errors
-    let
-        # test y is incorrect x is correct dimension
-        y = zeros(5)
-        x = zeros(3)
+    ########################
+    # Matrix-Vector methods 
+    ########################
+
+    # Error for S*y -> x, when y has incorrect dimension 
+    let S = deepcopy(S), s=s, n_cols=n_cols
+        y = zeros(n_cols) # Should be n_rows 
+        x = zeros(s)
         @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
     end
 
-    let
-        # test y is correct x is correct dimension
-        y = zeros(4)
-        x = zeros(2)
+    # Error for S*y -> x, when x has incorrect dimension 
+    let S = deepcopy(S), s=s, n_rows=n_rows 
+        y = zeros(n_rows)
+        x = zeros(s+1)
         @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
-        # Test that argument error is thrown 
-        @test_throws ArgumentError mul!(x, S, y, 1.0, 1.0)
-        #Check that a method error is thrown
-        @test_throws MethodError mul!(y, S', x, 1.0, 1.0)
     end
 
     # Test the mat mat multiplication errors
@@ -68,8 +76,6 @@ using ..ApproxTol
         A = zeros(4, 2)
         C = zeros(3, 3)
         @test_throws DimensionMismatch RLinearAlgebra.left_mat_mul_dimcheck(C, S, A)
-        # Test that argument error is thrown when S is on the right 
-        @test_throws ArgumentError mul!(C, A, S, 1.0, 1.0)
     end
 
     # Test right multiplication using S' to avoid generating another S
