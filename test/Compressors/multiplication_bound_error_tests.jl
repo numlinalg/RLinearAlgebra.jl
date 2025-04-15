@@ -14,7 +14,7 @@ using ..ApproxTol
     n_rows = 4
     n_cols = 5
 
-    # S is 3 by 4
+    # S is s by n_rows 
     S = TestCompressorRecipe(s, n_rows)
     
     ####################
@@ -40,22 +40,33 @@ using ..ApproxTol
     # Matrix-Vector methods 
     ########################
 
-    # Error for S*y -> x, when y has incorrect dimension 
-    let S = deepcopy(S), s=s, n_cols=n_cols
-        y = zeros(n_cols) # Should be n_rows 
+    # Error for S*y when y has incorrect dimension 
+    let S=deepcopy(S), s=s, y_dim=n_rows+1
+        y = zeros(y_dim) 
         x = zeros(s)
         @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
+        @test_throws DimensionMismatch S*y
     end
 
     # Error for S*y -> x, when x has incorrect dimension 
-    let S = deepcopy(S), s=s, n_rows=n_rows 
+    let S = deepcopy(S), x_dim=s+1, n_rows=n_rows 
         y = zeros(n_rows)
-        x = zeros(s+1)
+        x = zeros(x_dim)
         @test_throws DimensionMismatch RLinearAlgebra.vec_mul_dimcheck(x, S, y)
     end
 
-    # Test the mat mat multiplication errors
-    let
+    # Error for S'*y when y has incorrect dimension 
+    let S=deepcopy(S), y_dim=s+1
+        y = zeros(y_dim)
+        @test_throws DimensionMismatch S'*y
+    end
+
+    ########################
+    # Matrix-Matrix methods 
+    ########################
+
+    # Error for S*x
+    let S = deepcopy(S), 
         # Here C has correct column dimension and row dimension A has incorrect row dim
         A = zeros(5, 2)
         C = zeros(3, 2)
