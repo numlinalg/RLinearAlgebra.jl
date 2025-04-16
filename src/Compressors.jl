@@ -286,14 +286,14 @@ function Base.size(S::CompressorRecipe)
     return S.n_rows, S.n_cols
 end
 function Base.size(S::CompressorRecipe, dim::Int64)
-    ((dim != 1) || (dim != 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
     return dim == 1 ? S.n_rows : S.n_cols
 end
 function Base.size(S::CompressorAdjoint)
     return S.parent.n_cols, S.parent.n_rows
 end
 function Base.size(S::CompressorAdjoint, dim::Int64)
-    ((dim != 1) || (dim != 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
     return dim == 1 ? S.n_cols : S.n_rows
 end
 
@@ -431,7 +431,7 @@ function mul!(
     alpha::Number,
     beta::Number
 )
-    mul!(transpose(C), S.parent, tranpose(A), alpha, beta)
+    mul!(transpose(C), S.parent, transpose(A), alpha, beta)
     return nothing
 end
 
