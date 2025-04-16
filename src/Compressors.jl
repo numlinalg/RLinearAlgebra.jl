@@ -315,7 +315,7 @@ $(comp_method_description[:mul_check] * " from the left.")
 - `nothing`
 
 # Throws 
-- `DimensionMismatch` if dimensions of arguments are not compatible for matrix-matrix 
+- `DimensionMismatch` if dimensions of arguments are not compatible for
     multiplication.
 """
 function left_mul_dimcheck(
@@ -342,6 +342,32 @@ function left_mul_dimcheck(
 
     return nothing
 end
+"""
+    left_mul_dimcheck(C::AbstractMatrix, S::CompressorAdjoint, A::AbstractMatrix)
+
+$(comp_method_description[:mul_check] * " from the left.")
+
+# Arguments
+- $(comp_arg_list[:C])
+- $(comp_arg_list[:compressor_recipe_adjoint])
+- $(comp_arg_list[:A])
+
+# Returns 
+- `nothing`
+
+# Throws 
+- `DimensionMismatch` if dimensions of arguments are not compatible for
+    multiplication.
+"""
+function left_mul_dimcheck(
+    C::AbstractArray, 
+    S::CompressorAdjoint,
+    A::AbstractArray
+)
+    # Checks S' * A -> C via A * S' -> C' 
+    right_mul_dimcheck(transpose(C), transpose(A), S.parent)
+    return nothing 
+end
 
 """
     right_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
@@ -357,7 +383,7 @@ $(comp_method_description[:mul_check] * " from the right.")
 - `nothing`
 
 # Throws 
-- `DimensionMismatch` if dimensions of arguments are not compatible for matrix-matrix 
+- `DimensionMismatch` if dimensions of arguments are not compatible for
     multiplication.
 """
 function right_mul_dimcheck(
@@ -384,6 +410,31 @@ function right_mul_dimcheck(
 
     return nothing
 end
+"""
+    right_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorAdjoint)
+
+$(comp_method_description[:mul_check] * " from the right.")
+
+# Arguments
+- $(comp_arg_list[:C])
+- $(comp_arg_list[:A])
+- $(comp_arg_list[:compressor_recipe_adjoint])
+
+# Returns 
+- `nothing`
+
+# Throws 
+- `DimensionMismatch` if dimensions of arguments are not compatible for
+    multiplication.
+"""
+function right_mul_dimcheck(
+    C::AbstractArray,
+    A::AbstractArray,
+    S::CompressorAdjoint
+)
+    left_mul_dimcheck(transpose(C), S.parent, transpose(A))
+    return nothing 
+end 
 
 ########################################
 # 5 Arg Compressor-Array Multiplications
