@@ -294,7 +294,7 @@ function Base.size(S::CompressorAdjoint)
 end
 function Base.size(S::CompressorAdjoint, dim::Int64)
     ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
-    return dim == 1 ? S.n_cols : S.n_rows
+    return dim == 1 ? S.parent.n_cols : S.parent.n_rows
 end
 
 ############################################
@@ -482,7 +482,7 @@ function (*)(S::CompressorRecipe, A::AbstractArray)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
     C = zeros(eltype(A), s_rows, a_cols)
-    mul!(C, S, A)
+    mul!(C, S, A, 1.0, 0.0)
     return C
 end
 
@@ -491,7 +491,7 @@ function (*)(A::AbstractArray, S::CompressorRecipe)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
     C = zeros(eltype(A), a_rows, s_cols)
-    mul!(C, A, S)
+    mul!(C, A, S, 1.0, 0.0)
     return C
 end
 
@@ -500,7 +500,7 @@ function (*)(S::CompressorAdjoint, A::AbstractArray)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
     C = zeros(eltype(A), s_rows, a_cols)
-    mul!(C, S, A)
+    mul!(C, S, A, 1.0, 0.0)
     return C
 end
 
@@ -509,7 +509,7 @@ function (*)(A::AbstractArray, S::CompressorAdjoint)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
     C = zeros(eltype(A), a_rows, s_cols)
-    mul!(C, A, S)
+    mul!(C, A, S, 1.0, 0.0)
     return C
 end
 
