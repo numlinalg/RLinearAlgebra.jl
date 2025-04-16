@@ -37,12 +37,16 @@ A struct indicating matrix multiplication from the right.
 """
 struct Right <: Cardinality end
 
-# Docstring Components
+###################################
+# Docstring Components  
+###################################
 comp_arg_list = Dict{Symbol,String}(
     :compressor => "`compressor::Compressor`, a user-specified compression method.",
-    :compressor_recipe => "`Union{S::CompressorRecipe, CompressorAdjoint}`, a fully 
+    :compressor_recipe => "`S::CompressorRecipe`, a fully 
     initialized realization for a compression method for a specific matrix or collection 
     of matrices and vectors.",
+    :compressor_recipe_adjoint => "`S::CompressorAdjoint`, the representation of an adjoint
+    of a compression operator.",
     :A => "`A::AbstractMatrix`, a target matrix for compression.",
     :C => "`C::AbstractMatrix`, a matrix where the output will be stored.",
     :b => "`b::AbstractVector`, a possible target vector for compression.",
@@ -68,9 +72,10 @@ comp_error_list = Dict{Symbol, String}(
     :update_compressor => "`ArgumentError` if no method exists for updating the compressor 
     exists."
 )
-# Wrapper functions for all compressors
 
-#Define wrappers for the adjoint and transpose of a compressoor
+###################################
+# Compressor Adjoint  
+###################################
 """
     CompressorAdjoint{S<:CompressorRecipe}
 
@@ -90,15 +95,12 @@ adjoint(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
 transpose(A::CompressorRecipe) = CompressorAdjoint(A)
 # Undo the transpose wrapper
 transpose(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
-# Implement the size functions for adjoints
-function Base.size(S::CompressorAdjoint{<:CompressorRecipe})
-    return S.parent.n_cols, S.parent.n_rows
-end
 
-function Base.size(S::CompressorAdjoint{<:CompressorRecipe}, dim::Int64)
-    return dim == 1 ? S.parent.n_cols : S.parent.n_rows
-end
-# Function skeletons
+
+
+###################################
+# Complete Compressor Interface  
+###################################
 """
     complete_compressor(compressor::Compressor, A::AbstractMatrix)
 
@@ -177,6 +179,9 @@ function complete_compressor(
     return complete_compressor(compressor, A, b)
 end
 
+###################################
+# Update Compressor Interface 
+###################################
 """
     update_compressor!(S::CompressorRecipe)
 
@@ -274,7 +279,28 @@ function update_compressor!(
     return nothing
 end
 
-# Dimension testing for Compressors 
+###################################
+# Size of Compressor 
+###################################
+function Base.size(S::CompressorRecipe)
+    return S.n_rows, S.n_cols
+end
+function Base.size(S::CompressorRecipe, dim::Int64)
+    ((dim != 1) || (dim != 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    return dim == 1 ? S.n_rows : S.n_cols
+end
+function Base.size(S::CompressorAdjoint)
+    return S.parent.n_cols, S.parent.n_rows
+end
+function Base.size(S::CompressorAdjoint, dim::Int64)
+    ((dim != 1) || (dim != 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    return dim == 1 ? S.n_cols : S.n_rows
+end
+
+############################################
+# Compressor-Array Multiplication Dim Checks 
+############################################
+
 """
     left_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
 
@@ -294,14 +320,12 @@ $(comp_method_description[:mul_check] * " from the left.")
 """
 function left_mul_dimcheck(
     C::AbstractArray, 
-    S::Union{CompressorRecipe,CompressorAdjoint}, 
+    S::CompressorRecipe, 
     A::AbstractArray
 )
     s_rows, s_cols = size(S)
-    a_rows = size(A, 1)
-    a_cols = size(A, 2)
-    c_rows = size(C, 1)
-    c_cols = size(C, 2)
+    a_rows, a_cols = size(A)
+    c_rows, c_cols = size(C)
     if a_rows != s_cols
         throw(
             DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns.")
@@ -342,10 +366,8 @@ function right_mul_dimcheck(
     S::Union{CompressorRecipe,CompressorAdjoint}
 )
     s_rows, s_cols = size(S)
-    a_rows = size(A, 1)
-    a_cols = size(A, 2)
-    c_rows = size(C, 1)
-    c_cols = size(C, 2)
+    a_rows, a_cols = size(A)
+    c_rows, c_cols = size(C)
     if a_cols != s_rows
         throw(
             DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
@@ -363,7 +385,11 @@ function right_mul_dimcheck(
     return nothing
 end
 
-# Implement the * operator for matrix-matrix and matrix-vector
+########################################
+# 5 Arg Compressor-Array Multiplications
+########################################
+
+# alpha*S*A + b*C -> C
 function mul!(
     C::AbstractArray, 
     S::CompressorRecipe, 
@@ -380,6 +406,7 @@ function mul!(
     return nothing
 end
 
+# alpha*A*S + beta*C -> C
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
@@ -396,111 +423,96 @@ function mul!(
     return nothing
 end
 
-# This is a multiplication to handle the case where we are multiplying vectors from the 
-# right of the matrix
+# alpha * A*S' + beta*C -> C (equivalently, alpha * S * A' + beta*C' -> C')
 function mul!(
-    x::AbstractVector, 
-    y::AbstractVector, 
-    S::CompressorRecipe, 
+    C::AbstractArray,
+    S::CompressorAdjoint,
+    A::AbstractArray,
+    alpha::Number,
+    beta::Number
+)
+    mul!(transpose(C), S.parent, tranpose(A), alpha, beta)
+    return nothing
+end
+
+# alpha * S'*A + beta*C -> C (equivalently, alpha * A' * S + beta + C' -> C')
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    S::CompressorAdjoint, 
     alpha::Number, 
     beta::Number
 )
-    mul!(transpose(x), transpose(y), S, alpha, beta) 
+    mul!(transpose(C), transpose(A), S.parent, alpha, beta)
+    return nothing
 end
 
-# Implement the * operator for matrix matrix multiplication
-# The left multiplication version
-function (*)(S::CompressorRecipe, A::AbstractArray)
-    s_rows = size(S, 1)
-    a_cols = size(A, 2)
-    C = zeros(eltype(A), s_rows, a_cols)
-    left_mul_dimcheck(C, S, A)
-    mul!(C, S, A)
-    return C
-end
-
+########################################
+# 3 Arg Compressor-Array Multiplications
+########################################
+# S * A - > C
 function mul!(C::AbstractArray, S::CompressorRecipe, A::AbstractArray)
     mul!(C, S, A, 1.0, 0.0)
     return nothing
 end
 
-# The right multiplication version
-function (*)(A::AbstractArray, S::CompressorRecipe)
-    s_cols = size(S, 2)
-    a_rows = size(A, 1)
-    C = zeros(eltype(A), a_rows, s_cols)
-    right_mul_dimcheck(C, A, S)
-    mul!(C, A, S)
-    return C
-end
-
+# A * S -> C 
 function mul!(C::AbstractArray, A::AbstractArray, S::CompressorRecipe)
     mul!(C, A, S, 1.0, 0.0)
     return nothing
 end
 
-# Now implement the size functions for Compressors
-function Base.size(S::CompressorRecipe)
-    return S.n_rows, S.n_cols
-end
-
-function Base.size(S::CompressorRecipe, dim::Int64)
-    return dim == 1 ? S.n_rows : S.n_cols
-end
-
-function mul!(
-    C::AbstractArray, 
-    S::CompressorAdjoint, 
-    A::AbstractArray, 
-    alpha::Number, 
-    beta::Number
-)
-    # To avoid memory allocations store mul! result in transpose of C i.e. C' = A' * S
-    # this will give us C = S' * A as desired
-    mul!(transpose(C), transpose(A), S.parent, alpha, beta)
-    return nothing
-end
-
-function mul!(
-    C::AbstractArray, 
-    A::AbstractArray, 
-    S::CompressorAdjoint, 
-    alpha::Number, 
-    beta::Number
-)
-    # To avoid memory allocations store mul! result in transpose of C i.e. C' = S * A'
-    # this will give us C = A * S' as desired
-    mul!(transpose(C), S.parent, transpose(A), alpha, beta)
-    return nothing
-end
-
+# S' * A -> C 
 function mul!(C::AbstractArray, S::CompressorAdjoint, A::AbstractArray)
     mul!(C, S, A, 1.0, 0.0)
     return nothing
 end
 
+# A * S' -> C 
 function mul!(C::AbstractArray, A::AbstractArray, S::CompressorAdjoint)
     mul!(C, A, S, 1.0, 0.0)
     return nothing
 end
 
-function (*)(S::CompressorAdjoint, A::AbstractArray)
+##################################################
+# Binary Operator Compressor-Array Multiplications
+##################################################
+# S * A 
+function (*)(S::CompressorRecipe, A::AbstractArray)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
     C = zeros(eltype(A), s_rows, a_cols)
-    left_mul_dimcheck(C, S, A)
     mul!(C, S, A)
     return C
 end
 
+# A * S 
+function (*)(A::AbstractArray, S::CompressorRecipe)
+    s_cols = size(S, 2)
+    a_rows = size(A, 1)
+    C = zeros(eltype(A), a_rows, s_cols)
+    mul!(C, A, S)
+    return C
+end
+
+# S' * A
+function (*)(S::CompressorAdjoint, A::AbstractArray)
+    s_rows = size(S, 1)
+    a_cols = size(A, 2)
+    C = zeros(eltype(A), s_rows, a_cols)
+    mul!(C, S, A)
+    return C
+end
+
+# A * S'
 function (*)(A::AbstractArray, S::CompressorAdjoint)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
     C = zeros(eltype(A), a_rows, s_cols)
-    right_mul_dimcheck(C, A, S)
     mul!(C, A, S)
     return C
 end
+
 ###################################
 # Include Compressor Files
 ###################################
