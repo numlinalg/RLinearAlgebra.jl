@@ -323,9 +323,9 @@ function left_mul_dimcheck(
     S::CompressorRecipe, 
     A::AbstractArray
 )
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
-    c_rows, c_cols = size(C)
+    s_rows, s_cols = size(S, 1), size(S, 2)
+    a_rows, a_cols = size(A, 1), size(A, 2)
+    c_rows, c_cols = size(C, 1), size(C, 2)
     if a_rows != s_cols
         throw(
             DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns.")
@@ -344,7 +344,7 @@ function left_mul_dimcheck(
 end
 
 """
-    right_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix), S::CompressorRecipe)
+    right_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
 
 $(comp_method_description[:mul_check] * " from the right.")
 
@@ -363,11 +363,11 @@ $(comp_method_description[:mul_check] * " from the right.")
 function right_mul_dimcheck(
     C::AbstractArray, 
     A::AbstractArray, 
-    S::Union{CompressorRecipe,CompressorAdjoint}
+    S::CompressorRecipe
 )
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
-    c_rows, c_cols = size(C)
+    s_rows, s_cols = size(S, 1), size(S, 2)
+    a_rows, a_cols = size(A, 1), size(A, 2)
+    c_rows, c_cols = size(C, 1), size(C, 2)
     if a_cols != s_rows
         throw(
             DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
@@ -481,7 +481,7 @@ end
 function (*)(S::CompressorRecipe, A::AbstractArray)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
-    C = zeros(eltype(A), s_rows, a_cols)
+    C = a_cols == 1 ? zeros(eltype(A), s_rows) : zeros(eltype(A), s_rows, a_cols)
     mul!(C, S, A, 1.0, 0.0)
     return C
 end
@@ -490,7 +490,7 @@ end
 function (*)(A::AbstractArray, S::CompressorRecipe)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
-    C = zeros(eltype(A), a_rows, s_cols)
+    C = a_rows == 1 ? zeros(eltype(A), s_cols)' : zeros(eltype(A), a_rows, s_cols)
     mul!(C, A, S, 1.0, 0.0)
     return C
 end
@@ -499,7 +499,7 @@ end
 function (*)(S::CompressorAdjoint, A::AbstractArray)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
-    C = zeros(eltype(A), s_rows, a_cols)
+    C = a_cols == 1 ? zeros(eltype(A), s_rows) : zeros(eltype(A), s_rows, a_cols)
     mul!(C, S, A, 1.0, 0.0)
     return C
 end
@@ -508,7 +508,7 @@ end
 function (*)(A::AbstractArray, S::CompressorAdjoint)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
-    C = zeros(eltype(A), a_rows, s_cols)
+    C = a_rows == 1 ? zeros(eltype(A), s_cols)' : zeros(eltype(A), a_rows, s_cols)
     mul!(C, A, S, 1.0, 0.0)
     return C
 end
