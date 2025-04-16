@@ -533,7 +533,7 @@ function (*)(S::CompressorRecipe, A::AbstractArray)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
     C = a_cols == 1 ? zeros(eltype(A), s_rows) : zeros(eltype(A), s_rows, a_cols)
-    mul!(C, S, A, 1.0, 0.0)
+    mul!(C, S, A)
     return C
 end
 
@@ -542,7 +542,7 @@ function (*)(A::AbstractArray, S::CompressorRecipe)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
     C = a_rows == 1 ? zeros(eltype(A), s_cols)' : zeros(eltype(A), a_rows, s_cols)
-    mul!(C, A, S, 1.0, 0.0)
+    mul!(C, A, S)
     return C
 end
 
@@ -551,7 +551,7 @@ function (*)(S::CompressorAdjoint, A::AbstractArray)
     s_rows = size(S, 1)
     a_cols = size(A, 2)
     C = a_cols == 1 ? zeros(eltype(A), s_rows) : zeros(eltype(A), s_rows, a_cols)
-    mul!(C, S, A, 1.0, 0.0)
+    mul!(C, S, A)
     return C
 end
 
@@ -560,7 +560,7 @@ function (*)(A::AbstractArray, S::CompressorAdjoint)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
     C = a_rows == 1 ? zeros(eltype(A), s_cols)' : zeros(eltype(A), a_rows, s_cols)
-    mul!(C, A, S, 1.0, 0.0)
+    mul!(C, A, S)
     return C
 end
 
