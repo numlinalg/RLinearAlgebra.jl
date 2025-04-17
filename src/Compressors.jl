@@ -474,7 +474,7 @@ function mul!(
     return nothing
 end
 
-# alpha * A*S' + beta*C -> C (equivalently, alpha * S * A' + beta*C' -> C')
+# alpha * S'*A + beta*C -> C (equivalently, alpha * A' * S + beta + C' -> C')
 function mul!(
     C::AbstractArray,
     S::CompressorAdjoint,
@@ -482,11 +482,11 @@ function mul!(
     alpha::Number,
     beta::Number
 )
-    mul!(transpose(C), S.parent, transpose(A), alpha, beta)
+    mul!(transpose(C), transpose(A), S.parent, alpha, beta)
     return nothing
 end
 
-# alpha * S'*A + beta*C -> C (equivalently, alpha * A' * S + beta + C' -> C')
+# alpha * A*S' + beta*C -> C (equivalently, alpha * S * A' + beta*C' -> C')
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
@@ -494,7 +494,7 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    mul!(transpose(C), transpose(A), S.parent, alpha, beta)
+    mul!(transpose(C), S.parent, transpose(A), alpha, beta)
     return nothing
 end
 
@@ -513,15 +513,15 @@ function mul!(C::AbstractArray, A::AbstractArray, S::CompressorRecipe)
     return nothing
 end
 
-# S' * A -> C 
+# S' * A -> C; Equivalently: A' * S -> C'
 function mul!(C::AbstractArray, S::CompressorAdjoint, A::AbstractArray)
-    mul!(C, S, A, 1.0, 0.0)
+    mul!(transpose(C), transpose(A), S.parent)
     return nothing
 end
 
-# A * S' -> C 
+# A * S' -> C; Equivalently: S * A' -. C'
 function mul!(C::AbstractArray, A::AbstractArray, S::CompressorAdjoint)
-    mul!(C, A, S, 1.0, 0.0)
+    mul!(transpose(C), S.parent, transpose(A))
     return nothing
 end
 
