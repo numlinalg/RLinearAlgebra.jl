@@ -84,56 +84,79 @@ S = TestCompressorRecipe(s, n_rows)
     ########################
     # Matrix-Matrix methods 
     ########################
-    #TODO: Matrix-Matrix methos dimchecks
-    # Error for S*x
-    # let S = deepcopy(S), 
-    #     # Here C has correct column dimension and row dimension A has incorrect row dim
-    #     A = zeros(5, 2)
-    #     C = zeros(3, 2)
-    #     @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
-    # end
 
-    # let
-    #     # C has the wrong row dimension but correct column dimension and A two correct 
-    #     # dimensions
-    #     A = zeros(4, 2)
-    #     C = zeros(4, 2)
-    #     @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
-    # end
+    # Error S*A when A has incorrect dimensions
+    let S=deepcopy(S), A=zeros(n_rows+1, n_cols), C=zeros(s, n_cols)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
+    end 
 
-    # let
-    #     # Here A has correct row and column dimensions and C has incorrect column 
-    #     # dimension
-    #     A = zeros(4, 2)
-    #     C = zeros(3, 3)
-    #     @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
-    # end
+    # Error S*A -> C when C has incorrect dimensions 
+    let S=deepcopy(S), A=zeros(n_rows, n_cols), C=zeros(s+1, n_cols)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
+    end
+    let S=deepcopy(S), A=zeros(n_rows, n_cols), C=zeros(s, n_cols+1)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
+    end
 
-    # # Test right multiplication using S' to avoid generating another S
-    # # S' has a dimension 4 by 3
-    # let
-    #     # Here A has the correct row dimension and incorrect column dimension
-    #     # C has the correct row and column dimensions
-    #     A = zeros(4, 3)
-    #     C = zeros(4, 3)
-    #     @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S')
-    # end
+    # Correct dimensions for S*A -> C
+    let S=deepcopy(S), A=zeros(n_rows, n_cols), C=zeros(s, n_cols)
+        @test isnothing(RLinearAlgebra.left_mul_dimcheck(C, S, A))
+    end
 
-    # let
-    #     # Here A has the correct row dimension and correct column dimension
-    #     # C has the correct row and incorrect column dimensions
-    #     A = zeros(4, 4)
-    #     C = zeros(4, 2)
-    #     @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S')
-    # end
+    # Error A*S when A has incorrect dimensions, n_cols has no meaning here 
+    let S=deepcopy(S), A=zeros(n_cols, s+1), C=zeros(n_cols, n_rows)
+        @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S)
+    end
 
-    # let
-    #     # Here A has the correct row dimension and correct column dimension
-    #     # C has the incorrect row and correct column dimensions
-    #     A = zeros(4, 4)
-    #     C = zeros(5, 3)
-    #     @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S')
-    # end
+    # Error A*S -> C when C has incorrect dimensions, n_cols has no meaning here 
+    let S=deepcopy(S), A=zeros(n_cols, s), C=zeros(n_cols+1, n_rows)
+        @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S)
+    end
+    let S=deepcopy(S), A=zeros(n_cols, s), C=zeros(n_cols, n_rows+1)
+        @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S)
+    end
+
+    # Correct dimensions for A*S -> C
+    let S=deepcopy(S), A=zeros(n_cols, s), C=zeros(n_cols, n_rows)
+        @test isnothing(RLinearAlgebra.right_mul_dimcheck(C, A, S))
+    end
+
+    # Error A*S' when A has incorect dimensions 
+    let S=deepcopy(S)', A=zeros(n_cols, n_rows+1), C=zeros(n_cols, s)
+        @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S)
+    end
+
+    # Error A*S' -> C when C has incorrect dimensions 
+    let S=deepcopy(S)', A=zeros(n_cols, n_rows), C=zeros(n_cols+1, s)
+        @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S)
+    end
+    let S=deepcopy(S)', A=zeros(n_cols, n_rows), C=zeros(n_cols, s+1)
+        @test_throws DimensionMismatch RLinearAlgebra.right_mul_dimcheck(C, A, S)
+    end
+
+    # Correct dimensions for A*S' -> C 
+    let S=deepcopy(S)', A=zeros(n_cols, n_rows), C=zeros(n_cols, s)
+        @test isnothing(RLinearAlgebra.right_mul_dimcheck(C, A, S))
+    end
+
+    # Error S'*A when A has incorrect dimensions 
+    let S=deepcopy(S)', A=zeros(s+1, n_cols), C=zeros(n_rows, n_cols)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
+    end
+
+    # Error S'*A -> C when C has incorrect dimensions 
+    let S=deepcopy(S)', A=zeros(s, n_cols), C=zeros(n_rows+1, n_cols)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
+    end
+    let S=deepcopy(S)', A=zeros(s, n_cols), C=zeros(n_rows, n_cols+1)
+        @test_throws DimensionMismatch RLinearAlgebra.left_mul_dimcheck(C, S, A)
+    end
+
+    # Correct dimensions for S'*A' -> C
+    let S=deepcopy(S)', A=zeros(s, n_cols), C=zeros(n_rows, n_cols)
+        @test isnothing(RLinearAlgebra.left_mul_dimcheck(C, S, A))
+
+    end
 end
 
 end
