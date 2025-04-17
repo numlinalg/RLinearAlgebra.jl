@@ -39,10 +39,11 @@ In this case, each row of ``S`` is generated independently by the following step
     mathematical description.
 - `nnz::Int64`, the target number of nonzeros for each column or row of the spares sign
     matrix.
+- `type::Type{<:Number}`, the type of the elements in the compressor.
 
 # Constructor
 
-    SparseSign(;carinality=Left(), compression_dim=2, nnz::Int64=8)
+    SparseSign(;carinality=Left(), compression_dim=2, nnz::Int64=8, type=Float64)
 
 ## Keywords
 - `carinality::Cardinality`, the direction the compression matrix is intended to be
@@ -113,10 +114,10 @@ without replacement of size `sample_size` from the set `1:max_sample_val`.
     is not checked. 
 
 # Arguments
-- `values::Vector{Int64}`, the indice to be replaced.
+- `values::Vector{Int64}`, a vector containing samples from `1:max_sample_val`.
 - `max_sample_val::In64`, implicitly supplies the set from which to sample,
     `1:max_sample_val`.
-- `n_samples::Int64`, the components that `values` is implicitly split into. 
+- `n_samples::Int64`, the number of components that `values` is implicitly split into. 
 - `sample_size::Int64`, the size each component that `values` is split into.
 
 # Returns
