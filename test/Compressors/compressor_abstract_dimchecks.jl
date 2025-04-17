@@ -16,7 +16,7 @@ n_rows = 4
 n_cols = 5
 S = TestCompressorRecipe(s, n_rows)
 
-@testset "Multiplication Dimension Checks" begin
+@testset "Compressor Multiplication Dimension Checks" begin
     ########################
     # Matrix-Vector methods 
     ########################
