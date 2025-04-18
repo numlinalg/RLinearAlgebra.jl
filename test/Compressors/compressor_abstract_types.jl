@@ -1,14 +1,18 @@
 module compressor_abstract_types
 using Test, RLinearAlgebra
-include("../test_helpers/field_test_macros.jl")
-include("../test_helpers/approx_tol.jl")
+import LinearAlgebra: mul!
+using ..FieldTest
+using ..ApproxTol
 struct TestCompressor <: Compressor end
 struct TestCompressorRecipe <: CompressorRecipe end
 
-@testset "Compressor Abstract Tyoes" begin
+@testset "Compressor Abstract Types" begin
     @test isdefined(Main, :Compressor)
     @test isdefined(Main, :CompressorRecipe)
     @test isdefined(Main, :CompressorAdjoint)
+    @test isdefined(Main, :Cardinality)
+    @test isdefined(Main, :Left)
+    @test isdefined(Main, :Right)
 end
 
 @testset "Compressor Argument Errors" begin
