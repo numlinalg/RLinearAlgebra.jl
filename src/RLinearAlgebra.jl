@@ -1,7 +1,7 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
-import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ, Adjoint
+import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq!, LQ, Adjoint
 import StatsBase: sample!
 import Random: bitrand, rand!
 import SparseArrays: SparseMatrixCSC
