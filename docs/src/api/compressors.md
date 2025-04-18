@@ -20,6 +20,9 @@ Right
 
 ## Compressor Structures
 ```@docs
+SparseSign
+
+SparseSignRecipe
 
 ```
 
@@ -32,9 +35,9 @@ update_compressor!
 
 ## Internal Functions
 ```@docs
-RLinearAlgebra.left_mat_mul_dimcheck
+RLinearAlgebra.left_mul_dimcheck
 
-RLinearAlgebra.right_mat_mul_dimcheck
+RLinearAlgebra.right_mul_dimcheck
 
-RLinearAlgebra.vec_mul_dimcheck
+RLinearAlgebra.sparse_idx_update!
 ```

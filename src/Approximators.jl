@@ -128,14 +128,11 @@ $(approx_method_description[:complete_approximator])
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
     throw(
-        ArgumentError(
-            "No method `complete_approximator` exists for approximator of type\
-            $(typeof(approximator)) and matrix of type $(typeof(A))."
-        )
+        ArgumentError("No method `complete_approximator` exists for approximator of type\
+                      $(typeof(approximator)) and matrix of type $(typeof(A)).")
     )
     return nothing
 end
-
 
 """
     rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
@@ -150,12 +147,8 @@ $(approx_method_description[:rapproximate])
 - $(approx_output_list[:approximator_recipe])
 """
 function rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
-    throw(
-        ArgumentError(
-            "No `rapproximate` method exists for approximator of type\
-            $(typeof(approximator)) and matrix of type $(typeof(A))."
-        )
-    )
+    throw(ArgumentError("No `rapproximate` method exists for approximator of type\
+                        $(typeof(approximator)) and matrix of type $(typeof(A))."))
     return nothing
 end
 

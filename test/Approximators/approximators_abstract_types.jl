@@ -4,7 +4,7 @@ include("../test_helpers/field_test_macros.jl")
 include("../test_helpers/approx_tol.jl")
 struct TestCompressorRecipe <: CompressorRecipe end
 struct TestApproximator <: Approximator end
-struct TestApproximatorRecipe <: ApproximatorRecipe 
+struct TestApproximatorRecipe <: ApproximatorRecipe
     S::CompressorRecipe
 end
 TestApproximatorRecipe() = TestApproximatorRecipe(TestCompressorRecipe())
