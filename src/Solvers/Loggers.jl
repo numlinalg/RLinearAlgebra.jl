@@ -46,10 +46,8 @@ $(logger_method_description[:complete_logger])
 - $(logger_output_list[:logger_recipe])
 """
 function complete_logger(logger::Logger, A::AbstractMatrix)
-    throw(
-        ArgumentError("No `complete_logger` method defined for logger of type \
-        $(typeof(logger)) and $(typeof(A)).")
-    )
+    throw(ArgumentError("No `complete_logger` method defined for logger of type \
+          $(typeof(logger)) and $(typeof(A))."))
     return nothing
 end
 

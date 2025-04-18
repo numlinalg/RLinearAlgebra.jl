@@ -156,14 +156,13 @@ $(solver_method_description[:complete_solver_error])
 - $(solver_output_list[:solver_error_recipe])
 """
 function complete_solver_error(
-    error::SolverError, 
-    solver::Solver, 
-    A::AbstractMatrix, 
-    b::AbstractVector 
+    error::SolverError, solver::Solver, A::AbstractMatrix, b::AbstractVector
 )
-    throw(ArgumentError("There is no `complete_solver_error` method defined for \
-        a $(typeof(error)) `SolverError`,  $(typeof(solver)) `SolverRecipe`, $(typeof(A)),\
-        and $(typeof(b))."))
+    throw(
+        ArgumentError("There is no `complete_solver_error` method defined for \
+      a $(typeof(error)) `SolverError`,  $(typeof(solver)) `SolverRecipe`, $(typeof(A)),\
+      and $(typeof(b)).")
+    )
     return nothing
 end
 
@@ -197,8 +196,7 @@ function compute_solver_error(
 )
     throw(ArgumentError("No `complete_solver_error` method defined for\
           a $(typeof(error)) `SolverErrorRecipe`,  $(typeof(solver)) `SolverRecipe`, \
-          $(typeof(x)), $(typeof(A)), and $(typeof(b)).")
-    )
+          $(typeof(x)), $(typeof(A)), and $(typeof(b))."))
     return nothing
 end
 
