@@ -1,5 +1,10 @@
 using Test
 using RLinearAlgebra
+
+# Include the test for recipes
+include("./test_helpers/field_test_macros.jl")
+include("./test_helpers/approx_tol.jl")
+
 # List all directories that have files to be tested 
 directs =
     joinpath.(
@@ -14,7 +19,7 @@ directs =
         ],
     )
 
-@testset verbose = true "RLinearAlbera.jl" begin
+@testset verbose = true "RLinearAlgera.jl" begin
     for direct in directs
         # Obtain all files in the directory
         files_in_direct = readdir(direct)
