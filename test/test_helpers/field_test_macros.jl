@@ -97,8 +97,4 @@ macro test_projection_solver(type)
 end
 
 export @test_projection_solver, @test_compressor, @test_logger
-<<<<<<< HEAD
 end
-=======
-end
->>>>>>> v0.2-main

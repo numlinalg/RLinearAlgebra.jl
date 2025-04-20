@@ -129,7 +129,7 @@ function mul!(
     x::AbstractVector, S::GaussianRecipe, y::AbstractVector, alpha::Number, beta::Number
 )
     # Check the compatability of the sizes of the things being multiplied
-    vec_mul_dimcheck(x, S, y)
+    left_mul_dimcheck(x, S, y)
     mul!(x, S.op, y, alpha, beta)
     return nothing
 end
@@ -142,7 +142,7 @@ function mul!(
     beta::Number,
 )
     # Check the compatability of the sizes of the things being multiplied
-    vec_mul_dimcheck(x, S, y)
+    left_mul_dimcheck(x, S, y)
     mul!(x, S.parent.op', y, alpha, beta)
     return nothing
 end
@@ -152,7 +152,7 @@ end
 function mul!(
     C::AbstractMatrix, S::GaussianRecipe, A::AbstractMatrix, alpha::Number, beta::Number
 )
-    left_mat_mul_dimcheck(C, S, A)
+    left_mul_dimcheck(C, S, A)
     # Built-in multiplication
     mul!(C, S.op, A, alpha, beta)
     return nothing
@@ -162,7 +162,7 @@ end
 function mul!(
     C::AbstractMatrix, A::AbstractMatrix, S::GaussianRecipe, alpha::Number, beta::Number
 )
-    right_mat_mul_dimcheck(C, A, S)
+    right_mul_dimcheck(C, A, S)
     # Built-in multiplication
     mul!(C, A, S.op, alpha, beta)
     return nothing
