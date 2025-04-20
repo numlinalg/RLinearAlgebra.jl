@@ -1,96 +1,180 @@
 module Gaussian_compressor
-    using Test, RLinearAlgebra
-    import Base.:*
-    import LinearAlgebra: transpose, adjoint
-    import LinearAlgebra: mul!, lmul!
-    import Random: randn!, seed!
-    using ..FieldTest
-    using ..ApproxTol
+using Test, RLinearAlgebra
+import Base.*
+import LinearAlgebra: mul!, lmul!
+import Random: randn!, seed!, rand
+using ..FieldTest
+using ..ApproxTol
 
-    @testset "Compressor_Gaussian" begin
+seed!(21321)
+@testset "Gaussian" begin
+    @testset "Gaussian: Compressor" begin
+        # Verify Supertype
+        @test supertype(Gaussian) == Compressor
+
+        # Verify fields and types
+        @test fieldnames(Gaussian) == (:cardinality, :compression_dim, :type)
+        @test fieldtypes(Gaussian) == (Cardinality, Int64, Type{<:Number})
+
+        let cardinality = Left(), compression_dim = 0, type = Float64
+            @test_throws ArgumentError(
+                "Field 'Compression_dim' must be positive."
+            ) Gaussian(
+                cardinality, compression_dim, type
+            )
+        end
+
+        let cardinality = Left(), compression_dim = -7, type = Float64
+            @test_throws ArgumentError(
+                "Field 'Compression_dim' must be positive."
+            ) Gaussian(
+                cardinality, compression_dim, type
+            )
+        end
+
+        # Verify external constructor and type 
+        for Card in [Left, Right]
+            compressor = Gaussian(; cardinality=Card())
+            typeof(compressor.cardinality) == Card
+        end
+
+        for type in [Bool, Int16, Int32, Int64, Float16, Float32, Float64]
+            compressor = Gaussian(; cardinality=Right(), type=type)
+            @test compressor.type == type
+        end
+
+    end
+
+    @testset "Gaussian: CompressorRecipe" begin
         @test_compressor GaussianRecipe
-        let 
-            seed!(21321)
-            S1 = Gaussian()
-            @test typeof(S1) <: Compressor
-            @test S1.cardinality == Left
-            @test S1.compression_dim == 2
-            # Test the case when the compression_dim input is not positive
-            @test_throws ArgumentError Gaussian(cardinality = Left, compression_dim = -7)
-        end
-        
-        # Test the left compressor recipe construction and updating wirh default parameters
-        let
-            seed!(21321)
-            S1 = Gaussian()
-            @test typeof(S1) <: Compressor
-            @test S1.cardinality == Left
-            @test S1.compression_dim == 2
-            # Test completion of constructor
-            A = rand(4, 2)
-            S_method = complete_compressor(S1, A)
-            @test typeof(S_method) <: CompressorRecipe
-            # Check that default values are correct and appropriate allocations have been made
-            @test S_method.cardinality == Left
-            @test S_method.compression_dim == 2
-            @test S_method.n_rows == S1.compression_dim
-            @test S_method.n_cols == size(A,1)
-            sample_size = S_method.compression_dim
-            @test S_method.scale == 1 / sqrt(sample_size)
-            @test typeof(S_method.op) <: Matrix{eltype(A)}
-            @test size(S_method.op, 2) == size(A, 1)
-            # Test that update_compressor updates the entries
-            sketch_matrix = deepcopy(S_method.op)
-            update_compressor!(S_method)
-            # Check that at least one of the entries is different
-            @test sum(sketch_matrix .== S_method.op) < 4 * 2 
+        @test fieldnames(GaussianRecipe) ==
+            (:cardinality, :compression_dim, :n_rows, :n_cols, :scale, :op)
+        @test fieldtypes(GaussianRecipe) == (
+            Cardinality,
+            Int64,
+            Int64,
+            Int64,
+            Number,
+            Matrix{<:Number},
+        )
+    end
+
+    @testset "Gaussian: Complete Compressor" begin
+        # Test with left compressor
+        let card = Left(),
+            n_rows = 4,
+            n_cols = 2,
+            c_dim = 3,
+            type = Float16,
+            A = rand(n_rows, n_cols),
+            compressor_recipe = complete_compressor(
+                Gaussian(; cardinality=card, compression_dim=c_dim, type=type), A
+            )
+
+            # Test the values and types
+            @test compressor_recipe.cardinality == card
+            @test compressor_recipe.n_rows == c_dim
+            @test compressor_recipe.n_cols == n_rows
+            sc = convert(type, 1 / sqrt(c_dim))
+            @test compressor_recipe.scale == sc
+            @test typeof(compressor_recipe.op) == Matrix{type}
         end
 
-        # Test the right compressor recipe construction and updating wirh default parameters
-        let
-            seed!(21321)
-            S2 = Gaussian(cardinality = Right)
-            @test typeof(S2) <: Compressor
-            @test S2.cardinality == Right
-            @test S2.compression_dim == 2
-            # Test completion of constructor
-            A = rand(2, 6)
-            S_method = complete_compressor(S2, A)
-            @test typeof(S_method) <: CompressorRecipe
-            # Check that default values are correct and appropriate allocations have been made
-            @test S_method.cardinality == Right
-            @test S_method.compression_dim == 2
-            @test S_method.n_rows == size(A,2)
-            @test S_method.n_cols == S2.compression_dim
-            sample_size = S_method.compression_dim
-            @test S_method.scale == 1 / sqrt(sample_size)
-            @test typeof(S_method.op) <: Matrix{eltype(A)}
-            @test size(S_method.op, 1) == size(A, 2)
-            # Test that update_compressor updates the entries
-            sketch_matrix = deepcopy(S_method.op)
-            update_compressor!(S_method)
-            # Check that at least one of the entries is different
-            @test sum(sketch_matrix .== S_method.op) < 6 * 2 
+        # Test with right compressor
+        let card = Right(),
+            n_rows = 2,
+            n_cols = 6,
+            c_dim = 3,
+            type = Float16,
+            A = rand(n_rows, n_cols),
+            compressor_recipe = complete_compressor(
+                Gaussian(; cardinality=card, compression_dim=c_dim, type=type), A
+            )
+
+            # Test the values and types
+            @test compressor_recipe.cardinality == card
+            @test compressor_recipe.n_rows == n_cols
+            @test compressor_recipe.n_cols == c_dim
+            sc = convert(type, 1 / sqrt(c_dim))
+            @test compressor_recipe.scale == sc
+            @test typeof(compressor_recipe.op) == Matrix{type}
         end
 
-        # Test the different multiplications with the left
-        let
-            seed!(2131)
-            n_rows = 10
-            n_cols = 3
-            sketch_size = 6
-            A = rand(n_rows, n_cols)
-            B = rand(sketch_size, n_cols)
-            C1 = rand(sketch_size, n_cols)
-            C2 = rand(n_rows, sketch_size)
-            C3 = rand(n_rows, n_cols)
-            x = rand(n_rows)
-            y = rand(sketch_size)
-            S_info = Gaussian(cardinality = Left, compression_dim = sketch_size)
+    end
+
+    @testset "Gaussian: Update Compressor" begin
+        # test with left compressor
+        let card = Left(),
+            n_rows = 4,
+            n_cols = 2,
+            c_dim = 3,
+            type = Float16,
+            A = rand(n_rows, n_cols),
+            compressor_recipe = complete_compressor(
+                Gaussian(; cardinality=card, compression_dim=c_dim, type=type), A
+            ) 
+
+            # copy to test that the compressor has changed
+            oldmat = deepcopy(compressor_recipe.op)
+            update_compressor!(compressor_recipe)
+            # Test the values and types
+            @test compressor_recipe.cardinality == card
+            @test compressor_recipe.n_rows == c_dim
+            @test compressor_recipe.n_cols == n_rows
+            sc = convert(type, 1 / sqrt(c_dim))
+            @test compressor_recipe.scale == sc
+            @test typeof(compressor_recipe.op) == Matrix{type}
+            # Test that the matrix has changed
+            @test compressor_recipe.op != oldmat
+        end
+
+        # test with right compressor
+        let card = Right(),
+            n_rows = 2,
+            n_cols = 6,
+            c_dim = 3,
+            type = Float16,
+            A = rand(n_rows, n_cols),
+            compressor_recipe = complete_compressor(
+                Gaussian(; cardinality=card, compression_dim=c_dim, type=type), A
+            )
+
+            # copy to test that the compressor has changed
+            oldmat = deepcopy(compressor_recipe.op)
+            update_compressor!(compressor_recipe)
+            # Test the values and types
+            @test compressor_recipe.cardinality == card
+            @test compressor_recipe.n_rows == n_cols
+            @test compressor_recipe.n_cols == c_dim
+            sc = convert(type, 1 / sqrt(c_dim))
+            @test compressor_recipe.scale == sc
+            @test typeof(compressor_recipe.op) == Matrix{type}
+            # Test that the matrix has changed
+            @test compressor_recipe.op != oldmat
+        end        
+
+    end
+
+    # Test multimplcations with left compressors
+    # Here we want to test the multiplication with matrices and vectors in the 
+    # transposed and normal orientations for both the three and five argument mul!
+    @testset "Gaussian: Left Multiplication" begin
+        let n_rows = 10,
+            n_cols = 3,
+            c_dim = 6,
+            type = Float16,
+            A = rand(n_rows, n_cols),
+            B = rand(c_dim, n_cols),
+            C1 = rand(c_dim, n_cols),
+            C2 = rand(n_rows, c_dim),
+            C3 = rand(n_rows, n_cols),
+            x = rand(n_rows),
+            y = rand(c_dim),
+            S_info = Gaussian(cardinality = Left(), compression_dim = c_dim, type = type),
             S = complete_compressor(S_info, A)
-            
+
             # Form a vector corresponding to the columns to generate the sketch matrix
-            S_test = S.op
+            S_test = deepcopy(S.op)
             # Test matrix multiplication from the left
             @test S * A ≈ S_test * A
             # Using transpose will test matrix multiplication from the right
@@ -99,6 +183,7 @@ module Gaussian_compressor
             @test S * x ≈ S_test * x
             # Using transpose will test vec multiplication from the right
             @test S' * y ≈ S_test' * y
+            S' * y
 
             # Test the scalar addition portion of the multiplications
             mul!(C1, S, A, 2.0, 0.0)
@@ -111,23 +196,27 @@ module Gaussian_compressor
             @test x ≈ 2.0 * S_test' * y 
         end
 
-        # Test the different multiplications with the right
-        let
-            seed!(2131)
-            n_rows = 3
-            n_cols = 10
-            sketch_size = 6
-            A = rand(n_rows, n_cols)
-            B = rand(n_cols, sketch_size)
-            C1 = rand(n_rows, sketch_size)
-            C3 = rand(sketch_size, sketch_size)
-            x = rand(sketch_size)
-            y = rand(n_cols)
-            S_info = Gaussian(cardinality = Right, compression_dim = sketch_size)
+    end
+
+    # Test multimplcations with right compressors
+    # Here we want to test the multiplication with matrices and vectors in the 
+    # transposed and normal orientations for both the three and five argument mul!
+    @testset "Gaussian: Right Multiplication" begin
+        let n_rows = 3,
+            n_cols = 10,
+            c_dim = 6,
+            type = Float16,
+            A = rand(n_rows, n_cols),
+            B = rand(n_cols, c_dim),
+            C1 = rand(n_rows, c_dim),
+            C3 = rand(c_dim, c_dim),
+            x = rand(c_dim),
+            y = rand(n_cols),
+            S_info = Gaussian(cardinality = Right(), compression_dim = c_dim, type = type),
             S = complete_compressor(S_info, A)
-            
+
             # Form a vector corresponding to the columns to generate the sketch matrix
-            S_test = S.op
+            S_test = deepcopy(S.op)
             # Test matrix multiplication from the right
             @test A * S ≈ A * S_test
             # Test transpose from right
@@ -153,5 +242,7 @@ module Gaussian_compressor
         end
 
     end
+
+end
 
 end
