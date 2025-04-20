@@ -20,6 +20,7 @@ export Compressor, CompressorRecipe, CompressorAdjoint
 export Cardinality, Left, Right
 export complete_compressor, update_compressor!
 export Gaussian, GaussianRecipe
+export SparseSign, SparseSignRecipe
 
 # Export Solver types and functions
 export Solver, SolverRecipe
