@@ -8,7 +8,8 @@ This is a mutable struct that contains the `max_it` parameter and stores the err
  - `max_it::Int64`, The maximum number of iterations for the solver. If not specified by the
     user, it is set to 3 times the number of rows in the matrix.
  - `threshold_info::Union{Float64, Tuple}`, The parameters used for stopping the algorithm.
- - `collection_rate::Int64`, the rate that history is gathered.
+ - `collection_rate::Int64`, the rate that history is gathered. (Note: The last value is 
+    always recorded.)
  - `stopping_criterion::Function`, function that evaluates the stopping criterion.
 """
 struct BasicLogger <: Logger
@@ -49,7 +50,8 @@ This is a mutable struct that contains the `max_it` parameter and stores the err
  - `threshold_info::Union{Float64, Tuple}`, The parameters used for stopping the algorithm.
  - `iteration::Int64`, the current iteration of the solver.
  - `record_location::Int64`, the location in the history vector of the most recent entry.
- - `collection_rate::Int64`, the rate that history is gathered.
+ - `collection_rate::Int64`, the rate that history is gathered. (Note: The last value is 
+    always recorded.)
  - `converged::Bool`, A boolean indicating whether the stopping criterion is satisfied.
  - `StoppingCriterion::Function`, function that evaluates the stopping criterion.
  - `hist:AbstractVector`, vector that contains the history of the error metric.
@@ -90,17 +92,19 @@ end
 function update_logger!(logger::BasicLoggerRecipe, error::Float64, iteration::Int64)
     logger.iteration = iteration
     logger.error = error
-    if rem(iteration, logger.collection_rate) == 0
-        logger.hist[logger.record_location] = error
-        logger.record_location += 1
-    end
     # Always check max_it stopping criterion
     # Compute in this way to avoid bounds error from searching in the max_it + 1 location
     logger.converged = iteration <= logger.max_it ? 
         logger.stopping_criterion(logger) : 
         true 
-    return nothing
+    
+    # log according to collection rate or if we have converged 
+    if rem(iteration, logger.collection_rate) == 0 || logger.converged 
+        logger.hist[logger.record_location] = error
+        logger.record_location += 1
+    end
 
+    return nothing
 end
 
 function reset_logger!(logger::BasicLoggerRecipe)
