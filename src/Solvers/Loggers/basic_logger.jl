@@ -74,6 +74,9 @@ function complete_logger(logger::BasicLogger, A::AbstractMatrix)
     # not set
     max_it = logger.max_it == 0 ? 3 * size(A, 1) : logger.max_it
 
+    # By using ceil if we divide exactly we always have space to record last value, if it 
+    # does not divide exactly we have one more than required and thus enough space to record
+    # the last value
     max_collection = Int(ceil(max_it / logger.collection_rate))
     # use one more than max it form collection
     hist = zeros(max_collection + 1)
