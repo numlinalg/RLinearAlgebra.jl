@@ -101,14 +101,14 @@ module basic_logger
             # Test default initlialization
             let A = deepcopy(A),
                 b = deepcopy(b),
-            	L1 = BasicLogger(),
+                L1 = BasicLogger(max_it = 3 * n_rows),
         	    # Test completion of constructor
-        	    L_method = complete_logger(L1, A, b)
+        	    L_method = complete_logger(L1)
 
         	    @test typeof(L_method) <: LoggerRecipe
                 # test the initialization of logger
                 @test L_method.max_it == 3 * n_rows
-                @test size(L_method.hist, 1) == Int(ceil(3 * n_rows / 1)) + 1
+                @test size(L_method.hist, 1) == 3 * n_rows + 1 
                 @test L_method.stopping_criterion == threshold_stop
                 @test L_method.threshold_info == 0
                 @test L_method.converged == false
@@ -135,7 +135,7 @@ module basic_logger
         	    @test L1.stopping_criterion == threshold_stop
     
         	    # Test completion of constructor
-        	    L_method = complete_logger(L1, A, b)
+        	    L_method = complete_logger(L1)
         	    @test typeof(L_method) <: LoggerRecipe
                 # test the initialization of logger
                 @test L_method.max_it == max_it 
@@ -153,8 +153,8 @@ module basic_logger
             # Test functionality of logger
             let A = deepcopy(A),
                 b = deepcopy(b),
-                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5),
-        	    L_method = complete_logger(L1, A, b)
+                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5, max_it = 12),
+        	    L_method = complete_logger(L1)
                 # first check that nothing gets recorded at it 1
                 update_logger!(L_method, 1e-2, 1)
                 @test L_method.hist[1] == 0.0 
@@ -171,8 +171,8 @@ module basic_logger
 
             let A = deepcopy(A),
                 b = deepcopy(b),
-                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5),
-        	    L_method = complete_logger(L1, A, b)
+                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5, max_it = 12),
+        	    L_method = complete_logger(L1)
                 # Check that a value is recorded at iteration 2
                 update_logger!(L_method, 1e-2, 2)
                 @test L_method.hist[1] == 1e-2 
@@ -183,8 +183,8 @@ module basic_logger
 
             let A = deepcopy(A),
                 b = deepcopy(b),
-                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5),
-        	    L_method = complete_logger(L1, A, b)
+                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5, max_it = 12),
+        	    L_method = complete_logger(L1)
                 # check that you stop when the max_it is satisfied max_it is 
                 # 3 * num rows in A 
                 update_logger!(L_method, 1e-1, 13)
@@ -201,8 +201,8 @@ module basic_logger
             # Check that the logger is reset
             let A = deepcopy(A),
                 b = deepcopy(b),
-                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5),
-        	    L_method = complete_logger(L1, A, b)
+                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5, max_it = 12),
+        	    L_method = complete_logger(L1)
 
                 L_method.hist[2] = 23.0
                 L_method.iteration = 2
@@ -222,8 +222,8 @@ module basic_logger
             # Test the threshold stop function
             let A = deepcopy(A),
                 b = deepcopy(b),
-                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5),
-        	    L_method = complete_logger(L1, A, b)
+                L1 = BasicLogger(collection_rate = 2, threshold = 1e-5, max_it = 12),
+        	    L_method = complete_logger(L1)
 
                 L_method.error = 1.01e-5
                 @test threshold_stop(L_method) == false

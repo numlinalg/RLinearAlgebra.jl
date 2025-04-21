@@ -69,18 +69,14 @@ mutable struct BasicLoggerRecipe{F<:Function} <: LoggerRecipe
 end
 
 
-function complete_logger(logger::BasicLogger, A::AbstractMatrix)
-    # We will run for a number of iterations equal to 3 itmes the number of rows if maxit is
-    # not set
-    max_it = logger.max_it == 0 ? 3 * size(A, 1) : logger.max_it
-
+function complete_logger(logger::BasicLogger)
     # By using ceil if we divide exactly we always have space to record last value, if it 
     # does not divide exactly we have one more than required and thus enough space to record
     # the last value
-    max_collection = Int(ceil(max_it / logger.collection_rate))
+    max_collection = Int(ceil(logger.max_it / logger.collection_rate))
     # use one more than max it form collection
     hist = zeros(max_collection + 1)
-    return BasicLoggerRecipe{typeof(logger.stopping_criterion)}(max_it,
+    return BasicLoggerRecipe{typeof(logger.stopping_criterion)}(logger.max_it,
                                                                 0.0,
                                                                 logger.threshold_info,
                                                                 1,

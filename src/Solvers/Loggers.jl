@@ -36,40 +36,20 @@ logger_method_description = Dict{Symbol,String}(
 )
 
 """
-    complete_logger(logger::Logger, A::AbstractMatrix)
+    complete_logger(logger::Logger)
 
 $(logger_method_description[:complete_logger])
 
 ### Arguments
 - $(logger_arg_list[:logger])
-- $(logger_arg_list[:A]) 
 
 ### Outputs
 - $(logger_output_list[:logger_recipe])
 """
-function complete_logger(logger::Logger, A::AbstractMatrix)
+function complete_logger(logger::Logger)
     throw(ArgumentError("No `complete_logger` method defined for logger of type \
-          $(typeof(logger)) and $(typeof(A))."))
+          $(typeof(logger))."))
     return nothing
-end
-
-"""
-    complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
-
-$(logger_method_description[:complete_logger])
-
-### Arguments
-- $(logger_arg_list[:logger])
-- $(logger_arg_list[:A]) 
-- $(logger_arg_list[:b]) 
-
-### Outputs
-- $(logger_output_list[:logger_recipe])
-"""
-function complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
-    # By default the LoggerRecipe formed by applying the version of this function that only
-    # requires the `Logger` and linear system.
-    return complete_logger(logger, A)
 end
 
 """
