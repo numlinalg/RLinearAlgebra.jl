@@ -14,23 +14,6 @@ coefficient matrix and constant vector.
 """
 abstract type SolverRecipe end
 
-"""
-    SolverError
-
-An abstract supertype for structures that track and/or evaluate the quality of a solution
-for a linear system or least squares.
-"""
-abstract type SolverError end
-
-"""
-    SolverErrorRecipe
-
-An abstract supertype for structures that contain the user-controlled parameters, linear
-system dependent parameters, and preallocated memory for techniques that evaluate the
-solution to a linear solver.
-"""
-abstract type SolverErrorRecipe end
-
 # Docstring Components
 solver_arg_list = Dict{Symbol,String}(
     :solver => "`solver::Solver`, a user-specified solver method.",
@@ -136,70 +119,6 @@ function rsolve(solver::Solver, x::AbstractVector, A::AbstractMatrix, b::Abstrac
     return x, solver_method
 end
 
-"""
-    complete_solver_error(
-        error::SolverError, 
-        solver::Solver,
-        A::AbstractMatrix, 
-        b::AbstractVector
-    )
-
-$(solver_method_description[:complete_solver_error])
-
-### Arguments
-- $(solver_arg_list[:solver_error])
-- $(solver_arg_list[:solver])
-- $(solver_arg_list[:A]) 
-- $(solver_arg_list[:b]) 
-
-### Outputs
-- $(solver_output_list[:solver_error_recipe])
-"""
-function complete_solver_error(
-    error::SolverError, solver::Solver, A::AbstractMatrix, b::AbstractVector
-)
-    throw(
-        ArgumentError("There is no `complete_solver_error` method defined for \
-      a $(typeof(error)) `SolverError`,  $(typeof(solver)) `SolverRecipe`, $(typeof(A)),\
-      and $(typeof(b)).")
-    )
-    return nothing
-end
-
-"""
-    compute_solver_error(
-        error::SolverErrorRecipe, 
-        solver::SolverRecipe, 
-        x::AbstractVector,
-        A::AbstractMatrix, 
-        b::AbstractVector
-    )
-
-$(solver_method_description[:compute_solver_error])
-
-### Arguments
-- $(solver_arg_list[:solver_error_recipe])
-- $(solver_arg_list[:solver_recipe])
-- $(solver_arg_list[:x]) 
-- $(solver_arg_list[:A]) 
-- $(solver_arg_list[:b]) 
-
-### Outputs
--  Returns `nothing`
-"""
-function compute_solver_error(
-    error::SolverErrorRecipe,
-    solver::SolverRecipe,
-    x::AbstractVector,
-    A::AbstractMatrix,
-    b::AbstractVector,
-)
-    throw(ArgumentError("No `complete_solver_error` method defined for\
-          a $(typeof(error)) `SolverErrorRecipe`,  $(typeof(solver)) `SolverRecipe`, \
-          $(typeof(x)), $(typeof(A)), and $(typeof(b))."))
-    return nothing
-end
-
 ############################
 # The Loggers
 ############################
@@ -208,6 +127,10 @@ include("Solvers/Loggers.jl")
 # The sub solvers
 #############################
 include("Solvers/SubSolvers.jl")
+############################
+# The solver error
+###########################
+include("Solvers/ErrorMethods.jl")
 #############################
 # The Solver Routine Files
 ############################

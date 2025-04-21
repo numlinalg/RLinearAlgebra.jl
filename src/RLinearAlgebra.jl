@@ -1,7 +1,7 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
-import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ, Adjoint
+import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ, Adjoint, norm
 import StatsBase: sample!
 import Random: bitrand, rand!
 import SparseArrays: SparseMatrixCSC
@@ -35,7 +35,8 @@ export complete_sub_solver, update_sub_solver!
 
 # Export SolverError types and functions
 export SolverError, SolverErrorRecipe
-export complete_solver_error, compute_solver_error, compute_solver_error!
+export complete_error, compute_error
+export FullResidual, FullResidualRecipe
 
 # Export ApproximatorError types and functions
 export ApproximatorError, ApproximatorErrorRecipe
