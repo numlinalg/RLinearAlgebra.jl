@@ -116,7 +116,7 @@ $(solver_method_description[:rsolve])
 function rsolve(solver::Solver, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
     solver_method = complete_solver(solver, x, A, b)
     rsolve!(solver_method, x, A, b)
-    return x, solver_method
+    return nothing
 end
 
 ############################
