@@ -12,6 +12,9 @@ SubSolverRecipe
 
 ## SubSolver Structures
 ```@docs
+QRSolver
+
+QRSolverRecipe
 
 ```
 

@@ -1,7 +1,7 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
-import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ
+import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq!, LQ, Adjoint, qr!, qr
 import StatsBase: sample!
 import Random: bitrand, seed!
 
@@ -27,8 +27,9 @@ export Logger, LoggerRecipe
 export complete_logger, update_logger!
 
 # Export SubSolver types and functions
-export SubSolver, SubSolverRecipe
+export SubSolver, SubSolverRecipe, ldiv!
 export complete_sub_solver, update_sub_solver!
+export QRSolver, QRSolverRecipe
 
 # Export SolverError types and functions
 export SolverError, SolverErrorRecipe
