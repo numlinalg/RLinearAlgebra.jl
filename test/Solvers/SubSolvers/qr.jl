@@ -1,8 +1,5 @@
 @testset "QR SubSolver Tests" begin
     using Test, RLinearAlgebra, Random, LinearAlgebra
-    include("../../../src/Solvers/SubSolvers/qr.jl")
-    include("../../test_helpers/field_test_macros.jl")
-    include("../../test_helpers/approx_tol.jl")
     using ..FieldTest
     using ..ApproxTol
 
