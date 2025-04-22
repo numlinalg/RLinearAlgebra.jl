@@ -41,7 +41,7 @@ $(sub_solver_method_description[:complete_sub_solver])
 - $(sub_solver_arg_list[:sub_solver])
 - $(sub_solver_arg_list[:A]) 
 
-### Outputs
+### Returns 
 - $(sub_solver_output_list[:sub_solver_recipe])
 """
 function complete_sub_solver(solver::SubSolver, A::AbstractArray)
@@ -59,7 +59,7 @@ $(sub_solver_method_description[:update_sub_solver])
 - $(sub_solver_arg_list[:sub_solver_recipe])
 - $(sub_solver_arg_list[:A]) 
 
-### Outputs
+### Returns 
 - Modifies the `SubSolverRecipe` in place and returns nothing.
 """
 function update_sub_solver!(solver::SubSolverRecipe, A::AbstractArray)
