@@ -26,11 +26,7 @@ function complete_sub_solver(solver::LQSolver, A::AbstractMatrix)
     return LQSolverRecipe{typeof(A)}(A) 
 end
 
-function complete_sub_solver(solver::LQSolver, A::AbstractVector)
-    return LQSolverRecipe{typeof(A)}(A) 
-end
-
-function update_sub_solver!(solver::LQSolverRecipe, A::AbstractArray)
+function update_sub_solver!(solver::LQSolverRecipe, A::AbstractMatrix)
     # This will overwrite the block of the matrix so do not reuse the block values
     solver.A = A
     return nothing
