@@ -30,7 +30,7 @@ function complete_sub_solver(solver::QRSolver, A::AbstractVector)
     return QRSolverRecipe{typeof(A)}(A) 
 end
 
-function update_sub_solver!(solver::QRSolverRecipe, A::AbstractArray)
+function update_sub_solver!(solver::QRSolverRecipe, A::AbstractMatrix)
     # This will overwrite the block of the matrix so do not reuse the block values
     solver.A = A
     return nothing
@@ -43,7 +43,7 @@ function ldiv!(
 )
     fill!(x, zero(eltype(b)))
     # this will modify B in place so you cannot use it again
-    #ldiv!(x, qr!(solver.A), b)
-    x .= qr(solver.A) \ b
+    ldiv!(x, qr!(solver.A), b)
+    #x .= qr(solver.A) \ b
     return nothing
 end
