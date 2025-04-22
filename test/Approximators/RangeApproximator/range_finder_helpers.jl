@@ -32,11 +32,28 @@ end
     # is unimportant
     C = TestCompressorRecipe(n_cols, compression_dim, randn(n_cols, compression_dim)) 
     A = rand(n_rows, n_cols)
+    @testset "Econ QR test" begin
+        let A = deepcopy(A),
+            Ac = deepcopy(A)
+
+            Q = RLinearAlgebra.econQ!(A)
+            @test size(Q) == (n_rows, n_cols)
+            # Test that Q captures range of A
+            @test opnorm(Ac - Q * Q' * Ac) < 1e-10 
+            # Check that Q is orthogonal
+            @test norm(Q' * Q - I) < 1e-10
+            @test opnorm(Q) ≈ 1
+        end
+
+    end 
     @testset "Power Iteration Test" begin 
         # test with 0 power iterations
-        let 
+        let A = deepcopy(A),
+            power_it = 0,
+            C = deepcopy(C)
+
             # Start by testing the case with zero power iterations
-            approx = TestRangeApproximatorRecipe(C, 0)
+            approx = TestRangeApproximatorRecipe(C, power_it)
             # Produce the Q from the function call
             Q_func = RLinearAlgebra.rand_power_it(A, approx)
             Q_test = Array(qr(A*C.op).Q)
@@ -53,9 +70,12 @@ end
         end
 
         # test with 3 power iterations
-        let
+        let A = deepcopy(A),
+            power_it = 3,
+            C = deepcopy(C)
+
             # Perform same test with 3 power iterations
-            approx = TestRangeApproximatorRecipe(C, 3)
+            approx = TestRangeApproximatorRecipe(C, power_it)
             Q_func = RLinearAlgebra.rand_power_it(A, approx)
             Q_test = Array(qr(A * A' * A * A' * A * A'* A * C.op).Q)
             @test Q_func ≈ Q_test
@@ -73,9 +93,12 @@ end
     end
     
     @testset "Subspace Iteration Test" begin 
-        let 
+        let A = deepcopy(A),
+            power_it = 0,
+            C = deepcopy(C)
+
             # Start by testing the case with zero power iterations
-            approx = TestRangeApproximatorRecipe(C, 0)
+            approx = TestRangeApproximatorRecipe(C, power_it)
             # Produce the Q from the function call
             Q_func = RLinearAlgebra.rand_subspace_it(A, approx)
             Q_test = Array(qr(A*C.op).Q)
@@ -92,8 +115,11 @@ end
         end
 
         # test with multiple power iterations
-        let
-            approx = TestRangeApproximatorRecipe(C, 3)
+        let A = deepcopy(A),
+            power_it = 3,
+            C = deepcopy(C)
+
+            approx = TestRangeApproximatorRecipe(C, power_it)
             Q_func = RLinearAlgebra.rand_subspace_it(A, approx)
             # Perform the 3 subspace iterations which involves orthogonalzing everytime
             # we apply A or A' to the Q matrix

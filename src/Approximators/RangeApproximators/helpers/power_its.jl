@@ -1,15 +1,30 @@
 """
+    RLinearAlgebra.econQ!(A::AbstractMatrix)
+
+Function that returns the skinny Q matrix from a QR factorization.
+
+## Arguments
+ - `A::AbstractMatrix`, a matrix being decomposed.
+
+## Returns 
+ - Edits `A` in place with householder reflectors and returns the skinny QR.
+"""
+function econQ!(A::AbstractMatrix)
+    return Array(qr!(A).Q)
+end
+
+"""
     RLinearAlgebra.rand_power_it(A::AbstractMatrix, approx::RangeFinderRecipe)
 
 Function that performs the randomized rangefinder procedure presented in Algortihm 4.3 of 
 [halko2011finding](@cite).
 
-INPUTS:
+## Arguments
 - `A::AbstractMatrix`, the matrix being approximated.
 - `approx::RangeFinderRecipe`, a `RangeFinderRecipe` structure that contains the compressor
 recipe.
 
-# OUTPUTS
+## Returns 
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
 function rand_power_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
@@ -32,7 +47,7 @@ function rand_power_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
     end
     
     # Return the economical qr of the matrix Q
-    return Array(qr!(compressed_mat).Q)    
+    return econQ!(compressed_mat)    
 end
 
 
@@ -42,12 +57,12 @@ end
 Function that performs the randomized rangefinder procedure presented in Algortihm 4.4 of 
 [halko2011finding](@cite).
 
-INPUTS:
+## Arguments
 - `A::AbstractMatrix`, the matrix being approximated.
 - `approx::RangeFinderRecipe`, a `RangeFinderRecipe` structure that contains the compressor
 recipe.
 
-# OUTPUTS
+## Returns 
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
 function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
@@ -66,9 +81,9 @@ function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
             # Perform the power iterations based on the recusion Q_{i'} = qr(A'Q_{i-1}).Q 
             # Q_i = qr(A*Q_{i'}).Q this helps limit rounding errors
             mul!(buff_mat, A', Q)
-            Q = Array(qr!(buff_mat).Q) 
+            Q = econQ!(buff_mat)
             mul!(compressed_mat, A, Q)
-            Q = Array(qr!(compressed_mat).Q)
+            Q = econQ!(compressed_mat)
         end
     
     end

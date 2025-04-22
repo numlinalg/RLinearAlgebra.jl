@@ -34,6 +34,8 @@ rapproximate!
 
 ## Internal Functions
 ```@docs
+RLinearAlgebra.econQ!
+
 RLinearAlgebra.rand_power_it
 
 RLinearAlgebra.rand_subspace_it
