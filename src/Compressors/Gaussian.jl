@@ -36,10 +36,10 @@ compression dimension.
 
 ## Arguments
 
-  - `carinality::Cardinality`, the direction the compression matrix is intended to be
+  - `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
     By default `Left()` is chosen.
-  - `compression_dim`, the target compression dimension. Referred to as ``s`` in the
+  - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
     mathemtical description. By default this is set to 2.
   - `type::Type{<:Number}`, the type of elements in the compressor.
 
@@ -96,23 +96,32 @@ mutable struct GaussianRecipe{C<:Cardinality} <: CompressorRecipe
     op::Matrix{<:Number}
 end
 
-function complete_compressor(ingredients::Gaussian, A::AbstractMatrix)
-    if ingredients.cardinality == Left()
-        n_rows = ingredients.compression_dim
-        n_cols = size(A, 1)
-        initial_size = n_cols
-    else
-        n_rows = size(A, 2)
-        n_cols = ingredients.compression_dim
-        initial_size = n_rows
-    end
-
+function GaussianRecipe(cardinality::Right, compression_dim::Int64, type::Type{<:Number}, A::AbstractMatrix)
+    n_rows = size(A, 2)
+    n_cols = compression_dim
+    initial_size = n_rows
     # Generate entry values by N(0,1/d)
-    scale = convert(ingredients.type, 1 / sqrt(ingredients.compression_dim))
-    op = scale .* randn(ingredients.type, n_rows, n_cols)
+    scale = convert(type, 1 / sqrt(compression_dim))
+    op = scale .* randn(type, n_rows, n_cols)
     return GaussianRecipe(
-        ingredients.cardinality, ingredients.compression_dim, n_rows, n_cols, scale, op
+        cardinality, compression_dim, n_rows, n_cols, scale, op
     )
+end
+
+function GaussianRecipe(cardinality::Left, compression_dim::Int64, type::Type{<:Number}, A::AbstractMatrix)
+    n_rows = compression_dim
+    n_cols = size(A, 1)
+    initial_size = n_cols
+    # Generate entry values by N(0,1/d)
+    scale = convert(type, 1 / sqrt(compression_dim))
+    op = scale .* randn(type, n_rows, n_cols)
+    return GaussianRecipe(
+        cardinality, compression_dim, n_rows, n_cols, scale, op
+    )
+end
+
+function complete_compressor(ingredients::Gaussian, A::AbstractMatrix)
+    return GaussianRecipe(ingredients.cardinality, ingredients.compression_dim, ingredients.type, A)
 end
 
 # Allocations in this function are entirely due to bitrand call
@@ -123,34 +132,10 @@ function update_compressor!(S::GaussianRecipe)
     return nothing
 end
 
-# Implement the matrix-vector multiplication
-# Do the right version
-function mul!(
-    x::AbstractVector, S::GaussianRecipe, y::AbstractVector, alpha::Number, beta::Number
-)
-    # Check the compatability of the sizes of the things being multiplied
-    left_mul_dimcheck(x, S, y)
-    mul!(x, S.op, y, alpha, beta)
-    return nothing
-end
-
-function mul!(
-    x::AbstractVector,
-    S::CompressorAdjoint{<:GaussianRecipe},
-    y::AbstractVector,
-    alpha::Number,
-    beta::Number,
-)
-    # Check the compatability of the sizes of the things being multiplied
-    left_mul_dimcheck(x, S, y)
-    mul!(x, S.parent.op', y, alpha, beta)
-    return nothing
-end
-
 # Implement the matrix-Matrix Multiplication operators
 # Begin with the left version
 function mul!(
-    C::AbstractMatrix, S::GaussianRecipe, A::AbstractMatrix, alpha::Number, beta::Number
+    C::AbstractArray, S::GaussianRecipe, A::AbstractArray, alpha::Number, beta::Number
 )
     left_mul_dimcheck(C, S, A)
     # Built-in multiplication
@@ -160,7 +145,7 @@ end
 
 # Now implement the right versions
 function mul!(
-    C::AbstractMatrix, A::AbstractMatrix, S::GaussianRecipe, alpha::Number, beta::Number
+    C::AbstractArray, A::AbstractArray, S::GaussianRecipe, alpha::Number, beta::Number
 )
     right_mul_dimcheck(C, A, S)
     # Built-in multiplication

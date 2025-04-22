@@ -80,6 +80,45 @@ seed!(21321)
             @test typeof(compressor_recipe.op) == Matrix{type}
         end
 
+        let card = Left(),
+            n_rows = 4,
+            n_cols = 2,
+            c_dim = 3,
+            type = Float16,
+            A = rand(n_rows, n_cols),
+            compressor_recipe = GaussianRecipe(
+                card, c_dim, type, A
+            )
+
+
+            # Test the values and types
+            @test compressor_recipe.cardinality == card
+            @test compressor_recipe.n_rows == c_dim
+            @test compressor_recipe.n_cols == n_rows
+            sc = convert(type, 1 / sqrt(c_dim))
+            @test compressor_recipe.scale == sc
+            @test typeof(compressor_recipe.op) == Matrix{type}
+        end
+
+        let card = Right(),
+            n_rows = 4,
+            n_cols = 2,
+            c_dim = 3,
+            type = Float16,
+            A = rand(n_rows, n_cols),
+            compressor_recipe = GaussianRecipe(
+                card, c_dim, type, A
+            )
+
+            # Test the values and types
+            @test compressor_recipe.cardinality == card
+            @test compressor_recipe.n_rows == n_cols
+            @test compressor_recipe.n_cols == c_dim
+            sc = convert(type, 1 / sqrt(c_dim))
+            @test compressor_recipe.scale == sc
+            @test typeof(compressor_recipe.op) == Matrix{type}
+        end
+
         # Test with right compressor
         let card = Right(),
             n_rows = 2,
