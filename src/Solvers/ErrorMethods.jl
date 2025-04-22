@@ -60,7 +60,7 @@ $(solver_method_description[:complete_error])
 - $(solver_arg_list[:A]) 
 - $(solver_arg_list[:b]) 
 
-### Outputs
+### Returns 
 - $(solver_output_list[:solver_error_recipe])
 """
 function complete_error(
@@ -92,7 +92,7 @@ $(solver_method_description[:compute_error])
 - $(solver_arg_list[:A]) 
 - $(solver_arg_list[:b]) 
 
-### Outputs
+### Returns 
 -  Returns `nothing`
 """
 function compute_error(
@@ -108,5 +108,5 @@ function compute_error(
     return nothing
 end
 
-# Include files
+# Include error method files 
 include("ErrorMethods/full_residual.jl")

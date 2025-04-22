@@ -4,6 +4,7 @@
 A `SolverError` structure for computing the norm of the full residual, ``b-Ax``.
 
 # Fields
+- None
 """
 struct FullResidual <: SolverError
 
