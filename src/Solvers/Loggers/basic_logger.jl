@@ -120,6 +120,12 @@ end
 
 Function that takes an input threshold and stops when the most recent entry in the history
 vector is less than the threshold.
+
+# Arguments
+ - `log::LoggerRecipe`, a structure containing the logger information
+
+# Bool
+ - Returns a Bool indicating if the stopping threshold is satisfied.
 """
 function threshold_stop(log::LoggerRecipe)
     return log.error < log.threshold_info

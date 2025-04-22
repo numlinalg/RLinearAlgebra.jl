@@ -43,7 +43,7 @@ $(logger_method_description[:complete_logger])
 ### Arguments
 - $(logger_arg_list[:logger])
 
-### Outputs
+### Returns 
 - $(logger_output_list[:logger_recipe])
 """
 function complete_logger(logger::Logger)
@@ -62,7 +62,7 @@ $(logger_method_description[:update_logger])
 - $(logger_arg_list[:err]) 
 - $(logger_arg_list[:iteration]) 
 
-### Outputs
+### Returns 
 - Performs an inplace update to the `LoggerRecipe` and returns nothing.
 """
 function update_logger!(logger::LoggerRecipe, err::Real, iteration::Int64)
@@ -80,7 +80,7 @@ $(logger_method_description[:reset_logger])
 ### Arguments
 - $(logger_arg_list[:logger_recipe])
 
-### Outputs
+### Returns 
 - Performs an inplace update to the `LoggerRecipe` and returns nothing.
 """
 function reset_logger!(logger::LoggerRecipe)
