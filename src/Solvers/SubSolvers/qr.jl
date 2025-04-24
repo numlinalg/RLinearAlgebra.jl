@@ -44,6 +44,5 @@ function ldiv!(
     fill!(x, zero(eltype(b)))
     # this will modify B in place so you cannot use it again
     ldiv!(x, qr!(solver.A), b)
-    #x .= qr(solver.A) \ b
     return nothing
 end
