@@ -3,7 +3,8 @@ import Base.:*
 import Base: transpose, adjoint
 import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq!, LQ, Adjoint, qr!, qr
 import StatsBase: sample!
-import Random: bitrand, seed!
+import Random: bitrand, rand!
+import SparseArrays: SparseMatrixCSC
 
 # Include the files correspoding to the top-level techniques
 include("Compressors.jl")
@@ -16,7 +17,9 @@ export complete_approximator, update_approximator!, rapproximate, rapproximate!
 
 # Export Compressor types and functions
 export Compressor, CompressorRecipe, CompressorAdjoint
+export Cardinality, Left, Right
 export complete_compressor, update_compressor!
+export SparseSign, SparseSignRecipe
 
 # Export Solver types and functions
 export Solver, SolverRecipe
