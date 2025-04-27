@@ -26,10 +26,6 @@ function complete_sub_solver(solver::QRSolver, A::AbstractMatrix)
     return QRSolverRecipe{typeof(A)}(A) 
 end
 
-function complete_sub_solver(solver::QRSolver, A::AbstractVector)
-    return QRSolverRecipe{typeof(A)}(A) 
-end
-
 function update_sub_solver!(solver::QRSolverRecipe, A::AbstractMatrix)
     # This will overwrite the block of the matrix so do not reuse the block values
     solver.A = A
