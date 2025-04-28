@@ -568,3 +568,5 @@ end
 # Include Compressor Files
 ###################################
 include("Compressors/sparse_sign.jl")
+include("Compressors/fjlt.jl")
+include("Compressors/helpers/fwht.jl")

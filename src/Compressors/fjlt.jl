@@ -1,44 +1,32 @@
 """
     FJLT <: Compressor
 
-An implementation of the sparse sign compression method. This method forms a sparse matrix
-with a fixed number of non-zeros per row or column depending on the direction that the
-compressor is being applied. See Section 9.2 of [martinsson2020randomized](@cite) for
-additional details.
+An implementation of the Fast Johnson-Lindesntrauss Tranform method. This technique applies
+sparse matrix, a Walsh-Hadamard transform, and diagonal sign matrix to produce a sketch. See
+[ailon2009fast](@cite) for additional details.
 
 # Mathematical Description
 
 Let ``A`` be an ``m \\times n`` matrix that we want to compress. If we want
 to compress ``A`` from the left (i.e., we reduce the number of rows), then
-we create a sparse sign matrix, ``S``, with dimension ``s \\times m`` where
+we create a matrix, ``S``, with dimension ``s \\times m`` where
 ``s`` is the compression dimension that is supplied by the user.
-In this case, each column of ``S`` is generated independently by the following
-steps:
-
-1. Randomly choose `nnz` components of the the ``s`` components of the column. Note, `nnz`
-    is supplied by the user.
-2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or
-    ``1/\\sqrt{\\text{nnz}}`` with equal probability.
-3. Set the remaining components of the column to zero.
-
-If ``A`` is compressed from the right, then we create a sparse sign matrix, ``S``,
-with dimension ``n \\times s``, where ``s`` is the compression dimension that
-is supplied by the user.
-In this case, each row of ``S`` is generated independently by the following steps:
-
-1. Randomly choose `nnz` components fo the ``s`` components of the row. Note, `nnz`
-    is supplied by the user.
-2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or
-    ``1/\\sqrt{\\text{nnz}}`` with equal probability.
-3. Set the remaining components of the row to zero.
+Here ``S=KHD`` where ``K`` is a sparse matrix with  with dimension ``s \\times m``, ``H`` is
+a Hadamard matrix of dimension ``m \\times m``, ``D`` of is a diagonal matrix with random
+``\\pm 1`` on the diagonal of dimensions ``m \\times m``. 
+We then sketch ``A`` by applying ``SHD`` from the left. ``S`` is a sparse
+matrix with with sparsity ``1-q``, and the nonzero entries being independent draws from a 
+normal distribution with mean ``0`` and variance ``1/q``. We do not form the matrix ``H`` 
+instead we apply the Fast Walsh-Hadamard transform to the matrix ``DA``, which has a 
+``m\\log(m)`` computational complexity instead of ``m^2``. 
 
 # Fields
 - `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
 - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
     mathematical description.
-- `nnz::Int64`, the target number of nonzeros for each column or row of the spares sign
-    matrix.
+- `sparsity::Int64`, the desired sparsity of the matrix ``K``, by default sparsity will be 
+    set to be ``\\min\\left(1/4 \\log(n)^2 / m, 1\\right)``, see [ailon2009fast](@cite).
 - `type::Type{<:Number}`, the type of the elements in the compressor.
 
 # Constructor
@@ -51,27 +39,30 @@ In this case, each row of ``S`` is generated independently by the following step
     By default `Left()` is chosen.
 - `compression_dim`, the target compression dimension. Referred to as ``s`` in the
     mathemtical description. By default this is set to 2.
-- `nnz::Int64`, the number of non-zeros per row/column in the sampling matrix. By default
-    this is set to min(compressiond_dim, 8).
+- `sparsity::Int64`, the desired sparsity of the matrix ``K``, by default sparsity will be 
+    set to be ``\\min\\left(1/4 \\log(n)^2 / m, 1\\right)``, see [ailon2009fast](@cite).
 - `type::Type{<:Number}`, the type of elements in the compressor.
 
 ## Returns
-- A `SparseSign` object.
+- A `FJLT` object.
 
 ## Throws
 - `ArgumentError` if `compression_dim` is non-positive, if `nnz` is exceeds
-    `compression_dim`, or if `nnz` is non-positive.
+    `compression_dim`, or if `sparisty` is greater than 1.
 """
 struct FJLT <: Compressor
     cardinality::Cardinality
     compression_dim::Int64
+    sparsity::Float64
     type::Type{<:Number}
     # perform checks on the number of non-zeros
-    function SparseSign(cardinality, compression_dim, nnz, type)
+    function FJLT(cardinality, compression_dim, sparsity, type)
         # the compression dimension must be positive and larger than the number of 
         # nonzeros
         if compression_dim <= 0
             throw(ArgumentError("Field `compression_dim` must be positive."))
+        elseif sparsity > 1
+            throw(ArgumentError("Field `soarsity` must be less than 1."))
         elseif nnz > compression_dim
             throw(
                 ArgumentError("Number of non-zero indices, $nnz, must be less than \
@@ -80,21 +71,22 @@ struct FJLT <: Compressor
             )
         end
 
-        return new(cardinality, compression_dim, nnz, type)
+        return new(cardinality, compression_dim, sparsity, type)
     end
 end
 
 function FJLT(;
     cardinality=Left(),
     compression_dim::Int64=2,
+    sparsity::Float64=0.0,
     type::Type{N}=Float64,
 ) where {N<:Number}
     # Partially construct the sparse sign datatype
-    return SparseSign(cardinality, compression_dim, type)
+    return FJLT(cardinality, compression_dim, sparsity, type)
 end
 
 """
-    FJLT{C<:Cardinality} <: CompressorRecipe
+    FJLTRecipe <: CompressorRecipe
 
 The recipe containing all allocations and information for the SparseSign compressor.
 
@@ -103,141 +95,74 @@ The recipe containing all allocations and information for the SparseSign compres
 be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
 - `n_rows::Int64`, the number of rows of the compression matrix.
 - `n_cols::Int64`, the number of columns of the compression matrix.
-- `scale::Vector{Number}`, the set of values of the non-zero entries of the Spares Sign
-compression matrix.
+- `sparsity::Vector{Number}`, the expected sparsity of the Sparse operator matrix.
 - `op::SparseMatrixCSC`, the Spares Sign compression matrix.
-- `signs::Vector{Bool}`, the vector of signs.
-
-# Constructors
-
-    SparseSignRecipe(
-        cardinality::C where C<:Cardinality,
-        compression_dim::Int64, 
-        A::AbstractMatrix, 
-        nnz::Int64, 
-        type::Type{<:Number}
-    )
-
-An external constructor of `SparseSignRecipe` that is dispatched based on the 
-value of `cardinality`. See [SparseSign](@ref) for additional details. 
-
-## Arguments 
-- `cardinality::C where C<:Cardinality`, the cardinality of the compressor. The 
-    value is either `Left()` or `Right()`
-- `compression_dim::Int64`, the target compression dimension.
-- `A::AbstractMatrix`, a target matrix for compression. 
-- `nnz::Int64`, the number of nonzeros in the Sparse Sign compression matrix.
-- `type::Type{<:Number}`, the data type for the entries of the compression matrix.
-
-## Returns 
-- A `SparseSignRecipe` object.
-
-!!! warning "Use `complete_compressor`"
-    While an external constructor is provided, it is mainly for internal use.
-    To ensure cross library compatibility please use [`complete_compressor`](@ref)
-    for forming the `SparseSignRecipe`.
+- `signs::BitVector`, the vector of signs.
+- `padding::AbstractMatr`, the matrix containing the padding for the matrix being sketched.
 """
-mutable struct FJLT{C<:Cardinality} <: CompressorRecipe
-    cardinality::C
+mutable struct FJLTRecipe <: CompressorRecipe
+    cardinality::Cardinality
     n_rows::Int64
     n_cols::Int64
-    nnz::Int64
-    scale::Vector{<:Number}
-    op::Union{SparseMatrixCSC,Adjoint{T,SparseMatrixCSC{T,I}}} where {T<:Number,I<:Integer}
-    sign::Vector{Bool}
+    sparsity::Float64
+    op::SparseMatrixCSC
+    signs::BitVector
     padding::AbstractMatrix
 end
 
 
-function SparseSignRecipe(
-    cardinality::Left,
-    compression_dim::Int64,
-    A::AbstractMatrix,
-    nnz::Int64,
-    type::Type{<:Number},
-)
+function compute_padding(cardinality::Left, A::AbstractMatrix)
     # For compressing from the left, the compressor's dimensions should be 
-    # compression_dim by size(A, 1)
+    # compression_dim by smallest power of 2 larger than size(A, 1)
     n_rows = compression_dim
-    n_cols = size(A, 1)
-    initial_dim = n_cols
-
-    # Assign non-zeros of sparse sign matrix 
-    total_nnz = initial_dim * nnz
-    idxs = Vector{Int64}(undef, total_nnz)
-    sparse_idx_update!(idxs, compression_dim, initial_dim, nnz)
-
-    # store the number in the type equivalent to the matrix A
-    sc = convert(type, 1 / sqrt(nnz))
-
-    # store as a vector to prevent reallocation during update
-    scale = [-sc, sc]
-    signs = rand(scale, total_nnz)
-
-    # Allocate the column pointers
-    col_ptr = collect(1:nnz:(total_nnz + 1))
-    op = SparseMatrixCSC{type,Int64}(n_rows, n_cols, col_ptr, idxs, signs)
-
-    return SparseSignRecipe{typeof(cardinality)}(
-        cardinality, n_rows, n_cols, nnz, scale, op
-    )
+    a_rows = size(A, 1)
+    # Find nearest power 2 and allocate
+    padded_size = Int64(2^(div(log(2, a_rows), 1) + 1)) 
+    n_cols = padded_size 
+    # Generate the padded matrix and signs which need padded size
+    padded_matrix = zeros(padded_size, size(A,2))
+    signs = bitrand(padded_size)
+    # return the computed dimensions and the unused A dimension for padded matrix construct
+    return n_rows, n_cols, size(A, 2), padded_matrix, signs
 end
 
-function SparseSignRecipe(
-    cardinality::Right,
-    compression_dim::Int64,
-    A::AbstractMatrix,
-    nnz::Int64,
-    type::Type{<:Number},
-)
-    # For compressing from the right, the dimension of the compression matrix 
-    # should be size(A, 2) by compression_dim 
-    n_rows = size(A, 2)
+function compute_padding(cardinality::Right, A::AbstractMatrix)
+    # For compressing from the right, the compressor's dimensions should be 
+    # compression_dim by smallest power of 2 larger than size(A, 2)
     n_cols = compression_dim
-    initial_dim = n_rows
-
-    # Assign non-zeros of compression matrix 
-    total_nnz = initial_dim * nnz
-    idxs = Vector{Int64}(undef, total_nnz)
-    sparse_idx_update!(idxs, compression_dim, initial_dim, nnz)
-
-    # store the number in the type equivalent to the matrix A
-    sc = convert(type, 1 / sqrt(nnz))
-
-    # store as a vector to prevent reallocation during update
-    scale = [-sc, sc]
-    signs = rand(scale, total_nnz)
-
-    # Allocate the column pointers from 1:total_nnz+1
-    col_ptr = collect(1:nnz:(total_nnz + 1))
-    op = adjoint(SparseMatrixCSC{type,Int64}(n_cols, n_rows, col_ptr, idxs, signs))
-
-    return SparseSignRecipe{typeof(cardinality)}(
-        cardinality, n_rows, n_cols, nnz, scale, op
-    )
+    a_cols = size(A, 2)
+    # Find nearest power 2 and allocate
+    padded_size = Int64(2^(div(log(2, a_cols), 1) + 1)) 
+    n_rows = padded_size 
+    # Generate the padded matrix and signs which need padded size
+    padded_matrix = zeros(size(A, 1), padded_size)
+    signs = bitrand(padded_size)
+    # return the computed dimensions and the unused A dimension for padded matrix construct
+    return n_rows, n_cols, size(A, 1), padded_matrix, signs
 end
 
 function complete_compressor(ingredients::FJLT, A::AbstractMatrix)
-        padded_size = Int64(2^(div(log(2, n), 1) + 1)) 
-        # Find nearest power 2 and allocate
-        padded_matrix = zeros(m, padded_size)
-        # Pad matrix and constant vector
-        Av = view(A, :, 1:n)
-        @views type.Ap[:, 1:n] .= A
-    return SparseSignRecipe(
+    sparsity = ingredients.sparsity
+    # Pad matrix and constant vector
+    n_rows, n_cols, unused_dim, pad_mat, signs = compute_padding(ingredients.cardinality, A)
+    # set default sparsity parameter if not specified
+    sparsity = ingredients.sparsity == 0.0 ? .25 * log(unused_dim)^2 / n_rows : sparsity
+    # generate sparse matrix nonzero gaussian entries occuring with probability sparsity
+    sparse_mat = sprandn(ingredients.type, n_rows, n_cols, sparsity) ./ sqrt(sparsity)
+    return FJLTRecipe(
         ingredients.cardinality,
-        ingredients.compression_dim,
-        A,
-        ingredients.nnz,
-        ingredients.type,
+        n_rows,
+        n_cols,
+        sparsity,
+        sparse_mat,
+        signs,
+        pad_mat
     )
 end
 
 function update_compressor!(S::FJLT)
-    (compression_dim, initial_dim) = size(S)
-    
     # Generate a new sparse matrix
-    S.op = sprand(S.op.n_rows, S.op.n_cols, S.nnz)
+    S.op = sprandn(eltype(S.op), S.op.n_rows, S.op.n_cols, S.sparsity) ./ sqrt(sparsity)
     # Resample the non-zero values 
     rand!(S.signs)
 
@@ -247,12 +172,46 @@ end
 # Calculates S.op * A and stores it in C 
 function mul!(
     C::AbstractArray, 
-    S::SparseSignRecipe, 
+    S::FJLTRecipe, 
     A::AbstractArray, 
     alpha::Number, 
     beta::Number
 )
-    left_mul_dimcheck(C, S, A)
+    # Here padding does not allow us to use standard dim check
+    # instead we check that rows of C == rows of S and cols of C == cols of A, but we only 
+    # cheeck that the cols of S > rows of A
+    c_rows, c_cols = size(C)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    if c_rows != s_rows
+        throw(
+            DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows.")
+        )
+    elseif c_cols != a_cols
+        throw(
+            DimensionMismatch("Matrix C has $c_cols columns while A has $a_cols columns.")
+        )
+    elseif a_rows > s_cols
+        throw(
+            DimensionMismatch("Matrix A has more rows than the matrix S has columns.")
+        )
+    elseif size(S.padding, 2) < a_cols
+        throw(
+            DimensionMismatch("Matrix A has more columns than the padding matrix in S.")
+        )
+    end
+
+    # ensure that padding matrix is set to zeros
+    fill!(S.padding, zero(eltype(S.op)))
+    # Copy the matrix A to the padding matrix
+    pv = view(S.padding, 1:a_rows, 1:a_cols)
+    copyto!(pv, A)
+    # Apply signs and fwht to the padding matrix
+    for i in 1:a_cols
+        pv = view(S.padding, :, i)
+        fwht!(pv, S.signs) 
+    end
+
     return mul!(C, S.op, A, alpha, beta)
 end
 
@@ -260,11 +219,45 @@ end
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
-    S::SparseSignRecipe, 
+    S::FJLTRecipe, 
     alpha::Number, 
     beta::Number
 )
-    right_mul_dimcheck(C, A, S)
-    mul!(C, A, S.op, alpha, beta)
+    # Here padding does not allow us to use standard dim check
+    # instead we check that rows of C == rows of A and cols of C == cols of S, but we only 
+    # cheeck that the rows of S > cols of A
+    c_rows, c_cols = size(C)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    if c_rows != a_rows
+        throw(
+            DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
+        )
+    elseif c_cols != s_cols
+        throw(
+            DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns.")
+        )
+    elseif a_cols > s_rows
+        throw(
+            DimensionMismatch("Matrix A has more columsn than the matrix S has rows.")
+        )
+    elseif size(S.padding, 1) < a_rows
+        throw(
+            DimensionMismatch("Matrix A has more rows than the padding matrix in S.")
+        )
+    end
+
+    # ensure that padding matrix is set to zeros
+    fill!(S.padding, zero(eltype(S.op)))
+    # Copy the matrix A to the padding matrix
+    pv = view(S.padding, 1:a_rows, 1:a_cols)
+    copyto!(pv, A)
+    # Apply signs and fwht to the padding matrix
+    for i in 1:a_rows
+        pv = view(S.padding, i, :)
+        fwht!(pv, S.signs) 
+    end
+
+    mul!(C, S.padding, S.op, alpha, beta)
     return nothing
 end

@@ -16,6 +16,7 @@ directs =
             "Solvers/Loggers/",
             "Solvers/SubSolvers/",
             "Compressors/",
+            "Compressors/helpers/"
         ],
     )
 

@@ -1,5 +1,5 @@
 """
-    fwht!(x::AbstractVector; signs=ones(Bool, size(x)), scaling = 1)  
+    fwht!  
 
 Performs a Fast Walsh Hadamard Transform (FWHT), modifying the vector `x`. This means that 
 if you want an unmodified version of `x` you should copy it before calling this function. 
@@ -8,15 +8,18 @@ of the vector `x` before applying the transform. `scaling` allows the user to sc
 result of the transform. Choosing a scaling of 1/sqrt{size(x)} will result in the FWHT 
 being an orthogonal transform.
 
+# Arguments
+- `x::AbstractVector`, the vector the FJLT will be applied to.
+- `signs::Vector{Bool}`, whether the sign of each entry is positive or negative.
+- `scaling::Number`, how much the vector is scaled.
 """
-function fwht!(x::AbstractVector, signs; scaling = 1)
+function fwht!(x::AbstractVector, signs::BitVector; scaling = 1)
     oa = 0
     ln = size(x,1)
     ls = size(signs,1)
     if ls != ln
         throw(DimensionMismatch("Vector `x` and vector `signs` must be same length."))
-    end
-    if rem(log(2, ln), 1) != 0 
+    elseif rem(log(2, ln), 1) != 0 
         throw(DimensionMismatch("Size of vector must be power of 2."))
     end
     # size of separation between indicies

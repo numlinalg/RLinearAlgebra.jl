@@ -19,7 +19,7 @@ export complete_approximator, update_approximator!, rapproximate, rapproximate!
 export Compressor, CompressorRecipe, CompressorAdjoint
 export Cardinality, Left, Right
 export complete_compressor, update_compressor!
-export SparseSign, SparseSignRecipe
+export SparseSign, SparseSignRecipe, FJLT, FJLTRecipe
 
 # Export Solver types and functions
 export Solver, SolverRecipe
