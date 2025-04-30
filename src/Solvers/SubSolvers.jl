@@ -45,8 +45,12 @@ $(sub_solver_method_description[:complete_sub_solver])
 - $(sub_solver_output_list[:sub_solver_recipe])
 """
 function complete_sub_solver(solver::SubSolver, A::AbstractArray)
-    throw(ArgumentError("No `complete_sub_solver!` method defined for a solver of type \
-    $(typeof(solver)) and $(typeof(A))."))
+    throw(
+        ArgumentError(
+            "No `complete_sub_solver!` method defined for a solver of type \
+            $(typeof(solver)) and $(typeof(A))."
+        )
+    )
     return nothing
 end
 
@@ -63,14 +67,22 @@ $(sub_solver_method_description[:update_sub_solver])
 - Modifies the `SubSolverRecipe` in place and returns nothing.
 """
 function update_sub_solver!(solver::SubSolverRecipe, A::AbstractArray)
-    throw(ArgumentError("No `update_sub_solver!` method defined for a solver of type \
-    $(typeof(solver)) and $(typeof(A))."))
+    throw(
+        ArgumentError(
+            "No `update_sub_solver!` method defined for a solver of type $(typeof(solver))\
+            and $(typeof(A))."
+        )
+    )
     return nothing
 end
 
 function ldiv!(x::AbstractVector, solver::SubSolverRecipe, b::AbstractVector)
-    throw(ArgumentError("No `ldiv!` method defined for a solver of type \
-    $(typeof(solver)), $(typeof(x)), and $(typeof(b))."))
+    throw(
+        ArgumentError(
+            "No `ldiv!` method defined for a solver of type $(typeof(solver)), \
+            $(typeof(x)), and $(typeof(b))."
+        )
+    )
     return nothing
 end
 
