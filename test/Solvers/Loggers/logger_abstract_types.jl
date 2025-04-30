@@ -1,7 +1,7 @@
 module logger_abstract_types
 using Test, RLinearAlgebra
-include("../../test_helpers/field_test_macros.jl")
-include("../../test_helpers/approx_tol.jl")
+using ..FieldTest
+using ..ApproxTol
 struct TestLogger <: Logger end
 struct TestLoggerRecipe <: LoggerRecipe end
 
@@ -14,8 +14,8 @@ end
     A = rand(2, 2)
     b = rand(2)
 
-    @test_throws ArgumentError complete_logger(TestLogger(), A)
-    @test_throws ArgumentError complete_logger(TestLogger(), A, b)
+    @test_throws ArgumentError complete_logger(TestLogger())
     @test_throws ArgumentError update_logger!(TestLoggerRecipe(), 1.0, 1)
+    @test_throws ArgumentError reset_logger!(TestLoggerRecipe())
 end
 end
