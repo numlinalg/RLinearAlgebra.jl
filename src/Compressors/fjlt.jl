@@ -31,7 +31,7 @@ instead we apply the Fast Walsh-Hadamard transform to the matrix ``DA``, which h
 
 # Constructor
 
-    SparseSign(;carinality=Left(), compression_dim=2, nnz::Int64=8, type=Float64)
+    FJLT(;carinality=Left(), compression_dim=2, sparsity=0.0, type=Float64)
 
 ## Keywords
 - `carinality::Cardinality`, the direction the compression matrix is intended to be
@@ -62,13 +62,7 @@ struct FJLT <: Compressor
         if compression_dim <= 0
             throw(ArgumentError("Field `compression_dim` must be positive."))
         elseif sparsity > 1
-            throw(ArgumentError("Field `soarsity` must be less than 1."))
-        elseif nnz > compression_dim
-            throw(
-                ArgumentError("Number of non-zero indices, $nnz, must be less than \
-                or equal to compression dimension, $compression_dim."
-                )
-            )
+            throw(ArgumentError("Field `sparsity` must be less than 1."))
         end
 
         return new(cardinality, compression_dim, sparsity, type)
@@ -100,69 +94,98 @@ be applied to a target matrix or operator. Values allowed are `Left()` or `Right
 - `signs::BitVector`, the vector of signs.
 - `padding::AbstractMatr`, the matrix containing the padding for the matrix being sketched.
 """
-mutable struct FJLTRecipe <: CompressorRecipe
-    cardinality::Cardinality
+mutable struct FJLTRecipe{
+    C<:Cardinality, 
+    S<:SparseMatrixCSC, 
+    M<:AbstractMatrix
+   } <: CompressorRecipe
+    cardinality::C
     n_rows::Int64
     n_cols::Int64
     sparsity::Float64
-    op::SparseMatrixCSC
+    scale::Float64
+    op::S
     signs::BitVector
-    padding::AbstractMatrix
+    padding::M
 end
 
 
-function compute_padding(cardinality::Left, A::AbstractMatrix)
+function compute_padding(
+    compression_dim::Int64, 
+    cardinality::Left,
+    A::AbstractMatrix, 
+    type::Type{<:Number}
+)
     # For compressing from the left, the compressor's dimensions should be 
     # compression_dim by smallest power of 2 larger than size(A, 1)
     n_rows = compression_dim
     a_rows = size(A, 1)
     # Find nearest power 2 and allocate
-    padded_size = Int64(2^(div(log(2, a_rows), 1) + 1)) 
+    padded_size = Int64(2^(ceil(log(2, a_rows))))
     n_cols = padded_size 
     # Generate the padded matrix and signs which need padded size
-    padded_matrix = zeros(padded_size, size(A,2))
+    padded_matrix = zeros(type, padded_size, size(A,2))
     signs = bitrand(padded_size)
     # return the computed dimensions and the unused A dimension for padded matrix construct
-    return n_rows, n_cols, size(A, 2), padded_matrix, signs
+    return n_rows, n_cols, size(A, 2), padded_matrix, signs, type(1/sqrt(padded_size))
 end
 
-function compute_padding(cardinality::Right, A::AbstractMatrix)
+function compute_padding(
+    compression_dim::Int64, 
+    cardinality::Right, 
+    A::AbstractMatrix, 
+    type::Type{<:Number}
+)
     # For compressing from the right, the compressor's dimensions should be 
     # compression_dim by smallest power of 2 larger than size(A, 2)
     n_cols = compression_dim
     a_cols = size(A, 2)
     # Find nearest power 2 and allocate
-    padded_size = Int64(2^(div(log(2, a_cols), 1) + 1)) 
+    padded_size = Int64(2^(ceil(log(2, a_cols))))
     n_rows = padded_size 
     # Generate the padded matrix and signs which need padded size
-    padded_matrix = zeros(size(A, 1), padded_size)
+    padded_matrix = zeros(type, size(A, 1), padded_size)
     signs = bitrand(padded_size)
     # return the computed dimensions and the unused A dimension for padded matrix construct
-    return n_rows, n_cols, size(A, 1), padded_matrix, signs
+    return n_rows, n_cols, size(A, 1), padded_matrix, signs, type(1/sqrt(padded_size))
 end
 
 function complete_compressor(ingredients::FJLT, A::AbstractMatrix)
     sparsity = ingredients.sparsity
     # Pad matrix and constant vector
-    n_rows, n_cols, unused_dim, pad_mat, signs = compute_padding(ingredients.cardinality, A)
+    pad = compute_padding(
+        ingredients.compression_dim, 
+        ingredients.cardinality, 
+        A, 
+        ingredients.type
+    )
+    n_rows = pad[1]
+    n_cols = pad[2]
+    unused_dim = pad[3]
+    pad_mat = pad[4]
+    signs = pad[5]
+    scaling = pad[6]
     # set default sparsity parameter if not specified
     sparsity = ingredients.sparsity == 0.0 ? .25 * log(unused_dim)^2 / n_rows : sparsity
     # generate sparse matrix nonzero gaussian entries occuring with probability sparsity
     sparse_mat = sprandn(ingredients.type, n_rows, n_cols, sparsity) ./ sqrt(sparsity)
-    return FJLTRecipe(
+    return FJLTRecipe{typeof(ingredients.cardinality), typeof(sparse_mat), typeof(pad_mat)}(
         ingredients.cardinality,
         n_rows,
         n_cols,
         sparsity,
+        scaling,
         sparse_mat,
         signs,
         pad_mat
     )
 end
 
-function update_compressor!(S::FJLT)
+function update_compressor!(S::FJLTRecipe)
+    n_rows, n_cols = size(S.op)
+    type = eltype(S.op)
     # Generate a new sparse matrix
-    S.op = sprandn(eltype(S.op), S.op.n_rows, S.op.n_cols, S.sparsity) ./ sqrt(sparsity)
+    S.op = sprandn(type, n_rows, n_cols, S.sparsity) ./ type(sqrt(S.sparsity))
     # Resample the non-zero values 
     rand!(S.signs)
 
@@ -172,7 +195,7 @@ end
 # Calculates S.op * A and stores it in C 
 function mul!(
     C::AbstractArray, 
-    S::FJLTRecipe, 
+    S::FJLTRecipe{Left, <:SparseMatrixCSC, <:AbstractMatrix}, 
     A::AbstractArray, 
     alpha::Number, 
     beta::Number
@@ -204,22 +227,68 @@ function mul!(
     # ensure that padding matrix is set to zeros
     fill!(S.padding, zero(eltype(S.op)))
     # Copy the matrix A to the padding matrix
-    pv = view(S.padding, 1:a_rows, 1:a_cols)
+    pv = view(S.padding, 1:a_rows, :)
     copyto!(pv, A)
     # Apply signs and fwht to the padding matrix
+    # Perform this blockwise to accomdate when the number rows does not equal that in the 
+    # original matrix
     for i in 1:a_cols
         pv = view(S.padding, :, i)
-        fwht!(pv, S.signs) 
+        fwht!(pv, S.signs, scaling = S.scale) 
     end
 
-    return mul!(C, S.op, A, alpha, beta)
+    return mul!(C, S.op, S.padding, alpha, beta)
+end
+
+# Calculates S.op * A and stores it in C  when S has left cardinality
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    S::Adjoint{FJLTRecipe{Left, <:SparseMatrixCSC, <:AbstractMatrix}}, 
+    alpha::Number, 
+    beta::Number
+)
+    # Here padding does not allow us to use standard dim check
+    # instead we check that rows of C == rows of S and cols of C == cols of A, but we only 
+    # cheeck that the cols of S > rows of A
+    c_rows, c_cols = size(C)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    if c_rows != s_rows
+        throw(
+            DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows.")
+        )
+    elseif c_cols != a_cols
+        throw(
+            DimensionMismatch("Matrix C has $c_cols columns while A has $a_cols columns.")
+        )
+    elseif a_rows > s_cols
+        throw(
+            DimensionMismatch("Matrix A has more rows than the matrix S has columns.")
+        )
+    elseif size(S.padding, 2) < a_cols
+        throw(
+            DimensionMismatch("Matrix A has more columns than the padding matrix in S.")
+        )
+    end
+    # With left cardinality first apply the operator matrix to A then place the result in
+    # the padding matrix
+    mul!(S.padding, S.op, A, alpha, 0.0)
+    # Copy the matrix A to the padding matrix
+    # Apply signs and fwht to the padding matrix
+    for i in 1:a_rows
+        pv = view(S.padding, i, :)
+        fwht!(pv, S.signs, scaling = S.scale) 
+    end
+
+    return axpby!(1.0, beta, C, S.padding)
 end
 
 # Calculates A * S.op and stores it in C 
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
-    S::FJLTRecipe, 
+    S::FJLTRecipe{Right, <:SparseMatrixCSC, <:AbstractMatrix}, 
     alpha::Number, 
     beta::Number
 )
@@ -250,14 +319,56 @@ function mul!(
     # ensure that padding matrix is set to zeros
     fill!(S.padding, zero(eltype(S.op)))
     # Copy the matrix A to the padding matrix
-    pv = view(S.padding, 1:a_rows, 1:a_cols)
+    pv = view(S.padding, :, 1:a_cols)
     copyto!(pv, A)
     # Apply signs and fwht to the padding matrix
+    # Perform this blockwise to accomdate when the number rows does not equal that in the 
+    # original matrix
     for i in 1:a_rows
         pv = view(S.padding, i, :)
-        fwht!(pv, S.signs) 
+        fwht!(pv, S.signs, scaling = S.scale) 
     end
 
-    mul!(C, S.padding, S.op, alpha, beta)
-    return nothing
+    return mul!(C, S.padding, S.op, alpha, beta)
+end
+
+function mul!(
+    C::AbstractArray, 
+    S::Adjoint{FJLTRecipe{Right, <:SparseMatrixCSC, <:AbstractMatrix}}, 
+    A::AbstractArray, 
+    alpha::Number, 
+    beta::Number
+)
+    # Here padding does not allow us to use standard dim check
+    # instead we check that rows of C == rows of A and cols of C == cols of S, but we only 
+    # cheeck that the rows of S > cols of A
+    c_rows, c_cols = size(C)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    if c_rows != a_rows
+        throw(
+            DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
+        )
+    elseif c_cols != s_cols
+        throw(
+            DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns.")
+        )
+    elseif a_cols > s_rows
+        throw(
+            DimensionMismatch("Matrix A has more columsn than the matrix S has rows.")
+        )
+    elseif size(S.padding, 1) < a_rows
+        throw(
+            DimensionMismatch("Matrix A has more rows than the padding matrix in S.")
+        )
+    end
+
+    mul!(S.padding, S.op, A, alpha, 0.0)
+    # Apply signs and fwht to the padding matrix
+    for i in 1:a_cols
+        pv = view(S.padding, :, i)
+        fwht!(pv, S.signs, scaling = S.scale) 
+    end
+
+    return axpby!(1.0, beta, C, S.padding)
 end
