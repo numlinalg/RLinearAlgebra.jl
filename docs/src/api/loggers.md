@@ -12,6 +12,9 @@ LoggerRecipe
 
 ## Logger Structures
 ```@docs
+BasicLogger
+
+BasicLoggerRecipe
 
 ```
 
@@ -20,4 +23,8 @@ LoggerRecipe
 complete_logger
 
 update_logger!
+
+reset_logger!
+
+threshold_stop
 ```
