@@ -37,8 +37,9 @@ instead we apply the Fast Walsh-Hadamard transform to the matrix ``DA``, which h
 - `carinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
     By default `Left()` is chosen.
-- `compression_dim`, the target compression dimension. Referred to as ``s`` in the
-    mathemtical description. By default this is set to 2.
+- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
+    mathematical description. By default this is set to 2.
+- `block_size::Int64`, the number of vectors in the padding matrix.
 - `sparsity::Int64`, the desired sparsity of the matrix ``K``, by default sparsity will be 
     set to be ``\\min\\left(1/4 \\log(n)^2 / m, 1\\right)``, see [ailon2009fast](@cite).
 - `type::Type{<:Number}`, the type of elements in the compressor.
@@ -53,6 +54,7 @@ instead we apply the Fast Walsh-Hadamard transform to the matrix ``DA``, which h
 struct FJLT <: Compressor
     cardinality::Cardinality
     compression_dim::Int64
+    block_size::Int64
     sparsity::Float64
     type::Type{<:Number}
     # perform checks on the number of non-zeros
@@ -63,6 +65,8 @@ struct FJLT <: Compressor
             throw(ArgumentError("Field `compression_dim` must be positive."))
         elseif sparsity > 1
             throw(ArgumentError("Field `sparsity` must be less than 1."))
+        elseif block_size <= 0
+            throw(ArgumentError("Field `block_size` must be positive."))
         end
 
         return new(cardinality, compression_dim, sparsity, type)
@@ -72,11 +76,12 @@ end
 function FJLT(;
     cardinality=Left(),
     compression_dim::Int64=2,
+    block_size::Int64=10,
     sparsity::Float64=0.0,
     type::Type{N}=Float64,
 ) where {N<:Number}
     # Partially construct the sparse sign datatype
-    return FJLT(cardinality, compression_dim, sparsity, type)
+    return FJLT(cardinality, compression_dim, block_size, sparsity, type)
 end
 
 """
@@ -98,7 +103,7 @@ mutable struct FJLTRecipe{
     C<:Cardinality, 
     S<:SparseMatrixCSC, 
     M<:AbstractMatrix
-   } <: CompressorRecipe
+} <: CompressorRecipe
     cardinality::C
     n_rows::Int64
     n_cols::Int64
@@ -112,6 +117,7 @@ end
 
 function compute_padding(
     compression_dim::Int64, 
+    block_size::Int64,
     cardinality::Left,
     A::AbstractMatrix, 
     type::Type{<:Number}
@@ -124,10 +130,10 @@ function compute_padding(
     padded_size = Int64(2^(ceil(log(2, a_rows))))
     n_cols = padded_size 
     # Generate the padded matrix and signs which need padded size
-    padded_matrix = zeros(type, padded_size, size(A,2))
+    padded_matrix = zeros(type, padded_size, block_size)
     signs = bitrand(padded_size)
     # return the computed dimensions and the unused A dimension for padded matrix construct
-    return n_rows, n_cols, size(A, 2), padded_matrix, signs, type(1/sqrt(padded_size))
+    return n_rows, n_cols, padded_matrix, signs, type(1/sqrt(padded_size))
 end
 
 function compute_padding(
@@ -155,18 +161,18 @@ function complete_compressor(ingredients::FJLT, A::AbstractMatrix)
     # Pad matrix and constant vector
     pad = compute_padding(
         ingredients.compression_dim, 
+        ingredients.block_size,
         ingredients.cardinality, 
         A, 
         ingredients.type
     )
     n_rows = pad[1]
     n_cols = pad[2]
-    unused_dim = pad[3]
     pad_mat = pad[4]
     signs = pad[5]
     scaling = pad[6]
     # set default sparsity parameter if not specified
-    sparsity = ingredients.sparsity == 0.0 ? .25 * log(unused_dim)^2 / n_rows : sparsity
+    sparsity = ingredients.sparsity == 0.0 ? .25 * log(size(A,2))^2 / n_rows : sparsity
     # generate sparse matrix nonzero gaussian entries occuring with probability sparsity
     sparse_mat = sprandn(ingredients.type, n_rows, n_cols, sparsity) ./ sqrt(sparsity)
     return FJLTRecipe{typeof(ingredients.cardinality), typeof(sparse_mat), typeof(pad_mat)}(
@@ -203,9 +209,11 @@ function mul!(
     # Here padding does not allow us to use standard dim check
     # instead we check that rows of C == rows of S and cols of C == cols of A, but we only 
     # cheeck that the cols of S > rows of A
-    c_rows, c_cols = size(C)
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
+    c_rows, c_cols = size(C, 1), size(C, 2)
+    s_rows, s_cols = size(S, 1), size(S, 2)
+    a_rows, a_cols = size(A, 1), size(A, 2)
+    type = eltype(S.op)
+    b_size = size(S.padding, 2)
     if c_rows != s_rows
         throw(
             DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows.")
@@ -214,74 +222,141 @@ function mul!(
         throw(
             DimensionMismatch("Matrix C has $c_cols columns while A has $a_cols columns.")
         )
-    elseif a_rows > s_cols
+    elseif a_rows > s_cols 
         throw(
             DimensionMismatch("Matrix A has more rows than the matrix S has columns.")
         )
-    elseif size(S.padding, 2) < a_cols
-        throw(
-            DimensionMismatch("Matrix A has more columns than the padding matrix in S.")
-        )
     end
 
-    # ensure that padding matrix is set to zeros
-    fill!(S.padding, zero(eltype(S.op)))
-    # Copy the matrix A to the padding matrix
-    pv = view(S.padding, 1:a_rows, :)
-    copyto!(pv, A)
-    # Apply signs and fwht to the padding matrix
-    # Perform this blockwise to accomdate when the number rows does not equal that in the 
-    # original matrix
-    for i in 1:a_cols
-        pv = view(S.padding, :, i)
-        fwht!(pv, S.signs, scaling = S.scale) 
+    # To be memory efficient we apply FJLT block-wise in column blocks
+    last_block_size = rem(a_cols, b_size)
+    # Compute the number of full block iterations that will be needed
+    n_iter = div(a_cols, b_size)
+    start_col = 1
+    for i in 1:n_iter
+        # Working with blocks requires views of the matrix
+        last_col = start_col + b_size - 1
+        Av = view(A, :, start_col:last_col)
+        Cv = view(C, :, start_col:last_col)
+        pv = view(S.padding, 1:a_rows, :)
+        # ensure that padding matrix is set to zeros
+        fill!(S.padding, zero(type))
+        # Copy the matrix A to the padding matrix
+        copyto!(pv, Av)
+        # Apply signs and fwht to the padding matrix
+        for i in 1:b_size
+            pv = view(S.padding, :, i)
+            fwht!(pv, S.signs, scaling = S.scale) 
+        end
+
+        # Apply the operator to the matrix
+        mul!(Cv, S.op, S.padding, alpha, beta)
+        start_col = last_col + 1
+    end
+    
+    # Handle the last block that is last than the block size
+    if last_block_size > 0
+        last_col = start_col + last_block_size - 1
+        Av = view(A, :, start_col:last_col)
+        Cv = view(C, :, start_col:last_col)
+        pv = view(S.padding, 1:a_rows, :)
+        # ensure that padding matrix is set to zeros
+        fill!(S.padding, zero(type))
+        # Copy the matrix A to the padding matrix
+        copyto!(pv, Av)
+        # Apply signs and fwht to the padding matrix
+        for i in 1:b_size
+            pv = view(S.padding, :, i)
+            fwht!(pv, S.signs, scaling = S.scale) 
+        end
+        
+        pv = view(S.padding, :, start_col:last_col)
+        # Apply the operator to the matrix
+        mul!(Cv, S.op, pv, alpha, beta)
     end
 
-    return mul!(C, S.op, S.padding, alpha, beta)
+    return nothing 
 end
 
 # Calculates S.op * A and stores it in C  when S has left cardinality
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
-    S::Adjoint{FJLTRecipe{Left, <:SparseMatrixCSC, <:AbstractMatrix}}, 
+    S::FJLTRecipe{Left, <:SparseMatrixCSC, <:AbstractMatrix}, 
     alpha::Number, 
     beta::Number
 )
     # Here padding does not allow us to use standard dim check
     # instead we check that rows of C == rows of S and cols of C == cols of A, but we only 
     # cheeck that the cols of S > rows of A
-    c_rows, c_cols = size(C)
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
-    if c_rows != s_rows
+    c_rows, c_cols = size(C, 1), size(C, 2)
+    s_rows, s_cols = size(S, 1), size(S, 2)
+    a_rows, a_cols = size(A, 1), size(A, 2)
+    b_size = size(S.padding, 2)
+    type = eltype(S.op)
+    if c_rows != a_rows
         throw(
-            DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows.")
+            DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
         )
-    elseif c_cols != a_cols
+    elseif c_cols > s_cols 
         throw(
-            DimensionMismatch("Matrix C has $c_cols columns while A has $a_cols columns.")
+            DimensionMismatch("Matrix C has more columns and S.")
         )
-    elseif a_rows > s_cols
+    elseif a_cols != s_rows
         throw(
-            DimensionMismatch("Matrix A has more rows than the matrix S has columns.")
+            DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
         )
-    elseif size(S.padding, 2) < a_cols
-        throw(
-            DimensionMismatch("Matrix A has more columns than the padding matrix in S.")
-        )
-    end
-    # With left cardinality first apply the operator matrix to A then place the result in
-    # the padding matrix
-    mul!(S.padding, S.op, A, alpha, 0.0)
-    # Copy the matrix A to the padding matrix
-    # Apply signs and fwht to the padding matrix
-    for i in 1:a_rows
-        pv = view(S.padding, i, :)
-        fwht!(pv, S.signs, scaling = S.scale) 
     end
 
-    return axpby!(1.0, beta, C, S.padding)
+    # To be memory efficient we apply FJLT block-wise in column blocks
+    last_block_size = rem(a_rows, b_size)
+    # Compute the number of full block iterations that will be needed
+    n_iter = div(a_rows, b_size)
+    start_row = 1
+    for i in 1:n_iter
+        # Working with blocks requires views of the matrix
+        last_row = start_row + b_size - 1
+        Av = view(A, start_row:last_row, :)
+        Cv = view(C, start_row:last_row, :)
+        pv = view(S.padding, :, :)
+        # Everything should be stored in the transpose of padding matrix because of 
+        # left padding matrix is strucuted with more rows than columns
+        mul!(pv', Av, S.op, alpha, zero(type))
+        # Apply signs and fwht to the padding matrix
+        for i in 1:b_size
+            pv = view(S.padding, :, i)
+            fwht!(pv, S.signs, scaling = S.scale) 
+        end
+       
+        pv = view(S.padding, 1:c_cols, :)
+        # add the result to C note that because of padding instead of returning padded 
+        # matrix we only return the part that corresponds to the dimensions of C
+        axpby!(one(type), pv', beta, Cv)
+        start_row = last_row + 1
+    end
+    
+    # Handle the last block that is last than the block size
+    if last_block_size > 0
+        last_row = start_row + last_block_size - 1
+        Av = view(A, start_row:last_row, :)
+        Cv = view(C, start_row:last_row, :)
+        pv = view(S.padding, :, :)
+        # Everything should be stored in the transpose of padding matrix because of 
+        # left padding matrix is strucuted with more rows than columns
+        mul!(pv', Av, S.op, alpha, zero(type))
+        # Apply signs and fwht to the padding matrix
+        for i in 1:b_size
+            pv = view(S.padding, :, i)
+            fwht!(pv, S.signs, scaling = S.scale) 
+        end
+       
+        pv = view(S.padding, 1:c_cols, :)
+        # add the result to C note that because of padding instead of returning padded 
+        # matrix we only return the part that corresponds to the dimensions of C
+        axpby!(one(type), pv', beta, Cv)
+    end
+
+    return nothing 
 end
 
 # Calculates A * S.op and stores it in C 
@@ -295,46 +370,77 @@ function mul!(
     # Here padding does not allow us to use standard dim check
     # instead we check that rows of C == rows of A and cols of C == cols of S, but we only 
     # cheeck that the rows of S > cols of A
-    c_rows, c_cols = size(C)
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
+    c_rows, c_cols = size(C, 1), size(C, 2)
+    s_rows, s_cols = size(S, 1), size(S, 2)
+    a_rows, a_cols = size(A, 1), size(A, 2)
+    type = eltype(S.op)
+    b_size = size(S.padding, 1)
     if c_rows != a_rows
         throw(
             DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
         )
-    elseif c_cols != s_cols
+    elseif c_cols > s_cols 
         throw(
-            DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns.")
+            DimensionMismatch("Matrix C has more columns and S.")
         )
-    elseif a_cols > s_rows
+    elseif a_cols != s_rows
         throw(
-            DimensionMismatch("Matrix A has more columsn than the matrix S has rows.")
-        )
-    elseif size(S.padding, 1) < a_rows
-        throw(
-            DimensionMismatch("Matrix A has more rows than the padding matrix in S.")
+            DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
         )
     end
 
-    # ensure that padding matrix is set to zeros
-    fill!(S.padding, zero(eltype(S.op)))
-    # Copy the matrix A to the padding matrix
-    pv = view(S.padding, :, 1:a_cols)
-    copyto!(pv, A)
-    # Apply signs and fwht to the padding matrix
-    # Perform this blockwise to accomdate when the number rows does not equal that in the 
-    # original matrix
-    for i in 1:a_rows
-        pv = view(S.padding, i, :)
-        fwht!(pv, S.signs, scaling = S.scale) 
+    # To be memory efficient we apply FJLT block-wise in column blocks
+    last_block_size = rem(a_rows, b_size)
+    # Compute the number of full block iterations that will be needed
+    n_iter = div(a_rows, b_size)
+    start_row = 1
+    for i in 1:n_iter
+        # Working with blocks requires views of the matrix
+        last_row = start_row + b_size - 1
+        Av = view(A, :, start_row:last_row)
+        Cv = view(C, :, start_row:last_row)
+        pv = view(S.padding, :, 1:a_cols)
+        # ensure that padding matrix is set to zeros
+        fill!(S.padding, zero(type))
+        # Copy the matrix A to the padding matrix
+        copyto!(pv, Av)
+        # Apply signs and fwht to the padding matrix
+        for i in 1:b_size
+            pv = view(S.padding, :, i)
+            fwht!(pv, S.signs, scaling = S.scale) 
+        end
+
+        # Apply the operator to the matrix
+        mul!(Cv, S.padding, S.op, alpha, beta)
+        start_col = last_col + 1
+    end
+    
+    # Handle the last block that is last than the block size
+    if last_block_size > 0
+        last_col = start_col + last_block_size - 1
+        Av = view(A, :, start_row:last_row)
+        Cv = view(C, :, start_row:last_row)
+        pv = view(S.padding, :, 1:a_cols)
+        # ensure that padding matrix is set to zeros
+        fill!(S.padding, zero(type))
+        # Copy the matrix A to the padding matrix
+        copyto!(pv, Av)
+        # Apply signs and fwht to the padding matrix
+        for i in 1:b_size
+            pv = view(S.padding, :, i)
+            fwht!(pv, S.signs, scaling = S.scale) 
+        end
+
+        # Apply the operator to the matrix
+        mul!(Cv, S.padding, S.op, alpha, beta)
     end
 
-    return mul!(C, S.padding, S.op, alpha, beta)
+    return nothing
 end
 
 function mul!(
     C::AbstractArray, 
-    S::Adjoint{FJLTRecipe{Right, <:SparseMatrixCSC, <:AbstractMatrix}}, 
+    S::FJLTRecipe{Right, <:SparseMatrixCSC, <:AbstractMatrix}, 
     A::AbstractArray, 
     alpha::Number, 
     beta::Number
@@ -342,33 +448,72 @@ function mul!(
     # Here padding does not allow us to use standard dim check
     # instead we check that rows of C == rows of A and cols of C == cols of S, but we only 
     # cheeck that the rows of S > cols of A
-    c_rows, c_cols = size(C)
-    s_rows, s_cols = size(S)
-    a_rows, a_cols = size(A)
+    c_rows, c_cols = size(C, 1), size(C, 2)
+    s_rows, s_cols = size(S, 1), size(S, 2)
+    a_rows, a_cols = size(A, 1), size(A, 2)
+    b_size = size(S.padding, 1)
+    type = eltype(S.op)
     if c_rows != a_rows
         throw(
             DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
         )
-    elseif c_cols != s_cols
+    elseif c_cols > s_cols 
         throw(
-            DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns.")
+            DimensionMismatch("Matrix C has more columns and S.")
         )
-    elseif a_cols > s_rows
+    elseif a_cols != s_rows
         throw(
-            DimensionMismatch("Matrix A has more columsn than the matrix S has rows.")
-        )
-    elseif size(S.padding, 1) < a_rows
-        throw(
-            DimensionMismatch("Matrix A has more rows than the padding matrix in S.")
+            DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
         )
     end
 
-    mul!(S.padding, S.op, A, alpha, 0.0)
-    # Apply signs and fwht to the padding matrix
-    for i in 1:a_cols
-        pv = view(S.padding, :, i)
-        fwht!(pv, S.signs, scaling = S.scale) 
+    # To be memory efficient we apply FJLT block-wise in column blocks
+    last_block_size = rem(a_cols, b_size)
+    # Compute the number of full block iterations that will be needed
+    n_iter = div(a_cols, b_size)
+    start_row = 1
+    for i in 1:n_iter
+        # Working with blocks requires views of the matrix
+        last_col = start_col + b_size - 1
+        Av = view(A, :, start_col:last_col)
+        Cv = view(C, :, start_col:last_col)
+        pv = view(S.padding, :, :)
+        # Everything should be stored in the transpose of padding matrix because of 
+        # left padding matrix is strucuted with more rows than columns
+        mul!(pv', S.op, Av,  alpha, zero(type))
+        # Apply signs and fwht to the padding matrix
+        for i in 1:b_size
+            pv = view(S.padding, :, i)
+            fwht!(pv, S.signs, scaling = S.scale) 
+        end
+       
+        pv = view(S.padding,:, 1:c_rows)
+        # add the result to C note that because of padding instead of returning padded 
+        # matrix we only return the part that corresponds to the dimensions of C
+        axpby!(one(type), pv', beta, Cv)
+        start_col = last_col + 1
+    end
+    
+    # Handle the last block that is last than the block size
+    if last_block_size > 0
+        last_col = start_col + last_block_size - 1
+        Av = view(A, :, start_col:last_col)
+        Cv = view(C, :, start_col:last_col)
+        pv = view(S.padding, :, :)
+        # Everything should be stored in the transpose of padding matrix because of 
+        # left padding matrix is strucuted with more rows than columns
+        mul!(pv', S.op, Av,  alpha, zero(type))
+        # Apply signs and fwht to the padding matrix
+        for i in 1:b_size
+            pv = view(S.padding, :, i)
+            fwht!(pv, S.signs, scaling = S.scale) 
+        end
+       
+        pv = view(S.padding,:, 1:c_rows)
+        # add the result to C note that because of padding instead of returning padded 
+        # matrix we only return the part that corresponds to the dimensions of C
+        axpby!(one(type), pv', beta, Cv)
     end
 
-    return axpby!(1.0, beta, C, S.padding)
+    return nothing
 end

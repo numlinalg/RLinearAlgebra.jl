@@ -17,18 +17,26 @@ Random.seed!(2131)
         @test fieldtypes(FJLT) == (Cardinality, Int64, Float64, Type{<:Number})
 
         # Verify the Internal Constructor
-        let cardinality = Left(), compression_dim = 0, sparsity = 0.0, type = Float64
+        let cardinality = Left(), comp_dim = 0, bs = 2, sparsity = 0.0, type = Float64
             @test_throws ArgumentError(
                 "Field `compression_dim` must be positive."
             ) FJLT(
-                cardinality, compression_dim, sparsity, type
+                cardinality, compression_dim, bs, sparsity, type
             )
         end
 
-        let cardinality = Left(), compression_dim = 1, sparsity = 1.1, type = Float64
+        let cardinality = Left(), comp_dim = 0, bs = 0, sparsity = 0.0, type = Float64
+            @test_throws ArgumentError(
+                "Field `block_size` must be positive."
+            ) FJLT(
+                cardinality, compression_dim, bs, sparsity, type
+            )
+        end
+
+        let cardinality = Left(), comp_dim = 1, bs = 2, sparsity = 1.1, type = Float64
             @test_throws ArgumentError(
                 "Field `sparsity` must be less than 1."
-            ) FJLT(cardinality, compression_dim, sparsity, type)
+            ) FJLT(cardinality, compression_dim, bs, sparsity, type)
         end
 
         # Verify external constructor and type 
