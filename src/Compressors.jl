@@ -567,4 +567,6 @@ end
 ###################################
 # Include Compressor Files
 ###################################
+include("Compressors/Distributions.jl")
 include("Compressors/sparse_sign.jl")
+include("Compressors/Distributions.jl")

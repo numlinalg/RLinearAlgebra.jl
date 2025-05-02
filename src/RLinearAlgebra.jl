@@ -21,6 +21,10 @@ export Cardinality, Left, Right
 export complete_compressor, update_compressor!
 export SparseSign, SparseSignRecipe
 
+# Export Distribution types and functions
+export Distribution, DistributionRecipe
+export complete_distribution, update_distribution!
+
 # Export Solver types and functions
 export Solver, SolverRecipe
 export complete_solver, update_solver!, rsolve, rsolve!
