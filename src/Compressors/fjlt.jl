@@ -58,7 +58,7 @@ struct FJLT <: Compressor
     sparsity::Float64
     type::Type{<:Number}
     # perform checks on the number of non-zeros
-    function FJLT(cardinality, compression_dim, sparsity, type)
+    function FJLT(cardinality, compression_dim, block_size, sparsity, type)
         # the compression dimension must be positive and larger than the number of 
         # nonzeros
         if compression_dim <= 0
@@ -69,7 +69,7 @@ struct FJLT <: Compressor
             throw(ArgumentError("Field `block_size` must be positive."))
         end
 
-        return new(cardinality, compression_dim, sparsity, type)
+        return new(cardinality, compression_dim, block_size, sparsity, type)
     end
 end
 
@@ -138,6 +138,7 @@ end
 
 function compute_padding(
     compression_dim::Int64, 
+    block_size::Int64,
     cardinality::Right, 
     A::AbstractMatrix, 
     type::Type{<:Number}
@@ -153,7 +154,7 @@ function compute_padding(
     padded_matrix = zeros(type, size(A, 1), padded_size)
     signs = bitrand(padded_size)
     # return the computed dimensions and the unused A dimension for padded matrix construct
-    return n_rows, n_cols, size(A, 1), padded_matrix, signs, type(1/sqrt(padded_size))
+    return n_rows, n_cols, padded_matrix, signs, type(1/sqrt(padded_size))
 end
 
 function complete_compressor(ingredients::FJLT, A::AbstractMatrix)
@@ -168,9 +169,9 @@ function complete_compressor(ingredients::FJLT, A::AbstractMatrix)
     )
     n_rows = pad[1]
     n_cols = pad[2]
-    pad_mat = pad[4]
-    signs = pad[5]
-    scaling = pad[6]
+    pad_mat = pad[3]
+    signs = pad[4]
+    scaling = pad[5]
     # set default sparsity parameter if not specified
     sparsity = ingredients.sparsity == 0.0 ? .25 * log(size(A,2))^2 / n_rows : sparsity
     # generate sparse matrix nonzero gaussian entries occuring with probability sparsity
@@ -317,8 +318,8 @@ function mul!(
         # Working with blocks requires views of the matrix
         last_row = start_row + b_size - 1
         Av = view(A, start_row:last_row, :)
-        Cv = view(C, start_row:last_row, :)
-        pv = view(S.padding, :, :)
+        Cv = view(C, start_row:last_row, 1:a_cols)
+        pv = view(S.padding, :, 1:a_rows)
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is strucuted with more rows than columns
         mul!(pv', Av, S.op, alpha, zero(type))
@@ -328,7 +329,7 @@ function mul!(
             fwht!(pv, S.signs, scaling = S.scale) 
         end
        
-        pv = view(S.padding, 1:c_cols, :)
+        pv = view(S.padding, 1:a_cols, 1:c_rows)
         # add the result to C note that because of padding instead of returning padded 
         # matrix we only return the part that corresponds to the dimensions of C
         axpby!(one(type), pv', beta, Cv)
@@ -339,18 +340,18 @@ function mul!(
     if last_block_size > 0
         last_row = start_row + last_block_size - 1
         Av = view(A, start_row:last_row, :)
-        Cv = view(C, start_row:last_row, :)
-        pv = view(S.padding, :, :)
+        Cv = view(C, start_row:last_row, 1:a_cols)
+        pv = view(S.padding, :, 1:a_rows)
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is strucuted with more rows than columns
         mul!(pv', Av, S.op, alpha, zero(type))
         # Apply signs and fwht to the padding matrix
-        for i in 1:b_size
+        for i in 1:last_block_size
             pv = view(S.padding, :, i)
             fwht!(pv, S.signs, scaling = S.scale) 
         end
        
-        pv = view(S.padding, 1:c_cols, :)
+        pv = view(S.padding, 1:a_cols, 1:c_rows)
         # add the result to C note that because of padding instead of returning padded 
         # matrix we only return the part that corresponds to the dimensions of C
         axpby!(one(type), pv', beta, Cv)
@@ -383,7 +384,7 @@ function mul!(
         throw(
             DimensionMismatch("Matrix C has more columns and S.")
         )
-    elseif a_cols != s_rows
+    elseif a_cols > s_rows
         throw(
             DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
         )
@@ -397,42 +398,44 @@ function mul!(
     for i in 1:n_iter
         # Working with blocks requires views of the matrix
         last_row = start_row + b_size - 1
-        Av = view(A, :, start_row:last_row)
-        Cv = view(C, :, start_row:last_row)
-        pv = view(S.padding, :, 1:a_cols)
+        Av = view(A, start_row:last_row, :)
+        Cv = view(C, start_row:last_row, :)
+        pv = view(S.padding, 1:a_rows, :)
         # ensure that padding matrix is set to zeros
         fill!(S.padding, zero(type))
         # Copy the matrix A to the padding matrix
         copyto!(pv, Av)
         # Apply signs and fwht to the padding matrix
         for i in 1:b_size
-            pv = view(S.padding, :, i)
+            pv = view(S.padding, i, :)
             fwht!(pv, S.signs, scaling = S.scale) 
         end
 
+        pv = view(S.padding, start_row:last_row, :)
         # Apply the operator to the matrix
-        mul!(Cv, S.padding, S.op, alpha, beta)
-        start_col = last_col + 1
+        mul!(Cv, pv, S.op, alpha, beta)
+        start_col = last_row + 1
     end
     
     # Handle the last block that is last than the block size
     if last_block_size > 0
-        last_col = start_col + last_block_size - 1
-        Av = view(A, :, start_row:last_row)
-        Cv = view(C, :, start_row:last_row)
-        pv = view(S.padding, :, 1:a_cols)
+        last_row = start_row + last_block_size - 1
+        Av = view(A, start_row:last_row, :)
+        Cv = view(C, start_row:last_row, :)
+        pv = view(S.padding, 1:a_rows, :)
         # ensure that padding matrix is set to zeros
         fill!(S.padding, zero(type))
         # Copy the matrix A to the padding matrix
         copyto!(pv, Av)
         # Apply signs and fwht to the padding matrix
-        for i in 1:b_size
-            pv = view(S.padding, :, i)
+        for i in 1:last_block_size
+            pv = view(S.padding, i, :)
             fwht!(pv, S.signs, scaling = S.scale) 
         end
 
+        pv = view(S.padding, start_row:last_row, :)
         # Apply the operator to the matrix
-        mul!(Cv, S.padding, S.op, alpha, beta)
+        mul!(Cv, pv, S.op, alpha, beta)
     end
 
     return nothing
@@ -453,17 +456,17 @@ function mul!(
     a_rows, a_cols = size(A, 1), size(A, 2)
     b_size = size(S.padding, 1)
     type = eltype(S.op)
-    if c_rows != a_rows
+    if c_cols != a_cols
         throw(
-            DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
+            DimensionMismatch("Matrix C has $c_cols cols while A has $a_cols cols.")
         )
-    elseif c_cols > s_cols 
+    elseif c_rows > s_rows 
         throw(
-            DimensionMismatch("Matrix C has more columns and S.")
+            DimensionMismatch("Matrix C has more rows than S.")
         )
-    elseif a_cols != s_rows
+    elseif a_rows > s_cols
         throw(
-            DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
+            DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols cols.")
         )
     end
 
@@ -471,7 +474,7 @@ function mul!(
     last_block_size = rem(a_cols, b_size)
     # Compute the number of full block iterations that will be needed
     n_iter = div(a_cols, b_size)
-    start_row = 1
+    start_col = 1
     for i in 1:n_iter
         # Working with blocks requires views of the matrix
         last_col = start_col + b_size - 1
@@ -483,11 +486,11 @@ function mul!(
         mul!(pv', S.op, Av,  alpha, zero(type))
         # Apply signs and fwht to the padding matrix
         for i in 1:b_size
-            pv = view(S.padding, :, i)
+            pv = view(S.padding, i, :)
             fwht!(pv, S.signs, scaling = S.scale) 
         end
        
-        pv = view(S.padding,:, 1:c_rows)
+        pv = view(S.padding, 1:c_cols, :)
         # add the result to C note that because of padding instead of returning padded 
         # matrix we only return the part that corresponds to the dimensions of C
         axpby!(one(type), pv', beta, Cv)
@@ -499,17 +502,17 @@ function mul!(
         last_col = start_col + last_block_size - 1
         Av = view(A, :, start_col:last_col)
         Cv = view(C, :, start_col:last_col)
-        pv = view(S.padding, :, :)
+        pv = view(S.padding, 1:a_cols, :)
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is strucuted with more rows than columns
         mul!(pv', S.op, Av,  alpha, zero(type))
         # Apply signs and fwht to the padding matrix
-        for i in 1:b_size
-            pv = view(S.padding, :, i)
+        for i in 1:last_block_size
+            pv = view(S.padding, i, :)
             fwht!(pv, S.signs, scaling = S.scale) 
         end
        
-        pv = view(S.padding,:, 1:c_rows)
+        pv = view(S.padding, 1:c_cols, :)
         # add the result to C note that because of padding instead of returning padded 
         # matrix we only return the part that corresponds to the dimensions of C
         axpby!(one(type), pv', beta, Cv)
