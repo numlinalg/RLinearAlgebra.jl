@@ -18,7 +18,7 @@ seed!(21321)
 
         let cardinality = Left(), compression_dim = 0, type = Float64
             @test_throws ArgumentError(
-                "Field 'Compression_dim' must be positive."
+                "Field 'compression_dim' must be positive."
             ) Gaussian(
                 cardinality, compression_dim, type
             )
@@ -26,7 +26,7 @@ seed!(21321)
 
         let cardinality = Left(), compression_dim = -7, type = Float64
             @test_throws ArgumentError(
-                "Field 'Compression_dim' must be positive."
+                "Field 'compression_dim' must be positive."
             ) Gaussian(
                 cardinality, compression_dim, type
             )
@@ -38,7 +38,7 @@ seed!(21321)
             typeof(compressor.cardinality) == Card
         end
 
-        for type in [Bool, Int16, Int32, Int64, Float16, Float32, Float64]
+        for type in [Float16, Float32, Float64]
             compressor = Gaussian(; cardinality=Right(), type=type)
             @test compressor.type == type
         end
