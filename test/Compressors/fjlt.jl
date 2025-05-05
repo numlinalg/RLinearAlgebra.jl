@@ -13,30 +13,36 @@ Random.seed!(2131)
         @test supertype(FJLT) == Compressor
 
         # Verify fields and types
-        @test fieldnames(FJLT) == (:cardinality, :compression_dim, :sparsity, :type)
-        @test fieldtypes(FJLT) == (Cardinality, Int64, Float64, Type{<:Number})
+        @test fieldnames(FJLT) == (
+            :cardinality, 
+            :compression_dim, 
+            :block_size, 
+            :sparsity, 
+            :type
+        )
+        @test fieldtypes(FJLT) == (Cardinality, Int64, Int64, Float64, Type{<:Number})
 
         # Verify the Internal Constructor
         let cardinality = Left(), comp_dim = 0, bs = 2, sparsity = 0.0, type = Float64
             @test_throws ArgumentError(
                 "Field `compression_dim` must be positive."
             ) FJLT(
-                cardinality, compression_dim, bs, sparsity, type
+                cardinality, comp_dim, bs, sparsity, type
             )
         end
 
-        let cardinality = Left(), comp_dim = 0, bs = 0, sparsity = 0.0, type = Float64
+        let cardinality = Left(), comp_dim = 1, bs = 0, sparsity = 0.0, type = Float64
             @test_throws ArgumentError(
                 "Field `block_size` must be positive."
             ) FJLT(
-                cardinality, compression_dim, bs, sparsity, type
+                cardinality, comp_dim, bs, sparsity, type
             )
         end
 
         let cardinality = Left(), comp_dim = 1, bs = 2, sparsity = 1.1, type = Float64
             @test_throws ArgumentError(
                 "Field `sparsity` must be less than 1."
-            ) FJLT(cardinality, compression_dim, bs, sparsity, type)
+            ) FJLT(cardinality, comp_dim, bs, sparsity, type)
         end
 
         # Verify external constructor and type 
@@ -46,7 +52,7 @@ Random.seed!(2131)
         end
 
         for type in [Bool, Int16, Int32, Int64, Float16, Float32, Float64]
-            compressor = FJLT(; cardinality=Right(), type=type)
+            compressor = FJLT(cardinality=Right(), type=type)
             @test compressor.type == type
         end
 
@@ -69,93 +75,102 @@ Random.seed!(2131)
             AbstractMatrix
         )
 
-    end
-
-    @testset "FJLT: Compute Padding" begin
-        # For Left Try padding when n_rows is power of 2
+        # test the constructors
         let card = Left(),
             n_rows = 8,
             n_cols = 3,
+            sparsity = .3,
             padded_dim = 8,
             comp_dim = 3,
+            block_size = 10,
             type = Float16
 
-            A = rand(type, n_rows, n_cols)
-            pad = RLinearAlgebra.compute_padding(comp_dim, card, A, type)
-            @test pad[1] == comp_dim
-            @test pad[2] == padded_dim 
-            @test pad[3] == size(A,2)
-            # test the padding matrix is correct
-            @test size(pad[4]) == (padded_dim, size(A,2)) 
-            @test eltype(pad[4]) == type
-            # test that the bitvect is of the correct type and length
-            @test typeof(pad[5]) == BitVector
-            @test length(pad[5]) == padded_dim 
+            A = rand(n_rows, n_cols)
+            recipe = FJLTRecipe(comp_dim, block_size, card, sparsity, A, type)
+            @test typeof(recipe) == FJLTRecipe{
+                typeof(card), 
+                SparseMatrixCSC{type, Int64}, 
+                Matrix{type}
+            }
+            @test recipe.cardinality == Left()
+            @test recipe.n_rows == comp_dim
+            @test recipe.n_cols == n_rows
+            @test recipe.sparsity == sparsity
+            @test recipe.scale == type(
+                1 / (sqrt(padded_dim) * sqrt(comp_dim) * sqrt(sparsity))
+            )
+            @test typeof(recipe.op) <: SparseMatrixCSC
+            @test eltype(recipe.op) == type
+            @test size(recipe.op) == (comp_dim, padded_dim)
+            @test typeof(recipe.signs) == BitVector
+            @test size(recipe.padding) == (padded_dim, block_size) 
+            @test eltype(recipe.padding) == type
         end
 
-        # For Left Try padding when n_rows is not power of 2
+        # test the with sparsity of 0 and non power of 2 row 
         let card = Left(),
             n_rows = 6,
             n_cols = 3,
+            sparsity = 0.0,
             padded_dim = 8,
             comp_dim = 3,
+            block_size = 10,
             type = Float16
 
-            A = rand(type, n_rows, n_cols)
-            pad = RLinearAlgebra.compute_padding(comp_dim, card, A, type)
-            @test pad[1] == comp_dim
-            @test pad[2] == padded_dim 
-            @test pad[3] == size(A,2)
-            # test the padding matrix is correct
-            @test size(pad[4]) == (padded_dim, size(A,2))
-            @test eltype(pad[4]) == type
-            # test that the bitvect is of the correct type and length
-            @test typeof(pad[5]) == BitVector
-            @test length(pad[5]) == padded_dim 
+            A = rand(n_rows, n_cols)
+            recipe = FJLTRecipe(comp_dim, block_size, card, sparsity, A, type)
+            @test typeof(recipe) == FJLTRecipe{
+                typeof(card), 
+                SparseMatrixCSC{type, Int64}, 
+                Matrix{type}
+            }
+            @test recipe.cardinality == Left()
+            @test recipe.n_rows == comp_dim
+            @test recipe.n_cols == n_rows
+            @test recipe.sparsity == .25 * log(size(A,1))^2 / n_rows 
+            sparsity = recipe.sparsity
+            @test recipe.scale == type(
+                1 / (sqrt(padded_dim) * sqrt(comp_dim) * sqrt(sparsity))
+            )
+            @test typeof(recipe.op) <: SparseMatrixCSC
+            @test eltype(recipe.op) == type
+            @test size(recipe.op) == (comp_dim, padded_dim)
+            @test typeof(recipe.signs) == BitVector
+            @test size(recipe.padding) == (padded_dim, block_size) 
+            @test eltype(recipe.padding) == type
         end
 
-        # For Right Try padding when n_cols is power of 2
-        let card = Right(),
-            n_rows = 3,
-            n_cols = 8,
-            padded_dim = 8,
-            comp_dim = 3,
-            type = Float16
-
-            A = rand(type, n_rows, n_cols)
-            pad = RLinearAlgebra.compute_padding(comp_dim, card, A, type)
-            @test pad[1] == padded_dim 
-            @test pad[2] == comp_dim 
-            @test pad[3] == size(A,1)
-            # test the padding matrix is correct
-            @test size(pad[4]) == (size(A,1), padded_dim)
-            @test eltype(pad[4]) == type
-            # test that the bitvect is of the correct type and length
-            @test typeof(pad[5]) == BitVector
-            @test length(pad[5]) == padded_dim 
-            @test type(1 / sqrt(padded_dim)) == pad[6]
-        end
-
-        # For Right Try padding when n_cols is not power of 2
+        # test the with sparsity of 0 and non power of 2 row 
         let card = Right(),
             n_rows = 3,
             n_cols = 6,
+            sparsity = 0.0,
             padded_dim = 8,
             comp_dim = 3,
+            block_size = 10,
             type = Float16
 
-            A = rand(type, n_rows, n_cols)
-            pad = RLinearAlgebra.compute_padding(comp_dim, card, A, type)
-            @test pad[1] == padded_dim 
-            @test pad[2] == comp_dim 
-            @test pad[3] == size(A,1)
-            # test the padding matrix is correct
-            @test size(pad[4]) == (size(A,1), padded_dim)
-            @test eltype(pad[4]) == type
-            # test that the bitvect is of the correct type and length
-            @test typeof(pad[5]) == BitVector
-            @test length(pad[5]) == padded_dim 
-            @test type(1 / sqrt(padded_dim)) == pad[6]
+            A = rand(n_rows, n_cols)
+            recipe = FJLTRecipe(comp_dim, block_size, card, sparsity, A, type)
+            @test typeof(recipe) == FJLTRecipe{
+                typeof(card), 
+                SparseMatrixCSC{type, Int64}, 
+                Matrix{type}
+            }
+            @test recipe.cardinality == Right()
+            @test recipe.n_rows == n_cols
+            @test recipe.n_cols == comp_dim 
+            @test recipe.sparsity == .25 * log(size(A, 2))^2 / n_cols
+            sparsity = recipe.sparsity
+            @test recipe.scale == type(
+                1 / (sqrt(padded_dim) * sqrt(comp_dim) * sqrt(sparsity))
+            )
+            @test typeof(recipe.op) <: SparseMatrixCSC
+            @test eltype(recipe.op) == type
+            @test size(recipe.op) == (padded_dim, comp_dim)
+            @test typeof(recipe.signs) == BitVector
+            @test size(recipe.padding) == (block_size, padded_dim) 
+            @test eltype(recipe.padding) == type
         end
 
     end
@@ -176,12 +191,44 @@ Random.seed!(2131)
             # Test the values and types
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == c_dim
-            @test compressor_recipe.n_cols == 16 
+            @test compressor_recipe.n_cols == n_rows 
             @test compressor_recipe.sparsity == sp 
-            @test compressor_recipe.scale == type(1 / sqrt(16))
+            @test compressor_recipe.scale == type(1 / (sqrt(4) * sqrt(.3) * sqrt(16)))
             @test typeof(compressor_recipe.op) <: SparseMatrixCSC
             @test typeof(compressor_recipe.signs) == BitVector
             @test typeof(compressor_recipe.padding) == Matrix{type}
+        end
+
+        # test the with sparsity of 0 and non power of 2 row 
+        let card = Right(),
+            n_rows = 3,
+            n_cols = 6,
+            sparsity = 0.3,
+            padded_dim = 8,
+            comp_dim = 3,
+            block_size = 10,
+            type = Float16
+
+            A = rand(n_rows, n_cols)
+            recipe = FJLTRecipe(comp_dim, block_size, card, sparsity, A, type)
+            @test typeof(recipe) == FJLTRecipe{
+                typeof(card), 
+                SparseMatrixCSC{type, Int64}, 
+                Matrix{type}
+            }
+            @test recipe.cardinality == Right()
+            @test recipe.n_rows == n_cols
+            @test recipe.n_cols == comp_dim 
+            @test recipe.sparsity == sparsity 
+            @test recipe.scale == type(
+                1 / (sqrt(padded_dim) * sqrt(comp_dim) * sqrt(sparsity))
+            )
+            @test typeof(recipe.op) <: SparseMatrixCSC
+            @test eltype(recipe.op) == type
+            @test size(recipe.op) == (padded_dim, comp_dim)
+            @test typeof(recipe.signs) == BitVector
+            @test size(recipe.padding) == (block_size, padded_dim) 
+            @test eltype(recipe.padding) == type
         end
 
         # test with right compressor
@@ -198,10 +245,10 @@ Random.seed!(2131)
 
             # Test the values and types
             @test compressor_recipe.cardinality == card
-            @test compressor_recipe.n_rows == 16 
+            @test compressor_recipe.n_rows == n_cols 
             @test compressor_recipe.n_cols == c_dim
             @test compressor_recipe.sparsity == sp 
-            @test compressor_recipe.scale == type(1 / sqrt(16))
+            @test compressor_recipe.scale == type(1 / (sqrt(4) * sqrt(.3) * sqrt(16)))
             @test typeof(compressor_recipe.op) <: SparseMatrixCSC
             @test typeof(compressor_recipe.signs) == BitVector
             @test typeof(compressor_recipe.padding) == Matrix{type}
@@ -230,7 +277,7 @@ Random.seed!(2131)
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == c_dim
             @test compressor_recipe.sparsity == sp 
-            @test compressor_recipe.n_cols == 16 
+            @test compressor_recipe.n_cols == 10 
             @test compressor_recipe.op != oldmat
             @test compressor_recipe.signs != oldsigns
         end
@@ -253,7 +300,7 @@ Random.seed!(2131)
             update_compressor!(compressor_recipe)
             # Test the values and types
             @test compressor_recipe.cardinality == card
-            @test compressor_recipe.n_rows == 16 
+            @test compressor_recipe.n_rows == 10 
             @test compressor_recipe.n_cols == c_dim
             @test compressor_recipe.sparsity == sp 
             @test compressor_recipe.op != oldmat

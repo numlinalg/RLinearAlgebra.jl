@@ -129,14 +129,14 @@ function FJLTRecipe(
     a_rows = size(A, 1)
     # Find nearest power 2 and allocate
     padded_size = Int64(2^(ceil(log(2, a_rows))))
-    n_cols = size(A, 2) 
+    n_cols = size(A, 1) 
     # Generate the padded matrix and signs which need padded size
     padded_matrix = zeros(type, padded_size, block_size)
     signs = bitrand(padded_size)
-    sparsity = sparsity == 0.0 ? .25 * log(size(A,2))^2 / n_rows : sparsity
+    sparsity = sparsity == 0.0 ? .25 * log(size(A, 1))^2 / n_cols : sparsity
     # generate sparse matrix nonzero gaussian entries occuring with probability sparsity
     sparse_mat = sprandn(type, n_rows, padded_size, sparsity)
-    scaling = 1 / (sqrt(padded_size) *  sqrt(sparsity) * sqrt(n_cols))
+    scaling = type(1 / (sqrt(padded_size) *  sqrt(sparsity) * sqrt(n_rows)))
     return FJLTRecipe{typeof(cardinality), typeof(sparse_mat), typeof(padded_matrix)}(
         cardinality,
         n_rows,
@@ -170,7 +170,7 @@ function FJLTRecipe(
     sparsity = sparsity == 0.0 ? .25 * log(size(A,2))^2 / n_rows : sparsity
     # generate sparse matrix nonzero gaussian entries occuring with probability sparsity
     sparse_mat = sprandn(type, padded_size, n_cols, sparsity)
-    scaling = 1 / (sqrt(padded_size) *  sqrt(sparsity) * sqrt(n_cols))
+    scaling = type(1 / (sqrt(padded_size) *  sqrt(sparsity) * sqrt(n_cols)))
     return FJLTRecipe{typeof(cardinality), typeof(sparse_mat), typeof(padded_matrix)}(
         cardinality,
         n_rows,

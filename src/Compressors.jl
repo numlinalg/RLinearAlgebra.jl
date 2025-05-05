@@ -512,8 +512,6 @@ function mul!(C::AbstractArray, A::AbstractArray, S::CompressorRecipe)
     return nothing
 end
 
-#= These are unnecessary and affect correct dispatch should rely on normal three arg 
-#multiplication
 # S' * A -> C; Equivalently: A' * S -> C'
 function mul!(C::AbstractArray, S::CompressorAdjoint, A::AbstractArray)
     mul!(transpose(C), transpose(A), S.parent)
@@ -525,7 +523,7 @@ function mul!(C::AbstractArray, A::AbstractArray, S::CompressorAdjoint)
     mul!(transpose(C), S.parent, transpose(A))
     return nothing
 end
-=#
+
 ##################################################
 # Binary Operator Compressor-Array Multiplications
 ##################################################
