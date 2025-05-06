@@ -37,6 +37,13 @@ A struct indicating matrix multiplication from the right.
 """
 struct Right <: Cardinality end
 
+"""
+    Undef <: Cardinality
+
+A struct indicating matrix multiplication is undefined.
+"""
+struct Undef <: Cardinality end
+
 ###################################
 # Docstring Components  
 ###################################
@@ -569,4 +576,3 @@ end
 ###################################
 include("Compressors/Distributions.jl")
 include("Compressors/sparse_sign.jl")
-include("Compressors/Distributions.jl")

@@ -17,13 +17,13 @@ export complete_approximator, update_approximator!, rapproximate, rapproximate!
 
 # Export Compressor types and functions
 export Compressor, CompressorRecipe, CompressorAdjoint
-export Cardinality, Left, Right
+export Cardinality, Left, Right, Undef
 export complete_compressor, update_compressor!
 export SparseSign, SparseSignRecipe
 
 # Export Distribution types and functions
 export Distribution, DistributionRecipe
-export complete_distribution, update_distribution!
+export complete_distribution, update_distribution!, sample_distribution!
 
 # Export Solver types and functions
 export Solver, SolverRecipe

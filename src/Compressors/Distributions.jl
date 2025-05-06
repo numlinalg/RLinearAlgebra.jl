@@ -86,6 +86,11 @@ function update_distribution!(distribution::DistributionRecipe, A::AbstractMatri
     return nothing
 end
 
+function sample_distribution!(x::AbstractVector, distribution::DistributionRecipe)
+    wsample!(distribution.state_space, distribution.weights, x, ordered = true, replace = distribution.replace)
+    return nothing
+end
+
 ###########################################
 # Include Distribution files
 ###########################################
