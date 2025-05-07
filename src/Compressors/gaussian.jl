@@ -22,33 +22,29 @@ Gaussian distribution with mean being zero and variance being 1 divided by the
 compression dimension.
 
 # Fields
-
-  - `cardinality::Cardinality`, the direction the compression matrix is intended to be
+- `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
-  - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in 
+- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in 
     the mathematical description.
-  - `type::Type{<:Number}`, the type of the elements in the compressor.
+- `type::Type{<:Number}`, the type of the elements in the compressor.
 
 # Constructor
 
     Gaussian(;cardinality=Left(), compression_dim=2, type=Float64)
 
 ## Arguments
-
-  - `cardinality::Cardinality`, the direction the compression matrix is intended to be
+- `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
     By default `Left()` is chosen.
-  - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in 
+- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in 
     the mathemtical description. By default this is set to 2.
-  - `type::Type{<:Number}`, the type of elements in the compressor.
+- `type::Type{<:Number}`, the type of elements in the compressor.
 
 ## Returns
-
-  - A `Gaussian` object.
+- A `Gaussian` object.
 
 ## Throws
-
-  - `ArgumentError` if `compression_dim` is non-positive
+- `ArgumentError` if `compression_dim` is non-positive
 """
 struct Gaussian <: Compressor
     cardinality::Cardinality
@@ -79,15 +75,14 @@ end
 The recipe containing all allocations and information for the Gaussian compressor.
 
 # Fields
-
-  - `cardinality::C where C<:Cardinality`, the cardinality of the compressor. The
-    value is either `Left()` or `Right()`.
-  - `compression_dim::Int64`, the target compression dimension.
-  - `n_rows::Int64`, the number of rows of the compression matrix.
-  - `n_cols::Int64`, the number of columns of the compression matrix.
-  - `scale::Number`, the standard deviation of Gaussian distribution during the 
-    compression matrix generation.
-  - `op::Matrix{Float64}`, the Gaussian compression matrix.
+- `cardinality::C where C<:Cardinality`, the cardinality of the compressor. The
+value is either `Left()` or `Right()`.
+- `compression_dim::Int64`, the target compression dimension.
+- `n_rows::Int64`, the number of rows of the compression matrix.
+- `n_cols::Int64`, the number of columns of the compression matrix.
+- `scale::Number`, the standard deviation of Gaussian distribution during the 
+compression matrix generation.
+- `op::Matrix{Float64}`, the Gaussian compression matrix.
 """
 mutable struct GaussianRecipe{C<:Cardinality} <: CompressorRecipe
     cardinality::C

@@ -567,5 +567,5 @@ end
 ###################################
 # Include Compressor Files
 ###################################
-include("Compressors/Gaussian.jl")
+include("Compressors/gaussian.jl")
 include("Compressors/sparse_sign.jl")
