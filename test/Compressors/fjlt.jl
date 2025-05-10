@@ -1,7 +1,7 @@
 module fjlt 
 using Test, RLinearAlgebra, Random
 import SparseArrays: sparse, SparseMatrixCSC, sprand
-import LinearAlgebra: mul!, Adjoint
+import LinearAlgebra: mul!, Adjoint, Diagonal
 import Hadamard: hadamard
 using ..FieldTest
 using ..ApproxTol
@@ -313,148 +313,219 @@ Random.seed!(2131)
     # Here we want to test the multiplication with matrices and vectors in the 
     # transposed and normal orientations for both the three and five argument mul!
     @testset "FJLT: Left Multiplication" begin
-        # test the errors
-        # C adn S have different rows
+        # Do left multiplicatin from the left side
+        # test left multiplication from the left with power of 2
         let n_rows = 8,
-            n_cols = 8,
+            pad_dim = n_rows,
+            n_cols = 6,
             comp_dim = 2,
-            A = rand(n_rows, n_cols),
-            S = complete_compressor(FJLT(compression_dim = comp_dim), A),
-            C = rand(comp_dim + 1, n_cols)
-            @test_throws DimensionMismatch(
-                "Matrix C has $(comp_dim + 1) rows while S has $comp_dim rows."
-            ) mul!(C, S, A, 1.0, 0.0)
-        end
-
-        # C adn A have different columns 
-        let n_rows = 8,
-            n_cols = 8,
-            comp_dim = 2,
-            A = rand(n_rows, n_cols),
-            S = complete_compressor(FJLT(compression_dim = comp_dim), A),
-            C = rand(comp_dim, n_cols + 1)
-            @test_throws DimensionMismatch(
-                "Matrix C has $(n_cols+1) columns while A has $n_cols columns."
-            ) mul!(C, S, A, 1.0, 0.0)
-        end
-
-        # A has more rows than S
-        let n_rows = 8,
-            n_cols = 8,
-            comp_dim = 2,
-            Agen = rand(n_rows, n_cols),
-            A = rand(n_rows+1, n_cols),
-            S = complete_compressor(FJLT(compression_dim = comp_dim), Agen),
-            C = rand(comp_dim, n_cols)
-            @test_throws DimensionMismatch(
-                "Matrix A has more rows than the matrix S has columns."
-            ) mul!(C, S, A, 1.0, 0.0)
-        end
-
-        # A has more columns than padding matrix in S
-        let n_rows = 8,
-            n_cols = 8,
-            comp_dim = 2,
-            Agen = rand(n_rows, n_cols),
-            A = rand(n_rows, n_cols+1),
-            S = complete_compressor(FJLT(compression_dim = comp_dim), Agen),
-            C = rand(comp_dim, n_cols+1)
-            @test_throws DimensionMismatch(
-                "Matrix A has more columns than the padding matrix in S."
-            ) mul!(C, S, A, 1.0, 0.0)
-        end
-        
-        # Now test the five argument multiplication
-        let n_rows = 20,
-            n_cols = 3,
-            c_dim = 10,
-            pad_dim = 32,
-            A = rand(n_rows, n_cols),
-            B = rand(c_dim, n_cols),
-            C1 = rand(c_dim, n_cols),
-            C2 = rand(pad_dim, n_cols),
-            x = rand(n_rows),
-            y = rand(c_dim),
-            pad_mat = zeros(pad_dim, n_cols)
-            pad_mat2 = zeros(pad_dim, n_cols)
-
-            # copies are for comparing with the "true version"
-            C1c = deepcopy(C1)
-            C2c = deepcopy(C2)
-            yc = deepcopy(y)
-            # Start by testing left sketching multiplications
-            S_info = FJLT(compression_dim=c_dim)
-            S = complete_compressor(S_info, A)
-
-            mul!(C1, S, A, 1.0, 2.0)
+            A = rand(n_rows, n_cols)
+            S = complete_compressor(FJLT(compression_dim = comp_dim), A)
             H = hadamard(pad_dim)
-            pad_mat[1:n_rows, :] = A
-            C_test = S.op * H * (ifelse.(S.signs, 1, -1) .* pad_mat) .* S.scale + C1c * 2.0
-            @test C_test ≈ C1
+            SA = rand(comp_dim, n_cols)
+            SAc = deepcopy(SA)
+            Sy = rand(comp_dim)
+            Syc = deepcopy(Sy)
 
-            mul!(C2, S', B, 1.0, 2.0)
-            fill!(padded_mat, 0.0)
-            pad_mat[1:c_dim, :] = B
-            C_test = S.op * H * (ifelse.(S.signs, 1, -1) .* pad_mat') .* S.scale + C2c * 2.0
-            @test C_test ≈ C2
+            mul!(SA, S, A, 2.0, 1.0)
+            @test SA ≈ SAc + S.op * (H * (ifelse.(S.signs, 1, -1) .* A) * 2 * S.scale)
+            mul!(Sy, S, A[:, 1], 2.0, 1.0)
+            @test Syc ≈ Syc + S.op * (H * (ifelse.(S.signs, 1, -1) .* A[:,1]) * 2 * S.scale)
         end
 
+        # test left multiplication from the left with nonpower of 2
+        let n_rows = 10,
+            pad_dim = 16,
+            n_cols = 6,
+            comp_dim = 2,
+            A = rand(n_rows, n_cols)
+            S = complete_compressor(FJLT(compression_dim = comp_dim), A)
+            H = hadamard(pad_dim)
+            pad_mat = zeros(pad_dim, n_cols)
+            pad_vec = zeros(pad_dim)
+            SA = rand(comp_dim, n_cols)
+            SAc = deepcopy(SA)
+            Sy = rand(comp_dim)
+            Syc = deepcopy(Sy)
+
+            mul!(SA, S, A, 2.0, 1.0)
+            pad_mat[1:n_rows, :] = A
+            pad_res = S.op * (H * (ifelse.(S.signs, 1, -1) .* pad_mat) * 2 * S.scale)
+            @test SA ≈ SAc + pad_res[1:comp_dim, :]
+            pad_vec[1:n_rows] = A[:, 1]
+            pad_res = S.op * (H * (ifelse.(S.signs, 1, -1) .* pad_vec) * 2 * S.scale)
+            mul!(Sy, S, A[:, 1], 2.0, 1.0)
+            @test Sy ≈ Syc + pad_res[1:comp_dim]
+        end
+        # Do left multiplication back from right side
+          # test left multiplication from the left with power of 2
+          let n_rows = 8,
+            pad_dim = n_rows,
+            n_cols = 2,
+            comp_dim = 2,
+            A = rand(n_rows, n_cols)
+            S = complete_compressor(FJLT(compression_dim = comp_dim), A)
+            H = hadamard(pad_dim)
+            SA = rand(n_rows, n_rows)
+            SAc = deepcopy(SA)
+            Sy = rand(n_rows)
+            Syc = deepcopy(Sy)
+
+            mul!(SA, A, S, 2.0, 1.0)
+            testm = SAc + (A * S.op * H) * Diagonal(ifelse.(S.signs, 1, -1)) * 2 * S.scale
+            @test SA ≈ testm
+            mul!(Sy', A[1, :]', S, 2.0, 1.0)
+            testv = Syc' + A[1, :]' * S.op * H * Diagonal(ifelse.(S.signs, 1, -1)) * 2 * S.scale
+            @test Sy ≈ testv'
+        end
+
+        # test left multiplication from the left with nonpower of 2
+        let n_rows = 10,
+            pad_dim = 16,
+            n_cols = 2,
+            comp_dim = 2
+            A = rand(n_rows, n_cols)
+            S = complete_compressor(FJLT(compression_dim = comp_dim), A)
+            H = hadamard(pad_dim)
+            SA = rand(n_rows, size(S, 2))
+            SAc = deepcopy(SA)
+            Sy = rand(size(S, 2))
+            Syc = deepcopy(Sy)
+            
+            # Test matrix multiplication
+            mul!(SA, A, S, 2.0, 1.0)
+            pad_res =  A * S.op * H * Diagonal(ifelse.(S.signs, 1, -1)) * S.scale
+            @test SA ≈ SAc + 2 * pad_res[:, 1:size(A,1)]
+            # Test vector multiplication
+            mul!(Sy', A[1, :]', S, 2.0, 1.0)
+            pad_res = A[1, :]' * S.op * H * Diagonal(ifelse.(S.signs, 1, -1)) * S.scale 
+            @test Sy ≈ Syc + 2 * pad_res[1:size(A, 1)]
+        end
+    
     end
 
     # Test multimplcations with right compressors
     # Here we want to test the multiplication with matrices and vectors in the 
     # transposed and normal orientations for both the three and five argument mul!
     @testset "FJLT: Right Multiplication" begin
-        let n = 20,
-            nnz = 8,
-            c_dim = 10,
-            A = rand(n, c_dim),
-            B = rand(n, n),
-            C1 = rand(c_dim, c_dim),
-            C2 = rand(n, c_dim),
-            x = rand(c_dim),
-            y = rand(n),
+        # Do right multiplicatin from the left side
+        # test right multiplication from the left with power of 2
+        let n_rows = 2,
+            n_cols = 8,
+            comp_dim = 2,
+            pad_dim = n_cols,
+            A = rand(n_rows, n_cols)
+            S = complete_compressor(
+                FJLT(
+                        cardinality = Right(),
+                        compression_dim = comp_dim,
+                        sparsity = .5,
+                ), 
+                A
+            )
+            H = hadamard(pad_dim)
+            SA = rand(n_cols, n_cols)
+            SAc = deepcopy(SA)
+            Sy = rand(n_cols)
+            Syc = deepcopy(Sy)
 
-            C1c = deepcopy(C1)
-
-            C2c = deepcopy(C2)
-            yc = deepcopy(y)
-            S_info = FJLT(; cardinality=Right(), compression_dim=c_dim)
-            S = complete_compressor(S_info, B)
-            # Form a vector corresponding to the columns to be generate the sparse mat
-            nnz_cols = reduce(vcat, [repeat(i:i, S.nnz) for i in 1:n])
-            # Form the compressor to form the actual compressor
-            sparse_S = sparse(S.op.parent.rowval, nnz_cols, S.op.parent.nzval)'
-
-            # Using * will test three element mul and * multiplication
-            # Test matrix multiplication from the left
-            @test S' * A ≈ sparse_S' * A
-            # test transpose multiplication from the left 
-            @test B * S ≈ B * sparse_S
-            # Test multiplication from the right
-            @test B' * S ≈ B' * sparse_S
-            # Test transpose multiplication from the right
-            @test A * S' ≈ A * sparse_S'
-            # Test matrix vector multiplication from the left
-            @test S * x ≈ sparse_S * x
-            # Test multiplying the matrix to a vector from the right
-            @test y' * S ≈ y' * sparse_S
-            # Test multiplication from the right using transpose
-            @test S' * y ≈ sparse_S' * y
-
-            # Test the scalar addition portion of the multiplications
-            # The unscaled versions are tested in the start multipliction
-            mul!(C1, S', A, 2.0, 2.0)
-            @test C1 ≈ 2.0 * sparse_S' * A + 2.0 * C1c
-            mul!(C2, B, S, 2.0, 2.0)
-            @test C2 ≈ 2.0 * B * sparse_S + 2.0 * C2c
-            mul!(y, S, x, 2.0, 2.0)
-            @test y ≈ 2.0 * sparse_S * x + 2.0 * yc
-            # make copy of x here it was overwritten in previous mul 
-            xc = deepcopy(x)
-            mul!(x, S', y, 2.0, 2.0)
-            @test x ≈ 2.0 * sparse_S' * y + 2.0 * xc
+            mul!(SA, S, A, 2.0, 1.0)
+            @test SA ≈ SAc + Diagonal(ifelse.(S.signs, 1, -1)) * H * S.op * A * S.scale * 2
+            mul!(Sy, S, A[:, 1], 2.0, 1.0)
+            @test Sy ≈ Syc + (ifelse.(S.signs, 1, -1) .* H * S.op * A[:,1]) * 2 * S.scale
         end
+
+        # test right multiplication from the left with nonpower of 2
+        let n_rows = 2;
+            n_cols = 10;
+            comp_dim = 2;
+            pad_dim = 16;
+            A = rand(n_rows, n_cols)
+            S = complete_compressor(
+                FJLT(
+                        cardinality = Right(),
+                        compression_dim = comp_dim,
+                        sparsity = .5,
+                ), 
+                A
+            )
+            H = hadamard(pad_dim)
+            SA = rand(n_cols, n_cols)
+            SAc = deepcopy(SA)
+            Sy = rand(n_cols)
+            Syc = deepcopy(Sy)
+
+            mul!(SA, S, A, 2.0, 1.0)
+            pad_res = ifelse.(S.signs, 1, -1) .* H * S.op * A * 2 * S.scale
+            @test SA ≈ SAc + pad_res[1:size(S, 1), :]
+            pad_res = ifelse.(S.signs, 1, -1) .* H * S.op * A[:, 1] * 2 * S.scale
+            mul!(Sy, S, A[:, 1], 2.0, 1.0)
+            @test Sy ≈ Syc + pad_res[1:size(S,1)]
+        end
+
+        # Do right multiplication back from right side
+          # test right multiplication from the left with power of 2
+          let n_cols = 8,
+            n_rows = 2,
+            comp_dim = 2,
+            pad_dim = n_cols,
+            A = rand(n_rows, n_cols)
+            S = complete_compressor(
+                FJLT(
+                        cardinality = Right(),
+                        compression_dim = comp_dim,
+                        sparsity = .5,
+                ), 
+                A
+            )
+            H = hadamard(pad_dim)
+            SA = rand(n_rows, comp_dim)
+            SAc = deepcopy(SA)
+            Sy = rand(comp_dim)
+            Syc = deepcopy(Sy)
+
+            mul!(SA, A, S, 2.0, 1.0)
+            testm = SAc + A * Diagonal(ifelse.(S.signs, 1, -1)) * H * S.op * 2 * S.scale
+            @test SA ≈ testm
+            mul!(Sy', A[1, :]', S, 2.0, 1.0)
+            testv = A[1, :]' * Diagonal(ifelse.(S.signs, 1, -1)) * H * S.op * 2 * S.scale
+            @test Sy ≈ Syc + testv'
+        end
+
+        # test right multiplication from the left with nonpower of 2
+        let n_cols = 10,
+            n_rows = 2,
+            comp_dim = 2,
+            pad_dim = 16,
+            A = rand(n_rows, n_cols)
+            S = complete_compressor(
+                FJLT(
+                        cardinality = Right(),
+                        compression_dim = comp_dim,
+                        sparsity = .5,
+                ), 
+                A
+            )
+            H = hadamard(pad_dim)
+            SA = rand(n_rows, size(S, 2))
+            SAc = deepcopy(SA)
+            Sy = rand(size(S, 2))
+            Syc = deepcopy(Sy)
+            pad_mat = zeros(n_rows, pad_dim)
+            pad_vec = zeros(pad_dim)
+            
+            # Test matrix multiplication
+            mul!(SA, A, S, 2.0, 1.0)
+            pad_mat[:, 1:n_cols] = A
+            pad_res =  pad_mat * Diagonal(ifelse.(S.signs, 1, -1)) * H * S.op * S.scale
+            @test SA ≈ SAc + 2 * pad_res[:, 1:size(A,1)]
+            # Test vector multiplication
+            mul!(Sy', A[1, :]', S, 2.0, 1.0)
+            pad_vec[1:n_cols] =  A[1, :]
+            pad_res = pad_vec' * Diagonal(ifelse.(S.signs, 1, -1)) * H * S.op * S.scale
+            @test Sy ≈ Syc + 2 * pad_res[1:size(A, 1)]
+        end
+    
 
     end
 

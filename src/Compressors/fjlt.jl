@@ -91,7 +91,7 @@ The recipe containing all allocations and information for the SparseSign compres
 
 # Fields
 - `cardinality::Cardinality`, the direction the compression matrix is intended to
-be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
+    be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
 - `n_rows::Int64`, the number of rows of the compression matrix.
 - `n_cols::Int64`, the number of columns of the compression matrix.
 - `sparsity::Vector{Number}`, the expected sparsity of the Sparse operator matrix.
@@ -223,19 +223,7 @@ function mul!(
     a_rows, a_cols = size(A, 1), size(A, 2)
     type = eltype(S.op)
     b_size = size(S.padding, 2)
-    if c_rows != s_rows
-        throw(
-            DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows.")
-        )
-    elseif c_cols != a_cols
-        throw(
-            DimensionMismatch("Matrix C has $c_cols columns while A has $a_cols columns.")
-        )
-    #=elseif a_rows > s_cols 
-        throw(
-            DimensionMismatch("Matrix A has more rows than the matrix S has columns.")
-        )=#
-    end
+    left_mul_dimcheck(C, S, A)
 
     # To be memory efficient we apply FJLT block-wise in column blocks
     last_block_size = rem(a_cols, b_size)
@@ -304,19 +292,7 @@ function mul!(
     a_rows, a_cols = size(A, 1), size(A, 2)
     b_size = size(S.padding, 2)
     type = eltype(S.op)
-    if c_rows != a_rows
-        throw(
-            DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
-        )
-    elseif c_cols > s_cols 
-        throw(
-            DimensionMismatch("Matrix C has more columns and S.")
-        )
-    elseif a_cols != s_rows
-        throw(
-            DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
-        )
-    end
+    right_mul_dimcheck(C, A, S)
 
     # To be memory efficient we apply FJLT block-wise in column blocks
     last_block_size = rem(a_rows, b_size)
@@ -332,12 +308,15 @@ function mul!(
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is strucuted with more rows than columns
         mul!(pv', Av, S.op, alpha, zero(type))
-        # Apply signs and fwht to the padding matrix
+        # Apply signs and fwht to the padding matrix along the columns of the padding matrix
+        # this is equivalent to applying the hadamard transform to the rows of AS.op as desired
         for i in 1:b_size
             pv = view(S.padding, :, i)
-            fwht!(pv, S.signs, scaling = S.scale) 
+            fwht!(pv, scaling = S.scale) 
         end
-       
+        # Because apply sign transform after hadmard is different than the reverse can't
+        # using fwht with signs. Scale the rows of the 
+        S.padding .*= ifelse.(S.signs, 1, -1) 
         pv = view(S.padding, 1:c_cols, :)
         # add the result to C note that because of padding instead of returning padded 
         # matrix we only return the part that corresponds to the dimensions of C
@@ -357,9 +336,12 @@ function mul!(
         # Apply signs and fwht to the padding matrix
         for i in 1:last_block_size
             pv = view(S.padding, :, i)
-            fwht!(pv, S.signs, scaling = S.scale) 
+            fwht!(pv, scaling = S.scale) 
         end
         
+        # Because apply sign transform after hadmard is different than the reverse can't
+        # using fwht with signs
+        S.padding .*= ifelse.(S.signs, 1, -1) 
         pv = view(S.padding, 1:c_cols, 1:last_block_size)
         # add the result to C note that because of padding instead of returning padded 
         # matrix we only return the part that corresponds to the dimensions of C
@@ -385,19 +367,7 @@ function mul!(
     a_rows, a_cols = size(A, 1), size(A, 2)
     type = eltype(S.op)
     b_size = size(S.padding, 1)
-    if c_rows != a_rows
-        throw(
-            DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
-        )
-    elseif c_cols > s_cols 
-        throw(
-            DimensionMismatch("Matrix C has more columns and S.")
-        )
-    elseif a_cols > s_rows
-        throw(
-            DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
-        )
-    end
+    right_mul_dimcheck(C, A, S)
 
     # To be memory efficient we apply FJLT block-wise in column blocks
     last_block_size = rem(a_rows, b_size)
@@ -464,19 +434,7 @@ function mul!(
     a_rows, a_cols = size(A, 1), size(A, 2)
     b_size = size(S.padding, 1)
     type = eltype(S.op)
-    if c_cols != a_cols
-        throw(
-            DimensionMismatch("Matrix C has $c_cols cols while A has $a_cols cols.")
-        )
-    elseif c_rows > s_rows 
-        throw(
-            DimensionMismatch("Matrix C has more rows than S.")
-        )
-    elseif a_rows > s_cols
-        throw(
-            DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols cols.")
-        )
-    end
+    left_mul_dimcheck(C, S, A)
 
     # To be memory efficient we apply FJLT block-wise in column blocks
     last_block_size = rem(a_cols, b_size)
@@ -495,9 +453,11 @@ function mul!(
         # Apply signs and fwht to the padding matrix
         for i in 1:b_size
             pv = view(S.padding, i, :)
-            fwht!(pv, S.signs, scaling = S.scale) 
+            fwht!(pv, scaling = S.scale) 
         end
-       
+
+        # Flip the signs
+        S.padding' .*= ifelse.(S.signs, 1, -1)
         pv = view(S.padding, :, 1:c_rows)
         # add the result to C note that because of padding instead of returning padded 
         # matrix we only return the part that corresponds to the dimensions of C
@@ -517,9 +477,10 @@ function mul!(
         # Apply signs and fwht to the padding matrix
         for i in 1:last_block_size
             pv = view(S.padding, i, :)
-            fwht!(pv, S.signs, scaling = S.scale) 
+            fwht!(pv, scaling = S.scale)
         end
-       
+
+        S.padding' .*= ifelse.(S.signs, 1, -1)
         pv = view(S.padding, 1:last_block_size, 1:c_rows)
         # add the result to C note that because of padding instead of returning padded 
         # matrix we only return the part that corresponds to the dimensions of C
