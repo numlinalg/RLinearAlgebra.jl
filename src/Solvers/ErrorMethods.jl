@@ -66,12 +66,11 @@ $(solver_method_description[:complete_error])
 function complete_error(
     error::SolverError, solver::Solver, A::AbstractMatrix, b::AbstractVector
 )
-    throw(
+    return throw(
         ArgumentError("There is no `complete_error` method defined for \
       a $(typeof(error)) `SolverError`,  $(typeof(solver)) `SolverRecipe`, $(typeof(A)), \
       and $(typeof(b)).")
     )
-    return nothing
 end
 
 """
@@ -102,10 +101,9 @@ function compute_error(
     A::AbstractMatrix,
     b::AbstractVector,
 )
-    throw(ArgumentError("No `complete_error` method defined for\
+    return throw(ArgumentError("No `complete_error` method defined for\
           a $(typeof(error)) `SolverErrorRecipe`,  $(typeof(solver)) `SolverRecipe`, \
           $(typeof(x)), $(typeof(A)), and $(typeof(b))."))
-    return nothing
 end
 
 # Include error method files 
