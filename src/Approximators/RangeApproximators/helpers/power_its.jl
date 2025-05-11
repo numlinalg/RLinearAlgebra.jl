@@ -1,19 +1,4 @@
 """
-    RLinearAlgebra.econQ!(A::AbstractMatrix)
-
-Function that returns the skinny Q matrix from a QR factorization.
-
-## Arguments
- - `A::AbstractMatrix`, a matrix being decomposed.
-
-## Returns 
- - Edits `A` in place with householder reflectors and returns the skinny QR.
-"""
-function econQ!(A::AbstractMatrix)
-    return Array(qr!(A).Q)
-end
-
-"""
     RLinearAlgebra.rand_power_it(A::AbstractMatrix, approx::RangeFinderRecipe)
 
 Function that performs the randomized rangefinder procedure presented in Algortihm 4.3 of 
@@ -47,7 +32,7 @@ function rand_power_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
     end
     
     # Return the economical qr of the matrix Q
-    return econQ!(compressed_mat)    
+    return view(qr!(compressed_mat).Q, :, 1:s_cols) 
 end
 
 
@@ -80,14 +65,14 @@ function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
         for i in 1:approx.power_its
             # Perform the power iterations based on the recusion Q_{i'} = qr(A'Q_{i-1}).Q 
             # Q_i = qr(A*Q_{i'}).Q this helps limit rounding errors
-            mul!(buff_mat, A', Q)
-            Q = econQ!(buff_mat)
-            mul!(compressed_mat, A, Q)
-            Q = econQ!(compressed_mat)
+            mul!(buff_mat, A', view(Q, :, 1:s_cols))
+            Q = qr!(buff_mat).Q
+            mul!(compressed_mat, A, view(Q, :, 1:s_cols))
+            Q = qr!(compressed_mat).Q
         end
     
     end
     
     # Return the economical qr of the matrix Q
-    return Q    
+    return view(Q, :, 1:s_cols)    
 end

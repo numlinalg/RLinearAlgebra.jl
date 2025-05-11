@@ -46,6 +46,7 @@ end
         end
 
     end 
+
     @testset "Power Iteration Test" begin 
         # test with 0 power iterations
         let A = deepcopy(A),
