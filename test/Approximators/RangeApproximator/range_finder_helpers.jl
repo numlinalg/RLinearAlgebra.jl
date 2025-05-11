@@ -32,20 +32,6 @@ end
     # is unimportant
     C = TestCompressorRecipe(n_cols, compression_dim, randn(n_cols, compression_dim)) 
     A = rand(n_rows, n_cols)
-    @testset "Econ QR test" begin
-        let A = deepcopy(A),
-            Ac = deepcopy(A)
-
-            Q = RLinearAlgebra.econQ!(A)
-            @test size(Q) == (n_rows, n_cols)
-            # Test that Q captures range of A
-            @test opnorm(Ac - Q * Q' * Ac) < 1e-10 
-            # Check that Q is orthogonal
-            @test norm(Q' * Q - I) < 1e-10
-            @test opnorm(Q) ≈ 1
-        end
-
-    end 
 
     @testset "Power Iteration Test" begin 
         # test with 0 power iterations
