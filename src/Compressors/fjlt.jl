@@ -95,9 +95,39 @@ The recipe containing all allocations and information for the SparseSign compres
 - `n_rows::Int64`, the number of rows of the compression matrix.
 - `n_cols::Int64`, the number of columns of the compression matrix.
 - `sparsity::Vector{Number}`, the expected sparsity of the Sparse operator matrix.
+- `scale::FLoat64`, the factor to ensure the isopmorphism of the sketch.
 - `op::SparseMatrixCSC`, the Spares Sign compression matrix.
 - `signs::BitVector`, the vector of signs.
 - `padding::AbstractMatr`, the matrix containing the padding for the matrix being sketched.
+
+# Constructor
+
+    FJLTRecipe(
+        compression_dim::Int64, 
+        block_size::Int64,
+        cardinality::Left,
+        sparsity::Float64,
+        A::AbstractMatrix, 
+        type::Type{<:Number}
+    )
+
+## Keywords
+- `compression_dim`, the target compression dimension. Referred to as ``s`` in the
+    mathemtical description. By default this is set to 2.
+- `block_size::Int64`, the number of columns in the padding memory buffer.
+- `carinality::Cardinality`, the direction the compression matrix is intended to be
+    applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
+    By default `Left()` is chosen.
+- `sparsity::Vector{Number}`, the expected sparsity of the Sparse operator matrix.
+- `A::AbstractMatrix`, the matrix being compressed.
+- `type::Type{<:Number}`, the type of elements in the compressor.
+
+## Returns
+- A `SparseSign` object.
+
+## Throws
+- `ArgumentError` if `compression_dim` is non-positive, if `nnz` is exceeds
+    `compression_dim`, or if `nnz` is non-positive.
 """
 mutable struct FJLTRecipe{
     C<:Cardinality, 
@@ -314,6 +344,7 @@ function mul!(
             pv = view(S.padding, :, i)
             fwht!(pv, scaling = S.scale) 
         end
+
         # Because apply sign transform after hadmard is different than the reverse can't
         # using fwht with signs. Scale the rows of the 
         S.padding .*= ifelse.(S.signs, 1, -1) 
@@ -474,13 +505,15 @@ function mul!(
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is strucuted with more rows than columns
         mul!(pv', S.op, Av,  alpha, zero(type))
-        # Apply signs and fwht to the padding matrix
+        # Apply and fwht to the padding matrix
         for i in 1:last_block_size
             pv = view(S.padding, i, :)
             fwht!(pv, scaling = S.scale)
         end
-
+        
+        # Apply signs to the padding matrix
         S.padding' .*= ifelse.(S.signs, 1, -1)
+        # Match padding matrix view to the output size
         pv = view(S.padding, 1:last_block_size, 1:c_rows)
         # add the result to C note that because of padding instead of returning padded 
         # matrix we only return the part that corresponds to the dimensions of C
