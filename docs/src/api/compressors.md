@@ -20,6 +20,9 @@ Right
 
 ## Compressor Structures
 ```@docs
+Gaussian
+
+GaussianRecipe
 SparseSign
 
 SparseSignRecipe
