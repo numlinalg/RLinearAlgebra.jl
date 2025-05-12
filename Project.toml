@@ -1,9 +1,5 @@
 name = "RLinearAlgebra"
 uuid = "da1d211a-c3bc-43b2-b5d0-ce83f16a0f3a"
-<<<<<<< HEAD
-authors = ["Christian Varner <cvarner@wisc.edu>", "Daniel Adrian Maldonado <maldonadod@anl.gov>", "Nathaniel Pritchard <Nathaniel.Pritchard@maths.ox.ac.uk>", "TongTong Jin <ttjin@uchicago.edu>", "Tunan Wang <tunan.wang@wisc.edu>", "Vivak Patel <vivak.patel@wisc.edu>"]
-version = "0.2.1"
-=======
 authors = [
     "Christian Varner <cvarner@wisc.edu>", 
     "Daniel Adrian Maldonado <maldonadod@anl.gov>", 
@@ -13,7 +9,6 @@ authors = [
     "Vivak Patel <vivak.patel@wisc.edu>"
 ]
 version = "0.2.2"
->>>>>>> v0.2-main
 
 [deps]
 Hadamard = "4a05ff16-5f95-55f4-bb53-bb3f467c689a"
