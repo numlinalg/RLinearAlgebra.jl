@@ -94,3 +94,4 @@ end
 ###########################################
 # Include Distribution files
 ###########################################
+include("Distributions/uniform.jl")
