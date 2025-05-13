@@ -320,7 +320,13 @@ Random.seed!(2131)
             n_cols = 6,
             comp_dim = 2,
             A = rand(n_rows, n_cols)
-            S = complete_compressor(FJLT(compression_dim = comp_dim), A)
+            S = complete_compressor(
+                FJLT(
+                    block_size = 2,
+                    compression_dim = comp_dim
+                ), 
+                A
+            )
             H = hadamard(pad_dim)
             SA = rand(comp_dim, n_cols)
             SAc = deepcopy(SA)
@@ -339,7 +345,13 @@ Random.seed!(2131)
             n_cols = 6,
             comp_dim = 2,
             A = rand(n_rows, n_cols)
-            S = complete_compressor(FJLT(compression_dim = comp_dim), A)
+            S = complete_compressor(
+                FJLT(
+                    block_size = 2,
+                    compression_dim = comp_dim
+                ), 
+                A
+            )
             H = hadamard(pad_dim)
             pad_mat = zeros(pad_dim, n_cols)
             pad_vec = zeros(pad_dim)
@@ -364,7 +376,13 @@ Random.seed!(2131)
             n_cols = 2,
             comp_dim = 2,
             A = rand(n_rows, n_cols)
-            S = complete_compressor(FJLT(compression_dim = comp_dim), A)
+            S = complete_compressor(
+                FJLT(
+                    block_size = 2,
+                    compression_dim = comp_dim
+                ), 
+                A
+            )
             H = hadamard(pad_dim)
             SA = rand(n_rows, n_rows)
             SAc = deepcopy(SA)
@@ -385,7 +403,13 @@ Random.seed!(2131)
             n_cols = 2,
             comp_dim = 2
             A = rand(n_rows, n_cols)
-            S = complete_compressor(FJLT(compression_dim = comp_dim), A)
+            S = complete_compressor(
+                FJLT(
+                    block_size = 2,
+                    compression_dim = comp_dim
+                ), 
+                A
+            )
             H = hadamard(pad_dim)
             SA = rand(n_rows, size(S, 2))
             SAc = deepcopy(SA)
@@ -420,6 +444,7 @@ Random.seed!(2131)
                         cardinality = Right(),
                         compression_dim = comp_dim,
                         sparsity = .5,
+                        block_size = 2,
                 ), 
                 A
             )
@@ -446,6 +471,7 @@ Random.seed!(2131)
                         cardinality = Right(),
                         compression_dim = comp_dim,
                         sparsity = .5,
+                        block_size = 2
                 ), 
                 A
             )
@@ -503,6 +529,7 @@ Random.seed!(2131)
                         cardinality = Right(),
                         compression_dim = comp_dim,
                         sparsity = .5,
+                        block_size = 2,
                 ), 
                 A
             )
