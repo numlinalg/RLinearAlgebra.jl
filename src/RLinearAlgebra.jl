@@ -1,9 +1,9 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
-import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ, Adjoint
+import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq!, LQ, Adjoint
 import StatsBase: sample!
-import Random: bitrand, rand!
+import Random: bitrand, rand!, randn!
 import SparseArrays: SparseMatrixCSC
 
 # Include the files correspoding to the top-level techniques
@@ -19,6 +19,7 @@ export complete_approximator, update_approximator!, rapproximate, rapproximate!
 export Compressor, CompressorRecipe, CompressorAdjoint
 export Cardinality, Left, Right
 export complete_compressor, update_compressor!
+export Gaussian, GaussianRecipe
 export SparseSign, SparseSignRecipe
 
 # Export Solver types and functions
@@ -31,9 +32,10 @@ export BasicLogger, BasicLoggerRecipe
 export complete_logger, update_logger!, reset_logger!
 export threshold_stop
 
-# Export SubSolver types and functions
-export SubSolver, SubSolverRecipe
+# Export SubSolver types
+export SubSolver, SubSolverRecipe, ldiv!
 export complete_sub_solver, update_sub_solver!
+export LQSolver, LQSolverRecipe
 
 # Export SolverError types and functions
 export SolverError, SolverErrorRecipe
