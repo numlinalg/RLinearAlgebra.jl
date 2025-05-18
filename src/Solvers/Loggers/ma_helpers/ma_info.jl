@@ -13,18 +13,18 @@ A mutable structure that stores information relevant to the moving average of th
     progress estimator.
 
 # Fields
-- `lambda1::Int64`, the width of the moving average during the fast convergence phase of the algorithm. 
+- `lambda1::Integer`, the width of the moving average during the fast convergence phase of the algorithm. 
   During this fast convergence phase, the majority of variation of the sketched estimator comes from 
   improvement in the solution and thus wide moving average windows inaccurately represent progress. 
-- `lambda2::Int64`, the width of the moving average in the slower convergence phase. In the slow convergence
+- `lambda2::Integer`, the width of the moving average in the slower convergence phase. In the slow convergence
   phase, each iterate differs from the previous one by a small amount and thus most of the observed variation
   arises from the randomness of the sketched progress estimator, which is best smoothed by a wide moving
   average width.
-- `lambda::Int64`, the width of the moving average at the current iteration. This value is not controlled by
+- `lambda::Integer`, the width of the moving average at the current iteration. This value is not controlled by
   the user. 
 - `flag::Bool`, a boolean indicating which phase we are in, a value of `true` indicates slow convergence phase. 
-- `idx::Int64`, the index indcating what value should be replaced in the moving average buffer.
-- `res_window::Vector{Float64}`, the moving average buffer.
+- `idx::Integer`, the index indcating what value should be replaced in the moving average buffer.
+- `res_window::Vector{<:AbstractFloat}`, the moving average buffer.
 
 For more information see:
 - Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear 
@@ -34,12 +34,12 @@ For more information see:
     Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057
 """
 mutable struct MAInfo
-    lambda1::Int64
-    lambda2::Int64
-    lambda::Int64
+    lambda1::Integer
+    lambda2::Integer
+    lambda::Integer
     flag::Bool
-    idx::Int64
-    res_window::Vector{Float64}
+    idx::Integer
+    res_window::Vector{<:AbstractFloat}
 end
 
 #########################################
@@ -49,8 +49,8 @@ end
     update_ma!(
         log::LoggerRecipe, 
         res::Union{AbstractVector, Real}, 
-        lambda_base::Int64, 
-        iter::Int64
+        lambda_base::Integer, 
+        iter::Integer
     ) 
 
 Function that updates the moving average tracking statistic. 
@@ -58,8 +58,8 @@ Function that updates the moving average tracking statistic.
 # Arguments
 - `log::LoggerRecipe`, the parent of moving average log structure.
 - `res::Union{AbstractVector, Real}`, the sketched residual for the current iteration. 
-- `lambda_base::Int64`, which lambda, between lambda1 and lambda2, is currently being used.
-- `iter::Int64`, the current iteration.
+- `lambda_base::Integer`, which lambda, between lambda1 and lambda2, is currently being used.
+- `iter::Integer`, the current iteration.
 
 # Returns
 - Updates the log datatype and does not explicitly return anything.
@@ -67,8 +67,8 @@ Function that updates the moving average tracking statistic.
 function update_ma!(
     log::LoggerRecipe,  # log::L where L <: LoggerRecipe
     res::Union{AbstractVector, Real}, 
-    lambda_base::Int64, 
-    iter::Int64,
+    lambda_base::Integer, 
+    iter::Integer,
 )
     # Variable to store the sum of the terms for rho
     accum = 0
