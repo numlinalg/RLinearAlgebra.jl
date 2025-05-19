@@ -2,28 +2,31 @@
     RangeFinder
 
 A struct that implements the Randomized Range Finder technique which uses compression from 
-    the right to form an low-dimensional orthogonal matrix ``Q`` thar approximates the 
+    the right to form an low-dimensional orthogonal matrix ``Q`` that approximates the 
     range of ``A``. See [halko2011finding](@cite) for additional details.
 
 # Mathematical Description
 Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish to form a low 
-    rank approximation that approximately captures the range of ``A``. Specifially, we wish
-    to find an Orthogonal matrix ``Q`` such that ``QQ^\\top A \\approx A``. A simple way to
-    this is is to choose a ``k`` representing the number of columns we wish to have in the
-    subspace and generatign a compression matrix ``S\\in\\mathbb{R}^{n \\times k}``. Then by
-    computing ``Q = \\text{qr}(AS)``, with high probability ``\\|A - QQ^\\top A\\|_2 \\leq
-    (k+1) \\sigma_{k+1}`` where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
-    of A. This bound is often too loose when the singular values of ``A`` decay quickly. 
+    rank approximation that approximately captures the range of ``A``. Specifically, we wish
+    to find an Orthogonal matrix ``Q`` such that ``QQ^\\top A \\approx A``. 
+
+    A simple way to find such a matrix is to choose a ``k`` representing the number of 
+    vectors we wish to have in the subspace. Then we can generate a compression matrix 
+    ``S\\in\\mathbb{R}^{n \\times k}`` and compute ``Q = \\text{qr}(AS)``. 
+    With high probability we will have ``\\|A - QQ^\\top A\\|_2 \\leq
+    (k+1) \\sigma_{k+1}``, where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
+    of A. This bound is often conservative when the singular values of ``A`` decay quickly. 
     In the case where the singular values decay slowly, by computing the qr factorization of
     ``(AA^\\top)^q AS``, this is known as taking ``q`` power iterations. Power iterations 
-    drive the constant on ``\\sigma_{k+1}`` in the bound closer to 1, leading to more 
-    accurate approximations. One can also improve the stability of these power iterations
-    be orthogonalizing each matrix in what is known as the random subspace iteration.
+    drive the ``k+1`` constant in front of ``\\sigma_{k+1}`` in the bound closer to 1, 
+    leading to more accurate approximations. One can also improve the stability of these 
+    power iterations be orthogonalizing each matrix in what is known as the random subspace 
+    iteration.
 
 # Fields
 - `compressor::Compressor`, the technique that will compress the matrix from the right.
 - `power_its::Int64`, the number of power iterations that should be performed.
-- `rand_subspace::Bool`, a boolean indicating whether the power its should be performed 
+- `rand_subspace::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
 """
 mutable struct RangeFinder <: RangeApproximator
@@ -55,7 +58,7 @@ A struct that contains the preallocated memory and completed compressor to form 
 # Fields
 - `compressor::CompressorRecipe`, the compressor to be applied from the right to ``A``.
 - `power_its::Int64`, the number of power iterations that should be performed.
-- `rand_subspace::Bool`, a boolean indicating whether the power its should be performed 
+- `rand_subspace::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
 - `range::AbstractMatrix`, the orthogonal matrix that approximates the range of ``A``.
 """

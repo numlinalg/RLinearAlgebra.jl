@@ -35,9 +35,9 @@ abstract type ApproximatorErrorRecipe end
 """
     RangeApproximator
 
-A abstract type for the structures that contain the user-controlled parameters 
-corresponding to the Approximator methods that use the Q matrix from the QR factorization
-of the right compression of a matrix A. This includes methods like the RandomizedSVD and 
+An abstract type for the structures that contain the user-controlled parameters 
+corresponding to the Approximator methods that produce an orthogonal approximation to the 
+range of a matrix A. This includes methods like the RandomizedSVD and 
 randomized rangefinder.
 """
 abstract type RangeApproximator <: Approximator end
@@ -45,10 +45,10 @@ abstract type RangeApproximator <: Approximator end
 """
     RangeApproximatorRecipe
 
-A abstract type for the structures that contain the user-controlled parameters, 
-linear ssytem information, and preallocated memory for methods
-corresponding to the Approximator methods that use the Q matrix from the QR factorization
-of the right compression of a matrix A. This includes methods like the RandomizedSVD and 
+An abstract type for the structures that contain the user-controlled parameters, 
+linear system information, and preallocated memory for methods
+corresponding to the Approximator methods that produce an orthogonal approximation to the
+range of a matrix A. This includes methods like the RandomizedSVD and 
 randomized rangefinder.
 """
 abstract type RangeApproximatorRecipe <: ApproximatorRecipe end
@@ -109,10 +109,6 @@ transpose(A::ApproximatorRecipe) = ApproximatorAdjoint(A)
 # Undo the transpose wrapper
 transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 
-Base.size(A::ApproximatorRecipe) = (A.n_rows, A.n_cols)
-Base.size(A::ApproximatorRecipe, i::Int64) = i == 1 ? A.n_rows : A.n_cols
-Base.size(A::ApproximatorAdjoint) = (A.parent.n_cols, A.parent.n_rows)
-Base.size(A::ApproximatorAdjoint, i::Int64) = i == 1 ? A.parent.n_cols : A.parent.n_rows
 # Function skeletons
 """
     complete_approximator(approximator::Approximator, A::AbstractMatrix)
@@ -128,8 +124,10 @@ $(approx_method_description[:complete_approximator])
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
     throw(
-        ArgumentError("No method `complete_approximator` exists for approximator of type\
-                      $(typeof(approximator)) and matrix of type $(typeof(A)).")
+        ArgumentError(
+            "No method `complete_approximator` exists for approximator of type\
+            $(typeof(approximator)) and matrix of type $(typeof(A))."
+        )
     )
     return nothing
 end
@@ -147,8 +145,12 @@ $(approx_method_description[:rapproximate])
 - $(approx_output_list[:approximator_recipe])
 """
 function rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
-    throw(ArgumentError("No `rapproximate` method exists for approximator of type\
-                        $(typeof(approximator)) and matrix of type $(typeof(A))."))
+    throw(
+        ArgumentError(
+            "No `rapproximate` method exists for approximator of type\
+            $(typeof(approximator)) and matrix of type $(typeof(A))."
+        )
+    )
     return nothing
 end
 
@@ -168,6 +170,27 @@ function rapproximate(approximator::Approximator, A::AbstractMatrix)
     approx_recipe = complete_approximator(approximator, A)
     rapproximate!(approx_recipe, A)
     return approx_recipe
+end
+
+###################################
+# Size of Compressor 
+###################################
+function Base.size(S::ApproximatorRecipe)
+    return S.n_rows, S.n_cols
+end
+
+function Base.size(S::ApproximatorRecipe, dim::Int64)
+    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    return dim == 1 ? S.n_rows : S.n_cols
+end
+
+function Base.size(S::ApproximatorAdjoint)
+    return S.parent.n_cols, S.parent.n_rows
+end
+
+function Base.size(S::ApproximatorAdjoint, dim::Int64)
+    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    return dim == 1 ? S.parent.n_cols : S.parent.n_rows
 end
 
 """
@@ -190,8 +213,12 @@ $(approx_method_description[:complete_approximator_error])
 function complete_approximator_error(
     error::ApproximatorError, approximator::Approximator, A::AbstractMatrix
 )
-    throw(ArgumentError("No `complete_approximator_error! defined for error of type\
-    $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."))
+    throw(
+        ArgumentError(
+            "No `complete_approximator_error! defined for error of type\
+            $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."
+        )
+    )
     return nothing
 end
 
@@ -215,8 +242,12 @@ $(approx_method_description[:compute_approximator_error])
 function compute_approximator_error!(
     error::ApproximatorErrorRecipe, approximator::ApproximatorRecipe, A::AbstractMatrix
 )
-    throw(ArgumentError("No `complete_approximator_error! defined for error of type\
-    $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."))
+    throw(
+        ArgumentError(
+            "No `complete_approximator_error! defined for error of type\
+            $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."
+        )
+    )
     return nothing
 end
 
@@ -245,58 +276,135 @@ function compute_approximator_error(
     error_val = compute_approximator_error!(error_recipe, approximator, A)
     return error_val
 end
-# add the behavior of mul functions with an approximator
-function (*)(R::ApproximatorRecipe, A::AbstractArray)
-    r_rows = size(R, 1)
-    a_cols = size(A, 2)
-    C = zeros(eltype(A), r_rows, a_cols)
-    mul!(C, R, A)
-    return C
+
+########################################
+# 5 Arg Compressor-Array Multiplications
+########################################
+
+# alpha*R*A + b*C -> C
+function mul!(
+    C::AbstractArray, 
+    R::ApproximatorRecipe, 
+    A::AbstractArray, 
+    alpha::Number, 
+    beta::Number
+)
+    throw(
+        ArgumentError(
+            "No method `mul!` defined for ($(typeof(C)), $(typeof(R)), \
+            $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."
+        )
+    )
+    return nothing
 end
 
-function (*)(A::AbstractArray, R::ApproximatorRecipe)
-    r_cols = size(R, 2)
-    a_rows = size(A, 1)
-    C = zeros(eltype(A), a_rows, r_cols)
-    mul!(C, A, R)
-    return C
+# alpha*A*R + beta*C -> C
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    R::ApproximatorRecipe, 
+    alpha::Number, 
+    beta::Number
+)
+    throw(
+        ArgumentError(
+            "No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
+            $(typeof(R)), $(typeof(alpha)), $(typeof(beta)))."
+        )
+    )
+    return nothing
 end
 
+# alpha * R'*A + beta*C -> C (equivalently, alpha * A' * R + beta + C' -> C')
+function mul!(
+    C::AbstractArray,
+    R::ApproximatorAdjoint,
+    A::AbstractArray,
+    alpha::Number,
+    beta::Number
+)
+    mul!(transpose(C), transpose(A), R.parent, alpha, beta)
+    return nothing
+end
+
+# alpha * A*R' + beta*C -> C (equivalently, alpha * R * A' + beta*C' -> C')
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    R::ApproximatorAdjoint, 
+    alpha::Number, 
+    beta::Number
+)
+    mul!(transpose(C), R.parent, transpose(A), alpha, beta)
+    return nothing
+end
+
+########################################
+# 3 Arg Compressor-Array Multiplications
+########################################
+# R * A - > C
 function mul!(C::AbstractArray, R::ApproximatorRecipe, A::AbstractArray)
     mul!(C, R, A, 1.0, 0.0)
     return nothing
 end
 
+# A * R - > C
 function mul!(C::AbstractArray, A::AbstractArray, R::ApproximatorRecipe)
     mul!(C, A, R, 1.0, 0.0)
     return nothing
 end
 
-function (*)(R::ApproximatorAdjoint, A::AbstractArray)
-    r_rows = size(R, 1)
-    a_cols = size(A, 2)
-    C = zeros(eltype(A), r_rows, a_cols)
-    mul!(C, R, A)
-    return C
-end
-
-function (*)(A::AbstractArray, R::ApproximatorAdjoint)
-    r_cols = size(R, 2)
-    a_rows = size(A, 1)
-    C = zeros(eltype(A), a_rows, r_cols)
-    mul!(C, A, R)
-    return C
-end
-
+# R' * A - > C
 function mul!(C::AbstractArray, R::ApproximatorAdjoint, A::AbstractArray)
     mul!(C, R, A, 1.0, 0.0)
     return nothing
 end
 
+# A * R' - > C
 function mul!(C::AbstractArray, A::AbstractArray, R::ApproximatorAdjoint)
     mul!(C, A, R, 1.0, 0.0)
     return nothing
 end
+
+##################################################
+# Binary Operator Approximator-Array Multiplications
+##################################################
+# R * A 
+function (*)(R::ApproximatorRecipe, A::AbstractArray)
+    r_rows = size(R, 1)
+    a_cols = size(A, 2)
+    C = a_cols == 1 ? zeros(eltype(A), r_rows) : zeros(eltype(A), r_rows, a_cols)
+    mul!(C, R, A)
+    return C
+end
+
+# A * R 
+function (*)(A::AbstractArray, R::ApproximatorRecipe)
+    r_cols = size(R, 2)
+    a_rows = size(A, 1)
+    C = a_rows == 1 ? zeros(eltype(A), r_cols)' : zeros(eltype(A), a_rows, r_cols)
+    mul!(C, A, R)
+    return C
+end
+
+# R' * A
+function (*)(R::ApproximatorAdjoint, A::AbstractArray)
+    r_rows = size(R, 1)
+    a_cols = size(A, 2)
+    C = a_cols == 1 ? zeros(eltype(A), r_rows) : zeros(eltype(A), r_rows, a_cols)
+    mul!(C, R, A)
+    return C
+end
+
+# A * R'
+function (*)(A::AbstractArray, R::ApproximatorAdjoint)
+    r_cols = size(R, 2)
+    a_rows = size(A, 1)
+    C = a_rows == 1 ? zeros(eltype(A), r_cols)' : zeros(eltype(A), a_rows, r_cols)
+    mul!(C, A, R)
+    return C
+end
+
 ###########################################
 # Include the Approximator files
 ############################################
