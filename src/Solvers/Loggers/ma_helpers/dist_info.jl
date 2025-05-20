@@ -69,7 +69,8 @@ A function that gets the uncertainty from LoggerRecipe or LSLogFullMA type.
 
 # Arguments
 - `hist::LoggerRecipe`, the parent structure of moving average log structure, 
-    i.e. LoggerRecipe and LSLogFullMA types. Specifically, the information of 
+    TODO: check the types
+    i.e. MALogger and FullMALogger types. Specifically, the information of 
     distribution (`dist_info`), and all histories stored in the structure.
 - `alpha::AbstractFloat`, the confidence level. 
 
@@ -90,16 +91,16 @@ function get_uncertainty(hist::LoggerRecipe; alpha::AbstractFloat = 0.05)
         width = hist.lambda_hist[i]
         iota = hist.iota_hist[i]
         rho = hist.resid_hist[i]
-        #Define the variance term for the Gaussian part
+        # Define the variance term for the Gaussian part
         cG = hist.dist_info.sigma2 * (1 + log(width)) * iota / (hist.dist_info.eta * width)
-        #If there is an omega in the sub-Exponential distribution then skip that calculation 
+        # If there is an omega in the sub-Exponential distribution then skip that calculation 
         if typeof(hist.dist_info.omega) <: Nothing
             # Compute the threshold bound in the case where there is no omega
             diffG = sqrt(cG * 2 * log(2/(alpha)))
             upper[i] = rho + diffG
             lower[i] = rho - diffG
         else
-            #compute error bound when there is an omega
+            # Compute error bound when there is an omega
             diffG = sqrt(cG * 2 * log(2/(alpha)))
             diffO = sqrt(iota) * 2 * log(2/(alpha)) * hist.dist_info.omega / (hist.dist_info.eta * width)
             diffM = max(diffG, diffO)
@@ -113,7 +114,7 @@ function get_uncertainty(hist::LoggerRecipe; alpha::AbstractFloat = 0.05)
 end
 
 """
-    get_SE_constants!(log::LoggerRecipe, sampler::Type{T<:CompressorRecipe})
+    get_SE_constants!(log::LoggerRecipe, sampler::Type{T<:Compressor})
 
 A function that returns a default set of sub-Exponential constants for each sampling method. 
     This function is not exported and thus the user does not have direct access to it. 
@@ -121,7 +122,7 @@ A function that returns a default set of sub-Exponential constants for each samp
 # Arguments 
 - `log::LoggerRecipe`, the log containing all the tracking information. Specifically, 
     the information of distribution (`dist_info`).
-- `sampler::Type{CompressorRecipe}`, the type of sampler being used.
+- `sampler::Type{Compressor}`, the type of sampler being used.
 
 # Returns
 - Performs an inplace update of the sub-Exponential constants for the log. Additionally, 
@@ -129,47 +130,63 @@ A function that returns a default set of sub-Exponential constants for each samp
     If default is not a defined a warning is returned that sigma2 is set 1 and scaling 
     is set to 1. 
 """
-function get_SE_constants!(log::LoggerRecipe, sampler::Type{T}) where T<:CompressorRecipe
+function get_SE_constants!(log::LoggerRecipe, sampler::Type{T}) where T<:Compressor
         @warn "No constants defined for method of type $sampler. By default we set sigma2 to 1 and scaling to 1."
         log.dist_info.sigma2 = 1
         log.dist_info.scaling = 1 
 end
 
-for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
-             LinSysVecRowOneRandCyclic, LinSysVecRowSVSampler, 
-             LinSysVecRowRandCyclic, LinSysVecRowUnidSampler, 
-             LinSysVecRowDistCyclic, LinSysVecRowResidCyclic, 
-             LinSysVecRowMaxResidual, LinSysVecRowMaxDistance,)
+
+# for type in (LinSysVecRowDetermCyclic,LinSysVecRowHopRandCyclic,
+#              LinSysVecRowOneRandCyclic, LinSysVecRowSVSampler, 
+#              LinSysVecRowRandCyclic, LinSysVecRowUnidSampler, 
+#              LinSysVecRowDistCyclic, LinSysVecRowResidCyclic, 
+#              LinSysVecRowMaxResidual, LinSysVecRowMaxDistance,)
+#     @eval begin
+#         function get_SE_constants!(log::LoggerRecipe, sampler::Type{$type})
+#             log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+#             log.dist_info.scaling = log.dist_info.dimension / log.dist_info.block_dimension
+#         end
+
+#     end
+
+# end
+
+
+# # Column subsetting methods have same constants as in row case
+# for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
+#     @eval begin
+#         function get_SE_constants!(log::LoggerRecipe, sampler::Type{$type})
+#             log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
+#             log.dist_info.scaling = log.dist_info.dimension / log.dist_info.block_dimension
+#         end
+
+#     end
+
+# end
+
+# # For row samplers with gaussian sampling we have sigma2 = 1/.2345 and omega = .1127
+# for type in (LinSysVecRowGaussSampler, LinSysVecRowSparseGaussSampler)
+#     @eval begin
+#         function get_SE_constants!(log::LoggerRecipe, sampler::Type{$type})
+#             log.dist_info.sigma2 = log.dist_info.block_dimension / (0.2345 * log.dist_info.eta)
+#             log.dist_info.omega = .1127
+#             log.dist_info.scaling = 1.
+#         end
+
+#     end
+
+# end
+
+for type in (Gaussian)
     @eval begin
         function get_SE_constants!(log::LoggerRecipe, sampler::Type{$type})
-            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
-            log.dist_info.scaling = log.dist_info.dimension / log.dist_info.block_dimension
-        end
-
-    end
-
-end
-
-
-# Column subsetting methods have same constants as in row case
-for type in (LinSysVecColOneRandCyclic, LinSysVecColDetermCyclic)
-    @eval begin
-        function get_SE_constants!(log::LoggerRecipe, sampler::Type{$type})
-            log.dist_info.sigma2 = log.dist_info.dimension^2 / (4 * log.dist_info.block_dimension^2 * log.dist_info.eta)
-            log.dist_info.scaling = log.dist_info.dimension / log.dist_info.block_dimension
-        end
-
-    end
-
-end
-
-# For row samplers with gaussian sampling we have sigma2 = 1/.2345 and omega = .1127
-for type in (LinSysVecRowGaussSampler, LinSysVecRowSparseGaussSampler)
-    @eval begin
-        function get_SE_constants!(log::LoggerRecipe, sampler::Type{$type})
-            log.dist_info.sigma2 = log.dist_info.block_dimension / (0.2345 * log.dist_info.eta)
-            log.dist_info.omega = .1127
-            log.dist_info.scaling = 1.
+            if sampler.compression_dim == 1
+                log.dist_info.sigma2 = log.dist_info.block_dimension / (0.2345 * log.dist_info.eta)
+                log.dist_info.omega = .1127
+                log.dist_info.scaling = 1.
+            end
+            
         end
 
     end
