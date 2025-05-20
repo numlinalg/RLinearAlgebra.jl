@@ -48,27 +48,42 @@ A structure that stores information of specification about a randomized linear s
     `compression_dim`, or if `nnz` is non-positive.
 """
 struct FullMALogger <: Logger
+    max_it::Integer
     collection_rate::Integer
     ma_info::MAInfo 
-    resid_hist::Vector{AbstractFloat}
-    lambda_hist::Vector{Integer}  
-    resid_norm::Function
-    iterations::Integer
-    converged::Bool
+    threshold_info::MAStop
+    stopping_criterion::Function
+    # resid_hist::Vector{AbstractFloat}
+    # lambda_hist::Vector{Integer}  
+    # resid_norm::Function
+    # iterations::Integer
+    # converged::Bool
+    function BasicLogger(max_it, collection_rate, threshold_info, stopping_criterion)
+        if max_it < 0 
+            throw(ArgumentError("Field `max_it` must be positive or 0."))
+        elseif collection_rate < 1
+            throw(ArgumentError("Field `colection_rate` must be positive."))
+        elseif collection_rate > max_it && max_it > 0
+            throw(ArgumentError("Field `colection_rate` must be smaller than `max_it`."))
+        end
+
+        return new(max_it, collection_rate, threshold_info, stopping_criterion)
+    end
+
 end
 
 FullMALogger(;
              collection_rate::Integer=1, 
              lambda1::Integer=1, 
              lambda2::Integer=30,
-			 resid_norm::Function=norm, 
+			#  resid_norm::Function=norm, 
             ) = LSLogFullMA(collection_rate, 
                             MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
-                            AbstractFloat[], 
-                            Int64[],
-                            resid_norm, 
-                            -1, 
-                            false
+                            # AbstractFloat[], 
+                            # Int64[],
+                            # resid_norm, 
+                            # -1, 
+                            # false
                            )
 
 
@@ -76,12 +91,46 @@ FullMALogger(;
     FullMALoggerRecipe <: LoggerRecipe
 
 	TODO
-This is a mutable struct that contains the `max_it` parameter and stores the error metric 
+The recipe contains the information of `FullMALogger`, stores the error metric 
     in a vector. Checks convergence of the solver based on the log information.
 
 # Fields
 
 """
+mutable struct FullMALoggerRecipe{F<:Function} <: LoggerRecipe
+    max_it::Integer
+    error::AbstractFloat
+    iteration::Integer
+    record_location::Integer
+    collection_rate::Integer
+    converged::Bool
+    resid_hist::Vector{AbstractFloat}
+    lambda_hist::Vector{Integer}  
+    threshold_info::MAStop
+    stopping_criterion::F
+end
+
+function complete_logger(logger::FullMALogger)
+    # By using ceil if we divide exactly we always have space to record last value, if it 
+    # does not divide exactly we have one more than required and thus enough space to record
+    # the last value
+    max_collection = Int(ceil(logger.max_it / logger.collection_rate))
+    # Use one more than max_it to collect
+    res_hist = zeros(max_collection + 1)
+    lambda_hist = zeros(max_collection + 1)
+    return FullMALoggerRecipe{typeof(logger.stopping_criterion)}(logger.max_it,
+                                                                0.0,
+                                                                logger.threshold_info,
+                                                                1,
+                                                                1,
+                                                                logger.collection_rate,
+                                                                false,
+                                                                res_hist,
+                                                                lambda_hist,
+                                                                MAStop,
+                                                                logger.stopping_criterion
+                                                               )
+end
 
 
 
@@ -102,10 +151,9 @@ This is a mutable struct that contains the `max_it` parameter and stores the err
 # Common interface for update
 function update_logger!(
     log::FullMALogger,
-    sampler::LinSysSampler,
     x::AbstractVector,
     samp::Tuple,
-    iter::Int64,
+    iter::Integer,
     A::AbstractArray,
     b::AbstractVector,
 )
@@ -134,7 +182,6 @@ function update_logger!(
     end
 
 end
-
 
 
 

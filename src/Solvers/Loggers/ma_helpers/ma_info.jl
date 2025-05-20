@@ -66,8 +66,8 @@ Function that updates the moving average tracking statistic.
 """
 function update_ma!(
     log::LoggerRecipe,  # log::L where L <: LoggerRecipe
-    res::Union{AbstractVector, Real}, 
-    lambda_base::Integer, 
+    res::Union{AbstractVector,Real},
+    lambda_base::Integer,
     iter::Integer,
 )
     # Variable to store the sum of the terms for rho
@@ -78,17 +78,18 @@ function update_ma!(
     ma_info.idx = ma_info.idx < ma_info.lambda2 && iter != 0 ? ma_info.idx + 1 : 1
     ma_info.res_window[ma_info.idx] = res
     #Check if entire storage buffer can be used
-    if ma_info.lambda == ma_info.lambda2 
+    if ma_info.lambda == ma_info.lambda2
         # Compute the moving average
-        for i in 1:ma_info.lambda2
+        for i in 1:(ma_info.lambda2)
             accum += ma_info.res_window[i]
             accum2 += ma_info.res_window[i]^2
         end
-       
+
         if mod(iter, log.collection_rate) == 0 || iter == 0
             push!(log.lambda_hist, ma_info.lambda)
-            push!(log.resid_hist, accum / ma_info.lambda) 
-            (:iota_hist in fieldnames(typeof(log))) && push!(log.iota_hist, accum2 / ma_info.lambda) 
+            push!(log.resid_hist, accum / ma_info.lambda)
+            (:iota_hist in fieldnames(typeof(log))) &&
+                push!(log.iota_hist, accum2 / ma_info.lambda)
         end
 
     else
@@ -101,13 +102,13 @@ function update_ma!(
         # If `diff` is negative there idx is not far enough into the buffer and
         # two sums will be needed
         startp1 = diff < 0 ? 1 : (diff + 1)
-        
+
         # Assuming that the width of the buffer is lambda2 
-        startp2 = diff < 0 ? ma_info.lambda2 + diff + 1 : 2 
+        startp2 = diff < 0 ? ma_info.lambda2 + diff + 1 : 2
         endp2 = diff < 0 ? ma_info.lambda2 : 1
 
         # Compute the moving average two loop setup required when lambda < lambda2
-        for i in startp1:ma_info.idx
+        for i in startp1:(ma_info.idx)
             accum += ma_info.res_window[i]
             accum2 += ma_info.res_window[i]^2
         end
@@ -120,11 +121,11 @@ function update_ma!(
         #Update the log variable with the information for this update
         if mod(iter, log.collection_rate) == 0 || iter == 0
             push!(log.lambda_hist, ma_info.lambda)
-            push!(log.resid_hist, accum / ma_info.lambda) 
-            (:iota_hist in fieldnames(typeof(log))) && push!(log.iota_hist, accum2 / ma_info.lambda) 
+            push!(log.resid_hist, accum / ma_info.lambda)
+            (:iota_hist in fieldnames(typeof(log))) &&
+                push!(log.iota_hist, accum2 / ma_info.lambda)
         end
-        
+
         ma_info.lambda += ma_info.lambda < lambda_base ? 1 : 0
     end
-
 end
