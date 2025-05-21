@@ -5,7 +5,7 @@ A structure that specifies a stopping criterion that incoroporates the randomnes
     achieves a certain number of iterations, it stops.
 
 # Fields
-- `threshold::AbstractFloat`, the value of the estimator that is sufficient progress. 
+- `threshold::Union{AbstractFloat, Tuple}`, the value of the estimator that is sufficient progress. 
 - `delta1::AbstractFloat`, the percent below the threshold does the true value of the progress estimator need to be for not stopping to be a mistake. This is equivalent to stopping too late.
 - `delta2::AbstractFloat`, the percent above the threshold does the true value of the progress estimator need to be for stopping to be a 
     mistake. This is equivalent to stopping too early.
@@ -15,7 +15,7 @@ A structure that specifies a stopping criterion that incoroporates the randomnes
 - Calling MAStop(iter) will specify the users desired maximum number of iterations, threshold = 1e-10, delta1 = .9, delta2 = 1.1, chi1 = 0.01, and chi2 = 0.01.
 """
 struct MAStop
-    threshold::AbstractFloat
+    threshold::Union{AbstractFloat, Tuple}
     delta1::AbstractFloat
     delta2::AbstractFloat
     chi1::AbstractFloat
@@ -26,67 +26,83 @@ function MAStop(;threshold=1e-10, delta1=0.9, delta2=1.1, chi1=0.01, chi2=0.01)
     return MAStop(threshold, delta1, delta2, chi1, chi2)
 end
 
+
+"""
+    threshold_stop(log::MALoggerRecipe)
+
+Function that takes an input threshold and stops when the most recent entry in the history
+    vector is less than the threshold.
+
+# Arguments
+ - `log::MALoggerRecipe`, a structure containing the moving average logger information.
+
+# Bool
+ - Returns a Bool indicating if the stopping threshold is satisfied.
+"""
 # Common interface for stopping criteria
-function check_stop_criterion(log::MALogger, stop::MAStop)
+function check_stop_criterion(log::MALoggerRecipe)
     its = log.iterations
     if its > 0
-        I_threshold = iota_threshold(log, stop)
+        I_threshold = iota_threshold(log)
         thresholdChecks =
-            sqrt(log.iota_hist[its]) <= I_threshold && log.resid_hist[its] <= stop.threshold
+            sqrt(log.iota_hist[its]) <= I_threshold && log.resid_hist[its] <= log.threshold_info.threshold
     else
         thresholdChecks = false
     end
-    return (thresholdChecks || its == stop.max_iter ? true : false)
+    return thresholdChecks
 end
 
+
 """
-    iota_threshold(hist::LSLogMA, stop::LSStopMA)
+    iota_threshold(log::MALoggerRecipe)
 
-Function that computes the stopping criterion using the sub-Exponential distribution from the `LSLogMA`, and the stopping criterion information in `LSSopMA`. This function is not exported and thus not directly callable by the user.
+Function that computes the stopping criterion using the sub-Exponential distribution 
+    from the `MALoggerRecipe`, and the stopping criterion information in TODO: use this stucture? 
+    `MAStop`. This 
+    function is not exported and thus not directly callable by the user.
 
-# Inputs
-- `hist::LSLogMA`, the log information for the moving average tracking.
-- `stop::LSStopMA`, the stopping information for the stopping criterion.
+# Arguments
+- `log::MALoggerRecipe`, the log information for the moving average tracking.
 
 # Ouputs
-Returns the stoppping criterion value.
+- Returns the stoppping criterion value.
 
 Pritchard, Nathaniel, and Vivak Patel. "Solving, Tracking and Stopping Streaming Linear Inverse Problems." arXiv preprint arXiv:2201.05741 (2024).
 """
-function iota_threshold(hist::LSLogMA, stop::MAStop)
-    delta1 = stop.delta1
-    delta2 = stop.delta2
-    chi1 = stop.chi1
-    chi2 = stop.chi2
-    threshold = stop.threshold
-    lambda = hist.ma_info.lambda
+function iota_threshold(log::MALoggerRecipe)
+    delta1 = log.threshold_info.delta1
+    delta2 = log.threshold_info.delta2
+    chi1 = log.threshold_info.chi1
+    chi2 = log.threshold_info.chi2
+    threshold = log.threshold_info.threshold
+    lambda = log.ma_info.lambda
     # If the constants for the sub-Exponential distribution are not defined then define them
 
-    if typeof(hist.dist_info.sigma2) <: Nothing
-        get_SE_constants!(hist, hist.dist_info.sampler)
+    if typeof(log.dist_info.sigma2) <: Nothing
+        get_SE_constants!(log, log.dist_info.sampler)
     end
     #If there is an omega in the sub-Exponential distribution then skip that calculation 
-    if typeof(hist.dist_info.omega) <: Nothing
+    if typeof(log.dist_info.omega) <: Nothing
         # Compute the threshold bound in the case where there is no omega
         c = min(
             (1 - delta1)^2 * threshold^2 / (2 * log(1 / chi1)),
             (delta2 - 1)^2 * threshold^2 / (2 * log(1 / chi2)),
         )
         c /=
-            (hist.dist_info.sigma2 * sqrt(hist.iota_hist[hist.iterations])) *
+            (log.dist_info.sigma2 * sqrt(log.iota_log[log.iterations])) *
             (1 + log(lambda)) / lambda
     else
         #compute error bound when there is an omega
         siota =
-            (hist.dist_info.sigma2 * sqrt(hist.iota_hist[hist.iterations])) *
+            (log.dist_info.sigma2 * sqrt(log.iota_log[log.iterations])) *
             (1 + log(lambda)) / lambda
         min1 = min(
             (1 - delta1)^2 * threshold^2 / (2 * log(1 / chi1) * siota),
-            lambda * (1 - delta1) * threshold / (2 * log(1 / chi1) * hist.dist_info.omega),
+            lambda * (1 - delta1) * threshold / (2 * log(1 / chi1) * log.dist_info.omega),
         )
         min2 = min(
             (delta2 - 1)^2 * threshold^2 / (2 * log(1 / chi2) * siota),
-            lambda * (delta2 - 1) * threshold / (2 * log(1 / chi2) * hist.dist_info.omega),
+            lambda * (delta2 - 1) * threshold / (2 * log(1 / chi2) * log.dist_info.omega),
         )
         c = min(min1, min2)
     end

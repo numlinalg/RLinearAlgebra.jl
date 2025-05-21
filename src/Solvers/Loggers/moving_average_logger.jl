@@ -53,12 +53,7 @@ struct FullMALogger <: Logger
     ma_info::MAInfo 
     threshold_info::MAStop
     stopping_criterion::Function
-    # resid_hist::Vector{AbstractFloat}
-    # lambda_hist::Vector{Integer}  
-    # resid_norm::Function
-    # iterations::Integer
-    # converged::Bool
-    function BasicLogger(max_it, collection_rate, ma_info, threshold_info, stopping_criterion)
+    function FullMALogger(max_it, collection_rate, ma_info, threshold_info, stopping_criterion)
         if max_it < 0 
             throw(ArgumentError("Field `max_it` must be positive or 0."))
         elseif collection_rate < 1
@@ -73,22 +68,17 @@ struct FullMALogger <: Logger
 end
 
 FullMALogger(;
-             max_it::Integer=0,
-             collection_rate::Integer=1, 
-             lambda1::Integer=1, 
-             lambda2::Integer=30,
-             threshold_info(),
+             max_it=0,
+             collection_rate=1, 
+             lambda1=1, 
+             lambda2=30,
+             threshold_info=MAStop(),
              stopping_criterion=check_stop_criterion
             ) = LSLogFullMA(max_it,
                             collection_rate, 
                             MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
-                            threshold_info(),
+                            threshold_info,
                             stopping_criterion
-                            # AbstractFloat[], 
-                            # Int64[],
-                            # resid_norm, 
-                            # -1, 
-                            # false
                            )
 
 
@@ -132,23 +122,10 @@ function complete_logger(logger::FullMALogger)
                                                                  false,
                                                                  res_hist,
                                                                  lambda_hist,
-                                                                 MAStop(),
+                                                                 logger.threshold_info,
                                                                  logger.stopping_criterion
                                                                 )
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

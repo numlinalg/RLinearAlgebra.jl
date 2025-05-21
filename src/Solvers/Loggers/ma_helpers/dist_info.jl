@@ -63,22 +63,21 @@ SEDistInfo(;
 #########################################
 #Function that will return rho and its uncertainty from a LoggerRecipe type 
 """
-    get_uncertainty(log::LoggerRecipe; alpha::AbstractFloat = 0.05)
+    get_uncertainty(log::MALoggerRecipe; alpha::AbstractFloat = 0.05)
     
-A function that gets the uncertainty from LoggerRecipe or LSLogFullMA type.
+A function that gets the uncertainty from moving average logger recipe types.
 
 # Arguments
-- `hist::LoggerRecipe`, the parent structure of moving average log structure, 
-    TODO: check the types
-    i.e. MALogger and FullMALogger types. Specifically, the information of 
-    distribution (`dist_info`), and all histories stored in the structure.
+- `hist::MALoggerRecipe`, the moving average logger recipe structure, 
+    i.e. MALogger type. Specifically, the information of distribution (`dist_info`), 
+    and all histories stored in the structure.
 - `alpha::AbstractFloat`, the confidence level. 
 
 # Returns
 - A `(1-alpha)`-credible intervals for every `rho` in the `log`, specifically 
     it returns a tuple with (rho, Upper bound, Lower bound).
 """
-function get_uncertainty(hist::LoggerRecipe; alpha::AbstractFloat = 0.05)
+function get_uncertainty(hist::MALoggerRecipe; alpha::AbstractFloat = 0.05)
     l = length(hist.iota_hist)
     upper = zeros(l)
     lower = zeros(l)
@@ -114,14 +113,14 @@ function get_uncertainty(hist::LoggerRecipe; alpha::AbstractFloat = 0.05)
 end
 
 """
-    get_SE_constants!(log::LoggerRecipe, sampler::Type{T<:Compressor})
+    get_SE_constants!(log::MALoggerRecipe, sampler::Type{T<:Compressor})
 
 A function that returns a default set of sub-Exponential constants for each sampling method. 
     This function is not exported and thus the user does not have direct access to it. 
 
 # Arguments 
-- `log::LoggerRecipe`, the log containing all the tracking information. Specifically, 
-    the information of distribution (`dist_info`).
+- `log::MALoggerRecipe`, the log containing all the tracking 
+    information. Specifically, the information of distribution (`dist_info`).
 - `sampler::Type{Compressor}`, the type of sampler being used.
 
 # Returns
@@ -130,7 +129,7 @@ A function that returns a default set of sub-Exponential constants for each samp
     If default is not a defined a warning is returned that sigma2 is set 1 and scaling 
     is set to 1. 
 """
-function get_SE_constants!(log::LoggerRecipe, sampler::Type{T}) where T<:Compressor
+function get_SE_constants!(log::MALoggerRecipe, sampler::Type{T}) where T<:Compressor
         @warn "No constants defined for method of type $sampler. By default we set sigma2 to 1 and scaling to 1."
         log.dist_info.sigma2 = 1
         log.dist_info.scaling = 1 

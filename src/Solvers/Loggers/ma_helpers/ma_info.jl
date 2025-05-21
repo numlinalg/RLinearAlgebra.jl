@@ -47,7 +47,7 @@ end
 #########################################
 """
     update_ma!(
-        log::LoggerRecipe, 
+        log::Union{MALoggerRecipe, FullMALoggerRecipe}, 
         res::Union{AbstractVector, Real}, 
         lambda_base::Integer, 
         iter::Integer
@@ -56,7 +56,7 @@ end
 Function that updates the moving average tracking statistic. 
 
 # Arguments
-- `log::LoggerRecipe`, the parent of moving average log structure.
+- `log::Union{MALoggerRecipe, FullMALoggerRecipe}`, the moving average logger recipe structure.
 - `res::Union{AbstractVector, Real}`, the sketched residual for the current iteration. 
 - `lambda_base::Integer`, which lambda, between lambda1 and lambda2, is currently being used.
 - `iter::Integer`, the current iteration.
@@ -65,7 +65,7 @@ Function that updates the moving average tracking statistic.
 - Updates the log datatype and does not explicitly return anything.
 """
 function update_ma!(
-    log::LoggerRecipe,  # log::L where L <: LoggerRecipe
+    log::Union{MALoggerRecipe, FullMALoggerRecipe},  
     res::Union{AbstractVector,Real},
     lambda_base::Integer,
     iter::Integer,
