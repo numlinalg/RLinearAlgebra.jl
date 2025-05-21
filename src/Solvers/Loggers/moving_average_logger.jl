@@ -58,7 +58,7 @@ struct FullMALogger <: Logger
     # resid_norm::Function
     # iterations::Integer
     # converged::Bool
-    function BasicLogger(max_it, collection_rate, threshold_info, stopping_criterion)
+    function BasicLogger(max_it, collection_rate, ma_info, threshold_info, stopping_criterion)
         if max_it < 0 
             throw(ArgumentError("Field `max_it` must be positive or 0."))
         elseif collection_rate < 1
@@ -67,18 +67,23 @@ struct FullMALogger <: Logger
             throw(ArgumentError("Field `colection_rate` must be smaller than `max_it`."))
         end
 
-        return new(max_it, collection_rate, threshold_info, stopping_criterion)
+        return new(max_it, collection_rate, ma_info, threshold_info, stopping_criterion)
     end
 
 end
 
 FullMALogger(;
+             max_it::Integer=0,
              collection_rate::Integer=1, 
              lambda1::Integer=1, 
              lambda2::Integer=30,
-			#  resid_norm::Function=norm, 
-            ) = LSLogFullMA(collection_rate, 
+             threshold_info(),
+             stopping_criterion=check_stop_criterion
+            ) = LSLogFullMA(max_it,
+                            collection_rate, 
                             MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
+                            threshold_info(),
+                            stopping_criterion
                             # AbstractFloat[], 
                             # Int64[],
                             # resid_norm, 
@@ -119,17 +124,17 @@ function complete_logger(logger::FullMALogger)
     res_hist = zeros(max_collection + 1)
     lambda_hist = zeros(max_collection + 1)
     return FullMALoggerRecipe{typeof(logger.stopping_criterion)}(logger.max_it,
-                                                                0.0,
-                                                                logger.threshold_info,
-                                                                1,
-                                                                1,
-                                                                logger.collection_rate,
-                                                                false,
-                                                                res_hist,
-                                                                lambda_hist,
-                                                                MAStop,
-                                                                logger.stopping_criterion
-                                                               )
+                                                                 0.0,
+                                                                 logger.threshold_info,
+                                                                 1,
+                                                                 1,
+                                                                 logger.collection_rate,
+                                                                 false,
+                                                                 res_hist,
+                                                                 lambda_hist,
+                                                                 MAStop(),
+                                                                 logger.stopping_criterion
+                                                                )
 end
 
 
@@ -150,36 +155,50 @@ end
 
 # Common interface for update
 function update_logger!(
-    log::FullMALogger,
-    x::AbstractVector,
-    samp::Tuple,
-    iter::Integer,
-    A::AbstractArray,
-    b::AbstractVector,
+    logger::FullMALoggerRecipe,
+    error::AbstractFloat,
+    iteration::Integer
 )
     # Update iteration counter
-    log.iterations = iter
+    logger.iterations = iteration
+    logger.error = error
 
     ###############################
     # Implement moving average (MA)
     ###############################
-    ma_info = log.ma_info 
+    ma_info = logger.ma_info 
     # Compute the current residual to second power to align with theory
-    res_norm_iter =  log.resid_norm(A * x - b)
-    res::Float64 = res_norm_iter^2
+    res::AbstractFloat = error^2
 
     # Check if MA is in lambda1 or lambda2 regime
     if ma_info.flag
-        update_ma!(log, res, ma_info.lambda2, iter)
+        update_ma!(logger, res, ma_info.lambda2, iteration)
     else
         # Check if we can switch between lambda1 and lambda2 regime
         # If it is in the monotonic decreasing of the sketched residual then we are in a lambda1 regime
         # otherwise we switch to the lambda2 regime which is indicated by the changing of the flag
         # because update_ma changes res_window and ma_info.idx we must check condition first
-        flag_cond = iter == 0 || res <= ma_info.res_window[ma_info.idx] 
-        update_ma!(log, res, ma_info.lambda1, iter)
+        flag_cond = iteration == 0 || res <= ma_info.res_window[ma_info.idx] 
+        update_ma!(logger, res, ma_info.lambda1, iteration)
         ma_info.flag = !flag_cond
     end
+
+    ###############################
+    # Stop the algorithm
+    ###############################
+    # Always check max_it stopping criterion
+    # Compute in this way to avoid bounds error from searching in the max_it + 1 location
+    logger.converged = iteration <= logger.max_it ? 
+        logger.stopping_criterion(logger, logger.threshold_info) : 
+        true 
+    
+    # log according to collection rate or if we have converged 
+    if rem(iteration, logger.collection_rate) == 0 || logger.converged 
+        logger.hist[logger.record_location] = error
+        logger.record_location += 1
+    end
+
+    return nothing
 
 end
 

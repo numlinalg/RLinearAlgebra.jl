@@ -5,7 +5,6 @@ A structure that specifies a stopping criterion that incoroporates the randomnes
     achieves a certain number of iterations, it stops.
 
 # Fields
-- `max_iter::Integer`, the maximum number of iterations.
 - `threshold::AbstractFloat`, the value of the estimator that is sufficient progress. 
 - `delta1::AbstractFloat`, the percent below the threshold does the true value of the progress estimator need to be for not stopping to be a mistake. This is equivalent to stopping too late.
 - `delta2::AbstractFloat`, the percent above the threshold does the true value of the progress estimator need to be for stopping to be a 
@@ -16,7 +15,6 @@ A structure that specifies a stopping criterion that incoroporates the randomnes
 - Calling MAStop(iter) will specify the users desired maximum number of iterations, threshold = 1e-10, delta1 = .9, delta2 = 1.1, chi1 = 0.01, and chi2 = 0.01.
 """
 struct MAStop
-    max_iter::Integer
     threshold::AbstractFloat
     delta1::AbstractFloat
     delta2::AbstractFloat
@@ -24,8 +22,8 @@ struct MAStop
     chi2::AbstractFloat
 end
 
-function MAStop(iter; threshold=1e-10, delta1=0.9, delta2=1.1, chi1=0.01, chi2=0.01)
-    return MAStop(iter, threshold, delta1, delta2, chi1, chi2)
+function MAStop(;threshold=1e-10, delta1=0.9, delta2=1.1, chi1=0.01, chi2=0.01)
+    return MAStop(threshold, delta1, delta2, chi1, chi2)
 end
 
 # Common interface for stopping criteria
