@@ -35,7 +35,7 @@ mutable struct RangeFinder <: RangeApproximator
     rand_subspace::Bool
     function RangeFinder(compressor, power_its, rand_subspace)
         if power_its < 0
-            throw(ArgumentError("Field `power_its` must be non-negative."))
+            return throw(ArgumentError("Field `power_its` must be non-negative."))
         end
         
         return new(compressor, power_its, rand_subspace)

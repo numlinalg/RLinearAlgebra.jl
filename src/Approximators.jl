@@ -123,13 +123,12 @@ $(approx_method_description[:complete_approximator])
 - $(approx_output_list[:approximator_recipe])
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
-    throw(
+    return throw(
         ArgumentError(
             "No method `complete_approximator` exists for approximator of type\
             $(typeof(approximator)) and matrix of type $(typeof(A))."
         )
     )
-    return nothing
 end
 
 """
@@ -145,13 +144,12 @@ $(approx_method_description[:rapproximate])
 - $(approx_output_list[:approximator_recipe])
 """
 function rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
-    throw(
+    return throw(
         ArgumentError(
             "No `rapproximate` method exists for approximator of type\
             $(typeof(approximator)) and matrix of type $(typeof(A))."
         )
     )
-    return nothing
 end
 
 """
@@ -213,13 +211,12 @@ $(approx_method_description[:complete_approximator_error])
 function complete_approximator_error(
     error::ApproximatorError, approximator::Approximator, A::AbstractMatrix
 )
-    throw(
+    return throw(
         ArgumentError(
             "No `complete_approximator_error! defined for error of type\
             $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."
         )
     )
-    return nothing
 end
 
 """
@@ -242,13 +239,12 @@ $(approx_method_description[:compute_approximator_error])
 function compute_approximator_error!(
     error::ApproximatorErrorRecipe, approximator::ApproximatorRecipe, A::AbstractMatrix
 )
-    throw(
+    return throw(
         ArgumentError(
             "No `complete_approximator_error! defined for error of type\
             $(typeof(error)), $(typeof(approximator)), and matrix of type $(typeof(A))."
         )
     )
-    return nothing
 end
 
 # Implement a version of the compute error function that works without the recipe
