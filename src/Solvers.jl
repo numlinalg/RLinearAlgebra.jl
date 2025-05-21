@@ -19,9 +19,6 @@ solver_arg_list = Dict{Symbol,String}(
     :solver => "`solver::Solver`, a user-specified solver method.",
     :solver_recipe => "`solver::SolverRecipe`, a fully initialized realization for a 
     solver method for a specific linear system.",
-    :solver_error => "`error::SolverError`, a user-specified solver error method.",
-    :solver_error_recipe => "`error::SolverErrorRecipe`, a fully initialized realization for
-    a solver error method for a specific linear system or least squares problem.",
     :A => "`A::AbstractMatrix`, a coefficient matrix.",
     :b => "`b::AbstractVector`, a constant vector.",
     :x => "`x::AbstractVector`, a vector for the proposed solution.",
@@ -37,10 +34,6 @@ solver_output_list = Dict{Symbol,String}(
 solver_method_description = Dict{Symbol,String}(
     :complete_solver => "A function that generates a `SolverRecipe` given the 
     arguments.",
-    :complete_solver_error => "A function that generates a `SolverErrorRecipe` given the 
-    arguments.",
-    :compute_solver_error => "A function that evaluates the error for a proposed solution 
-    vector.",
     :rsolve => "A function that solves a linear system given the arguments.",
 )
 # Function skeletons
@@ -49,13 +42,13 @@ solver_method_description = Dict{Symbol,String}(
 
 $(solver_method_description[:complete_solver])
 
-### Arguments
+# Arguments
 - $(solver_arg_list[:solver])
 - $(solver_arg_list[:x]) 
 - $(solver_arg_list[:A]) 
 - $(solver_arg_list[:b]) 
 
-### Outputs
+# Outputs
 - $(solver_output_list[:solver_recipe])
 """
 function complete_solver(
@@ -76,13 +69,13 @@ end
 
 $(solver_method_description[:rsolve])
 
-### Arguments
+# Arguments
 - $(solver_arg_list[:solver_recipe])
 - $(solver_arg_list[:x]) 
 - $(solver_arg_list[:A]) 
 - $(solver_arg_list[:b]) 
 
-### Outputs
+# Outputs
 - Returns `nothing`. Updates the `SolverRecipe` and `x` in place.
 """
 function rsolve!(
@@ -103,13 +96,13 @@ end
 
 $(solver_method_description[:rsolve])
 
-### Arguments
+# Arguments
 - $(solver_arg_list[:solver])
 - $(solver_arg_list[:x]) 
 - $(solver_arg_list[:A]) 
 - $(solver_arg_list[:b]) 
 
-### Outputs
+# Outputs
 - $(solver_output_list[:x])
 - $(solver_output_list[:solver_recipe])
 """

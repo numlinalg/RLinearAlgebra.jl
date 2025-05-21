@@ -54,22 +54,27 @@ solver_method_description = Dict{Symbol,String}(
 
 $(solver_method_description[:complete_error])
 
-### Arguments
+# Arguments
 - $(solver_arg_list[:solver_error])
 - $(solver_arg_list[:solver])
 - $(solver_arg_list[:A]) 
 - $(solver_arg_list[:b]) 
 
-### Returns 
+# Returns 
 - $(solver_output_list[:solver_error_recipe])
 """
 function complete_error(
-    error::SolverError, solver::Solver, A::AbstractMatrix, b::AbstractVector
+    error::SolverError, 
+    solver::Solver, 
+    A::AbstractMatrix, 
+    b::AbstractVector
 )
     return throw(
-        ArgumentError("There is no `complete_error` method defined for \
-      a $(typeof(error)) `SolverError`,  $(typeof(solver)) `SolverRecipe`, $(typeof(A)), \
-      and $(typeof(b)).")
+        ArgumentError(
+            "There is no `complete_error` method defined for a $(typeof(error)) \
+            `SolverError`,  $(typeof(solver)) `SolverRecipe`, $(typeof(A)), and \
+            $(typeof(b))."
+        )
     )
 end
 
@@ -84,14 +89,14 @@ end
 
 $(solver_method_description[:compute_error])
 
-### Arguments
+# Arguments
 - $(solver_arg_list[:solver_error_recipe])
 - $(solver_arg_list[:solver_recipe])
 - $(solver_arg_list[:x]) 
 - $(solver_arg_list[:A]) 
 - $(solver_arg_list[:b]) 
 
-### Returns 
+# Returns 
 -  Returns `nothing`
 """
 function compute_error(
@@ -101,9 +106,12 @@ function compute_error(
     A::AbstractMatrix,
     b::AbstractVector,
 )
-    return throw(ArgumentError("No `complete_error` method defined for\
-          a $(typeof(error)) `SolverErrorRecipe`,  $(typeof(solver)) `SolverRecipe`, \
-          $(typeof(x)), $(typeof(A)), and $(typeof(b))."))
+    return throw(
+        ArgumentError(
+            "No `compute_error` method defined for a $(typeof(error)) `SolverErrorRecipe`,\
+            $(typeof(solver)) `SolverRecipe`, $(typeof(x)), $(typeof(A)), and $(typeof(b))."
+        )
+    )
 end
 
 # Include error method files 

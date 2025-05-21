@@ -5,9 +5,7 @@ using ..FieldTest
 using ..ApproxTol
 Random.seed!(1232)
 
-mutable struct TestSolver <: Solver
-
-end
+mutable struct TestSolver <: Solver end
 
 mutable struct TestSolverRecipe <: SolverRecipe
     solution_vec::AbstractVector
@@ -35,15 +33,15 @@ end
     end
 
     @testset "Residual: Complete error" begin
-        let n_rows = 4,
-            n_cols = 3
-            for type in [Float32, Float64, ComplexF32, ComplexF64] 
-                A = rand(type, n_rows, n_cols)
-                b = rand(type, n_rows)
-                x = rand(type, n_cols)
+        for type in [Float32, Float64, ComplexF32, ComplexF64] 
+            let n_rows = 4,
+                n_cols = 3,
+                A = rand(type, n_rows, n_cols),
+                b = rand(type, n_rows),
+                x = rand(type, n_cols),
                 solver_rec = TestSolverRecipe(x)
-                 
                 error_rec = complete_error(FullResidual(), TestSolver(), A, b)
+
                 # Test the type
                 @test typeof(error_rec) == FullResidualRecipe{typeof(b)}
                 # Test type of residual vector
@@ -57,14 +55,17 @@ end
     end
 
     @testset "Residual: Compute Error" begin
-        let n_rows = 4,
-            n_cols = 3
-            for type in [Float32, Float64, ComplexF32, ComplexF64] 
-                A = rand(type, n_rows, n_cols)
-                b = rand(type, n_rows)
-                x = rand(type, n_cols)
-                solver_rec = TestSolverRecipe(x)
+        for type in [Float32, Float64, ComplexF32, ComplexF64] 
+            let n_rows = 4,
+                n_cols = 3,
+                A = rand(type, n_rows, n_cols),
+                b = rand(type, n_rows),
+                x = rand(type, n_cols),
+                solver_rec = TestSolverRecipe(x),
+                solver = TestSolver(),
+
                 error_rec = complete_error(FullResidual(), TestSolver(), A, b)
+
                 # compute the error value
                 err_val = compute_error(error_rec, solver_rec, A, b)
                 # compute the residual
