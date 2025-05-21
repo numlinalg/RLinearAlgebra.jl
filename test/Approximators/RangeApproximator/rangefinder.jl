@@ -110,8 +110,11 @@ end
 
             compressor = TestCompressor(cardinality, compression_dim)
             approx = RangeFinder(compressor, 2, false)
+            @test_logs (:warn,
+                "Compressor with cardinality `Left` being applied from `Right`."
+            ) complete_approximator(approx, A)
             approx_rec = complete_approximator(approx, A)
-            approx_rec.compressor.cardinality == Right()
+            approx_rec.compressor.cardinality == Left()
             
             @test approx_rec.power_its == 2
             @test approx_rec.rand_subspace == false 
@@ -245,11 +248,8 @@ end
         cardinality = Right()
         A = rand(n_rows, n_cols)
         C = rand(n_rows, n_cols)
-        Cc = deepcopy(C) 
         v = rand(n_cols)
-        vc = deepcopy(v)
         b = rand(n_cols)
-        bc = deepcopy(v)
         compressor = TestCompressor(cardinality, compression_dim)
         approx = RangeFinder(compressor, 2, true)
         approx_rec = rapproximate(approx, A)
@@ -263,20 +263,20 @@ end
         let approx_rec = approx_rec, 
             A = A, 
             C = C,
-            Cc = Cc
+            Cc = deepcopy(C) 
 
             mul!(C, approx_rec, A, 2.0, 1.0)
-            C ≈ Cc + 2.0 * approx_rec.range * A
+            @test C ≈ Cc + 2.0 * approx_rec.range * A
         end
 
         # test multiplication from the right
         let approx_rec = approx_rec, 
             A = A, 
             C = C,
-            Cc = Cc
+            Cc = deepcopy(C) 
 
             mul!(C, A, approx_rec, 2.0, 1.0)
-            C ≈ Cc + 2.0 * A * approx_rec.range
+            @test C ≈ Cc + 2.0 * A * approx_rec.range
         end
 
         # Test the vector multiplication
@@ -284,10 +284,10 @@ end
         let approx_rec = approx_rec, 
             v = v, 
             b = b,
-            bc = bc
+            bc = deepcopy(b) 
 
             mul!(b, approx_rec, v, 2.0, 1.0)
-            b ≈ bc + 2.0 * approx_rec.range * v
+            @test b ≈ bc + 2.0 * approx_rec.range * v
         end
 
         # Test the vector multiplication
@@ -295,10 +295,10 @@ end
         let approx_rec = approx_rec, 
             v = v, 
             b = b,
-            bc = bc
+            bc = deepcopy(b) 
 
             mul!(b', v', approx_rec, 2.0, 1.0)
-            b ≈ (bc' + 2.0  * v' * approx_rec.range)'
+            @test b ≈ (bc' + 2.0  * v' * approx_rec.range)'
         end
 
     end

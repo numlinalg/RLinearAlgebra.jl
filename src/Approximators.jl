@@ -93,7 +93,7 @@ approx_method_description = Dict{Symbol,String}(
 
 A structure for the adjoint of an `ApproximatorRecipe`.
 
-### Fields
+# Fields
 
   - `Parent::ApproximatorRecipe`, the approximator that we compute the adjoint of.
 """
@@ -115,11 +115,11 @@ transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 
 $(approx_method_description[:complete_approximator])
 
-### Arguments
+# Arguments
 - $(approx_arg_list[:approximator])
 - $(approx_arg_list[:A]) 
 
-### Outputs
+# Outputs
 - $(approx_output_list[:approximator_recipe])
 """
 function complete_approximator(approximator::Approximator, A::AbstractMatrix)
@@ -137,11 +137,11 @@ end
 
 $(approx_method_description[:rapproximate])
 
-### Arguments
+# Arguments
 - $(approx_arg_list[:approximator_recipe])
 - $(approx_arg_list[:A]) 
 
-### Outputs
+# Outputs
 - $(approx_output_list[:approximator_recipe])
 """
 function rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
@@ -159,11 +159,11 @@ end
 
 $(approx_method_description[:rapproximate])
 
-### Arguments
+# Arguments
 - $(approx_arg_list[:approximator])
 - $(approx_arg_list[:A]) 
 
-### Outputs
+# Outputs
 - $(approx_output_list[:approximator_recipe])
 """
 function rapproximate(approximator::Approximator, A::AbstractMatrix)
@@ -202,12 +202,12 @@ end
 
 $(approx_method_description[:complete_approximator_error])
 
-### Arguments
+# Arguments
 - $(approx_arg_list[:approximator_error])
 - $(approx_arg_list[:approximator])
 - $(approx_arg_list[:A]) 
 
-### Outputs
+# Outputs
 - $(approx_output_list[:approximator_error_recipe])
 """
 function complete_approximator_error(
@@ -231,12 +231,12 @@ end
 
 $(approx_method_description[:compute_approximator_error])
 
-### Arguments
+# Arguments
 - $(approx_arg_list[:approximator_error_recipe])
 - $(approx_arg_list[:approximator_recipe])
 - $(approx_arg_list[:A]) 
 
-### Outputs
+# Outputs
 - Returns the `error::Float64` 
 """
 function compute_approximator_error!(
@@ -261,12 +261,12 @@ end
 
 $(approx_method_description[:compute_approximator_error])
 
-### Arguments
+# Arguments
 - $(approx_arg_list[:approximator_error])
 - $(approx_arg_list[:approximator_recipe])
 - $(approx_arg_list[:A]) 
 
-### Outputs
+# Outputs
 - Returns the `error::Float64` 
 """
 function compute_approximator_error(

@@ -1,15 +1,15 @@
 """
-    RLinearAlgebra.rand_power_it(A::AbstractMatrix, approx::RangeFinderRecipe)
+    rand_power_it(approx::RangeFinderRecipe, A::AbstractMatrix)
 
 Function that performs the randomized rangefinder procedure presented in Algortihm 4.3 of 
 [halko2011finding](@cite).
 
-## Arguments
-- `A::AbstractMatrix`, the matrix being approximated.
+# Arguments
 - `approx::RangeFinderRecipe`, a `RangeFinderRecipe` structure that contains the compressor
 recipe.
+- `A::AbstractMatrix`, the matrix being approximated.
 
-## Returns 
+# Returns 
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
 function rand_power_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
@@ -37,17 +37,17 @@ end
 
 
 """
-    RLinearAlgebra.rand_subspace_it(A::AbstractMatrix, approx::RangeFinderRecipe)
+    rand_subspace_it(approx::RangeFinderRecipe, A::AbstractMatrix)
 
 Function that performs the randomized rangefinder procedure presented in Algortihm 4.4 of 
 [halko2011finding](@cite).
 
-## Arguments
-- `A::AbstractMatrix`, the matrix being approximated.
+# Arguments
 - `approx::RangeFinderRecipe`, a `RangeFinderRecipe` structure that contains the compressor
 recipe.
+- `A::AbstractMatrix`, the matrix being approximated.
 
-## Returns 
+# Returns 
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
 function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)

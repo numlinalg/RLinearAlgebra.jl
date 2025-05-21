@@ -47,7 +47,7 @@ RangeFinder(;
     compressor = SparseSign(), 
     rand_subspace = false, 
     power_its = 1
-   ) = RangeFinder(compressor, rand_subspace, power_its)
+) = RangeFinder(compressor, rand_subspace, power_its)
 
 """
     RangeFinderRecipe
@@ -75,7 +75,7 @@ function complete_approximator(approx::RangeFinder, A::AbstractMatrix)
     type = eltype(A)
     # You need to make sure you orient the compressor in the correct direction
     if typeof(approx.compressor.cardinality) <: Left
-        approx.compressor.cardinality = Right()
+        @warn "Compressor with cardinality `Left` being applied from `Right`."
     end
 
     compress = complete_compressor(approx.compressor, A)
@@ -93,8 +93,7 @@ function complete_approximator(approx::RangeFinder, A::AbstractMatrix)
 end
 
 function rapproximate!(approx::RangeFinderRecipe, A::AbstractMatrix)
-    # we don't dispatch on this incase someone wishes to make multiple runs with the 
-    # same recipe
+    # User may wish to choose to use a different subspace iteration
     if approx.rand_subspace 
         approx.range = rand_power_it(A, approx)
     else
