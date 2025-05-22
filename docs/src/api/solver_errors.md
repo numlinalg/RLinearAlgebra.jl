@@ -12,12 +12,15 @@ SolverErrorRecipe
 
 ## SolverError Structures
 ```@docs    
+FullResidual
+
+FullResidualRecipe
 
 ```
 
 ## Exported Functions
 ```@docs
-complete_solver_error 
+complete_error 
 
-compute_solver_error
+compute_error
 ```
