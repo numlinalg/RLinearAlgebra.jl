@@ -1,3 +1,6 @@
+###################################
+# Abstract Types
+###################################
 """
     Approximator
 
@@ -53,7 +56,9 @@ randomized rangefinder.
 """
 abstract type RangeApproximatorRecipe <: ApproximatorRecipe end
 
-# Docstring Components
+###################################
+# Docstring Components  
+###################################
 approx_arg_list = Dict{Symbol,String}(
     :approximator => "`approximator::Approximator`, a data structure containing the
     user-defined parameters associated with a particular low-rank approximation.",
@@ -87,7 +92,9 @@ approx_method_description = Dict{Symbol,String}(
     `ApproximatorRecipe` for a matrix `A`.",
 )
 
-# Implement the Adjoint structures for the ApproximatorRecipes
+###################################
+# Approximator Adjoint 
+###################################
 """
     ApproximatorAdjoint{S<:ApproximatorRecipe} <: ApproximatorRecipe 
 
@@ -109,28 +116,30 @@ transpose(A::ApproximatorRecipe) = ApproximatorAdjoint(A)
 # Undo the transpose wrapper
 transpose(A::ApproximatorAdjoint{<:ApproximatorRecipe}) = A.parent
 
-# Function skeletons
-"""
-    complete_approximator(approximator::Approximator, A::AbstractMatrix)
-
-$(approx_method_description[:complete_approximator])
-
-# Arguments
-- $(approx_arg_list[:approximator])
-- $(approx_arg_list[:A]) 
-
-# Outputs
-- $(approx_output_list[:approximator_recipe])
-"""
-function complete_approximator(approximator::Approximator, A::AbstractMatrix)
-    return throw(
-        ArgumentError(
-            "No method `complete_approximator` exists for approximator of type\
-            $(typeof(approximator)) and matrix of type $(typeof(A))."
-        )
-    )
+###################################
+# Size of Approximator 
+###################################
+function Base.size(S::ApproximatorRecipe)
+    return S.n_rows, S.n_cols
 end
 
+function Base.size(S::ApproximatorRecipe, dim::Int64)
+    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    return dim == 1 ? S.n_rows : S.n_cols
+end
+
+function Base.size(S::ApproximatorAdjoint)
+    return S.parent.n_cols, S.parent.n_rows
+end
+
+function Base.size(S::ApproximatorAdjoint, dim::Int64)
+    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    return dim == 1 ? S.parent.n_cols : S.parent.n_rows
+end
+
+###################################
+# rapproximate Interface 
+###################################
 """
     rapproximate!(approximator::ApproximatorRecipe, A::AbstractMatrix)
 
@@ -171,26 +180,32 @@ function rapproximate(approximator::Approximator, A::AbstractMatrix)
 end
 
 ###################################
-# Size of Compressor 
+# Complete Approximator Interface
 ###################################
-function Base.size(S::ApproximatorRecipe)
-    return S.n_rows, S.n_cols
+"""
+    complete_approximator(approximator::Approximator, A::AbstractMatrix)
+
+$(approx_method_description[:complete_approximator])
+
+# Arguments
+- $(approx_arg_list[:approximator])
+- $(approx_arg_list[:A]) 
+
+# Outputs
+- $(approx_output_list[:approximator_recipe])
+"""
+function complete_approximator(approximator::Approximator, A::AbstractMatrix)
+    return throw(
+        ArgumentError(
+            "No method `complete_approximator` exists for approximator of type\
+            $(typeof(approximator)) and matrix of type $(typeof(A))."
+        )
+    )
 end
 
-function Base.size(S::ApproximatorRecipe, dim::Int64)
-    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
-    return dim == 1 ? S.n_rows : S.n_cols
-end
-
-function Base.size(S::ApproximatorAdjoint)
-    return S.parent.n_cols, S.parent.n_rows
-end
-
-function Base.size(S::ApproximatorAdjoint, dim::Int64)
-    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
-    return dim == 1 ? S.parent.n_cols : S.parent.n_rows
-end
-
+###################################
+# Complete Approximator Error Interface
+###################################
 """
     complete_approximator_error(
         error::ApproximatorError, 
@@ -219,6 +234,9 @@ function complete_approximator_error(
     )
 end
 
+###################################
+# Compute Approximator Error Interface
+###################################
 """
     compute_approximator_error!(
         error::ApproximatorErrorRecipe, 
