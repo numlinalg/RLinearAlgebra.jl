@@ -89,13 +89,14 @@ function reset_logger!(logger::LoggerRecipe)
     return nothing
 end
 
+################################################
+# Include Logger Moving Average helpers Files
+################################################
+include("Loggers/ma_helpers/ma_info.jl")
+
 ###############################
 # Include Logger Methods Files
 ###############################
 include("Loggers/basic_logger.jl")
 include("Loggers/moving_average_logger.jl")
 
-################################################
-# Include Logger Moving Average helpers Files
-################################################
-include("Loggers/ma_helpers/ma_info.jl")
