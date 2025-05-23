@@ -11,6 +11,12 @@ module moving_average_logger
         A = rand(n_rows, n_cols)
         b = rand(n_rows)
 
+        # How to use the logger, the error for the update
+        a = MALogger()
+        b = complete_logger(a)
+        reset_logger!(b)
+        update_logger!(b, 0.5, 1)
+
 
         
 
