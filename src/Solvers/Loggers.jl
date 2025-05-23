@@ -99,5 +99,3 @@ include("Loggers/moving_average_logger.jl")
 # Include Logger Moving Average helpers Files
 ################################################
 include("Loggers/ma_helpers/ma_info.jl")
-include("Loggers/ma_helpers/dist_info.jl")
-include("Loggers/ma_helpers/ma_stop.jl")

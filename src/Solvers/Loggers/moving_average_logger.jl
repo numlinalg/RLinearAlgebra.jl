@@ -1,13 +1,13 @@
 """
-	FullMALogger <: Logger
+	MALogger <: Logger
 
 A structure that stores information of specification about a randomized linear solver's 
     behavior. The log assumes that the full linear system is available for processing. 
     The goal of this log is usually for research, development or testing as it is unlikely 
     that the entire residual vector is readily available.
 
-# Fields
-- `collection_rate::Integer`, the frequency with which to record information about progress 
+# Fields TODO
+- `collection_rate::Int64`, the frequency with which to record information about progress 
 	to append to the remaining fields, starting with the initialization 
 	(i.e., iteration `0`). For example, `collection_rate` = 3 means the iteration 
 	difference between each records is 3, i.e. recording information at 
@@ -26,7 +26,7 @@ A structure that stores information of specification about a randomized linear s
 
 # Constructors
 
-	FullMALogger(;collection_rate=1, lambda1=1, lambda2=30, resid_norm=norm)
+	MALogger(;collection_rate=1, lambda1=1, lambda2=30)
 
 ## Keywords
 - `collection_rate::Integer`, the frequency with which to record information about progress 
@@ -36,24 +36,21 @@ A structure that stores information of specification about a randomized linear s
 	iteration `0`, `3`, `6`, `9`, .... By default, this is set to `1`.
 - `lambda1::Integer`, the TODO. By default, this is set to `1`.
 - `lambda2::Integer`, the TODO. By default, this is set to `30`.
-- `resid_norm::Function`, a function that accepts a single vector argument and returns a
-	scalar. Used to compute the residual size. By default, `norm`, which is Euclidean 
-	norm, is set.
 
 ## Returns
-- A `FullMALogger` object.
+- A `MALogger` object.
 
 ## Throws TODO
 - `ArgumentError` if `compression_dim` is non-positive, if `nnz` is exceeds
     `compression_dim`, or if `nnz` is non-positive.
 """
-struct FullMALogger <: Logger
-    max_it::Integer
+struct MALogger <: Logger
+    max_it::Int64
     collection_rate::Integer
     ma_info::MAInfo 
-    threshold_info::MAStop
+    threshold_info::Union{Float64, Tuple}
     stopping_criterion::Function
-    function FullMALogger(max_it, collection_rate, ma_info, threshold_info, stopping_criterion)
+    function MALogger(max_it, collection_rate, ma_info, threshold_info, stopping_criterion)
         if max_it < 0 
             throw(ArgumentError("Field `max_it` must be positive or 0."))
         elseif collection_rate < 1
@@ -67,45 +64,45 @@ struct FullMALogger <: Logger
 
 end
 
-FullMALogger(;
-             max_it=0,
-             collection_rate=1, 
-             lambda1=1, 
-             lambda2=30,
-             threshold_info=MAStop(),
-             stopping_criterion=check_stop_criterion
-            ) = LSLogFullMA(max_it,
-                            collection_rate, 
-                            MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
-                            threshold_info,
-                            stopping_criterion
-                           )
+MALogger(;
+         max_it=0,
+         collection_rate=1, 
+         lambda1=1, 
+         lambda2=30,
+         threshold_info=1e-10,
+         stopping_criterion=check_stop_criterion
+        ) = LSLogFullMA(max_it,
+                        collection_rate, 
+                        MAInfo(lambda1, lambda2, lambda1, false, 1, zeros(lambda2)),
+                        threshold_info,
+                        stopping_criterion
+                        )
 
 
 """
-    FullMALoggerRecipe <: LoggerRecipe
+    MALoggerRecipe <: LoggerRecipe
 
 	TODO
-The recipe contains the information of `FullMALogger`, stores the error metric 
+The recipe contains the information of `MALogger`, stores the error metric 
     in a vector. Checks convergence of the solver based on the log information.
 
 # Fields
 
 """
-mutable struct FullMALoggerRecipe{F<:Function} <: LoggerRecipe
-    max_it::Integer
+mutable struct MALoggerRecipe{F<:Function} <: LoggerRecipe
+    max_it::Int64
     error::AbstractFloat
-    iteration::Integer
-    record_location::Integer
+    iteration::Int64
+    record_location::Int64
     collection_rate::Integer
     converged::Bool
     resid_hist::Vector{AbstractFloat}
     lambda_hist::Vector{Integer}  
-    threshold_info::MAStop
+    threshold_info::Union{Float64, Tuple}
     stopping_criterion::F
 end
 
-function complete_logger(logger::FullMALogger)
+function complete_logger(logger::MALogger)
     # By using ceil if we divide exactly we always have space to record last value, if it 
     # does not divide exactly we have one more than required and thus enough space to record
     # the last value
@@ -113,28 +110,26 @@ function complete_logger(logger::FullMALogger)
     # Use one more than max_it to collect
     res_hist = zeros(max_collection + 1)
     lambda_hist = zeros(max_collection + 1)
-    return FullMALoggerRecipe{typeof(logger.stopping_criterion)}(logger.max_it,
-                                                                 0.0,
-                                                                 logger.threshold_info,
-                                                                 1,
-                                                                 1,
-                                                                 logger.collection_rate,
-                                                                 false,
-                                                                 res_hist,
-                                                                 lambda_hist,
-                                                                 logger.threshold_info,
-                                                                 logger.stopping_criterion
-                                                                )
+    return MALoggerRecipe{typeof(logger.stopping_criterion)}(logger.max_it,
+                                                             0.0,
+                                                             logger.threshold_info,
+                                                             1,
+                                                             1,
+                                                             logger.collection_rate,
+                                                             false,
+                                                             res_hist,
+                                                             lambda_hist,
+                                                             logger.threshold_info,
+                                                             logger.stopping_criterion
+                                                            )
 end
-
-
 
 
 # Common interface for update
 function update_logger!(
-    logger::FullMALoggerRecipe,
+    logger::MALoggerRecipe,
     error::AbstractFloat,
-    iteration::Integer
+    iteration::Int64
 )
     # Update iteration counter
     logger.iterations = iteration
@@ -181,5 +176,29 @@ end
 
 
 
+function reset_logger!(logger::MALoggerRecipe)
+    logger.error = 0.0
+    logger.iteration = 1
+    logger.record_location = 1
+    logger.converged = false
+    fill!(logger.hist, 0.0)
+    return nothing
+end
 
 
+
+"""
+    threshold_stop(log::MALoggerRecipe)
+
+Function that takes an input threshold and stops when the most recent entry in the history
+vector is less than the threshold.
+
+# Arguments
+ - `log::MALoggerRecipe`, a structure containing the logger information
+
+# Bool
+ - Returns a Bool indicating if the stopping threshold is satisfied.
+"""
+function threshold_stop(log::MALoggerRecipe)
+    return log.error < log.threshold_info
+end

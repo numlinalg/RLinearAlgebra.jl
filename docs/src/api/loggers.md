@@ -16,6 +16,16 @@ BasicLogger
 
 BasicLoggerRecipe
 
+MALogger
+
+MALoggerRecipe
+
+```
+
+### Moving average logger structures
+```@docs
+MAInfo
+
 ```
 
 ## Exported Functions
@@ -27,4 +37,6 @@ update_logger!
 reset_logger!
 
 threshold_stop
+
+update_ma!
 ```
