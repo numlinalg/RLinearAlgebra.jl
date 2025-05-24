@@ -91,13 +91,15 @@ The recipe contains the information of `MALogger`, stores the error metric
 """
 mutable struct MALoggerRecipe{F<:Function} <: LoggerRecipe
     max_it::Int64
-    error::AbstractFloat
+    ma_error::AbstractFloat
+    iota_error::AbstractFloat
     iteration::Int64
     record_location::Int64
     collection_rate::Integer
     converged::Bool
     ma_info::MAInfo
     resid_hist::Vector{AbstractFloat}
+    lambda_origin::Integer
     lambda_hist::Vector{Integer}  
     threshold_info::Union{Float64, Tuple}
     stopping_criterion::F
@@ -113,12 +115,14 @@ function complete_logger(logger::MALogger)
     lambda_hist = zeros(max_collection + 1)
     return MALoggerRecipe{typeof(logger.stopping_criterion)}(logger.max_it,
                                                              0.0,
+                                                             0.0,
                                                              1,
                                                              1,
                                                              logger.collection_rate,
                                                              false,
                                                              logger.ma_info,
                                                              res_hist,
+                                                             0,
                                                              lambda_hist,
                                                              logger.threshold_info,
                                                              logger.stopping_criterion
@@ -134,7 +138,26 @@ function update_logger!(
 )
     # Update iteration counter
     logger.iteration = iteration
-    logger.error = error
+
+    ###############################
+    # Implement moving average (MA)
+    ###############################
+    ma_info = logger.ma_info 
+    # Compute the current residual to second power to align with theory
+    res::AbstractFloat = error^2
+
+    # Check if MA is in lambda1 or lambda2 regime
+    if ma_info.flag
+        update_ma!(logger, res, ma_info.lambda2, iteration)
+    else
+        # Check if we can switch between lambda1 and lambda2 regime
+        # If it is in the monotonic decreasing of the sketched residual then we are in a lambda1 regime
+        # otherwise we switch to the lambda2 regime which is indicated by the changing of the flag
+        # because update_ma changes res_window and ma_info.idx we must check condition first
+        flag_cond = iteration == 0 || res <= ma_info.res_window[ma_info.idx] 
+        update_ma!(logger, res, ma_info.lambda1, iteration)
+        ma_info.flag = !flag_cond
+    end
 
     # Always check max_it stopping criterion
     # Compute in this way to avoid bounds error from searching in the max_it + 1 location
@@ -144,25 +167,10 @@ function update_logger!(
     
     # log according to collection rate or if we have converged 
     if rem(iteration, logger.collection_rate) == 0 || logger.converged 
-        ###############################
-        # Implement moving average (MA)
-        ###############################
-        ma_info = logger.ma_info 
-        # Compute the current residual to second power to align with theory
-        res::AbstractFloat = error^2
+        
+        logger.lambda_hist[logger.record_location] = logger.lambda_origin
+        logger.resid_hist[logger.record_location] = logger.ma_error
 
-        # Check if MA is in lambda1 or lambda2 regime
-        if ma_info.flag
-            update_ma!(logger, res, ma_info.lambda2, iteration)
-        else
-            # Check if we can switch between lambda1 and lambda2 regime
-            # If it is in the monotonic decreasing of the sketched residual then we are in a lambda1 regime
-            # otherwise we switch to the lambda2 regime which is indicated by the changing of the flag
-            # because update_ma changes res_window and ma_info.idx we must check condition first
-            flag_cond = iteration == 0 || res <= ma_info.res_window[ma_info.idx] 
-            update_ma!(logger, res, ma_info.lambda1, iteration)
-            ma_info.flag = !flag_cond
-        end
         logger.record_location += 1
     end
 
@@ -173,7 +181,9 @@ end
 
 
 function reset_logger!(logger::MALoggerRecipe)
-    logger.error = 0.0
+    logger.ma_error = 0.0
+    logger.iota_error = 0.0
+    logger.lambda_origin = 0
     logger.iteration = 1
     logger.record_location = 1
     logger.converged = false
@@ -197,5 +207,5 @@ vector is less than the threshold.
  - Returns a Bool indicating if the stopping threshold is satisfied.
 """
 function threshold_stop(log::MALoggerRecipe)
-    return log.error < log.threshold_info
+    return log.ma_error < log.threshold_info
 end

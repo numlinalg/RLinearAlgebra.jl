@@ -85,12 +85,17 @@ function update_ma!(
             accum2 += ma_info.res_window[i]^2
         end
 
-        if mod(iter, log.collection_rate) == 0 || iter == 0
-            push!(log.lambda_hist, ma_info.lambda)
-            push!(log.resid_hist, accum / ma_info.lambda)
-            (:iota_hist in fieldnames(typeof(log))) &&
-                push!(log.iota_hist, accum2 / ma_info.lambda)
-        end
+        # Record the moving average error for stopping
+        log.lambda_origin = ma_info.lambda
+        log.ma_error = accum / ma_info.lambda
+        log.iota_error = accum2 / ma_info.lambda
+
+        # if mod(iter, log.collection_rate) == 0 || iter == 0
+        #     push!(log.lambda_hist, ma_info.lambda)
+        #     push!(log.resid_hist, accum / ma_info.lambda)
+        #     (:iota_hist in fieldnames(typeof(log))) &&
+        #         push!(log.iota_hist, accum2 / ma_info.lambda)
+        # end
 
     else
         # Consider the case when lambda <= lambda1 or  lambda1 < lambda < lambda2
@@ -118,13 +123,18 @@ function update_ma!(
             accum2 += ma_info.res_window[i]^2
         end
 
+        # Record the moving average error for stopping
+        log.lambda_origin = ma_info.lambda
+        log.ma_error = accum / ma_info.lambda
+        log.iota_error = accum2 / ma_info.lambda
+
         #Update the log variable with the information for this update
-        if mod(iter, log.collection_rate) == 0 || iter == 0
-            push!(log.lambda_hist, ma_info.lambda)
-            push!(log.resid_hist, accum / ma_info.lambda)
-            (:iota_hist in fieldnames(typeof(log))) &&
-                push!(log.iota_hist, accum2 / ma_info.lambda)
-        end
+        # if mod(iter, log.collection_rate) == 0 || iter == 0
+        #     push!(log.lambda_hist, ma_info.lambda)
+        #     push!(log.resid_hist, accum / ma_info.lambda)
+        #     (:iota_hist in fieldnames(typeof(log))) &&
+        #         push!(log.iota_hist, accum2 / ma_info.lambda)
+        # end
 
         ma_info.lambda += ma_info.lambda < lambda_base ? 1 : 0
     end
