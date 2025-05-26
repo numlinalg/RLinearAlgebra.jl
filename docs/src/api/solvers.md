@@ -19,7 +19,5 @@ SolverRecipe
 ```@docs
 complete_solver
 
-rsolve
-
 rsolve!
 ```
