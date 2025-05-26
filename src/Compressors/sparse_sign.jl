@@ -62,7 +62,7 @@ In this case, each row of ``S`` is generated independently by the following step
 - `ArgumentError` if `compression_dim` is non-positive, if `nnz` is exceeds
     `compression_dim`, or if `nnz` is non-positive.
 """
-struct SparseSign <: Compressor
+mutable struct SparseSign <: Compressor
     cardinality::Cardinality
     compression_dim::Int64
     nnz::Int64

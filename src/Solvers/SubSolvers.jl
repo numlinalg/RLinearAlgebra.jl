@@ -19,7 +19,7 @@ sub_solver_arg_list = Dict{Symbol,String}(
     :sub_solver => "`solver::SubSolver`, a user-specified sub-solving method.",
     :sub_solver_recipe => "`solver::SubSolverRecipe`, a fully initialized realization for a
     linear sub-solver.",
-    :A => "`A::AbstractMatrix`, a coefficient matrix.",
+    :A => "`A::AbstractArray`, a coefficient matrix or vector.",
 )
 
 sub_solver_output_list = Dict{Symbol,String}(
@@ -33,7 +33,7 @@ sub_solver_method_description = Dict{Symbol,String}(
     arguments.",
 )
 """
-    complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
+    complete_sub_solver(solver::SubSolver, A::AbstractArray)
 
 $(sub_solver_method_description[:complete_sub_solver])
 
@@ -41,17 +41,20 @@ $(sub_solver_method_description[:complete_sub_solver])
 - $(sub_solver_arg_list[:sub_solver])
 - $(sub_solver_arg_list[:A]) 
 
-### Outputs
+### Returns 
 - $(sub_solver_output_list[:sub_solver_recipe])
 """
-function complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
-    throw(ArgumentError("No `complete_sub_solver!` method defined for a solver of type \
-    $(typeof(solver)) and $(typeof(A))."))
-    return nothing
+function complete_sub_solver(solver::SubSolver, A::AbstractArray)
+    return throw(
+        ArgumentError(
+            "No `complete_sub_solver!` method defined for a solver of type \
+            $(typeof(solver)) and $(typeof(A))."
+        )
+    )
 end
 
 """
-    update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
+    update_sub_solver!(solver::SubSolverRecipe, A::AbstractArray)
 
 $(sub_solver_method_description[:update_sub_solver])
 
@@ -59,21 +62,28 @@ $(sub_solver_method_description[:update_sub_solver])
 - $(sub_solver_arg_list[:sub_solver_recipe])
 - $(sub_solver_arg_list[:A]) 
 
-### Outputs
+### Returns 
 - Modifies the `SubSolverRecipe` in place and returns nothing.
 """
-function update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
-    throw(ArgumentError("No `update_sub_solver!` method defined for a solver of type \
-    $(typeof(solver)) and $(typeof(A))."))
-    return nothing
+function update_sub_solver!(solver::SubSolverRecipe, A::AbstractArray)
+    return  throw(
+        ArgumentError(
+            "No `update_sub_solver!` method defined for a solver of type $(typeof(solver))\
+            and $(typeof(A))."
+        )
+    )
 end
 
 function ldiv!(x::AbstractVector, solver::SubSolverRecipe, b::AbstractVector)
-    throw(ArgumentError("No `ldiv!` method defined for a solver of type \
-    $(typeof(solver)), $(typeof(x)), and $(typeof(b))."))
-    return nothing
+    return throw(
+        ArgumentError(
+            "No `ldiv!` method defined for a solver of type $(typeof(solver)), \
+            $(typeof(x)), and $(typeof(b))."
+        )
+    )
 end
 
 ###########################################
 # Include SubSolver files
 ###########################################
+include("SubSolvers/lq.jl")
