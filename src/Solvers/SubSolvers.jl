@@ -37,16 +37,19 @@ sub_solver_method_description = Dict{Symbol,String}(
 
 $(sub_solver_method_description[:complete_sub_solver])
 
-### Arguments
+# Arguments
 - $(sub_solver_arg_list[:sub_solver])
 - $(sub_solver_arg_list[:A]) 
 
-### Outputs
+# Returns
 - $(sub_solver_output_list[:sub_solver_recipe])
 """
 function complete_sub_solver(solver::SubSolver, A::AbstractMatrix)
-    throw(ArgumentError("No `complete_sub_solver!` method defined for a solver of type \
-    $(typeof(solver)) and $(typeof(A))."))
+    throw(
+        ArgumentError("No `complete_sub_solver!` method defined for a solver of type \
+        $(typeof(solver)) and $(typeof(A))."
+        )
+    )
     return nothing
 end
 
@@ -55,12 +58,12 @@ end
 
 $(sub_solver_method_description[:update_sub_solver])
 
-### Arguments
+# Arguments
 - $(sub_solver_arg_list[:sub_solver_recipe])
 - $(sub_solver_arg_list[:A]) 
 
-### Outputs
-- Modifies the `SubSolverRecipe` in place and returns nothing.
+# Returns
+- Modifies the `SubSolverRecipe` in place given the arguments.and returns nothing.
 """
 function update_sub_solver!(solver::SubSolverRecipe, A::AbstractMatrix)
     throw(ArgumentError("No `update_sub_solver!` method defined for a solver of type \

@@ -7,7 +7,7 @@
         @test supertype(QRSolver) == SubSolver
         @test fieldnames(QRSolver) == ()
         @test fieldtypes(QRSolver) == ()
-        # Checks that the compressor produces a SubSolver
+        # Checks that the QRSolver produces a SubSolver
         ss = QRSolver()
         @test typeof(ss) <: SubSolver
     end
@@ -19,12 +19,13 @@
     end
 
     @testset "QR SubSolver: Complete SubSolver" begin
-        let ss = QRSolver()
-            # qr only works for floats and complex nums greater than 16 so we only test them 
-            for type in [Float32, Float64, ComplexF32, ComplexF64]
-                A = rand(type, 12, 3)
-                b = rand(type, 12)
+        # qr only works for floats and complex nums greater than 16 so we only test them 
+        for type in [Float32, Float64, ComplexF32, ComplexF64]
+            let ss = QRSolver(),
+                A = rand(type, 12, 3),
+                b = rand(type, 12),
                 ss_recipe = complete_sub_solver(ss, A)
+
                 # test the attributes of the outputs of the complete function
                 @test typeof(ss_recipe) == QRSolverRecipe{Matrix{type}}
                 @test ss_recipe.A == A
@@ -47,14 +48,14 @@
     end
 
     @testset "QR SubSolver: ldiv!" begin
-        # begin by testing the matrix case
-        let ss = QRSolver()
-            # qr only works for floats and complex nums greater than 16 so we only test them  ????
-            for type in [Float32, Float64, ComplexF32, ComplexF64]
-                A = rand(type, 12, 3)
-                b = rand(type, 12)
-                ss_recipe = complete_sub_solver(ss, A)
+        # qr only works for floats and complex nums greater than 16 so we only test them  ????
+        for type in [Float32, Float64, ComplexF32, ComplexF64]
+            let ss = QRSolver(),
+                A = rand(type, 12, 3),
+                b = rand(type, 12),
+                ss_recipe = complete_sub_solver(ss, A),
                 x_sol = rand(type, 3)
+
                 x_true = qr(A) \ b
                 ldiv!(x_sol, ss_recipe, b)
                 @test x_sol ≈ x_true

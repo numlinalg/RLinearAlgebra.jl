@@ -2,21 +2,22 @@
     QRSolver <: SubSolver
 
 A type containing information relevant to solving the linear subsystems created by the 
-    Solver routines with the LQ factorization. As there are no user controlled parameters, 
+    Solver routines with the QR factorization. As there are no user controlled parameters, 
     if the user wishes to use this method they can simply specify `QRSolver()`.
+
+# Fields
+-  None
 """
-struct QRSolver <: SubSolver
-
-end
+struct QRSolver <: SubSolver end
 
 """
-    QRSolverRecipe <: SubSolverRecipe{M<:AbstractArray}
+    QRSolverRecipe{M<:AbstractArray} <: SubSolverRecipe
 
-A mutable type containing informtation relevant to solving the linear subsytems created by 
+A mutable type containing information relevant to solving the linear subsystems created by 
     the Solver routines with the QR factorization.
 
 # Fields
- - `A::M`, The matrix in the linear system that will be solved with the QR solver.
+- `A::M`, The matrix in the linear system that will be solved with the QR solver.
 """
 mutable struct QRSolverRecipe{M<:AbstractArray} <: SubSolverRecipe
     A::M
@@ -37,7 +38,6 @@ function ldiv!(
     solver::QRSolverRecipe{<:AbstractMatrix}, 
     b::AbstractVector
 )
-    fill!(x, zero(eltype(b)))
     # this will modify B in place so you cannot use it again
     ldiv!(x, qr!(solver.A), b)
     return nothing
