@@ -87,12 +87,12 @@ function update_ma!(
 
         # Record the moving average error for stopping
         log.lambda_origin = ma_info.lambda
-        log.ma_error = accum / ma_info.lambda
+        log.error = accum / ma_info.lambda
         log.iota_error = accum2 / ma_info.lambda
 
         # if mod(iter, log.collection_rate) == 0 || iter == 0
         #     push!(log.lambda_hist, ma_info.lambda)
-        #     push!(log.resid_hist, accum / ma_info.lambda)
+        #     push!(log.hist, accum / ma_info.lambda)
         #     (:iota_hist in fieldnames(typeof(log))) &&
         #         push!(log.iota_hist, accum2 / ma_info.lambda)
         # end
@@ -125,13 +125,13 @@ function update_ma!(
 
         # Record the moving average error for stopping
         log.lambda_origin = ma_info.lambda
-        log.ma_error = accum / ma_info.lambda
+        log.error = accum / ma_info.lambda
         log.iota_error = accum2 / ma_info.lambda
 
         #Update the log variable with the information for this update
         # if mod(iter, log.collection_rate) == 0 || iter == 0
         #     push!(log.lambda_hist, ma_info.lambda)
-        #     push!(log.resid_hist, accum / ma_info.lambda)
+        #     push!(log.hist, accum / ma_info.lambda)
         #     (:iota_hist in fieldnames(typeof(log))) &&
         #         push!(log.iota_hist, accum2 / ma_info.lambda)
         # end

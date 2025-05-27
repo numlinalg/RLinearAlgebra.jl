@@ -13,7 +13,7 @@ A structure that stores information of specification about a randomized linear s
 	difference between each records is 3, i.e. recording information at 
 	iteration `0`, `3`, `6`, `9`, ....
 - `ma_info::MAInfo`, [`MAInfo`](@ref)
-- `resid_hist::Vector{AbstractFloat}`, retains a vector of numbers corresponding to the residual
+- `hist::Vector{AbstractFloat}`, retains a vector of numbers corresponding to the residual
 	(uses the whole system to compute the residual). These values are stored at iterates 
 	specified by `collection_rate`.
 - `lambda_hist::Vector{Integer}`, contains the widths of the moving average.
@@ -91,14 +91,14 @@ The recipe contains the information of `MALogger`, stores the error metric
 """
 mutable struct MALoggerRecipe{F<:Function} <: LoggerRecipe
     max_it::Int64
-    ma_error::AbstractFloat
+    error::AbstractFloat    # Moving average error, named for field check
     iota_error::AbstractFloat
     iteration::Int64
     record_location::Int64
     collection_rate::Integer
     converged::Bool
     ma_info::MAInfo
-    resid_hist::Vector{AbstractFloat}
+    hist::Vector{AbstractFloat} # Residual history, named for field check
     lambda_origin::Integer
     lambda_hist::Vector{Integer}  
     threshold_info::Union{Float64, Tuple}
@@ -169,7 +169,7 @@ function update_logger!(
     if rem(iteration, logger.collection_rate) == 0 || logger.converged 
         
         logger.lambda_hist[logger.record_location] = logger.lambda_origin
-        logger.resid_hist[logger.record_location] = logger.ma_error
+        logger.hist[logger.record_location] = logger.error
 
         logger.record_location += 1
     end
@@ -181,13 +181,13 @@ end
 
 
 function reset_logger!(logger::MALoggerRecipe)
-    logger.ma_error = 0.0
+    logger.error = 0.0
     logger.iota_error = 0.0
     logger.lambda_origin = 0
     logger.iteration = 1
     logger.record_location = 1
     logger.converged = false
-    fill!(logger.resid_hist, 0.0)
+    fill!(logger.hist, 0.0)
     fill!(logger.lambda_hist, 0.0)
     return nothing
 end
@@ -207,5 +207,5 @@ vector is less than the threshold.
  - Returns a Bool indicating if the stopping threshold is satisfied.
 """
 function threshold_stop(log::MALoggerRecipe)
-    return log.ma_error < log.threshold_info
+    return log.error < log.threshold_info
 end
