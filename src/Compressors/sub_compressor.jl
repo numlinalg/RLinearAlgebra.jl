@@ -57,7 +57,7 @@ end
 function SubCompressor(;
     cardinality::Cardinality = Left(),
     compression_dim::Int64 = 2,
-    distribution::Distribution
+    distribution::Distribution = Uniform
 )
     # Partially construct the SubCompressor datatype
     return SubCompressor(cardinality, compression_dim, distribution)
@@ -85,34 +85,41 @@ mutable struct SubCompressorRecipe <: CompressorRecipe
     n_cols::Int64
     distribution_recipe::DistributionRecipe
     idx::Vector{Int64}
+    idx_v::SubArray
+end
+
+function get_dims(compression_dim::Int64, cardinality::Left, A::AbstractMatrix)
+    n_rows = compression_dim
+    n_cols = size(A, 1)
+    initial_size = n_cols
+    return n_rows, n_cols, initial_size
+end
+
+function get_dims(compression_dim::Int64, cardinality::Right, A::AbstractMatrix)
+    n_rows = size(A, 2)
+    n_cols = subcompressor.compression_dim
+    initial_size = n_rows
+    return n_rows, n_cols, initial_size
 end
 
 function complete_compressor(subcompressor::SubCompressor, A::AbstractMatrix)
-    if subcompressor.cardinality == Left()
-        n_rows = subcompressor.compression_dim
-        n_cols = size(A, 1)
-        initial_size = n_cols
-    elseif subcompressor.cardinality == Right()
-        n_rows = size(A, 2)
-        n_cols = subcompressor.compression_dim
-        initial_size = n_rows
-    end
-    
+    n_rows, n_cols, initial_size = get_dims(subcompressor.compression_dim, subcompressor.cardinality, A)
     # Pull out the variables from ingredients
     compression_dim = subcompressor.compression_dim
     subcompressor.distribution.cardinality = subcompressor.cardinality
     # Compute the weight for each index
-    dist_ingredients = complete_distribution(subcompressor.distribution, A)
+    dist_recipe = complete_distribution(subcompressor.distribution, A)
     idx = Vector{Int64}(undef, compression_dim)
+    idx_v = view(idx,:)
     # Randomly generate samples from index set based on weights
-    sample_distribution!(idx, dist_ingredients)
-    return SubCompressorRecipe(subcompressor.cardinality, compression_dim, n_rows, n_cols, dist_ingredients, idx)
+    sample_distribution!(idx_v, idx, dist_recipe)
+    return SubCompressorRecipe(subcompressor.cardinality, compression_dim, n_rows, n_cols, dist_recipe, idx, idx_v)
 end
 
-function update_compressor!(S::SubCompressorRecipe, A)
-    update_distribution!(S.distribution_recipe, A)
+function update_compressor!(S::SubCompressorRecipe, A, x, b)
+    update_distribution!(S.distribution_recipe, A, x, b)
     # Randomly generate samples from index set based on weights
-    sample_distribution!(S.idx, S.distribution_recipe)
+    sample_distribution!(S.idx_v, S.idx, S.distribution_recipe)
 end
     
 # Matrix-matrix multiplication
@@ -126,7 +133,7 @@ function mul!(
 )
     # Check the compatability of the sizes of the things being multiplied
     left_mul_dimcheck(C, S, A)
-    for i in 1:S.compression_dim
+    for i in 1:length(S.idx_v)
         C[i,:] .= beta .* C[i,:] + alpha * A[S.idx[i],:]
     end
 
@@ -143,7 +150,7 @@ function mul!(
 )
     # Check the compatability of the sizes of the things being multiplied
     right_mul_dimcheck(C, A, S)
-    for i in 1:S.compression_dim
+    for i in 1:length(S.idx_v)
         C[:,i] .= beta .* C[:,i] + alpha * A[:,S.idx[i]]
     end
     

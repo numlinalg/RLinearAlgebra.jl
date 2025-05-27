@@ -23,7 +23,8 @@ using ..ApproxTol
             :n_rows,
             :n_cols,
             :distribution_recipe,
-            :idx
+            :idx,
+            :idx_v
         )
         @test fieldtypes(SubCompressorRecipe) == (
             Cardinality,
@@ -32,6 +33,7 @@ using ..ApproxTol
             Int64,
             DistributionRecipe,
             Vector{Int64},
+            SubArray
         )
 
         # Verify the internal constructor: Left Compressor
