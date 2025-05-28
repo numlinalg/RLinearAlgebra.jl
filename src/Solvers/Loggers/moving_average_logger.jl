@@ -2,47 +2,52 @@
 	MALogger <: Logger
 
 A structure that stores information of specification about a randomized linear solver's 
-    behavior. The log assumes that the full linear system is available for processing. 
-    The goal of this log is usually for research, development or testing as it is unlikely 
-    that the entire residual vector is readily available.
+  behavior. The log assumes that the full linear system is available for processing. 
+  The goal of this log is usually for research, development or testing as it is unlikely 
+  that the entire residual vector is readily available.
 
-# Fields TODO
+# Fields
+- `max_it::Int64`, the maximum number of iterations for the solver.
 - `collection_rate::Int64`, the frequency with which to record information about progress 
-	to append to the remaining fields, starting with the initialization 
-	(i.e., iteration `0`). For example, `collection_rate` = 3 means the iteration 
-	difference between each records is 3, i.e. recording information at 
-	iteration `0`, `3`, `6`, `9`, ....
+  to append to the remaining fields, starting with the initialization 
+  (i.e., iteration `0`). For example, `collection_rate` = `3` means the iteration 
+  difference between each records is `3`, i.e. recording information at 
+  iteration `0`, `3`, `6`, `9`, ....
 - `ma_info::MAInfo`, [`MAInfo`](@ref)
-- `hist::Vector{AbstractFloat}`, retains a vector of numbers corresponding to the residual
-	(uses the whole system to compute the residual). These values are stored at iterates 
-	specified by `collection_rate`.
-- `lambda_hist::Vector{Integer}`, contains the widths of the moving average.
-	These values are stored at iterates specified by `collection_rate`.
-- `resid_norm::Function`, a function that accepts a single vector argument and returns a
-	scalar. Used to compute the residual size.
-- `iterations::Integer`, the number of iterations of the solver.
-- `converged::Bool`, a flag to indicate whether the system has converged by some measure. 
-	By default this is `false`.
+- `threshold_info::Union{Float64, Tuple}`, the parameters used for stopping the algorithm.
+- `stopping_criterion::Function`, function that evaluates the stopping criterion.
 
 # Constructors
 
-	MALogger(;collection_rate=1, lambda1=1, lambda2=30)
+	MALogger(;
+             max_it=0,
+             collection_rate=1,
+             lambda1=1,
+             lambda2=30,
+             threshold_info=1e-10,
+             stopping_criterion=threshold_stop
+            )
 
 ## Keywords
-- `collection_rate::Integer`, the frequency with which to record information about progress 
-	to append to the remaining fields, starting with the initialization 
-	(i.e., iteration `0`). For example, `collection_rate` = 3 means the iteration 
-	difference between each records is 3, i.e. recording information at 
-	iteration `0`, `3`, `6`, `9`, .... By default, this is set to `1`.
-- `lambda1::Integer`, the TODO. By default, this is set to `1`.
-- `lambda2::Integer`, the TODO. By default, this is set to `30`.
+- `max_it::Int64`, the maximum number of iterations for the solver. Default: `0`.
+- `collection_rate::Integer`, the frequency for recording progress. Default: `1`.
+- `lambda1::Integer`, the width of the moving average during the initial "fast"
+  convergence phase. Default: `1`.
+- `lambda2::Integer`, the width of the moving average during the later "slow"
+  convergence phase. Default: `30`.
+- `threshold_info::Union{Float64, Tuple}`, parameters for the stopping criterion.
+  Default: `1e-10`.
+- `stopping_criterion::Function`, the function used to check for convergence.
+  Default: `threshold_stop`.
 
 ## Returns
 - A `MALogger` object.
 
-## Throws TODO
-- `ArgumentError` if `compression_dim` is non-positive, if `nnz` is exceeds
-    `compression_dim`, or if `nnz` is non-positive.
+## Throws
+- `ArgumentError` if `max_it` is negative.
+- `ArgumentError` if `collection_rate` is less than `1`.
+- `ArgumentError` if `max_it` is positive and `collection_rate` is greater
+  than `max_it`.
 """
 struct MALogger <: Logger
     max_it::Int64
@@ -80,14 +85,33 @@ MALogger(;
 
 
 """
-    MALoggerRecipe <: LoggerRecipe
+    MALoggerRecipe{F<:Function} <: LoggerRecipe
 
-	TODO
-The recipe contains the information of `MALogger`, stores the error metric 
-    in a vector. Checks convergence of the solver based on the log information.
+A mutable structure that contains the fully initialized state and pre-allocated memory
+  for the `MALogger`. It stores the error metric history and moving average information,
+  and checks for convergence based on this log.
 
 # Fields
-
+- `max_it::Int64`, the maximum number of iterations for the solver.
+- `error::AbstractFloat`, the current error metric (often a moving average of residuals).
+  Named `error` for compatibility with generic field checks.
+- `iota_error::AbstractFloat`, an auxiliary error metric, potentially related to variance
+  or another aspect of the moving average.
+- `iteration::Int64`, the current iteration number of the solver.
+- `record_location::Int64`, the index in `hist` and `lambda_hist` to store data.
+- `collection_rate::Integer`, the frequency with which progress information is recorded.
+- `converged::Bool`, a flag indicating whether the stopping criterion has been met.
+  Default is `false` upon initialization.
+- `ma_info::MAInfo`, [`MAInfo`](@ref)
+- `hist::Vector{AbstractFloat}`, a vector storing the history of the primary error metric
+  (e.g., moving average of squared residuals) at specified `collection_rate` intervals.
+- `lambda_origin::Integer`, stores the current lambda value (lambda1 or lambda2) being used by the
+  moving average calculation at the time of recording.
+- `lambda_hist::Vector{Integer}`, a vector storing the history of the `lambda_origin` values
+  at specified `collection_rate` intervals.
+- `threshold_info::Union{Float64, Tuple}`, parameters used by the `stopping_criterion`.
+- `stopping_criterion::F` (where `F<:Function`), the function used to evaluate
+  the stopping criterion.
 """
 mutable struct MALoggerRecipe{F<:Function} <: LoggerRecipe
     max_it::Int64
@@ -197,14 +221,15 @@ end
 """
     threshold_stop(log::MALoggerRecipe)
 
-Function that takes an input threshold and stops when the most recent entry in the history
-vector is less than the threshold.
+Default stopping criterion that checks if the current error metric in the logger
+  is below a specified threshold.
 
 # Arguments
- - `log::MALoggerRecipe`, a structure containing the logger information
+- `log::MALoggerRecipe`, a structure containing the logger information.
 
 # Bool
- - Returns a Bool indicating if the stopping threshold is satisfied.
+- `Bool`, Returns `true` if `log.error` is less than `log.threshold_info`,
+  indicating the stopping threshold is satisfied. Otherwise, returns `false`.
 """
 function threshold_stop(log::MALoggerRecipe)
     return log.error < log.threshold_info

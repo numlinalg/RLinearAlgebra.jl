@@ -9,8 +9,13 @@
 """
     MAInfo
 
-A mutable structure that stores information relevant to the moving average of the 
-    progress estimator.
+A mutable structure that stores information relevant to the moving average (MA) of a
+  progress estimator, such as a residual. It manages different MA window widths
+  (`lambda1`, `lambda2`) for different convergence phases and tracks the current
+  MA window (`res_window`).
+
+See [pritchard2024solving](@cite) for more information on the underlying MA methods.
+
 
 # Fields
 - `lambda1::Integer`, the width of the moving average during the fast convergence phase of the algorithm. 
@@ -20,18 +25,14 @@ A mutable structure that stores information relevant to the moving average of th
   phase, each iterate differs from the previous one by a small amount and thus most of the observed variation
   arises from the randomness of the sketched progress estimator, which is best smoothed by a wide moving
   average width.
-- `lambda::Integer`, the width of the moving average at the current iteration. This value is not controlled by
-  the user. 
-- `flag::Bool`, a boolean indicating which phase we are in, a value of `true` indicates slow convergence phase. 
-- `idx::Integer`, the index indcating what value should be replaced in the moving average buffer.
-- `res_window::Vector{<:AbstractFloat}`, the moving average buffer.
-
-For more information see:
-- Pritchard, Nathaniel, and Vivak Patel. "Solving, tracking and stopping streaming linear 
-    inverse problems." Inverse Problems (2024). doi:10.1088/1361-6420/ad5583.
-- Pritchard, Nathaniel, and Vivak Patel. “Towards Practical Large-Scale Randomized Iterative 
-    Least Squares Solvers through Uncertainty Quantification.” SIAM/ASA J. Uncertainty 
-    Quantification 11 (2022): 996-1024. doi.org/10.1137/22M1515057
+- `lambda::Integer`, the actual width of the moving average being used at the current iteration. 
+  This field is updated internally and is not set directly by the user.
+- `flag::Bool`, a boolean flag indicating the current convergence phase. A value of `true` 
+  typically indicates the "slow" convergence phase (using `lambda2`).
+- `idx::Integer`, the current index within the `res_window` buffer where the next residual value 
+  will be stored, implementing a circular buffer.
+- `res_window::Vector{<:AbstractFloat}`, the buffer storing the recent residual values
+  used to compute the moving average.
 """
 mutable struct MAInfo
     lambda1::Integer
@@ -53,7 +54,10 @@ end
         iter::Integer
     ) 
 
-Function that updates the moving average tracking statistic. 
+Updates the moving average statistics stored within the `log.ma_info` field of a
+  `MALoggerRecipe`. It computes the moving average and second moment (iota) of the
+  provided residual `res` and updates `log.error`, `log.iota_error`, and
+  `log.lambda_origin` fields of the `MALoggerRecipe`.
 
 # Arguments
 - `log::LoggerRecipe`, the parent of moving average logger recipe structure.
@@ -62,7 +66,8 @@ Function that updates the moving average tracking statistic.
 - `iter::Integer`, the current iteration.
 
 # Returns
-- Updates the log datatype and does not explicitly return anything.
+- `nothing` (The `log` object, specifically its `ma_info`, `error`, `iota_error`, and
+  `lambda_origin` fields, is modified in-place).
 """
 function update_ma!(
     log::LoggerRecipe,  
@@ -138,4 +143,6 @@ function update_ma!(
 
         ma_info.lambda += ma_info.lambda < lambda_base ? 1 : 0
     end
+
+    return nothing
 end
