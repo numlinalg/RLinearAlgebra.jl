@@ -96,5 +96,40 @@ macro test_projection_solver(type)
     return expr
 end
 
-export @test_projection_solver, @test_compressor, @test_logger
+RangeApproximatorFields = Dict(
+    :n_cols => Int64,
+    :n_rows => Int64,
+    :power_its => Int64,
+    :rand_subspace => Bool,
+    :range => AbstractMatrix,
+    :compressor => CompressorRecipe,
+)
+
+"""
+    @test_range_approximator(type)
+
+Macro for implementing Range Approximator routines, such as the Randomized Range Finder and
+the Randomized SVD. It checks that every ApproximatorRecipe  includes the fields
+`range::AbstractMatrix`, `power_its::Int64`, `rand_subspace::Bool`,
+`compressor::CompressorRecipe`, `n_rows::Int64`, and `n_cols::Int64` 
+to ensure a common interface.
+"""
+macro test_range_approximator(type)
+    expr = quote
+        @testset verbose = true "Range Approximator: $(string($(esc(type))))" begin
+            # Test the super type
+            @test supertype($(esc(type))) <: ApproximatorRecipe
+
+            # Test the field names and types
+            for (fname, ftype) in RangeApproximatorFields
+                @test fname in fieldnames($(esc(type)))
+                @test fieldtype($(esc(type)), fname) <: ftype
+            end
+        end
+    end
+
+    return expr
+end
+
+export @test_projection_solver, @test_compressor, @test_logger, @test_range_approximator
 end

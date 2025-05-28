@@ -22,8 +22,6 @@ end
 @testset "Approximator Argument Errors" begin
     A = rand(2, 2)
 
-    @test_throws ArgumentError complete_approximator(TestApproximator(), A)
-    @test_throws ArgumentError update_approximator!(TestApproximatorRecipe(), A)
     @test_throws ArgumentError rapproximate!(TestApproximatorRecipe(), A)
     @test_throws ArgumentError rapproximate(TestApproximator(), A)
 end

@@ -117,13 +117,12 @@ $(comp_method_description[:complete_compressor])
 - $(comp_error_list[:complete_compressor])
 """
 function complete_compressor(compressor::Compressor, A::AbstractMatrix)
-    throw(
+    return throw(
         ArgumentError(
             "No `complete_compressor` method exists for compressor of type \
             $(typeof(compressor)) and matrix of type $(typeof(A))."
         )
     )
-    return nothing
 end
 
 """
@@ -197,13 +196,12 @@ $(comp_method_description[:update_compressor])
 - $(comp_error_list[:update_compressor])
 """
 function update_compressor!(S::CompressorRecipe)
-    throw(
+    return throw(
         ArgumentError(
             "No method `update_compressor` exists for compressor recipe of type \
             $(typeof(S))."
         )
     )
-    return nothing
 end
 
 """
@@ -448,13 +446,12 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    throw(
+    return throw(
         ArgumentError(
             "No method `mul!` defined for ($(typeof(C)), $(typeof(S)), \
             $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."
         )
     )
-    return nothing
 end
 
 # alpha*A*S + beta*C -> C
@@ -465,13 +462,12 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    throw(
+    return throw(
         ArgumentError(
             "No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
             $(typeof(S)), $(typeof(alpha)), $(typeof(beta)))."
         )
     )
-    return nothing
 end
 
 # alpha * S'*A + beta*C -> C (equivalently, alpha * A' * S + beta + C' -> C')
@@ -567,4 +563,5 @@ end
 ###################################
 # Include Compressor Files
 ###################################
+include("Compressors/gaussian.jl")
 include("Compressors/sparse_sign.jl")

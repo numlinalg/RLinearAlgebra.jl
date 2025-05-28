@@ -32,42 +32,24 @@ logger_method_description = Dict{Symbol,String}(
     arguments.",
     :update_logger => "A function that updates the `LoggerRecipe` in place given 
     arguments.",
+    :reset_logger => "A function that resets the `LoggerRecipe` in place.", 
 )
+
 """
-    complete_logger(logger::Logger, A::AbstractMatrix)
+    complete_logger(logger::Logger)
 
 $(logger_method_description[:complete_logger])
 
 ### Arguments
 - $(logger_arg_list[:logger])
-- $(logger_arg_list[:A]) 
 
-### Outputs
+### Returns 
 - $(logger_output_list[:logger_recipe])
 """
-function complete_logger(logger::Logger, A::AbstractMatrix)
+function complete_logger(logger::Logger)
     throw(ArgumentError("No `complete_logger` method defined for logger of type \
-          $(typeof(logger)) and $(typeof(A))."))
+          $(typeof(logger))."))
     return nothing
-end
-
-"""
-    complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
-
-$(logger_method_description[:complete_logger])
-
-### Arguments
-- $(logger_arg_list[:logger])
-- $(logger_arg_list[:A]) 
-- $(logger_arg_list[:b]) 
-
-### Outputs
-- $(logger_output_list[:logger_recipe])
-"""
-function complete_logger(logger::Logger, A::AbstractMatrix, b::AbstractVector)
-    # By default the LoggerRecipe formed by applying the version of this function that only
-    # requires the `Logger` and linear system.
-    return complete_logger(logger, A)
 end
 
 """
@@ -80,7 +62,7 @@ $(logger_method_description[:update_logger])
 - $(logger_arg_list[:err]) 
 - $(logger_arg_list[:iteration]) 
 
-### Outputs
+### Returns 
 - Performs an inplace update to the `LoggerRecipe` and returns nothing.
 """
 function update_logger!(logger::LoggerRecipe, err::Real, iteration::Int64)
@@ -89,6 +71,25 @@ function update_logger!(logger::LoggerRecipe, err::Real, iteration::Int64)
     return nothing
 end
 
+
+"""
+    reset_logger!(logger::LoggerRecipe)
+
+$(logger_method_description[:reset_logger])
+
+### Arguments
+- $(logger_arg_list[:logger_recipe])
+
+### Returns 
+- Performs an inplace update to the `LoggerRecipe` and returns nothing.
+"""
+function reset_logger!(logger::LoggerRecipe)
+    throw(ArgumentError("No `reset_logger!` method defined for a logger of type \
+    $(typeof(logger))."))
+    return nothing
+end
+
 ##############################
 # Include Logger Files
 ###############################
+include("Loggers/basic_logger.jl")

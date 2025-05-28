@@ -12,10 +12,13 @@ SubSolverRecipe
 
 ## SubSolver Structures
 ```@docs
+LQSolver
+
+LQSolverRecipe
+
 QRSolver
 
 QRSolverRecipe
-
 ```
 
 ## Exported Functions
