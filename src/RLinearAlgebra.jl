@@ -34,9 +34,10 @@ export BasicLogger, BasicLoggerRecipe
 export complete_logger, update_logger!, reset_logger!
 export threshold_stop
 
-# Export SubSolver types
+# Export SubSolver types and functions
 export SubSolver, SubSolverRecipe, ldiv!
 export complete_sub_solver, update_sub_solver!
+export QRSolver, QRSolverRecipe
 export LQSolver, LQSolverRecipe
 
 # Export SolverError types and functions

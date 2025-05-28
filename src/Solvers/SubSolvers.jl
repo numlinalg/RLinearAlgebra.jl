@@ -37,11 +37,11 @@ sub_solver_method_description = Dict{Symbol,String}(
 
 $(sub_solver_method_description[:complete_sub_solver])
 
-### Arguments
+# Arguments
 - $(sub_solver_arg_list[:sub_solver])
 - $(sub_solver_arg_list[:A]) 
 
-### Returns 
+# Returns 
 - $(sub_solver_output_list[:sub_solver_recipe])
 """
 function complete_sub_solver(solver::SubSolver, A::AbstractArray)
@@ -58,12 +58,12 @@ end
 
 $(sub_solver_method_description[:update_sub_solver])
 
-### Arguments
+# Arguments
 - $(sub_solver_arg_list[:sub_solver_recipe])
 - $(sub_solver_arg_list[:A]) 
 
-### Returns 
-- Modifies the `SubSolverRecipe` in place and returns nothing.
+# Returns
+- Modifies the `SubSolverRecipe` in place given the arguments.and returns nothing.
 """
 function update_sub_solver!(solver::SubSolverRecipe, A::AbstractArray)
     return  throw(
@@ -87,3 +87,4 @@ end
 # Include SubSolver files
 ###########################################
 include("SubSolvers/lq.jl")
+include("SubSolvers/qr.jl")
