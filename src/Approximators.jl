@@ -138,6 +138,30 @@ function Base.size(S::ApproximatorAdjoint, dim::Int64)
 end
 
 ###################################
+# Complete Approximator Interface
+###################################
+"""
+    complete_approximator(approximator::Approximator, A::AbstractMatrix)
+
+$(approx_method_description[:complete_approximator])
+
+# Arguments
+- $(approx_arg_list[:approximator])
+- $(approx_arg_list[:A]) 
+
+# Outputs
+- $(approx_output_list[:approximator_recipe])
+"""
+function complete_approximator(approximator::Approximator, A::AbstractMatrix)
+    return throw(
+        ArgumentError(
+            "No method `complete_approximator` exists for approximator of type\
+            $(typeof(approximator)) and matrix of type $(typeof(A))."
+        )
+    )
+end
+
+###################################
 # rapproximate Interface 
 ###################################
 """
@@ -179,29 +203,6 @@ function rapproximate(approximator::Approximator, A::AbstractMatrix)
     return approx_recipe
 end
 
-###################################
-# Complete Approximator Interface
-###################################
-"""
-    complete_approximator(approximator::Approximator, A::AbstractMatrix)
-
-$(approx_method_description[:complete_approximator])
-
-# Arguments
-- $(approx_arg_list[:approximator])
-- $(approx_arg_list[:A]) 
-
-# Outputs
-- $(approx_output_list[:approximator_recipe])
-"""
-function complete_approximator(approximator::Approximator, A::AbstractMatrix)
-    return throw(
-        ArgumentError(
-            "No method `complete_approximator` exists for approximator of type\
-            $(typeof(approximator)) and matrix of type $(typeof(A))."
-        )
-    )
-end
 
 ###################################
 # Complete Approximator Error Interface
