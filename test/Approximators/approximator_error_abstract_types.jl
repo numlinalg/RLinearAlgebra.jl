@@ -86,7 +86,4 @@ end
         @test result == 3
     end
 end
-
-
-
 end 
