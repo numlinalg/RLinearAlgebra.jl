@@ -1,6 +1,6 @@
 module approximators_abstract_types
 using Test, RLinearAlgebra
-import RLinearAlgebra: complete_approximator, rapproximate!
+import RLinearAlgebra: complete_approximator
 
 
 #############################
