@@ -225,7 +225,9 @@ $(approx_method_description[:complete_approximator_error])
 - $(approx_output_list[:approximator_error_recipe])
 """
 function complete_approximator_error(
-    error::ApproximatorError, approximator::Approximator, A::AbstractMatrix
+    error::ApproximatorError, 
+    approximator::Approximator, 
+    A::AbstractMatrix
 )
     return throw(
         ArgumentError(
@@ -256,7 +258,9 @@ $(approx_method_description[:compute_approximator_error])
 - Returns the `error::Float64` 
 """
 function compute_approximator_error!(
-    error::ApproximatorErrorRecipe, approximator::ApproximatorRecipe, A::AbstractMatrix
+    error::ApproximatorErrorRecipe, 
+    approximator::ApproximatorRecipe, 
+    A::AbstractMatrix
 )
     return throw(
         ArgumentError(
@@ -285,7 +289,9 @@ $(approx_method_description[:compute_approximator_error])
 - Returns the `error::Float64` 
 """
 function compute_approximator_error(
-    error::ApproximatorError, approximator::ApproximatorRecipe, A::AbstractMatrix
+    error::ApproximatorError, 
+    approximator::ApproximatorRecipe, 
+    A::AbstractMatrix
 )
     error_recipe = complete_approximator_error(error, approximator.S, A)
     error_val = compute_approximator_error!(error_recipe, approximator, A)
