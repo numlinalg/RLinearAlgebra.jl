@@ -304,13 +304,12 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    throw(
+    return throw(
         ArgumentError(
             "No method `mul!` defined for ($(typeof(C)), $(typeof(R)), \
             $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."
         )
     )
-    return nothing
 end
 
 # alpha*A*R + beta*C -> C
@@ -321,13 +320,12 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    throw(
+    return throw(
         ArgumentError(
             "No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
             $(typeof(R)), $(typeof(alpha)), $(typeof(beta)))."
         )
     )
-    return nothing
 end
 
 # alpha * R'*A + beta*C -> C (equivalently, alpha * A' * R + beta + C' -> C')
