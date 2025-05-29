@@ -210,7 +210,7 @@ end
 """
     complete_approximator_error(
         error::ApproximatorError, 
-        approximator::Approximator, 
+        approximator::ApproximatorRecipe, 
         A::AbstractMatrix
     )
 
@@ -218,7 +218,7 @@ $(approx_method_description[:complete_approximator_error])
 
 # Arguments
 - $(approx_arg_list[:approximator_error])
-- $(approx_arg_list[:approximator])
+- $(approx_arg_list[:approximator_recipe])
 - $(approx_arg_list[:A]) 
 
 # Outputs
@@ -226,7 +226,7 @@ $(approx_method_description[:complete_approximator_error])
 """
 function complete_approximator_error(
     error::ApproximatorError, 
-    approximator::Approximator, 
+    approximator::ApproximatorRecipe, 
     A::AbstractMatrix
 )
     return throw(
@@ -293,7 +293,7 @@ function compute_approximator_error(
     approximator::ApproximatorRecipe, 
     A::AbstractMatrix
 )
-    error_recipe = complete_approximator_error(error, approximator.S, A)
+    error_recipe = complete_approximator_error(error, approximator, A)
     error_val = compute_approximator_error!(error_recipe, approximator, A)
     return error_val
 end
