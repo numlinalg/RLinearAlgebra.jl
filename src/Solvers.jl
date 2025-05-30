@@ -103,7 +103,7 @@ function rsolve!(
 )
     return throw(
         ArgumentError(
-            "No `rsolve!` method defined for a $(typeof(solver))solver,\
+            "No `rsolve!` method defined for $(typeof(solver)) solver,\
              $(typeof(x)), $(typeof(A)), and $(typeof(b))."
             )
         )
