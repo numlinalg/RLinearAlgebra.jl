@@ -20,4 +20,6 @@ SolverRecipe
 complete_solver
 
 rsolve!
+
+rsolve
 ```
