@@ -1,14 +1,11 @@
 module solver_abstract_types
 using Test, RLinearAlgebra
-using ..FieldTest
-using ..ApproxTol
 import Random:seed!
 seed!(1232)
 
 struct TestSolver <: Solver end
 struct TestSolverRecipe <: SolverRecipe end
-struct TestSolverError <: SolverError end
-struct TestSolverErrorRecipe <: SolverErrorRecipe end
+
 @testset "Solver Abstract Types" begin
     @test isdefined(Main, :Solver)
     @test isdefined(Main, :SolverRecipe)
