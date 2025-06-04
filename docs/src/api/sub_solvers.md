@@ -16,6 +16,9 @@ LQSolver
 
 LQSolverRecipe
 
+QRSolver
+
+QRSolverRecipe
 ```
 
 ## Exported Functions
