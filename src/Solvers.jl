@@ -127,3 +127,4 @@ include("Solvers/ErrorMethods.jl")
 #############################
 # The Solver Routine Files
 ############################
+include("Solvers/kaczmarz.jl")
