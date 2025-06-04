@@ -16,13 +16,13 @@ end
 end
 
 @testset "Solver Interfaces Errors" begin
-    A = rand(2, 2)
-    b = rand(2)
-    x = rand(2)
+    A = ones(2, 2)
+    b = ones(2)
+    x = ones(2)
 
     @test_throws ArgumentError complete_solver(TestSolver(), x, A, b)
     @test_throws ArgumentError rsolve!(TestSolverRecipe(1), x, A, b)
-    @test_throws ArgumentError rsolve(TestSolver(), x, A, b)
+    @test_throws ArgumentError rsolve!(TestSolver(), x, A, b)
 end
 
 ###################################
@@ -47,9 +47,9 @@ end
 @testset "Solver Interfaces" begin
 
     # Check complete_solver works as expected 
-    let A = rand(2, 2),
-        b = rand(2),
-        x = rand(2),
+    let A = ones(2, 2),
+        b = ones(2),
+        x = ones(2),
         solver = TestSolver()
 
         solver_recipe = complete_solver(solver, x, A, b)
@@ -58,22 +58,22 @@ end
     end
     
     # Check rsolve! with solver recipe works as expected 
-    let A = rand(2, 2),
-        b = rand(2),
-        x = rand(2),
+    let A = ones(2, 2),
+        b = ones(2),
+        x = ones(2),
         solver_recipe = TestSolverRecipe(1)
 
         rsolve!(solver_recipe, x, A, b)
         @test solver_recipe.code == 2
     end
 
-    #Check rsolve with solver ingredients works as expected 
-    let A = rand(2, 2),
-        b = rand(2),
-        x = rand(2),
+    #Check rsolve! with solver ingredients works as expected 
+    let A = ones(2, 2),
+        b = ones(2),
+        x = ones(2),
         solver = TestSolver()
 
-        x, solver_recipe = rsolve(solver, x, A, b)
+        x, solver_recipe = rsolve!(solver, x, A, b)
         @test solver_recipe.code == 2
     end
 end
