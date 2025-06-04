@@ -138,6 +138,30 @@ function Base.size(S::ApproximatorAdjoint, dim::Int64)
 end
 
 ###################################
+# Complete Approximator Interface
+###################################
+"""
+    complete_approximator(approximator::Approximator, A::AbstractMatrix)
+
+$(approx_method_description[:complete_approximator])
+
+# Arguments
+- $(approx_arg_list[:approximator])
+- $(approx_arg_list[:A]) 
+
+# Outputs
+- $(approx_output_list[:approximator_recipe])
+"""
+function complete_approximator(approximator::Approximator, A::AbstractMatrix)
+    return throw(
+        ArgumentError(
+            "No method `complete_approximator` exists for approximator of type\
+            $(typeof(approximator)) and matrix of type $(typeof(A))."
+        )
+    )
+end
+
+###################################
 # rapproximate Interface 
 ###################################
 """
@@ -179,29 +203,6 @@ function rapproximate(approximator::Approximator, A::AbstractMatrix)
     return approx_recipe
 end
 
-###################################
-# Complete Approximator Interface
-###################################
-"""
-    complete_approximator(approximator::Approximator, A::AbstractMatrix)
-
-$(approx_method_description[:complete_approximator])
-
-# Arguments
-- $(approx_arg_list[:approximator])
-- $(approx_arg_list[:A]) 
-
-# Outputs
-- $(approx_output_list[:approximator_recipe])
-"""
-function complete_approximator(approximator::Approximator, A::AbstractMatrix)
-    return throw(
-        ArgumentError(
-            "No method `complete_approximator` exists for approximator of type\
-            $(typeof(approximator)) and matrix of type $(typeof(A))."
-        )
-    )
-end
 
 ###################################
 # Complete Approximator Error Interface
@@ -209,7 +210,7 @@ end
 """
     complete_approximator_error(
         error::ApproximatorError, 
-        approximator::Approximator, 
+        approximator::ApproximatorRecipe, 
         A::AbstractMatrix
     )
 
@@ -217,14 +218,16 @@ $(approx_method_description[:complete_approximator_error])
 
 # Arguments
 - $(approx_arg_list[:approximator_error])
-- $(approx_arg_list[:approximator])
+- $(approx_arg_list[:approximator_recipe])
 - $(approx_arg_list[:A]) 
 
 # Outputs
 - $(approx_output_list[:approximator_error_recipe])
 """
 function complete_approximator_error(
-    error::ApproximatorError, approximator::Approximator, A::AbstractMatrix
+    error::ApproximatorError, 
+    approximator::ApproximatorRecipe, 
+    A::AbstractMatrix
 )
     return throw(
         ArgumentError(
@@ -255,7 +258,9 @@ $(approx_method_description[:compute_approximator_error])
 - Returns the `error::Float64` 
 """
 function compute_approximator_error!(
-    error::ApproximatorErrorRecipe, approximator::ApproximatorRecipe, A::AbstractMatrix
+    error::ApproximatorErrorRecipe, 
+    approximator::ApproximatorRecipe, 
+    A::AbstractMatrix
 )
     return throw(
         ArgumentError(
@@ -284,9 +289,11 @@ $(approx_method_description[:compute_approximator_error])
 - Returns the `error::Float64` 
 """
 function compute_approximator_error(
-    error::ApproximatorError, approximator::ApproximatorRecipe, A::AbstractMatrix
+    error::ApproximatorError, 
+    approximator::ApproximatorRecipe, 
+    A::AbstractMatrix
 )
-    error_recipe = complete_approximator_error(error, approximator.S, A)
+    error_recipe = complete_approximator_error(error, approximator, A)
     error_val = compute_approximator_error!(error_recipe, approximator, A)
     return error_val
 end
@@ -303,13 +310,12 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    throw(
+    return throw(
         ArgumentError(
             "No method `mul!` defined for ($(typeof(C)), $(typeof(R)), \
             $(typeof(A)), $(typeof(alpha)), $(typeof(beta)))."
         )
     )
-    return nothing
 end
 
 # alpha*A*R + beta*C -> C
@@ -320,13 +326,12 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    throw(
+    return throw(
         ArgumentError(
             "No method `mul!` defined for ($(typeof(C)), $(typeof(A)), \
             $(typeof(R)), $(typeof(alpha)), $(typeof(beta)))."
         )
     )
-    return nothing
 end
 
 # alpha * R'*A + beta*C -> C (equivalently, alpha * A' * R + beta + C' -> C')

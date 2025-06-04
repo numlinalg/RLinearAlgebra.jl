@@ -17,10 +17,10 @@ TestApproximatorRecipe() = TestApproximatorRecipe(s_rows, s_cols)
 
 @testset "Approximator Recipe Multiplication Errors" begin 
     # Test Set Parameters 
-    x = randn(2)
-    y = randn(2)
-    A = randn(2, 2)
-    C = randn(2, 2) 
+    x = ones(2)
+    y = ones(2)
+    A = ones(2, 2)
+    C = ones(2, 2) 
 
     # Five argument muls 
     @test_throws ArgumentError mul!(C, TestApproximatorRecipe(), A, 1.0, 1.0)
