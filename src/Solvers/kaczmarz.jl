@@ -10,9 +10,9 @@ An implementation of a block Kaczmarz solver. Specifically, it is a solver that 
 - `log::Logger`, a technique for logging the progress of the solver.
 - `error::SolverError`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
-compressed rowspace.
+    compressed rowspace.
 - `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
-affect convergence.
+    affect convergence.
 """
 mutable struct Kaczmarz <: Solver 
     alpha::Float64
@@ -59,26 +59,25 @@ An mutable structure containing all information relevant to the kcazmarz solver.
 
 # Fields
 - `S::CompressorRecipe`, a technique for forming the compressed rowspace of the linear
-system.
+    system.
 - `log::LoggerRecipe`, a technique for logging the progress of the solver.
 - `error::SolverErrorRecipe`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolverRecipe`, a technique to perform the projection of the solution onto
-the compressed rowspace.
+    the compressed rowspace.
 - `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
-affect convergence.
+    affect convergence.
 - `compressed_mat::AbstractMatrix`, a matrix container for storing the compressed matrix. 
-Will be set to be the largest possible block size.
+    Will be set to be the largest possible block size.
 - `compressed_vec::AbstractVector`, a vector container for storing the compressed constant
-vector. 
-Will be set to be the largest possible block size.
+    vector. Will be set to be the largest possible block size.
 - `solution_vec::AbstractVector`, a vector container for storing the solution to the linear
 system.
 - `update_vec::AbstractVector`, a vector container for storing the update to the linear 
-system.
+    system.
 - `mat_view::SubArray`, a container for storing a view of compressed matrix container. 
 Using views here allows for variable block sizes.
 - `vec_view::SubArray`, a container for storing a view of the compressed vector container.
-Using views here allows for variable block sizes.
+    Using views here allows for variable block sizes.
 """
 mutable struct KaczmarzRecipe{
     T<:Number, 
@@ -115,10 +114,24 @@ function complete_solver(
     logger = complete_logger(solver.log)
     error = complete_error(solver.error, solver, A, b) 
     # Check that required fields are in the types
-    @assert isdefined(error, :residual) "ErrorRecipe $(typeof(error)) does not contain the \
-    field 'residual' and is not valid for a kaczmarz solver."
-    @assert isdefined(logger, :converged) "LoggerRecipe $(typeof(logger)) does not contain \
-    the field 'converged' and is not valid for a kaczmarz solver."
+    if !isdefined(error, :residual)
+        throw(
+            ArgumentError(
+                "ErrorRecipe $(typeof(error)) does not contain the \
+                field 'residual' and is not valid for a kaczmarz solver."
+            )
+        )
+    end
+
+    if !isdefined(logger, :converged)
+        throw(
+            ArgumentError(
+                "LoggerRecipe $(typeof(logger)) does not contain \
+                the field 'converged' and is not valid for a kaczmarz solver."
+            )
+        )
+    end
+
     # Assuming that max_it is defined in the logger
     alpha::Float64 = solver.alpha 
     # We assume the user is using compressors to only decrease dimension
@@ -162,20 +175,41 @@ function complete_solver(
 end
 
 """
-    kaczmarz_update!(b::SubArray{T,1}, solver::KaczmarzRecipe) where T <: Number
+    kaczmarz_update!(solver::KaczmarzRecipe)
 
-A function that performs the kaczmarz update. Depending whether the sketch is a block
-    or a vector the Kaczmarz update can be implemented to take advantage the different 
+A function that performs the Kaczmarz update when the sketch is a vector
     data structures. In the case where the sketched matrix is a vector, ``a``, and the 
     sketched constant vector is a scalar, ``c``, we can use 
-    the standard kacamarz update: ``x = x - \\alpha (a^\\top x -c) / \\|a\\|_2^2``. 
+    the standard Kacmarz update: ``x = x - \\alpha (a^\\top x -c) / \\|a\\|_2^2``. 
+
+# Arguments
+- `solver::KaczmarzRecipe`, the solver information required for performing the update.
+
+# Outputs
+- returns `nothing`
+"""
+function kaczmarz_update!(solver::KaczmarzRecipe)
+    # when the constant vector is a zero dimensional subArray we know that we should perform
+    # the one dimension kaczmarz update
+
+    # Compute the projection scaling (bi - dot(ai,x)) / ||ai||^2
+    scaling = solver.alpha * (dot(solver.mat_view, solver.solution_vec) - solver.vec_view[1]) 
+    scaling /= dot(solver.mat_view, solver.mat_view)
+    # udpate the solution
+    axpby!(-scaling, solver.mat_view, 1.0, solver.solution_vec)
+    return nothing
+end
+
+
+"""
+    kaczmarz_update_block!(solver::KaczmarzRecipe)
+
+A function that performs the kaczmarz update when the sketch is a block  Kaczmarz update.  
     In the block case where the sketch matrix is a matrix, ``B``, and the sketched contant 
     vector is a vector, `g` we perform the updated: 
     ``x = x - \\alpha B^\\top (BB^\\top)^\\dagger(Bx - g)``.
 
 # Arguments
-- `b::SubArray{T, 1}`, a view of the representing the sketched constant vector of a linear 
-    system.
 - `solver::KaczmarzRecipe`, the solver information required for performing the update.
 
 # Outputs
@@ -184,26 +218,13 @@ A function that performs the kaczmarz update. Depending whether the sketch is a 
 function kaczmarz_update_block!(solver::KaczmarzRecipe)
     # when the constant vector is a one dimensional subArray we know that we should perform
     # the one dimension kaczmarz update
-    #
     # sub-solver needs to designed for new compressed matrix
     update_sub_solver!(solver.sub_solver, solver.mat_view)
     # Compute the block residual
     mul!(solver.vec_view, solver.mat_view, solver.solution_vec, -1.0, 1.0)
     # use sub-solver to find update the solution
     ldiv!(solver.update_vec, solver.sub_solver, solver.vec_view)
-    axpby!(-solver.alpha, solver.update_vec, 1.0, solver.solution_vec)
-    return nothing
-end
-
-function kaczmarz_update!(solver::KaczmarzRecipe) where T <: Number
-    # when the constant vector is a zero dimensional subArray we know that we should perform
-    # the one dimension kaczmarz update
-    # 
-    # Compute the projection scaling (bi - dot(ai,x)) / ||ai||^2
-    scaling = solver.alpha * (dot(solver.mat_view, solver.solution_vec) - solver.vec_view[1]) 
-    scaling /= dot(solver.mat_view, solver.mat_view)
-    # udpate the solution
-    axpby!(scaling, solver.mat_view, 1.0, solver.solution_vec)
+    axpby!(solver.alpha, solver.update_vec, 1.0, solver.solution_vec)
     return nothing
 end
 
@@ -224,7 +245,7 @@ function rsolve!(
         end
 
         # generate a new version of the compression matrix
-        update_compressor!(solver.S, A, b, x)
+        update_compressor!(solver.S, x, A, b)
         # based on size of new compressor update views of matrix
         # this should not result in new allocations
         rows_s, cols_s =  size(solver.S)
@@ -235,11 +256,11 @@ function rsolve!(
         mul!(solver.vec_view, solver.S, b)
         # Solve the undetermined sketched linear system and update the solution
         if size(solver.vec_view, 1) == 1
-            gen_kaczmarz_update!(solver)
+            kaczmarz_update!(solver)
         else
-            gen_kaczmarz_block!(solver)
+            kaczmarz_update_block!(solver)
         end
     end
 
-    return solver.solution_vec, solver.log
+    return solver.solution_vec, solver
 end
