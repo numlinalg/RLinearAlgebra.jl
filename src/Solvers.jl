@@ -110,7 +110,7 @@ function rsolve!(
 end
 
 """
-    rsolve(
+    rsolve!(
         solver::Solver, 
         x::AbstractVector, 
         A::AbstractMatrix, 
@@ -129,7 +129,7 @@ $(solver_method_description[:rsolve])
 - $(solver_output_list[:x])
 - $(solver_output_list[:solver_recipe])
 """
-function rsolve(solver::Solver, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
+function rsolve!(solver::Solver, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
     solver_method = complete_solver(solver, x, A, b)
     rsolve!(solver_method, x, A, b)
     return x, solver_method
