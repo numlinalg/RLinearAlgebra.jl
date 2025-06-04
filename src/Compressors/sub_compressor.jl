@@ -52,12 +52,20 @@ struct SubCompressor <: Compressor
     cardinality::Cardinality
     compression_dim::Int64
     distribution::Distribution # Function that returns a probability vector over indices
+    function SubCompressor(cardinality, compression_dim, distribution)
+        # the compression dimension must be positive
+        if compression_dim <= 0
+            throw(ArgumentError("Field `compression_dim` must be positive."))
+        end
+
+        return new(cardinality, compression_dim, distribution)
+    end
 end
 
 function SubCompressor(;
     cardinality::Cardinality = Left(),
     compression_dim::Int64 = 2,
-    distribution::Distribution = Uniform
+    distribution::Distribution = Uniform()
 )
     # Partially construct the SubCompressor datatype
     return SubCompressor(cardinality, compression_dim, distribution)
@@ -77,6 +85,7 @@ The recipe containing all allocations and information for the sub-compressor.
   - `distribution::Distribution`
   - `weights::ProbabilityWeights`, the weight vector that indicates the discrete probability of selecting each row/column
   - `idx::Vector{Int64}`, the index set that contains all the chosen indices.
+  - `idx_v::SubArray`, the view of the `idx`.
 """
 mutable struct SubCompressorRecipe <: CompressorRecipe
     cardinality::Cardinality
@@ -97,13 +106,13 @@ end
 
 function get_dims(compression_dim::Int64, cardinality::Right, A::AbstractMatrix)
     n_rows = size(A, 2)
-    n_cols = subcompressor.compression_dim
+    n_cols = compression_dim
     initial_size = n_rows
     return n_rows, n_cols, initial_size
 end
 
 function complete_compressor(subcompressor::SubCompressor, A::AbstractMatrix)
-    n_rows, n_cols, initial_size = get_dims(subcompressor.compression_dim, subcompressor.cardinality, A)
+    n_rows, n_cols, _ = get_dims(subcompressor.compression_dim, subcompressor.cardinality, A)
     # Pull out the variables from ingredients
     compression_dim = subcompressor.compression_dim
     subcompressor.distribution.cardinality = subcompressor.cardinality
@@ -116,8 +125,8 @@ function complete_compressor(subcompressor::SubCompressor, A::AbstractMatrix)
     return SubCompressorRecipe(subcompressor.cardinality, compression_dim, n_rows, n_cols, dist_recipe, idx, idx_v)
 end
 
-function update_compressor!(S::SubCompressorRecipe, A, x, b)
-    update_distribution!(S.distribution_recipe, A, x, b)
+function update_compressor!(S::SubCompressorRecipe, A, b, x)
+    update_distribution!(S.distribution_recipe, A, b, x)
     # Randomly generate samples from index set based on weights
     sample_distribution!(S.idx_v, S.idx, S.distribution_recipe)
 end
