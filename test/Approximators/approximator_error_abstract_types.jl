@@ -22,7 +22,7 @@ end
     # Parameters 
     error = TestApproximatorError()
     approx = TestApproximatorRecipe() 
-    A = rand(2, 2) 
+    A = ones(2, 2) 
 
     # Test 
     @test_throws ArgumentError complete_approximator_error(error, approx, A)
@@ -32,7 +32,7 @@ end
     # Parameters 
     error = TestApproximatorErrorRecipe(1)
     approx = TestApproximatorRecipe()
-    A = rand(2, 2)
+    A = ones(2, 2)
 
     # Test 
     @test_throws ArgumentError compute_approximator_error!(error, approx, A)
@@ -59,7 +59,7 @@ end
     # Check if completition is done correctly  
     let error = TestApproximatorError(),
         approx = TestApproximatorRecipe(),
-        A = rand(2, 2)
+        A = ones(2, 2)
 
         error_recipe = complete_approximator_error(error, approx, A)
         @test error_recipe isa TestApproximatorErrorRecipe
@@ -69,7 +69,7 @@ end
     # Check if compute is done correctly 
     let error = TestApproximatorErrorRecipe(1),
         approx = TestApproximatorRecipe(),
-        A = rand(2, 2)
+        A = ones(2, 2)
 
         result = compute_approximator_error!(error, approx, A)
         @test result == 3
@@ -79,7 +79,7 @@ end
     # Now test the compute_approximator_error function
     let error = TestApproximatorError(), 
         approx = TestApproximatorRecipe(),
-        A = rand(2, 2)
+        A = ones(2, 2)
 
         # This should return the error code 3
         result = compute_approximator_error(error, approx, A)

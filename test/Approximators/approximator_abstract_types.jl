@@ -21,7 +21,7 @@ end
 end
 
 @testset "Approximator Completion Errors" begin
-    A = rand(2,2)
+    A = ones(2,2)
         
     @test_throws ArgumentError complete_approximator(TestApproximator(), A)
 end
@@ -33,7 +33,7 @@ complete_approximator(approx::TestApproximator, A::AbstractMatrix) =
     TestApproximatorRecipe(1)
 
 @testset "Approximator Completion" begin
-    A =rand(2, 2)
+    A =ones(2, 2)
 
     approx = complete_approximator(TestApproximator(), A) 
     @test approx isa TestApproximatorRecipe

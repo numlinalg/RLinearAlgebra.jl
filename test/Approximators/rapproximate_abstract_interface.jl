@@ -17,13 +17,13 @@ complete_approximator(approx::TestApproximator, A::AbstractMatrix) =
 ########################################
 @testset "rapproximate Errors" begin 
 
-    let A = rand(2, 2), 
+    let A = ones(2, 2), 
         approx = TestApproximatorRecipe(1)
 
         @test_throws ArgumentError rapproximate!(approx, A)
     end
 
-    let A = rand(2, 2),
+    let A = ones(2, 2),
         approx = TestApproximator()
 
         # Error thrown because rapproximate! not defined for Recipe 
@@ -43,14 +43,14 @@ end
 
 @testset "rapproximate Interface" begin
 
-    let A=rand(2, 2),
+    let A=ones(2, 2),
         approx = TestApproximatorRecipe(1)
 
         @test isnothing(rapproximate!(approx, A))
         @test approx.code == 2
     end
 
-    let A=rand(2, 2),
+    let A=ones(2, 2),
         approx = TestApproximator()
 
         
