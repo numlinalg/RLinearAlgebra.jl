@@ -26,7 +26,7 @@ export SparseSign, SparseSignRecipe
 
 # Export Solver types and functions
 export Solver, SolverRecipe
-export complete_solver, update_solver!, rsolve!, rsolve
+export complete_solver, update_solver!, rsolve!
 
 # Export Logger types and functions
 export Logger, LoggerRecipe
