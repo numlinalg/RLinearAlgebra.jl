@@ -53,6 +53,9 @@ function complete_sub_solver(solver::SubSolver, A::AbstractArray)
     )
 end
 
+function complete_sub_solver(solver::SubSolver, A::AbstractArray, b::AbstractArray)
+    complete_sub_solver(solver, A)
+end
 """
     update_sub_solver!(solver::SubSolverRecipe, A::AbstractArray)
 

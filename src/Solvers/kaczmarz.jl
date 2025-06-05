@@ -234,6 +234,7 @@ function rsolve!(
         A::AbstractMatrix, 
         b::AbstractVector
 )
+    reset_logger!(solver.log)
     solver.solution_vec = x
     err = 0.0
     for i in 1:solver.log.max_it
