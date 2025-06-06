@@ -1,6 +1,6 @@
 # SolverErrors 
 ```@contents
-Pages = ["solver_error.md"]
+Pages = ["solver_errors.md"]
 ```
 
 ## Abstract Types
