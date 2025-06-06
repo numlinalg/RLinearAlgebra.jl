@@ -1,10 +1,32 @@
 """
     Kaczmarz <: Solver
 
-An implementation of a block Kaczmarz solver. Specifically, it is a solver that iteratively
+An implementation of a Kaczmarz solver. Specifically, it is a solver that iteratively
     updates a solution by projection the solution onto a compressed rowspace of the linear 
     system.
 
+# Mathematical Description
+Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system ``Ax=b``. 
+    We can view the solution to this linear system as lying at the intersection of the 
+    row hyperplanes, 
+    ``\\cap_{i \\in \\{1, \\dots, m\\}}\\{u \\in \\mathbb{R}^{n} : A_{i \\dot} u = b_i``.
+    Where ``A_{i \\dot}`` represents the ``i^\\text{th}`` row of ``A``. One way to find 
+    this interesection is to iteratively project some abritrary point, ``x`` from one 
+    hyperplane to the next, through 
+    ``
+    x = x + \\alpha \\frac{b_i - \\lange A_{i\\dot}, x\\rangle}{\\| A_{i\\dot}\\|_2^2}
+    A_{i\\dot}.
+    ``
+    Doing this with random permutation of ``i`` can lead to a geometric convergence 
+    [strohmer2009randomized](@cite).
+    Here ``\\alpha`` is viewed as an over-relaxation parameter and can improve convergence. 
+    One can also generalize this procedure to blocks by considering the ``S`` being a 
+    ``s \\times n`` random matrix. If we let ``\\tilde A = S A`` and ``\\tilde b = Sb`` 
+    then we can perform block kaczmarz as described by [needell2014paved](@cite) with 
+    ``
+    x = x + \\alpha \\tilde A^\\top (\\tilde A \\tilde A^\\top)^\\dagger 
+    (\\tilde b - \\tilde A x).
+    ``
 # Fields
 - `S::Compressor`, a technique for forming the compressed rowspace of the linear system.
 - `log::Logger`, a technique for logging the progress of the solver.
@@ -13,6 +35,25 @@ An implementation of a block Kaczmarz solver. Specifically, it is a solver that 
     compressed rowspace.
 - `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
     affect convergence.
+
+# Constructor
+    Kaczmarz(;
+        S::Compressor = SparseSign(), 
+        log::Logger = BasicLogger(),
+        error::SolverError = FullResidual(),
+        sub_solver::SubSolver = LQSolver(),
+        alpha::Float64 = 1.0
+    )
+## Keywords
+- `S::Compressor`, a technique for forming the compressed rowspace of the linear system.
+- `log::Logger`, a technique for logging the progress of the solver.
+- `error::SolverError`, a method for estimating the progress of the solver.
+- `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
+    compressed rowspace.
+- `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
+    affect convergence.
+## Returns 
+- A `Kaczmarz` object.
 """
 mutable struct Kaczmarz <: Solver 
     alpha::Float64
@@ -71,11 +112,11 @@ An mutable structure containing all information relevant to the kcazmarz solver.
 - `compressed_vec::AbstractVector`, a vector container for storing the compressed constant
     vector. Will be set to be the largest possible block size.
 - `solution_vec::AbstractVector`, a vector container for storing the solution to the linear
-system.
+    system.
 - `update_vec::AbstractVector`, a vector container for storing the update to the linear 
     system.
 - `mat_view::SubArray`, a container for storing a view of compressed matrix container. 
-Using views here allows for variable block sizes.
+    Using views here allows for variable block sizes.
 - `vec_view::SubArray`, a container for storing a view of the compressed vector container.
     Using views here allows for variable block sizes.
 """
