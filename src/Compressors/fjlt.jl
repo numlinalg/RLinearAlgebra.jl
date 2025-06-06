@@ -71,6 +71,7 @@ struct FJLT <: Compressor
 
         return new(cardinality, compression_dim, block_size, sparsity, type)
     end
+
 end
 
 function FJLT(;
@@ -143,7 +144,6 @@ mutable struct FJLTRecipe{
     signs::BitVector
     padding::M
 end
-
 
 function FJLTRecipe(
     compression_dim::Int64, 

@@ -369,9 +369,10 @@ Random.seed!(2131)
             mul!(Sy, S, A[:, 1], 2.0, 1.0)
             @test Sy ≈ Syc + pad_res[1:comp_dim]
         end
+
         # Do left multiplication back from right side
-          # test left multiplication from the left with power of 2
-          let n_rows = 8,
+        # test left multiplication from the left with power of 2
+        let n_rows = 8,
             pad_dim = n_rows,
             n_cols = 2,
             comp_dim = 2,
@@ -552,7 +553,6 @@ Random.seed!(2131)
             pad_res = pad_vec' * Diagonal(ifelse.(S.signs, 1, -1)) * H * S.op * S.scale
             @test Sy ≈ Syc + 2 * pad_res[1:size(A, 1)]
         end
-    
 
     end
 
