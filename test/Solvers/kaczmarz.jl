@@ -127,6 +127,10 @@ function RLinearAlgebra.update_logger!(logger::KTestLogRecipe, err::Real, i::Int
     logger.converged = (i >= logger.max_it) ? true : false
 end
 
+function RLinearAlgebra.reset_logger!(logger::KTestLogRecipe)
+    fill!(logger.hist, 0.0)
+end
+
 ##############################
 # Converged-less Logger
 ##############################
@@ -468,7 +472,7 @@ end
         
             solver_rec = complete_solver(solver, x, A, b)
             
-            rsolve!(solver_rec, x, A, b)
+            result = rsolve!(solver_rec, x, A, b)
             # test that the error decreases
             @test norm(x_st - xsol) > norm(x - xsol)
         end
@@ -499,7 +503,7 @@ end
         
             solver_rec = complete_solver(solver, x, A, b)
             
-            rsolve!(solver_rec, x, A, b)
+            result = rsolve!(solver_rec, x, A, b)
             #test that the error decreases
             @test norm(x_st - xsol) > norm(x - xsol)
         end
