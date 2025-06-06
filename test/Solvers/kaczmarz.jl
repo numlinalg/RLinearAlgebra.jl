@@ -115,16 +115,22 @@ KTestLog(max_it) = KTestLog(max_it, 1.0)
 mutable struct KTestLogRecipe <: LoggerRecipe
     max_it::Int64
     hist::Vector{Real}
+    thresh::Float64
     converged::Bool
 end
 
 function RLinearAlgebra.complete_logger(logger::KTestLog)
-    return KTestLogRecipe(logger.max_it, zeros(typeof(logger.g), logger.max_it), false)
+    return KTestLogRecipe(
+        logger.max_it, 
+        zeros(typeof(logger.g), logger.max_it), 
+        logger.g, 
+        false
+    )
 end
 
 function RLinearAlgebra.update_logger!(logger::KTestLogRecipe, err::Real, i::Int64)
     logger.hist[i] = err
-    logger.converged = (i >= logger.max_it) ? true : false
+    logger.converged = err < logger.thresh ? true : false
 end
 
 function RLinearAlgebra.reset_logger!(logger::KTestLogRecipe)
@@ -446,7 +452,7 @@ end
     end
 
     @testset "Kaczmarz: rsolve!" begin
-        # test when the block size is one
+        # test when the block size is one maxit stop
         let A = A,
             xsol = xsol,
             b = b,
@@ -459,7 +465,7 @@ end
         
             comp = KTestCompressor(Left(), comp_dim)
             # check after 10 iterations
-            log = KTestLog(10)
+            log = KTestLog(10, 0.0)
             err = KTestError()
             sub_solver = KTestSubSolver()
             solver = Kaczmarz(
@@ -477,7 +483,7 @@ end
             @test norm(x_st - xsol) > norm(x - xsol)
         end
 
-        # test when the block size is nonzero
+        # test when the block size is nonzero maxit stop
         let A = A,
             xsol = xsol,
             b = b,
@@ -490,7 +496,7 @@ end
         
             comp = KTestCompressor(Left(), comp_dim)
             #check 10 iterations
-            log = KTestLog(10)
+            log = KTestLog(10, 0.0)
             err = KTestError()
             sub_solver = KTestSubSolver()
             solver = Kaczmarz(
@@ -508,6 +514,69 @@ end
             @test norm(x_st - xsol) > norm(x - xsol)
         end
 
+        # test when the block size is one threshold stop 
+        # orthogonalize Q to control the residual
+        let A = Array(qr(A).Q),
+            xsol = xsol,
+            b = Array(qr(A).Q) * xsol,
+            comp_dim = 1,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = rand(n_cols),
+            x_st = deepcopy(x)
+        
+            comp = KTestCompressor(Left(), comp_dim)
+            # check after 20 iterations
+            log = KTestLog(20, 0.05)
+            err = KTestError()
+            sub_solver = KTestSubSolver()
+            solver = Kaczmarz(
+                S = comp,
+                log = log,
+                error = err,
+                sub_solver = sub_solver,
+                alpha = alpha
+            )
+        
+            solver_rec = complete_solver(solver, x, A, b)
+            
+            result = rsolve!(solver_rec, x, A, b)
+            # test that the error decreases
+            @test norm(x_st - xsol) > norm(x - xsol)
+        end
+
+        # test when the block size is nonzero threshold stop 
+        # Orthogonalize Q to control the residual
+        let A = Array(qr(A).Q),
+            xsol = xsol,
+            b = Array(qr(A).Q) * xsol,
+            comp_dim = 4,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = rand(n_cols),
+            x_st = deepcopy(x)
+        
+            comp = KTestCompressor(Left(), comp_dim)
+            #check 20 iterations
+            log = KTestLog(20, 0.05)
+            err = KTestError()
+            sub_solver = KTestSubSolver()
+            solver = Kaczmarz(
+                S = comp,
+                log = log,
+                error = err,
+                sub_solver = sub_solver,
+                alpha = alpha
+            )
+        
+            solver_rec = complete_solver(solver, x, A, b)
+            
+            result = rsolve!(solver_rec, x, A, b)
+            #test that the error decreases
+            @test norm(x_st - xsol) > norm(x - xsol)
+        end
     end
 
 end
