@@ -234,10 +234,11 @@ function kaczmarz_update!(solver::KaczmarzRecipe)
     # the one dimension kaczmarz update
 
     # Compute the projection scaling (bi - dot(ai,x)) / ||ai||^2
-    scaling = solver.alpha * (dot(solver.mat_view, solver.solution_vec) - solver.vec_view[1]) 
+    scaling = solver.alpha * (dot(conj(solver.mat_view), solver.solution_vec)
+        - solver.vec_view[1]) 
     scaling /= dot(solver.mat_view, solver.mat_view)
     # udpate the solution
-    axpby!(-scaling, solver.mat_view, 1.0, solver.solution_vec)
+    axpby!(-scaling, solver.mat_view', 1.0, solver.solution_vec)
     return nothing
 end
 

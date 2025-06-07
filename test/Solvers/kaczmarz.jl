@@ -51,8 +51,8 @@ function RLinearAlgebra.mul!(
     C::AbstractArray,
     S::Main.KaczmarzTest.KTestCompressorRecipe, 
     A::AbstractArray, 
-    alpha::Float64, 
-    beta::Float64
+    alpha::Number, 
+    beta::Number
 )
     mul!(C, S.op, A, alpha, beta)
 end
@@ -65,7 +65,7 @@ mutable struct KTestError <: RLinearAlgebra.SolverError
 end
 
 mutable struct KTestErrorRecipe <: RLinearAlgebra.SolverErrorRecipe
-    residual::Vector{Real}
+    residual::Vector{Number}
 end
 
 KTestError() = KTestError(1.0) 
@@ -367,216 +367,225 @@ end
 
     @testset "Kaczmarz: Kaczmarz Update" begin
         # Begin with a test of an update when the block size is 1
-        let A = A,
-            xsol = xsol,
-            b = b,
-            comp_dim = 1,
-            alpha = 1.0,
-            n_rows = size(A, 1),
-            n_cols = size(A, 2),
-            x = rand(n_cols)
-            
-            comp = KTestCompressor(Left(), comp_dim)
-            log = KTestLog()
-            err = KTestError()
-            sub_solver = KTestSubSolver()
-            solver = Kaczmarz(
-                S = comp,
-                log = log,
-                error = err,
-                sub_solver = sub_solver,
-                alpha = alpha
-            )
-            
-            solver_rec = complete_solver(solver, x, A, b)
-            
-            # Sketch the matrix and vector
-            sb = solver_rec.S * b
-            sA = solver_rec.S * A 
-            solver_rec.vec_view = view(sb, 1:1)
-            solver_rec.mat_view = view(sA, 1:comp_dim, :)
-            solver_rec.solution_vec = deepcopy(x) 
-            
-            # compute comparison update
-            sc = (dot(sA, x) - sb[1]) / dot(sA, sA) * alpha
-            test_sol = x - sc * sA'
-
-            # compute the update
-            RLinearAlgebra.kaczmarz_update!(solver_rec)
-            @test solver_rec.solution_vec ≈ test_sol
+        for type in [Float32, Float64, ComplexF32, ComplexF64]
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                
+                comp = KTestCompressor(Left(), comp_dim)
+                log = KTestLog()
+                err = KTestError()
+                sub_solver = KTestSubSolver()
+                solver = Kaczmarz(
+                    S = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+                
+                solver_rec = complete_solver(solver, x, A, b)
+                
+                # Sketch the matrix and vector
+                sb = solver_rec.S * b
+                sA = solver_rec.S * A 
+                solver_rec.vec_view = view(sb, 1:1)
+                solver_rec.mat_view = view(sA, 1:comp_dim, :)
+                solver_rec.solution_vec = deepcopy(x) 
+                
+                # compute comparison update
+                sc = (dot(conj(sA), x) - sb[1]) / dot(sA, sA) * alpha
+                test_sol = x - sc * adjoint(sA)
+    
+                # compute the update
+                RLinearAlgebra.kaczmarz_update!(solver_rec)
+                @test solver_rec.solution_vec ≈ test_sol
+            end
+        
         end
 
     end
 
     @testset "Kaczmarz: Block Kaczmarz Update" begin
-
         # Begin with a test of an update when the block size is 2
-        let A = A,
-            xsol = xsol,
-            b = b,
-            comp_dim = 2,
-            alpha = 1.0,
-            n_rows = size(A, 1),
-            n_cols = size(A, 2),
-            x = rand(n_cols)
-            
-            comp = KTestCompressor(Left(), comp_dim)
-            log = KTestLog()
-            err = KTestError()
-            sub_solver = KTestSubSolver()
-            solver = Kaczmarz(
-                S = comp,
-                log = log,
-                error = err,
-                sub_solver = sub_solver,
-                alpha = alpha
-            )
-            
-            solver_rec = complete_solver(solver, x, A, b)
-            
-            # Sketch the matrix and vector
-            sb = solver_rec.S * b
-            sA = solver_rec.S * A 
-            solver_rec.vec_view = view(sb, 1:comp_dim)
-            solver_rec.mat_view = view(sA, 1:comp_dim, :)
-            solver_rec.solution_vec = deepcopy(x) 
-
-            # compute comparison update
-            test_sol =  x - sA' * pinv(sA * sA') * (sA * x - sb)
-
-            # compute the update
-            RLinearAlgebra.kaczmarz_update_block!(solver_rec)
-            @test solver_rec.solution_vec ≈ test_sol
+        for type in [Float32, Float64, ComplexF32, ComplexF64]
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                
+                comp = KTestCompressor(Left(), comp_dim)
+                log = KTestLog()
+                err = KTestError()
+                sub_solver = KTestSubSolver()
+                solver = Kaczmarz(
+                    S = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+                
+                solver_rec = complete_solver(solver, x, A, b)
+                
+                # Sketch the matrix and vector
+                sb = solver_rec.S * b
+                sA = solver_rec.S * A 
+                solver_rec.vec_view = view(sb, 1:comp_dim)
+                solver_rec.mat_view = view(sA, 1:comp_dim, :)
+                solver_rec.solution_vec = deepcopy(x) 
+    
+                # compute comparison update
+                test_sol =  x - sA' * pinv(sA * sA') * (sA * x - sb)
+    
+                # compute the update
+                RLinearAlgebra.kaczmarz_update_block!(solver_rec)
+                @test solver_rec.solution_vec ≈ test_sol
+            end
+    
         end
 
     end
 
     @testset "Kaczmarz: rsolve!" begin
         # test when the block size is one maxit stop
-        let A = A,
-            xsol = xsol,
-            b = b,
-            comp_dim = 1,
-            alpha = 1.0,
-            n_rows = size(A, 1),
-            n_cols = size(A, 2),
-            x = rand(n_cols),
-            x_st = deepcopy(x)
-        
-            comp = KTestCompressor(Left(), comp_dim)
-            # check after 10 iterations
-            log = KTestLog(10, 0.0)
-            err = KTestError()
-            sub_solver = KTestSubSolver()
-            solver = Kaczmarz(
-                S = comp,
-                log = log,
-                error = err,
-                sub_solver = sub_solver,
-                alpha = alpha
-            )
-        
-            solver_rec = complete_solver(solver, x, A, b)
+        for type in [Float16, Float32, Float64, ComplexF32, ComplexF64]
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                x_st = deepcopy(x)
             
-            result = rsolve!(solver_rec, x, A, b)
-            # test that the error decreases
-            @test norm(x_st - xsol) > norm(x - xsol)
-        end
+                comp = KTestCompressor(Left(), comp_dim)
+                # check after 10 iterations
+                log = KTestLog(10, 0.0)
+                err = KTestError()
+                sub_solver = KTestSubSolver()
+                solver = Kaczmarz(
+                    S = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+            
+                solver_rec = complete_solver(solver, x, A, b)
+                
+                result = rsolve!(solver_rec, x, A, b)
+                # test that the error decreases
+                @test norm(x_st - xsol) > norm(x - xsol)
+            end
+    
+            # test when the block size is nonzero maxit stop
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                x_st = deepcopy(x)
+            
+                comp = KTestCompressor(Left(), comp_dim)
+                #check 10 iterations
+                log = KTestLog(10, 0.0)
+                err = KTestError()
+                sub_solver = KTestSubSolver()
+                solver = Kaczmarz(
+                    S = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+            
+                solver_rec = complete_solver(solver, x, A, b)
+                
+                result = rsolve!(solver_rec, x, A, b)
+                #test that the error decreases
+                @test norm(x_st - xsol) > norm(x - xsol)
+            end
+    
+            # test when the block size is one threshold stop 
+            # orthogonalize Q to control the residual
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                x_st = deepcopy(x)
+            
+                comp = KTestCompressor(Left(), comp_dim)
+                # check after 20 iterations
+                log = KTestLog(20, 0.05)
+                err = KTestError()
+                sub_solver = KTestSubSolver()
+                solver = Kaczmarz(
+                    S = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+            
+                solver_rec = complete_solver(solver, x, A, b)
+                
+                result = rsolve!(solver_rec, x, A, b)
+                # test that the error decreases
+                @test norm(x_st - xsol) > norm(x - xsol)
+            end
+    
+            # test when the block size is nonzero threshold stop 
+            # Orthogonalize Q to control the residual
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                x_st = deepcopy(x)
+            
+                comp = KTestCompressor(Left(), comp_dim)
+                #check 20 iterations
+                log = KTestLog(20, 0.05)
+                err = KTestError()
+                sub_solver = KTestSubSolver()
+                solver = Kaczmarz(
+                    S = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+            
+                solver_rec = complete_solver(solver, x, A, b)
+                
+                result = rsolve!(solver_rec, x, A, b)
+                #test that the error decreases
+                @test norm(x_st - xsol) > norm(x - xsol)
+            end
 
-        # test when the block size is nonzero maxit stop
-        let A = A,
-            xsol = xsol,
-            b = b,
-            comp_dim = 4,
-            alpha = 1.0,
-            n_rows = size(A, 1),
-            n_cols = size(A, 2),
-            x = rand(n_cols),
-            x_st = deepcopy(x)
-        
-            comp = KTestCompressor(Left(), comp_dim)
-            #check 10 iterations
-            log = KTestLog(10, 0.0)
-            err = KTestError()
-            sub_solver = KTestSubSolver()
-            solver = Kaczmarz(
-                S = comp,
-                log = log,
-                error = err,
-                sub_solver = sub_solver,
-                alpha = alpha
-            )
-        
-            solver_rec = complete_solver(solver, x, A, b)
-            
-            result = rsolve!(solver_rec, x, A, b)
-            #test that the error decreases
-            @test norm(x_st - xsol) > norm(x - xsol)
         end
-
-        # test when the block size is one threshold stop 
-        # orthogonalize Q to control the residual
-        let A = Array(qr(A).Q),
-            xsol = xsol,
-            b = Array(qr(A).Q) * xsol,
-            comp_dim = 1,
-            alpha = 1.0,
-            n_rows = size(A, 1),
-            n_cols = size(A, 2),
-            x = rand(n_cols),
-            x_st = deepcopy(x)
-        
-            comp = KTestCompressor(Left(), comp_dim)
-            # check after 20 iterations
-            log = KTestLog(20, 0.05)
-            err = KTestError()
-            sub_solver = KTestSubSolver()
-            solver = Kaczmarz(
-                S = comp,
-                log = log,
-                error = err,
-                sub_solver = sub_solver,
-                alpha = alpha
-            )
-        
-            solver_rec = complete_solver(solver, x, A, b)
-            
-            result = rsolve!(solver_rec, x, A, b)
-            # test that the error decreases
-            @test norm(x_st - xsol) > norm(x - xsol)
-        end
-
-        # test when the block size is nonzero threshold stop 
-        # Orthogonalize Q to control the residual
-        let A = Array(qr(A).Q),
-            xsol = xsol,
-            b = Array(qr(A).Q) * xsol,
-            comp_dim = 4,
-            alpha = 1.0,
-            n_rows = size(A, 1),
-            n_cols = size(A, 2),
-            x = rand(n_cols),
-            x_st = deepcopy(x)
-        
-            comp = KTestCompressor(Left(), comp_dim)
-            #check 20 iterations
-            log = KTestLog(20, 0.05)
-            err = KTestError()
-            sub_solver = KTestSubSolver()
-            solver = Kaczmarz(
-                S = comp,
-                log = log,
-                error = err,
-                sub_solver = sub_solver,
-                alpha = alpha
-            )
-        
-            solver_rec = complete_solver(solver, x, A, b)
-            
-            result = rsolve!(solver_rec, x, A, b)
-            #test that the error decreases
-            @test norm(x_st - xsol) > norm(x - xsol)
-        end
+    
     end
 
 end
