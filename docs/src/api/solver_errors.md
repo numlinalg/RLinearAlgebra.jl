@@ -16,6 +16,9 @@ FullResidual
 
 FullResidualRecipe
 
+CompressedResidual
+
+CompressedResidualRecipe
 ```
 
 ## Exported Functions
