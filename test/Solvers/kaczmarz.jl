@@ -489,11 +489,11 @@ end
                 @test norm(x_st - xsol) > norm(x - xsol)
             end
     
-            # test when the block size is nonzero maxit stop
+            # test when the block size is greater than 1 maxit stop
             let A = rand(type, n_rows, n_cols),
                 xsol = ones(type, n_cols),
                 b = A * xsol,
-                comp_dim = 1,
+                comp_dim = 2,
                 alpha = 1.0,
                 n_rows = size(A, 1),
                 n_cols = size(A, 2),
@@ -552,12 +552,12 @@ end
                 @test norm(x_st - xsol) > norm(x - xsol)
             end
     
-            # test when the block size is nonzero threshold stop 
+            # test when the block size is greter than 1 using threshold stop 
             # Orthogonalize Q to control the residual
             let A = rand(type, n_rows, n_cols),
                 xsol = ones(type, n_cols),
                 b = A * xsol,
-                comp_dim = 1,
+                comp_dim = 2,
                 alpha = 1.0,
                 n_rows = size(A, 1),
                 n_cols = size(A, 2),
