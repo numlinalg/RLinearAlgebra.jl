@@ -46,7 +46,7 @@ function compute_error(
         A::AbstractMatrix, 
         b::AbstractVector
     )::Float64
-    rows_s = size(solver.S, 1)
+    rows_s = size(solver.compressor, 1)
     error.residual_view = view(error.residual, 1:rows_s)
     copyto!(error.residual_view, solver.vec_view)
     mul!(error.residual_view, solver.mat_view, solver.solution_vec, -1.0, 1.0)

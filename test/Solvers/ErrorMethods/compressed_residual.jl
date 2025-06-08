@@ -11,7 +11,7 @@ Random.seed!(1232)
 mutable struct TestSolver <: Solver end
 
 mutable struct TestSolverRecipe <: SolverRecipe
-    S::AbstractMatrix
+    compressor::AbstractMatrix
     vec_view::SubArray
     mat_view::SubArray
     solution_vec::AbstractVector
