@@ -187,15 +187,15 @@ end
         @test supertype(Kaczmarz) == Solver
 
         # test fieldnames and types
-        @test fieldnames(Kaczmarz) == (:alpha, :S, :log, :error, :sub_solver)
+        @test fieldnames(Kaczmarz) == (:alpha, :compressor, :log, :error, :sub_solver)
         @test fieldtypes(Kaczmarz) == (Float64, Compressor, Logger, SolverError, SubSolver)
 
         # test default constructor
 
         let solver = Kaczmarz()
             @test solver.alpha == 1.0
-            @test typeof(solver.S) == SparseSign 
-            @test typeof(solver.S.cardinality) == Left 
+            @test typeof(solver.compressor) == SparseSign 
+            @test typeof(solver.compressor.cardinality) == Left 
             @test typeof(solver.log) == BasicLogger
             @test typeof(solver.error) == FullResidual
             @test typeof(solver.sub_solver) == LQSolver 
@@ -204,14 +204,14 @@ end
         # test constructor
         let solver = Kaczmarz(
             alpha = 2.0,
-            S = KTestCompressor(),
+            compressor = KTestCompressor(),
             log = KTestLog(),
             error = KTestError(),
             sub_solver = KTestSubSolver()
         )
 
             @test solver.alpha == 2.0
-            @test typeof(solver.S) == KTestCompressor
+            @test typeof(solver.compressor) == KTestCompressor
             @test typeof(solver.log) == KTestLog
             @test typeof(solver.error) == KTestError
             @test typeof(solver.sub_solver) == KTestSubSolver
@@ -220,7 +220,7 @@ end
         # Test that error gets returned with right compressor
         @test_throws ArgumentError("Compressor must have cardinality `Left.`") Kaczmarz(
             alpha = 2.0,
-            S = KTestCompressor(Right(), 5),
+            compressor = KTestCompressor(Right(), 5),
             log = KTestLog(),
             error = KTestError(),
             sub_solver = KTestSubSolver()
@@ -232,7 +232,7 @@ end
 
         # test fieldnames and types
         @test fieldnames(KaczmarzRecipe) == (
-            :S, 
+            :compressor, 
             :log, 
             :error, 
             :sub_solver, 
@@ -275,7 +275,7 @@ end
             err = KTestErrorNoRes()
             sub_solver = KTestSubSolver()
             solver = Kaczmarz(
-                S = comp,
+                compressor = comp,
                 log = log,
                 error = err,
                 sub_solver = sub_solver,
@@ -303,7 +303,7 @@ end
             err = KTestError()
             sub_solver = KTestSubSolver()
             solver = Kaczmarz(
-                S = comp,
+                compressor = comp,
                 log = log,
                 error = err,
                 sub_solver = sub_solver,
@@ -330,7 +330,7 @@ end
             err = KTestError()
             sub_solver = KTestSubSolver()
             solver = Kaczmarz(
-                S = comp,
+                compressor = comp,
                 log = log,
                 error = err,
                 sub_solver = sub_solver,
@@ -351,7 +351,7 @@ end
                 Main.KaczmarzTest.KTestErrorRecipe, 
                 Main.KaczmarzTest.KTestSubSolverRecipe
             }
-            @test typeof(solver_rec.S) == KTestCompressorRecipe
+            @test typeof(solver_rec.compressor) == KTestCompressorRecipe
             @test typeof(solver_rec.log) == KTestLogRecipe
             @test typeof(solver_rec.error) == KTestErrorRecipe
             @test typeof(solver_rec.sub_solver) == KTestSubSolverRecipe
@@ -364,7 +364,7 @@ end
             @test typeof(solver_rec.vec_view) <: SubArray
 
             # Test sizes of vectors and matrices
-            @test size(solver_rec.S) == (comp_dim, n_rows)
+            @test size(solver_rec.compressor) == (comp_dim, n_rows)
             @test size(solver_rec.compressed_mat) == (comp_dim, n_cols)
             @test size(solver_rec.compressed_vec) == (comp_dim,)
             @test size(solver_rec.update_vec) == (n_cols,)
@@ -394,7 +394,7 @@ end
                 err = KTestError()
                 sub_solver = KTestSubSolver()
                 solver = Kaczmarz(
-                    S = comp,
+                    compressor = comp,
                     log = log,
                     error = err,
                     sub_solver = sub_solver,
@@ -404,8 +404,8 @@ end
                 solver_rec = complete_solver(solver, x, A, b)
                 
                 # Sketch the matrix and vector
-                sb = solver_rec.S * b
-                sA = solver_rec.S * A 
+                sb = solver_rec.compressor * b
+                sA = solver_rec.compressor * A 
                 solver_rec.vec_view = view(sb, 1:1)
                 solver_rec.mat_view = view(sA, 1:comp_dim, :)
                 solver_rec.solution_vec = deepcopy(x) 
@@ -440,7 +440,7 @@ end
                 err = KTestError()
                 sub_solver = KTestSubSolver()
                 solver = Kaczmarz(
-                    S = comp,
+                    compressor = comp,
                     log = log,
                     error = err,
                     sub_solver = sub_solver,
@@ -450,8 +450,8 @@ end
                 solver_rec = complete_solver(solver, x, A, b)
                 
                 # Sketch the matrix and vector
-                sb = solver_rec.S * b
-                sA = solver_rec.S * A 
+                sb = solver_rec.compressor * b
+                sA = solver_rec.compressor * A 
                 solver_rec.vec_view = view(sb, 1:comp_dim)
                 solver_rec.mat_view = view(sA, 1:comp_dim, :)
                 solver_rec.solution_vec = deepcopy(x) 
@@ -487,7 +487,7 @@ end
                 err = KTestError()
                 sub_solver = KTestSubSolver()
                 solver = Kaczmarz(
-                    S = comp,
+                    compressor = comp,
                     log = log,
                     error = err,
                     sub_solver = sub_solver,
@@ -518,7 +518,7 @@ end
                 err = KTestError()
                 sub_solver = KTestSubSolver()
                 solver = Kaczmarz(
-                    S = comp,
+                    compressor = comp,
                     log = log,
                     error = err,
                     sub_solver = sub_solver,
@@ -550,7 +550,7 @@ end
                 err = KTestError()
                 sub_solver = KTestSubSolver()
                 solver = Kaczmarz(
-                    S = comp,
+                    compressor = comp,
                     log = log,
                     error = err,
                     sub_solver = sub_solver,
@@ -582,7 +582,7 @@ end
                 err = KTestError()
                 sub_solver = KTestSubSolver()
                 solver = Kaczmarz(
-                    S = comp,
+                    compressor = comp,
                     log = log,
                     error = err,
                     sub_solver = sub_solver,

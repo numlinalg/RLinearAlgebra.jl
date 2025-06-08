@@ -38,14 +38,15 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
 
 # Constructor
     Kaczmarz(;
-        S::Compressor = SparseSign(), 
+        compressor::Compressor = SparseSign(), 
         log::Logger = BasicLogger(),
         error::SolverError = FullResidual(),
         sub_solver::SubSolver = LQSolver(),
         alpha::Float64 = 1.0
     )
 ## Keywords
-- `S::Compressor`, a technique for forming the compressed rowspace of the linear system.
+- `compresor::Compressor`, a technique for forming the compressed rowspace of the 
+    linear system.
 - `log::Logger`, a technique for logging the progress of the solver.
 - `error::SolverError`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
@@ -57,23 +58,23 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
 """
 mutable struct Kaczmarz <: Solver 
     alpha::Float64
-    S::Compressor
+    compressor::Compressor
     log::Logger
     error::SolverError
     sub_solver::SubSolver
-    function Kaczmarz(alpha, S, log, error, sub_solver) 
-        if typeof(S.cardinality) != Left
+    function Kaczmarz(alpha, compressor, log, error, sub_solver) 
+        if typeof(compressor.cardinality) != Left
             throw(ArgumentError("Compressor must have cardinality `Left.`"))
         end
 
-        new(alpha, S, log, error, sub_solver)
+        new(alpha, compressor, log, error, sub_solver)
     end
 
 end
 
 
 function Kaczmarz(;
-        S::Compressor = SparseSign(cardinality = Left()), 
+        compressor::Compressor = SparseSign(cardinality = Left()), 
         log::Logger = BasicLogger(),
         error::SolverError = FullResidual(),
         sub_solver::SubSolver = LQSolver(),
@@ -82,7 +83,7 @@ function Kaczmarz(;
     # Intialize the datatype setting unkown elements to empty versions of correct datatype
     return Kaczmarz(
         alpha,
-        S, 
+        compressor, 
         log, 
         error, 
         sub_solver
@@ -107,8 +108,8 @@ An mutable structure containing all information relevant to the kcazmarz solver.
     vector `b`.
 
 # Fields
-- `S::CompressorRecipe`, a technique for forming the compressed rowspace of the linear
-    system.
+- `compressor::CompressorRecipe`, a technique for forming the compressed rowspace of the 
+    linear system.
 - `log::LoggerRecipe`, a technique for logging the progress of the solver.
 - `error::SolverErrorRecipe`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolverRecipe`, a technique to perform the projection of the solution onto
@@ -139,7 +140,7 @@ mutable struct KaczmarzRecipe{
     E<:SolverErrorRecipe, 
     B<:SubSolverRecipe
 } <: SolverRecipe
-    S::C
+    compressor::C
     log::L
     error::E
     sub_solver::B
@@ -159,7 +160,7 @@ function complete_solver(
         b::AbstractVector
     )
     # Dimension checking will be performed in the complete_compressor
-    compressor = complete_compressor(solver.S, x, A, b)
+    compressor = complete_compressor(solver.compressor, x, A, b)
     logger = complete_logger(solver.log)
     error = complete_error(solver.error, solver, A, b) 
     # Check that required fields are in the types
@@ -296,15 +297,15 @@ function rsolve!(
         end
 
         # generate a new version of the compression matrix
-        update_compressor!(solver.S, x, A, b)
+        update_compressor!(solver.compressor, x, A, b)
         # based on size of new compressor update views of matrix
         # this should not result in new allocations
-        rows_s, cols_s =  size(solver.S)
+        rows_s, cols_s =  size(solver.compressor)
         solver.mat_view = view(solver.compressed_mat, 1:rows_s, :)
         solver.vec_view = view(solver.compressed_vec, 1:rows_s)
         # compress the matrix and constant vector
-        mul!(solver.mat_view, solver.S, A)
-        mul!(solver.vec_view, solver.S, b)
+        mul!(solver.mat_view, solver.compressor, A)
+        mul!(solver.vec_view, solver.compressor, b)
         # Solve the undetermined sketched linear system and update the solution
         if size(solver.vec_view, 1) == 1
             kaczmarz_update!(solver)
