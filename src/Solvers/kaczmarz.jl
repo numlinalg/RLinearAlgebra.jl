@@ -61,11 +61,19 @@ mutable struct Kaczmarz <: Solver
     log::Logger
     error::SolverError
     sub_solver::SubSolver
+    function Kaczmarz(alpha, S, log, error, sub_solver) 
+        if typeof(S.cardinality) != Left
+            throw(ArgumentError("Compressor must have cardinality `Left.`"))
+        end
+
+        new(alpha, S, log, error, sub_solver)
+    end
+
 end
 
 
 function Kaczmarz(;
-        S::Compressor = SparseSign(), 
+        S::Compressor = SparseSign(cardinality = Left()), 
         log::Logger = BasicLogger(),
         error::SolverError = FullResidual(),
         sub_solver::SubSolver = LQSolver(),

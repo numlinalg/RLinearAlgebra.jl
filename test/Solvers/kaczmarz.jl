@@ -191,16 +191,18 @@ end
         @test fieldtypes(Kaczmarz) == (Float64, Compressor, Logger, SolverError, SubSolver)
 
         # test default constructor
-        solver = Kaczmarz()
 
-        @test solver.alpha == 1.0
-        @test typeof(solver.S) == SparseSign 
-        @test typeof(solver.log) == BasicLogger
-        @test typeof(solver.error) == FullResidual
-        @test typeof(solver.sub_solver) == LQSolver 
+        let solver = Kaczmarz()
+            @test solver.alpha == 1.0
+            @test typeof(solver.S) == SparseSign 
+            @test typeof(solver.S.cardinality) == Left 
+            @test typeof(solver.log) == BasicLogger
+            @test typeof(solver.error) == FullResidual
+            @test typeof(solver.sub_solver) == LQSolver 
+        end
 
         # test constructor
-        solver = Kaczmarz(
+        let solver = Kaczmarz(
             alpha = 2.0,
             S = KTestCompressor(),
             log = KTestLog(),
@@ -208,11 +210,21 @@ end
             sub_solver = KTestSubSolver()
         )
 
-        @test solver.alpha == 2.0
-        @test typeof(solver.S) == KTestCompressor
-        @test typeof(solver.log) == KTestLog
-        @test typeof(solver.error) == KTestError
-        @test typeof(solver.sub_solver) == KTestSubSolver
+            @test solver.alpha == 2.0
+            @test typeof(solver.S) == KTestCompressor
+            @test typeof(solver.log) == KTestLog
+            @test typeof(solver.error) == KTestError
+            @test typeof(solver.sub_solver) == KTestSubSolver
+        end 
+        
+        # Test that error gets returned with right compressor
+        @test_throws ArgumentError("Compressor must have cardinality `Left.`") Kaczmarz(
+            alpha = 2.0,
+            S = KTestCompressor(Right(), 5),
+            log = KTestLog(),
+            error = KTestError(),
+            sub_solver = KTestSubSolver()
+        )
     end
 
     @testset "KaczmarzRecipe" begin
