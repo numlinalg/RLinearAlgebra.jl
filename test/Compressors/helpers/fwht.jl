@@ -64,7 +64,7 @@ Random.seed!(2131)
             # test signs self inverse when signs are all 1
             RLinearAlgebra.fwht!(xc2, all_true) 
             RLinearAlgebra.fwht!(xc2, all_true, scaling = type(1/ln)) 
-            xc2 ≈ xc3
+            @test xc2 ≈ xc3
         end
 
     end
