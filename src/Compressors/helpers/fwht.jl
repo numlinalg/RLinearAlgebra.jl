@@ -31,7 +31,7 @@ function fwht!(x::AbstractVector, signs::BitVector; scaling = 1)
     total_its = Int64(log(2, ln)) - 1
     # In 1st pass scale and flip signs of entries, this does not need to be done 
     # in any other passes over the vector. To avoid unnecessary condition checking 
-    # this portion of the loop has been separated out fron the others.
+    # this portion of the loop has been separated out from the others.
     for i in 1:inc:ln
         # Signs is vector of Bools
         z = x[i] * (signs[i] ? scaling : -scaling) 
