@@ -22,7 +22,7 @@ function fwht!(x::AbstractVector, signs::BitVector; scaling = 1)
     elseif rem(log(2, ln), 1) != 0 
         throw(DimensionMismatch("Size of vector must be power of 2."))
     end
-    # size of separation between indicies
+    # size of separation between indices
     h = 1 
     #  set increment to be twice of h
     inc = h << 1
