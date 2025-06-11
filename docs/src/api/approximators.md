@@ -10,20 +10,31 @@ Approximator
 ApproximatorRecipe
 
 ApproximatorAdjoint
+
+RLinearAlgebra.RangeApproximator
+
+RangeApproximatorRecipe
 ```
 
 ## Approximator Structures
 ```@docs
+RangeFinder
 
+RangeFinderRecipe
 ```
 
 ## Exported Functions
 ```@docs
+complete_approximator
+
 rapproximate
 
 rapproximate!
+```
 
-complete_approximator
+## Internal Functions
+```@docs
+RLinearAlgebra.rand_power_it
 
-update_approximator!
+RLinearAlgebra.rand_subspace_it
 ```
