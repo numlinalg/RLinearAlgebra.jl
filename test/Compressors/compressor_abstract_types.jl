@@ -13,6 +13,7 @@ struct TestCompressorRecipe <: CompressorRecipe end
     @test isdefined(Main, :Cardinality)
     @test isdefined(Main, :Left)
     @test isdefined(Main, :Right)
+    @test isdefined(Main, :Undef)
 end
 
 @testset "Compressor Argument Errors" begin
