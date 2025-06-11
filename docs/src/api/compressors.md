@@ -26,6 +26,9 @@ GaussianRecipe
 SparseSign
 
 SparseSignRecipe
+CountSketch
+
+CountSketchRecipe
 
 ```
 

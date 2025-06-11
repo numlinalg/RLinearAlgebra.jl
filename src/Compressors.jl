@@ -565,3 +565,4 @@ end
 ###################################
 include("Compressors/gaussian.jl")
 include("Compressors/sparse_sign.jl")
+include("Compressors/count_sketch.jl")
