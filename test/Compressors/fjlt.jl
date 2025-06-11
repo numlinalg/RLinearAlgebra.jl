@@ -41,7 +41,7 @@ Random.seed!(2131)
 
         let cardinality = Left(), comp_dim = 1, bs = 2, sparsity = 1.1, type = Float64
             @test_throws ArgumentError(
-                "Field `sparsity` must be less than 1."
+                "Field `sparsity` must be between 0 and 1."
             ) FJLT(cardinality, comp_dim, bs, sparsity, type)
         end
 
