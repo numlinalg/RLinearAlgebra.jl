@@ -1,7 +1,7 @@
 """
     Distribution
 
-An abstract supertype for structures specifying distribution for indices in subcompression methods.
+An abstract supertype for structures specifying distribution for indices in sampling methods.
 """
 abstract type Distribution end
 
@@ -9,13 +9,13 @@ abstract type Distribution end
     DistributionRecipe
 
 An abstract supertype for structures with pre-allocated memory for distribution function
-    subcompression methods.
+    sampling methods.
 """
 abstract type DistributionRecipe end
 
 # Docstring Components
 distribution_arg_list = Dict{Symbol,String}(
-    :distribution => "`distribution::Distribution`, a user-specified distribution function for subcompression.",
+    :distribution => "`distribution::Distribution`, a user-specified distribution function for sampling.",
     :distribution_recipe => "`distribution::DistributionRecipe`, a fully initialized realization of distribution.",
     :A => "`A::AbstractMatrix`, a coefficient matrix.",
 )
@@ -27,7 +27,7 @@ distribution_output_list = Dict{Symbol,String}(
 distribution_method_description = Dict{Symbol,String}(
     :complete_distribution => "A function that generates a `DistributionRecipe` given the 
     arguments.",
-    :update_distribution => "A function that updates the `Distribution` in place given 
+    :update_distribution! => "A function that updates the `Distribution` in place given 
     arguments.",
 )
 """
@@ -60,7 +60,7 @@ end
 """
     update_distribution!(distribution::DistributionRecipe, A::AbstractMatrix)
 
-$(distribution_method_description[:update_distribution])
+$(distribution_method_description[:update_distribution!])
 
 # Arguments
 - $(distribution_arg_list[:distribution_recipe])
@@ -85,7 +85,6 @@ function update_distribution!(distribution::DistributionRecipe, x::AbstractVecto
 end
 
 function sample_distribution!(x::AbstractVector, distribution::DistributionRecipe)
-    wsample!(distribution.state_space, distribution.weights, x, ordered = true, replace = distribution.replace)
     return throw(ArgumentError("No `sample_distribution!` method defined for a distribution of type \
     $(typeof(distribution)) and $(typeof(x))."))
 end
