@@ -12,9 +12,9 @@ struct TestDistributionRecipe <: DistributionRecipe end
 end
 
 @testset "Distribution Argument Errors" begin
-    A = rand(2, 2)
-    b = rand(2)
-    x = rand(2)
+    A = ones(2, 2)
+    b = ones(2)
+    x = ones(2)
 
     @test_throws ArgumentError complete_distribution(TestDistribution(), A)
     @test_throws ArgumentError update_distribution!(TestDistributionRecipe(), A)
