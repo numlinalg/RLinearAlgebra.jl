@@ -48,13 +48,11 @@ function complete_distribution(distribution::Distribution, A::AbstractMatrix)
 end
 
 function complete_distribution(distribution::Distribution, A::AbstractMatrix, b::AbstractVector)
-    complete_distribution(distribution, A)
-    return nothing
+    return complete_distribution(distribution, A)
 end
 
 function complete_distribution(distribution::Distribution, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
-    complete_distribution(distribution, A, b)
-    return nothing
+    return complete_distribution(distribution, A, b)
 end
 
 """
@@ -75,13 +73,11 @@ function update_distribution!(distribution::DistributionRecipe, A::AbstractMatri
 end
 
 function update_distribution!(distribution::DistributionRecipe, A::AbstractMatrix, b::AbstractVector)
-    update_distribution!(distribution, A)
-    return nothing
+    return update_distribution!(distribution, A)
 end
 
 function update_distribution!(distribution::DistributionRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
-    update_distribution!(distribution, A, b)
-    return nothing
+    return update_distribution!(distribution, A, b)
 end
 
 function sample_distribution!(x::AbstractVector, distribution::DistributionRecipe)
