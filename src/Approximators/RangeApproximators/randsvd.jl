@@ -1,17 +1,16 @@
 """
    RandSVD 
 
-A struct that implements the Randomized Range Finder technique which uses compression from 
-    the right to form an low-dimensional orthogonal matrix ``Q`` that approximates the 
-    range of ``A``. See [halko2011finding](@cite) for additional details.
+A struct that implements the Randomized SVD technique which uses compression from 
+    the right to form an low-rank svd that approximates the svd of   
+    ``A``. See [halko2011finding](@cite) for additional details.
 
 # Mathematical Description
 Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish to form a low 
-    rank approximation that approximately captures the range of ``A``. Specifically, we wish
-    to find an Orthogonal matrix ``Q`` such that ``QQ^\\top A \\approx A``. 
-
+    rank approximation of ``A``. Specifically, we wish to find an Orthogonal ``U``,
+    diagonal matrix ``S``, and orthogonal matrix ``V`` such that ``USV' \\approx A``. 
     A simple way to find such a matrix is to choose a ``k`` representing the number of 
-    vectors we wish to have in the subspace. Then we can generate a compression matrix 
+    singular vectors and values we wish to approximate. Then we can generate a compression matrix 
     ``S\\in\\mathbb{R}^{n \\times k}`` and compute ``Q = \\text{qr}(AS)``. 
     With high probability we will have ``\\|A - QQ^\\top A\\|_2 \\leq
     (k+1) \\sigma_{k+1}``, where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
@@ -21,7 +20,8 @@ Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish t
     drive the ``k+1`` constant in front of ``\\sigma_{k+1}`` in the bound closer to 1, 
     leading to more accurate approximations. One can also improve the stability of these 
     power iterations be orthogonalizing each matrix in what is known as the random subspace 
-    iteration.
+    iteration. After computing ``Q`` we then compute ``W,S,V = \\text{SVD}(Q'A)`` and we
+    set ``U = QW``.
 
 # Fields
 - `compressor::Compressor`, the technique that will compress the matrix from the right.
@@ -53,14 +53,19 @@ RandSVD(;
     RandSVDRecipe
 
 A struct that contains the preallocated memory and completed compressor to form a
-    RangeFinder approximation to the matrix ``A``.
+    RandSVD approximation to the matrix ``A``.
 
 # Fields
 - `compressor::CompressorRecipe`, the compressor to be applied from the right to ``A``.
 - `power_its::Int64`, the number of power iterations that should be performed.
 - `rand_subspace::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
-- `range::AbstractMatrix`, the orthogonal matrix that approximates the range of ``A``.
+- `U::AbstractArray`, the orthogonal matrix that approximates the top ``compressor_dim`` 
+    left singular vectors of ``A``.
+- `S::AbstractVector`, a vector containing the top ``compressor_dim`` singular values of 
+    ``A``.
+- `V::AbstractArray`, the orthogonal matrix that approximates the top ``compressor_dim`` 
+    right singular vectors of ``A``.
 """
 mutable struct RandSVDRecipe <: RangeApproximatorRecipe
     n_rows::Int64
@@ -70,7 +75,7 @@ mutable struct RandSVDRecipe <: RangeApproximatorRecipe
     rand_subspace::Bool
     U::AbstractArray
     S::AbstractVector
-    V::AbstratVector
+    V::AbstractArray
 end
 
 function complete_approximator(approx::RandSVD, A::AbstractMatrix)
@@ -84,12 +89,14 @@ function complete_approximator(approx::RandSVD, A::AbstractMatrix)
     # Determine the dimensions of the range approximator
     a_rows = size(A, 1)
     c_cols = size(compress, 2)
-    approx_recipe = RangeFinderRecipe(
+    approx_recipe = RandSVDRecipe(
         a_rows,
         c_cols,
         compress, 
         approx.power_its,
         approx.rand_subspace, 
+        Matrix{type}(undef, 2, 2),
+        Vector{type}(undef,2),
         Matrix{type}(undef, 2, 2)
     )
 end
@@ -102,7 +109,7 @@ function rapproximate!(approx::RandSVDRecipe, A::AbstractMatrix)
         Q = rand_subspace_it(A, approx)
     end
     U, approx.S, approx.V = svd(Q' * A)
-    approx.U = Q' * U
+    approx.U = Q * U
     return nothing
 end
 
@@ -140,7 +147,7 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    mul!(C, A, R.U, alpha, beta)
+    mul!(C, A, R.V', alpha, beta)
 end
 
 
@@ -151,5 +158,5 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    mul!(C, A, R.parent.U', alpha, beta)
+    mul!(C, A, R.parent.V', alpha, beta)
 end

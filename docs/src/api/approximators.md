@@ -21,6 +21,10 @@ RangeApproximatorRecipe
 RangeFinder
 
 RangeFinderRecipe
+
+RandSVD
+
+RandSVDRecipe
 ```
 
 ## Exported Functions
