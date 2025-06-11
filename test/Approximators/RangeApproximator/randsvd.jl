@@ -60,7 +60,11 @@ end
         let compressor = TestCompressor(),
             power_its = 2,
             rand_subspace = false,
-            rf = RandSVD(compressor, power_its, rand_subspace) 
+            rf = RandSVD(
+                compressor = compressor, 
+                power_its = power_its, 
+                rand_subspace = rand_subspace
+            ) 
 
             @test typeof(rf.compressor) == TestCompressor
             @test rf.power_its == 2
@@ -192,6 +196,7 @@ end
             
             # Test that this spans the range and that the mul! function work
             @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
+            @test norm(A - A * approx_rec * approx_rec') < ATOL
         end
 
         # By testing the rapproximate function we also test rapproximate!
@@ -254,6 +259,7 @@ end
             
             # Test that this spans the range and that the mul! function work
             @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
+            @test norm(A - A * approx_rec * approx_rec') < ATOL
         end
 
     end
@@ -293,7 +299,7 @@ end
             Cc = deepcopy(C) 
 
             mul!(C, A, approx_rec, 2.0, 1.0)
-            @test C ≈ Cc + 2.0 * A * approx_rec.V'
+            @test C ≈ Cc + 2.0 * A * approx_rec.V
         end
 
         # Test the vector multiplication
@@ -315,7 +321,7 @@ end
             bc = deepcopy(b) 
 
             mul!(b', v', approx_rec, 2.0, 1.0)
-            @test b ≈ (bc' + 2.0  * v' * approx_rec.V')'
+            @test b ≈ (bc' + 2.0  * v' * approx_rec.V)'
         end
 
     end

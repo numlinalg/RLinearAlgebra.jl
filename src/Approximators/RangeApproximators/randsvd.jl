@@ -47,7 +47,7 @@ RandSVD(;
     compressor = SparseSign(), 
     rand_subspace = false, 
     power_its = 1
-) = RandSVD(compressor, rand_subspace, power_its)
+) = RandSVD(compressor, power_its, rand_subspace)
 
 """
     RandSVDRecipe
@@ -113,7 +113,7 @@ function rapproximate!(approx::RandSVDRecipe, A::AbstractMatrix)
     return nothing
 end
 
-function rapproximate(approx::RandSVDRecipe, A::AbstractMatrix)
+function rapproximate(approx::RandSVD, A::AbstractMatrix)
     approx_recipe = complete_approximator(approx, A)
     rapproximate!(approx_recipe, A)
     return  approx_recipe
@@ -147,7 +147,7 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    mul!(C, A, R.V', alpha, beta)
+    mul!(C, A, R.V, alpha, beta)
 end
 
 
