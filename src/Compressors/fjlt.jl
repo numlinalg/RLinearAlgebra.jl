@@ -1,9 +1,9 @@
 """
     FJLT <: Compressor
 
-An implementation of the Fast Johnson-Lindesntrauss Tranform method. This technique applies
-sparse matrix, a Walsh-Hadamard transform, and diagonal sign matrix to produce a sketch. See
-[ailon2009fast](@cite) for additional details.
+An implementation of the Fast Johnson-Lindenstrauss Transform method. This technique applies
+a sparse matrix, a Walsh-Hadamard transform, and a diagonal sign matrix to produce a sketch. 
+See [ailon2009fast](@cite) for additional details.
 
 # Mathematical Description
 
@@ -11,30 +11,41 @@ Let ``A`` be an ``m \\times n`` matrix that we want to compress. If we want
 to compress ``A`` from the left (i.e., we reduce the number of rows), then
 we create a matrix, ``S``, with dimension ``s \\times m`` where
 ``s`` is the compression dimension that is supplied by the user.
-Here ``S=KHD`` where ``K`` is a sparse matrix with  with dimension ``s \\times m``, ``H`` is
-a Hadamard matrix of dimension ``m \\times m``, ``D`` of is a diagonal matrix with random
-``\\pm 1`` on the diagonal of dimensions ``m \\times m``. 
-We then sketch ``A`` by applying ``SHD`` from the left. ``S`` is a sparse
-matrix with with sparsity ``1-q``, and the nonzero entries being independent draws from a 
-normal distribution with mean ``0`` and variance ``1/q``. We do not form the matrix ``H`` 
-instead we apply the Fast Walsh-Hadamard transform to the matrix ``DA``, which has a 
-``m\\log(m)`` computational complexity instead of ``m^2``. 
+Here ``S=KHD`` where 
+
+- ``K`` is a sparse matrix with  with dimension ``s \\times m``, where each entry has 
+    probability ``q`` of being non-zero, and, if it is non-zero, then its value is 
+    drawn from an independent normal distribution with mean ``0`` and variance ``1/q``;
+- ``H`` is a Hadamard matrix of dimension ``m \\times m``, which is implicitly applied 
+    through the fast Walsh-Hadamard transform;
+- ``D`` of is a diagonal matrix of dimension ``m \\times m`` with entries given by 
+    independent Rademacher variables.
+
+If we want to compress ``A`` from the right (i.e., we reduce the number of columns), then 
+we would apply ``S=DHK`` from the right where the dimensions of the matrices are adjusted 
+to reflect the number of columns in ``A``.
 
 # Fields
 - `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
 - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
     mathematical description.
-- `sparsity::Int64`, the desired sparsity of the matrix ``K``, by default sparsity will be 
-    set to be ``\\min\\left(1/4 \\log(n)^2 / m, 1\\right)``, see [ailon2009fast](@cite).
+- `block_size::Int64`, the number of vectors in the padding matrix.
+- `sparsity::Int64`, the desired sparsity of the matrix ``K``.
 - `type::Type{<:Number}`, the type of the elements in the compressor.
 
 # Constructor
 
-    FJLT(;carinality=Left(), compression_dim=2, sparsity=0.0, type=Float64)
+    FJLT(;
+        cardinality=Left(),
+        compression_dim::Int64=2,
+        block_size::Int64=10,
+        sparsity::Float64=0.0,
+        type::Type{N}=Float64,
+    ) where {N<:Number}
 
 ## Keywords
-- `carinality::Cardinality`, the direction the compression matrix is intended to be
+- `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
     By default `Left()` is chosen.
 - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
@@ -48,8 +59,8 @@ instead we apply the Fast Walsh-Hadamard transform to the matrix ``DA``, which h
 - A `FJLT` object.
 
 ## Throws
-- `ArgumentError` if `compression_dim` is non-positive, if `nnz` is exceeds
-    `compression_dim`, or if `sparisty` is greater than 1.
+- `ArgumentError` if `compression_dim` is non-positive, if `sparsity` is not in ``[0,1]``,
+    or if `block_size` is non-positive.
 """
 struct FJLT <: Compressor
     cardinality::Cardinality
@@ -63,8 +74,8 @@ struct FJLT <: Compressor
         # nonzeros
         if compression_dim <= 0
             throw(ArgumentError("Field `compression_dim` must be positive."))
-        elseif sparsity > 1
-            throw(ArgumentError("Field `sparsity` must be less than 1."))
+        elseif (sparsity < 0 || sparsity > 1)
+            throw(ArgumentError("Field `sparsity` must be between 0 and 1."))
         elseif block_size <= 0
             throw(ArgumentError("Field `block_size` must be positive."))
         end
@@ -86,27 +97,28 @@ function FJLT(;
 end
 
 """
-    FJLTRecipe <: CompressorRecipe
+    FJLTRecipe{C<:Cardinality, S<:SparseMatrixCSC, M<:AbstractMatrix} <: CompressorRecipe
 
-The recipe containing all allocations and information for the SparseSign compressor.
+The recipe containing all allocations and information for the FJLT compressor.
 
 # Fields
 - `cardinality::Cardinality`, the direction the compression matrix is intended to
     be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
 - `n_rows::Int64`, the number of rows of the compression matrix.
 - `n_cols::Int64`, the number of columns of the compression matrix.
-- `sparsity::Vector{Number}`, the expected sparsity of the Sparse operator matrix.
-- `scale::FLoat64`, the factor to ensure the isopmorphism of the sketch.
-- `op::SparseMatrixCSC`, the Spares Sign compression matrix.
-- `signs::BitVector`, the vector of signs.
-- `padding::AbstractMatr`, the matrix containing the padding for the matrix being sketched.
+- `sparsity:Float64`, the sparsity, ``q``, of the sparse component, ``K``.
+- `scale::Float64`, the factor to ensure the isopmorphism of the sketch.
+- `op::SparseMatrixCSC`, the sparse matrix ``K`` in the mathematical description.
+- `signs::BitVector`, the vector of signs where `0` indicates negative one and `1` indicates
+    positive one. 
+- `padding::AbstractMatrix`, the matrix containing the padding for the matrix being sketched.
 
 # Constructor
 
     FJLTRecipe(
         compression_dim::Int64, 
         block_size::Int64,
-        cardinality::Left,
+        cardinality::C where {C<:Cardinality},
         sparsity::Float64,
         A::AbstractMatrix, 
         type::Type{<:Number}
@@ -116,19 +128,19 @@ The recipe containing all allocations and information for the SparseSign compres
 - `compression_dim`, the target compression dimension. Referred to as ``s`` in the
     mathemtical description. By default this is set to 2.
 - `block_size::Int64`, the number of columns in the padding memory buffer.
-- `carinality::Cardinality`, the direction the compression matrix is intended to be
+- `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
     By default `Left()` is chosen.
 - `sparsity::Vector{Number}`, the expected sparsity of the Sparse operator matrix.
 - `A::AbstractMatrix`, the matrix being compressed.
 - `type::Type{<:Number}`, the type of elements in the compressor.
 
-## Returns
-- A `SparseSign` object.
+!!! info 
+    If the `sparsity` parameter is set to `0.0`, then the sparsity will be set to 
+    ``\\min\\left(1/4 \\log(n)^2 / m, 1\\right)``, see [ailon2009fast](@cite).
 
-## Throws
-- `ArgumentError` if `compression_dim` is non-positive, if `nnz` is exceeds
-    `compression_dim`, or if `nnz` is non-positive.
+## Returns
+- A `FJLTRecipe` object.
 """
 mutable struct FJLTRecipe{
     C<:Cardinality, 
@@ -156,13 +168,14 @@ function FJLTRecipe(
     # For compressing from the left, the compressor's dimensions should be 
     # compression_dim by smallest power of 2 larger than size(A, 1)
     n_rows = compression_dim
-    a_rows = size(A, 1)
+    n_cols = size(A, 1)
     # Find nearest power 2 and allocate
-    padded_size = Int64(2^(ceil(log(2, a_rows))))
-    n_cols = size(A, 1) 
+    padded_size = Int64(2^(ceil(log(2, n_cols))))
     # Generate the padded matrix and signs which need padded size
     padded_matrix = zeros(type, padded_size, block_size)
     signs = bitrand(padded_size)
+
+    # Assumes sparsity is in [0,1], but is not checked. 
     sparsity = sparsity == 0.0 ? .25 * log(size(A, 1))^2 / n_cols : sparsity
     # generate sparse matrix nonzero gaussian entries occuring with probability sparsity
     sparse_mat = sprandn(type, n_rows, padded_size, sparsity)
@@ -190,13 +203,14 @@ function FJLTRecipe(
     # For compressing from the right, the compressor's dimensions should be 
     # compression_dim by smallest power of 2 larger than size(A, 2)
     n_cols = compression_dim
-    a_cols = size(A, 2)
+    n_rows = size(A, 2)
     # Find nearest power 2 and allocate
-    padded_size = Int64(2^(ceil(log(2, a_cols))))
-    n_rows = size(A, 2) 
+    padded_size = Int64(2^(ceil(log(2, n_rows))))
     # Generate the padded matrix and signs which need padded size
     padded_matrix = zeros(type, block_size, padded_size)
     signs = bitrand(padded_size)
+
+    # Assumes sparsity is in [0,1], but is not checked.
     sparsity = sparsity == 0.0 ? .25 * log(size(A,2))^2 / n_rows : sparsity
     # generate sparse matrix nonzero gaussian entries occuring with probability sparsity
     sparse_mat = sprandn(type, padded_size, n_cols, sparsity)
@@ -237,7 +251,7 @@ function update_compressor!(S::FJLTRecipe)
     return nothing
 end
 
-# Calculates S.op * A and stores it in C 
+# Calculates S * A and stores it in C 
 function mul!(
     C::AbstractArray, 
     S::FJLTRecipe{Left, <:SparseMatrixCSC, <:AbstractMatrix}, 
@@ -306,7 +320,7 @@ function mul!(
     return nothing 
 end
 
-# Calculates S.op * A and stores it in C  when S has left cardinality
+# Calculates S * A and stores it in C  when S has left cardinality
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
@@ -382,7 +396,7 @@ function mul!(
     return nothing 
 end
 
-# Calculates A * S.op and stores it in C 
+# Calculates A * S and stores it in C 
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
