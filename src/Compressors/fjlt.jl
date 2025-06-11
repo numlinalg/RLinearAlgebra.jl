@@ -281,6 +281,8 @@ function mul!(
         Cv = view(C, :, start_col:last_col)
         pv = view(S.padding, 1:a_rows, :)
         # ensure that padding matrix is set to zeros
+        # if it becomes relevant; we should copyto!(pv, Av) first and then 
+        # zero out the remaining entries of S.padding; this is a minor optimization.
         fill!(S.padding, zero(type))
         # Copy the matrix A to the padding matrix
         copyto!(pv, Av)
