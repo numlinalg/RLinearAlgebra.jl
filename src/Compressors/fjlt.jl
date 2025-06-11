@@ -308,7 +308,7 @@ function mul!(
         # Copy the matrix A to the padding matrix
         copyto!(pv, Av)
         # Apply signs and fwht to the padding matrix
-        for i in 1:b_size
+        for i in 1:last_block_size
             pv = view(S.padding, :, i)
             fwht!(pv, S.signs, scaling = S.scale) 
         end
