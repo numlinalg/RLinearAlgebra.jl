@@ -1,8 +1,6 @@
 module uniform_distribution
 using Test, RLinearAlgebra
 using StatsBase: ProbabilityWeights
-using ..FieldTest
-using ..ApproxTol
 
 @testset "Uniform" begin
     @testset "Uniform: Distribution" begin
@@ -58,36 +56,62 @@ using ..ApproxTol
             @test ur.weights == ProbabilityWeights(ones(5))
         end
 
+        # Test with undef compressor
+        let A = randn(3, 5), 
+            u = Uniform(cardinality = Undef())
+
+            @test_throws ArgumentError complete_distribution(complete_distribution(u, A))
+        end
+
     end
 
     @testset "Uniform: Update Distribution" begin
         # Test if the result changes after updating
-        let 
-            A = randn(3, 5)
-            A2 = randn(4, 6)
-            u = Uniform(cardinality = Right())
+        let A = randn(3, 5),
+            A2 = randn(4, 6),
+            u = Uniform(cardinality = Right()),
             ur = complete_distribution(u, A)
+            
             update_distribution!(ur, A2)
-
             @test ur.cardinality == Right()
             @test ur.state_space == collect(1:6)
             @test ur.weights == ProbabilityWeights(ones(6))
         end
 
+        let A = randn(5, 3),
+            A2 = randn(6, 4),
+            u = Uniform(cardinality = Left()),
+            ur = complete_distribution(u, A)
+            
+            update_distribution!(ur, A2)
+            @test ur.cardinality == Left()
+            @test ur.state_space == collect(1:6)
+            @test ur.weights == ProbabilityWeights(ones(6))
+        end
+
+        let A = randn(5, 3),
+            A2 = randn(6, 4),
+            card = Undef(),
+            replace = false,
+            state_space = collect(1:5),
+            weights = ProbabilityWeights(ones(5))
+            ur = UniformRecipe(card, replace, state_space, weights)
+            
+            @test_throws ArgumentError update_distribution!(ur, A2)
+        end       
+
     end
 
-    @testset "Uniform: sample_distribution!" begin
-        # Test if the result changes after updating
-        let 
-            A = randn(3, 5)
-            x = randn(4)
-            u = Uniform(cardinality = Right())
+    @testset "Uniform: Sample Distribution" begin
+        # Test if the sample_distribution! is returning the correct prob weights
+        let A = randn(3, 5),
+            x = randn(4),
+            u = Uniform(cardinality = Right()),
             ur = complete_distribution(u, A)
+            
             sample_distribution!(x, ur)
-
             @test ur.cardinality == Right()
             @test all(s -> 1 <= s <= 5, x)
-
         end
 
     end

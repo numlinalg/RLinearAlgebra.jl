@@ -22,6 +22,8 @@ UniformRecipe
 complete_distribution
 
 update_distribution!
+
+sample_distribution!
 ```
 
 ## Internal Functions
