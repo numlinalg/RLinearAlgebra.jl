@@ -339,13 +339,13 @@ function mul!(
     # To be memory efficient we apply FJLT block-wise in column blocks
     last_block_size = rem(a_rows, b_size)
     # Compute the number of full block iterations that will be needed
-    n_iter = div(c_rows, b_size)
+    n_iter = div(a_rows, b_size)
     start_row = 1
     for i in 1:n_iter
         # Working with blocks requires views of the matrix
         last_row = start_row + b_size - 1
         Av = view(A, start_row:last_row, :)
-        Cv = view(C, start_row:last_row, 1:c_cols)
+        Cv = view(C, start_row:last_row, :)
         pv = view(S.padding, :, :)
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is strucuted with more rows than columns
@@ -371,7 +371,7 @@ function mul!(
     if last_block_size > 0
         last_row = start_row + last_block_size - 1
         Av = view(A, start_row:last_row, :)
-        Cv = view(C, start_row:last_row, 1:c_cols)
+        Cv = view(C, start_row:last_row, :)
         pv = view(S.padding, :, 1:last_block_size)
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is strucuted with more rows than columns
@@ -521,6 +521,7 @@ function mul!(
         
         # Apply signs to the padding matrix
         S.padding' .*= ifelse.(S.signs, 1, -1)
+        # Because the padding 
         # Match padding matrix view to the output size
         pv = view(S.padding, 1:last_block_size, 1:c_rows)
         # add the result to C note that because of padding instead of returning padded 
