@@ -430,7 +430,7 @@ Random.seed!(2131)
                 A = randn(n, comp_dim)
                 B = randn(n, n)
                 # C1 is for S'*A, C2 is for B*S
-                C1 = randn(comp_dim, comp_dim)
+                C1 = randn(n, n)
                 C2 = randn(n, comp_dim)
                 x = randn(comp_dim)
                 y = randn(n)
@@ -460,17 +460,21 @@ Random.seed!(2131)
 
                 # Test '*' operations by comparing to ground truths
                 @test S' * A ≈ StA_exact
+                @test A' * S ≈ StA_exact'
                 @test B * S ≈ BS_exact
+                @test S' * B' ≈ BS_exact'
                 @test B' * S ≈ BtS_exact
+                @test S' * B ≈ BtS_exact'
                 @test A * S' ≈ ASt_exact
+                @test S * A' ≈ ASt_exact'
                 @test S * x ≈ Sx_exact
                 @test x' * S' ≈ Sx_exact'
                 @test y' * S ≈ Sty_exact'
                 @test S' * y ≈ Sty_exact
 
                 # Test the 5-argument mul!
-                mul!(C1, S', A, alpha, beta)
-                @test C1 ≈ alpha * StA_exact + beta * C1c
+                mul!(C1, A, S', alpha, beta)
+                @test C1 ≈ alpha * ASt_exact + beta * C1c
 
                 mul!(C2, B, S, alpha, beta)
                 @test C2 ≈ alpha * BS_exact + beta * C2c
