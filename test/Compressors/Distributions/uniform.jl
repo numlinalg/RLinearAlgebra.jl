@@ -76,6 +76,22 @@ using ..ApproxTol
 
     end
 
+    @testset "Uniform: sample_distribution!" begin
+        # Test if the result changes after updating
+        let 
+            A = randn(3, 5)
+            x = randn(4)
+            u = Uniform(cardinality = Right())
+            ur = complete_distribution(u, A)
+            sample_distribution!(x, ur)
+
+            @test ur.cardinality == Right()
+            @test all(s -> 1 <= s <= 5, x)
+
+        end
+
+    end
+
 end
 
 end

@@ -81,3 +81,8 @@ function update_distribution!(ingredients::UniformRecipe, A::AbstractMatrix)
 
     return nothing
 end
+
+function sample_distribution!(x::AbstractVector, distribution::UniformRecipe)
+    wsample!(distribution.state_space, distribution.weights, x, ordered = true, replace = distribution.replace)
+    return nothing
+end

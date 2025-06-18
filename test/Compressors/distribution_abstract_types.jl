@@ -1,8 +1,5 @@
 module distribution_abstract_types
 using Test, RLinearAlgebra
-import LinearAlgebra: ldiv!
-using ..FieldTest
-using ..ApproxTol
 struct TestDistribution <: Distribution end
 struct TestDistributionRecipe <: DistributionRecipe end
 
@@ -17,7 +14,12 @@ end
     x = ones(2)
 
     @test_throws ArgumentError complete_distribution(TestDistribution(), A)
+    @test_throws ArgumentError complete_distribution(TestDistribution(), A, b)
+    @test_throws ArgumentError complete_distribution(TestDistribution(), x, A, b)
     @test_throws ArgumentError update_distribution!(TestDistributionRecipe(), A)
+    @test_throws ArgumentError update_distribution!(TestDistributionRecipe(), A, b)
+    @test_throws ArgumentError update_distribution!(TestDistributionRecipe(), x, A, b)
+    @test_throws ArgumentError sample_distribution!(x, TestDistributionRecipe())
 end
 
 end
