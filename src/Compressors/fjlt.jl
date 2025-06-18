@@ -259,9 +259,7 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    # Here padding does not allow us to use standard dim check
-    # instead we check that rows of C == rows of S and cols of C == cols of A, but we only 
-    # cheeck that the cols of S > rows of A
+    # Check dimensions
     c_rows, c_cols = size(C, 1), size(C, 2)
     s_rows, s_cols = size(S, 1), size(S, 2)
     a_rows, a_cols = size(A, 1), size(A, 2)
@@ -330,9 +328,7 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    # Here padding does not allow us to use standard dim check
-    # instead we check that rows of C == rows of S and cols of C == cols of A, but we only 
-    # cheeck that the cols of S > rows of A
+    # Check dimensions
     c_rows, c_cols = size(C, 1), size(C, 2)
     s_rows, s_cols = size(S, 1), size(S, 2)
     a_rows, a_cols = size(A, 1), size(A, 2)
@@ -406,9 +402,7 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    # Here padding does not allow us to use standard dim check
-    # instead we check that rows of C == rows of A and cols of C == cols of S, but we only 
-    # cheeck that the rows of S > cols of A
+    # Check dimensions
     c_rows, c_cols = size(C, 1), size(C, 2)
     s_rows, s_cols = size(S, 1), size(S, 2)
     a_rows, a_cols = size(A, 1), size(A, 2)
@@ -473,9 +467,7 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    # Here padding does not allow us to use standard dim check
-    # instead we check that rows of C == rows of A and cols of C == cols of S, but we only 
-    # cheeck that the rows of S > cols of A
+    # Check dimensions
     c_rows, c_cols = size(C, 1), size(C, 2)
     s_rows, s_cols = size(S, 1), size(S, 2)
     a_rows, a_cols = size(A, 1), size(A, 2)
