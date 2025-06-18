@@ -1,3 +1,6 @@
+###################################
+# Abstract Types
+###################################
 """
     Solver
 
@@ -14,7 +17,9 @@ coefficient matrix and constant vector.
 """
 abstract type SolverRecipe end
 
-# Docstring Components
+###################################
+# Docstring Components  
+###################################
 solver_arg_list = Dict{Symbol,String}(
     :solver => "`solver::Solver`, a user-specified solver method.",
     :solver_recipe => "`solver::SolverRecipe`, a fully initialized realization for a 
@@ -36,7 +41,10 @@ solver_method_description = Dict{Symbol,String}(
     arguments.",
     :rsolve => "A function that solves a linear system given the arguments.",
 )
-# Function skeletons
+
+###################################
+# Complete Solver
+###################################
 """
     complete_solver(solver::Solver, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
 
@@ -52,13 +60,22 @@ $(solver_method_description[:complete_solver])
 - $(solver_output_list[:solver_recipe])
 """
 function complete_solver(
-    solver::Solver, x::AbstractVector, A::AbstractMatrix, b::AbstractVector
+    solver::Solver, 
+    x::AbstractVector, 
+    A::AbstractMatrix, 
+    b::AbstractVector
 )
-    throw(ArgumentError("No `complete_solver` method defined for a 
-    $(typeof(solver)) solver,$(typeof(x)), $(typeof(A)), and $(typeof(b))."))
-    return nothing
+    return throw(
+        ArgumentError(
+            "No `complete_solver` method defined for a $(typeof(solver)) solver,\
+             $(typeof(x)), $(typeof(A)), and $(typeof(b))."
+        )
+    )
 end
 
+###################################
+# rsolve Interface 
+###################################
 """
     rsolve!(
         solver::SolverRecipe, 
@@ -79,11 +96,17 @@ $(solver_method_description[:rsolve])
 - Returns `nothing`. Updates the `SolverRecipe` and `x` in place.
 """
 function rsolve!(
-    solver::SolverRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector
+    solver::SolverRecipe, 
+    x::AbstractVector, 
+    A::AbstractMatrix, 
+    b::AbstractVector
 )
-    throw(ArgumentError("No `rsolve!` method defined for a $(typeof(solver))solver, \
-    $(typeof(x)), $(typeof(A)), and $(typeof(b))."))
-    return nothing
+    return throw(
+        ArgumentError(
+            "No `rsolve!` method defined for $(typeof(solver)) solver,\
+             $(typeof(x)), $(typeof(A)), and $(typeof(b))."
+            )
+        )
 end
 
 """
@@ -109,7 +132,7 @@ $(solver_method_description[:rsolve])
 function rsolve!(solver::Solver, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
     solver_method = complete_solver(solver, x, A, b)
     rsolve!(solver_method, x, A, b)
-    return nothing
+    return x, solver_method
 end
 
 ############################

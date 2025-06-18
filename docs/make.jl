@@ -16,7 +16,12 @@ makedocs(
     pages = [
         "Home" => "index.md",
         "API Reference" => [
-            "Compressors" => "api/compressors.md",
+            "Compressors" => [
+                "Compressors Overview" => "api/compressors.md",
+                "Compressor Sub-routines" => [
+                    "Distributions" => "api/distributions.md",
+                ],
+            ],
             "Solvers" => [
                 "Solvers Overview" => "api/solvers.md",
                 "Solver Sub-routines" => [
