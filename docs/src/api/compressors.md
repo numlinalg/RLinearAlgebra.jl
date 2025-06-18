@@ -26,6 +26,9 @@ SparseSign
 
 SparseSignRecipe
 
+SubSampling
+
+SubSamplingRecipe
 ```
 
 ## Exported  Functions

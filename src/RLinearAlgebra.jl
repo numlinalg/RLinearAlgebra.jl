@@ -20,7 +20,7 @@ export Compressor, CompressorRecipe, CompressorAdjoint
 export Cardinality, Left, Right, Undef
 export complete_compressor, update_compressor!
 export SparseSign, SparseSignRecipe
-export SubCompressor, SubCompressorRecipe
+export SubSampling, SubSamplingRecipe
 
 # Export Distribution types and functions
 export Distribution, DistributionRecipe

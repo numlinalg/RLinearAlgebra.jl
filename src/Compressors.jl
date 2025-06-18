@@ -576,4 +576,4 @@ end
 ###################################
 include("Compressors/Distributions.jl")
 include("Compressors/sparse_sign.jl")
-include("Compressors/sub_compressor.jl")
+include("Compressors/sub_sampling.jl")

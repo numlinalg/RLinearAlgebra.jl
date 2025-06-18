@@ -1,5 +1,5 @@
 """
-    SubCompressor <: Compressor
+    SubSampling <: Compressor
 
 An implementation of the sub-sampling compression method. This method selected 
 the rows/columns of the matrix by given distribution with number of rows/columns 
@@ -28,7 +28,7 @@ are chosen by sampling over all the columns with given distribution.
 
 # Constructor
 
-    SubCompressor(;cardinality = Left(), compression_dim = 8, distribution, type = Float64)
+    SubSampling(;cardinality = Left(), compression_dim = 8, distribution, type = Float64)
 
 ## Arguments
 
@@ -42,17 +42,17 @@ are chosen by sampling over all the columns with given distribution.
 
 ## Returns
 
-  - A `SubCompressor` object.
+  - A `SubSampling` object.
 
 ## Throws
 
   - `ArgumentError` if `compression_dim` is non-positive
 """
-struct SubCompressor <: Compressor
+struct SubSampling <: Compressor
     cardinality::Cardinality
     compression_dim::Int64
     distribution::Distribution # Function that returns a probability vector over indices
-    function SubCompressor(cardinality, compression_dim, distribution)
+    function SubSampling(cardinality, compression_dim, distribution)
         # the compression dimension must be positive
         if compression_dim <= 0
             throw(ArgumentError("Field `compression_dim` must be positive."))
@@ -62,17 +62,17 @@ struct SubCompressor <: Compressor
     end
 end
 
-function SubCompressor(;
+function SubSampling(;
     cardinality::Cardinality = Left(),
     compression_dim::Int64 = 2,
     distribution::Distribution = Uniform()
 )
-    # Partially construct the SubCompressor datatype
-    return SubCompressor(cardinality, compression_dim, distribution)
+    # Partially construct the SubSampling datatype
+    return SubSampling(cardinality, compression_dim, distribution)
 end
 
 """
-    SubCompressorRecipe <: CompressorRecipe
+    SubSamplingRecipe <: CompressorRecipe
 
 The recipe containing all allocations and information for the sub-compressor.
 
@@ -87,7 +87,7 @@ The recipe containing all allocations and information for the sub-compressor.
   - `idx::Vector{Int64}`, the index set that contains all the chosen indices.
   - `idx_v::SubArray`, the view of the `idx`.
 """
-mutable struct SubCompressorRecipe <: CompressorRecipe
+mutable struct SubSamplingRecipe{C<:Cardinality} <: CompressorRecipe
     cardinality::Cardinality
     compression_dim::Int64
     n_rows::Int64
@@ -111,21 +111,21 @@ function get_dims(compression_dim::Int64, cardinality::Right, A::AbstractMatrix)
     return n_rows, n_cols, initial_size
 end
 
-function complete_compressor(subcompressor::SubCompressor, A::AbstractMatrix)
-    n_rows, n_cols, _ = get_dims(subcompressor.compression_dim, subcompressor.cardinality, A)
+function complete_compressor(sub_sampling::SubSampling, A::AbstractMatrix)
+    n_rows, n_cols, _ = get_dims(sub_sampling.compression_dim, sub_sampling.cardinality, A)
     # Pull out the variables from ingredients
-    compression_dim = subcompressor.compression_dim
-    subcompressor.distribution.cardinality = subcompressor.cardinality
+    compression_dim = sub_sampling.compression_dim
+    sub_sampling.distribution.cardinality = sub_sampling.cardinality
     # Compute the weight for each index
-    dist_recipe = complete_distribution(subcompressor.distribution, A)
+    dist_recipe = complete_distribution(sub_sampling.distribution, A)
     idx = Vector{Int64}(undef, compression_dim)
     idx_v = view(idx,:)
     # Randomly generate samples from index set based on weights
     sample_distribution!(idx_v, idx, dist_recipe)
-    return SubCompressorRecipe(subcompressor.cardinality, compression_dim, n_rows, n_cols, dist_recipe, idx, idx_v)
+    return SubSamplingRecipe{sub_sampling.cardinality}(sub_sampling.cardinality, compression_dim, n_rows, n_cols, dist_recipe, idx, idx_v)
 end
 
-function update_compressor!(S::SubCompressorRecipe, A, b, x)
+function update_compressor!(S::SubSamplingRecipe, A, b, x)
     update_distribution!(S.distribution_recipe, A, b, x)
     # Randomly generate samples from index set based on weights
     sample_distribution!(S.idx_v, S.idx, S.distribution_recipe)
@@ -133,9 +133,10 @@ end
     
 # Matrix-matrix multiplication
 # Begin with the left version
+
 function mul!(
     C::AbstractArray, 
-    S::SubCompressorRecipe, 
+    S::SubSamplingRecipe, 
     A::AbstractArray, 
     alpha::Number, 
     beta::Number
@@ -153,7 +154,7 @@ end
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
-    S::SubCompressorRecipe, 
+    S::SubSamplingRecipe, 
     alpha::Number, 
     beta::Number
 )

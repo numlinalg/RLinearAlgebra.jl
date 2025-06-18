@@ -1,4 +1,4 @@
-module sub_compressor
+module sub_sampling
 using Test, RLinearAlgebra, Random
 using StatsBase: ProbabilityWeights, sample
 import LinearAlgebra: mul!, Adjoint
@@ -6,26 +6,26 @@ using ..FieldTest
 using ..ApproxTol
 
 Random.seed!(2131)
-@testset "Sub_Compressor" begin
-    @testset "Sub_Compressor: Compressor" begin
+@testset "Sub_Sampling" begin
+    @testset "Sub_Sampling: Compressor" begin
         # Verify Supertype
-        @test supertype(SubCompressor) == Compressor
+        @test supertype(SubSampling) == Compressor
 
         # Verify fields and types
-        @test fieldnames(SubCompressor) == (:cardinality, :compression_dim, :distribution)
-        @test fieldtypes(SubCompressor) == (Cardinality, Int64, Distribution)
+        @test fieldnames(SubSampling) == (:cardinality, :compression_dim, :distribution)
+        @test fieldtypes(SubSampling) == (Cardinality, Int64, Distribution)
 
         # Verify the Internal Constructor
         let cardinality = Left(), compression_dim = 0, distribution = Uniform()
             @test_throws ArgumentError(
                 "Field `compression_dim` must be positive."
-            ) SubCompressor(
+            ) SubSampling(
                 cardinality, compression_dim, distribution
             )
         end
 
         # Default values
-        let sc_default = SubCompressor()
+        let sc_default = SubSampling()
             @test sc_default.cardinality == Left()
             @test sc_default.compression_dim == 2
             @test sc_default.distribution isa Uniform
@@ -37,14 +37,14 @@ Random.seed!(2131)
         # Specific cardinality
         let card_val = Right()
             dist_instance = Uniform(cardinality=card_val) 
-            compressor = SubCompressor(; cardinality=card_val, distribution=dist_instance)
+            compressor = SubSampling(; cardinality=card_val, distribution=dist_instance)
             @test compressor.cardinality == card_val
             @test compressor.distribution.cardinality == card_val
         end
 
         let card_val = Left()
             dist_instance = Uniform(cardinality=card_val)
-            compressor = SubCompressor(; cardinality=card_val, distribution=dist_instance)
+            compressor = SubSampling(; cardinality=card_val, distribution=dist_instance)
             typeof(compressor.cardinality) == Cardinality
             @test compressor.cardinality == card_val
             @test compressor.distribution.cardinality == card_val
@@ -52,13 +52,13 @@ Random.seed!(2131)
 
         # Test with specific compression_dim
         let comp_dim_val = 15
-            compressor = SubCompressor(; compression_dim=comp_dim_val)
+            compressor = SubSampling(; compression_dim=comp_dim_val)
             @test compressor.compression_dim == comp_dim_val
         end
 
         # Test with specific distribution instance
         let my_dist = Uniform(cardinality=Right(), replace=true)
-            compressor = SubCompressor(; distribution=my_dist)
+            compressor = SubSampling(; distribution=my_dist)
             @test compressor.distribution === my_dist
             @test compressor.distribution.cardinality == Right()
             @test compressor.distribution.replace == true
@@ -70,16 +70,16 @@ Random.seed!(2131)
         # Test combination of specific arguments
         let final_card = Right(), final_cdim = 22
             final_dist = Uniform(cardinality=final_card, replace=false)
-            compressor = SubCompressor(; cardinality=final_card, compression_dim=final_cdim, distribution=final_dist)
+            compressor = SubSampling(; cardinality=final_card, compression_dim=final_cdim, distribution=final_dist)
             @test compressor.cardinality == final_card
             @test compressor.compression_dim == final_cdim
             @test compressor.distribution === final_dist
         end
     end
 
-    @testset "Sub_Compressor: CompressorRecipe" begin
-        @test_compressor SubCompressorRecipe
-        @test fieldnames(SubCompressorRecipe) == (
+    @testset "Sub_Sampling: CompressorRecipe" begin
+        @test_compressor SubSamplingRecipe
+        @test fieldnames(SubSamplingRecipe) == (
             :cardinality,
             :compression_dim,
             :n_rows,
@@ -88,7 +88,7 @@ Random.seed!(2131)
             :idx,
             :idx_v
         )
-        @test fieldtypes(SubCompressorRecipe) == (
+        @test fieldtypes(SubSamplingRecipe) == (
             Cardinality,
             Int64,
             Int64,
@@ -113,8 +113,8 @@ Random.seed!(2131)
             idx_val = sort(sample(dist_state_space, comp_dim, replace=replace_sampling))
             idx_v_val = view(idx_val, :)
 
-            # Construct SubCompressorRecipe
-            recipe = SubCompressorRecipe(card_type(), comp_dim, actual_n_rows, actual_n_cols,
+            # Construct SubSamplingRecipe
+            recipe = SubSamplingRecipe(card_type(), comp_dim, actual_n_rows, actual_n_cols,
                                          dist_recipe_val, idx_val, idx_v_val)
 
             @test recipe.cardinality == card_type() 
@@ -145,8 +145,8 @@ Random.seed!(2131)
             idx_val = sort(sample(dist_state_space, comp_dim, replace=replace_sampling))
             idx_v_val = view(idx_val, :)
 
-            # Construct SubCompressorRecipe
-            recipe = SubCompressorRecipe(card_type(), comp_dim, actual_n_rows, actual_n_cols,
+            # Construct SubSamplingRecipe
+            recipe = SubSamplingRecipe(card_type(), comp_dim, actual_n_rows, actual_n_cols,
                                          dist_recipe_val, idx_val, idx_v_val)
 
             @test recipe.cardinality == card_type()
@@ -164,7 +164,7 @@ Random.seed!(2131)
 
     end
 
-    # @testset "SubCompressor: get_dims" begin
+    # @testset "SubSampling: get_dims" begin
     #     let comp_dim_left = 4, 
     #         card_left = Left(),
     #         A_matrix = randn(10, 7),
@@ -192,7 +192,7 @@ Random.seed!(2131)
     #     end
     # end
 
-    @testset "SubCompressor: complete_compressor" begin
+    @testset "Sub_Sampling: complete_compressor" begin
         let card_instance = Left(),
             a_matrix_rows = 10, 
             a_matrix_cols = 8,  
@@ -204,7 +204,7 @@ Random.seed!(2131)
             # Create the distribution instance. Its cardinality will be updated by complete_compressor
             dist_instance = Uniform(cardinality=Undef(), replace=replace_sampling)
             
-            sub_comp_settings = SubCompressor(cardinality=card_instance, compression_dim=comp_dim, distribution=dist_instance)
+            sub_comp_settings = SubSampling(cardinality=card_instance, compression_dim=comp_dim, distribution=dist_instance)
             
             # First, check it's not already set to card_instance
             if dist_instance.cardinality != card_instance
@@ -213,7 +213,7 @@ Random.seed!(2131)
 
             recipe = complete_compressor(sub_comp_settings, A)
 
-            # subcompressor.distribution.cardinality should be updated
+            # SubSampling.distribution.cardinality should be updated
             @test dist_instance.cardinality == card_instance
             
             # Test the recipe values and types. 
@@ -254,7 +254,7 @@ Random.seed!(2131)
             # Create the distribution instance
             dist_instance = Uniform(cardinality=Undef(), replace=replace_sampling)
             
-            sub_comp_settings = SubCompressor(cardinality=card_instance, compression_dim=comp_dim, distribution=dist_instance)
+            sub_comp_settings = SubSampling(cardinality=card_instance, compression_dim=comp_dim, distribution=dist_instance)
 
             # The distribution's cardinality should not be the same
             if dist_instance.cardinality != card_instance
@@ -290,7 +290,7 @@ Random.seed!(2131)
         end
     end
 
-    @testset "SubCompressor: update_compressor!" begin
+    @testset "Sub_Sampling: update_compressor!" begin
         let card_instance = Left(),
             a_matrix_rows = 100, 
             a_matrix_cols = 15,  
@@ -302,7 +302,7 @@ Random.seed!(2131)
             b_dummy = randn(a_matrix_rows) 
             
             dist_instance = Uniform(cardinality=card_instance, replace=replace_sampling)
-            sub_comp_settings = SubCompressor(cardinality=card_instance, compression_dim=comp_dim, distribution=dist_instance)
+            sub_comp_settings = SubSampling(cardinality=card_instance, compression_dim=comp_dim, distribution=dist_instance)
             recipe = complete_compressor(sub_comp_settings, A)
             
             # Store the old indices to verify they change
@@ -349,7 +349,7 @@ Random.seed!(2131)
             b_dummy = randn(a_matrix_rows)
 
             dist_instance = Uniform(cardinality=card_instance, replace=replace_sampling)
-            sub_comp_settings = SubCompressor(cardinality=card_instance, compression_dim=comp_dim, distribution=dist_instance)
+            sub_comp_settings = SubSampling(cardinality=card_instance, compression_dim=comp_dim, distribution=dist_instance)
             recipe = complete_compressor(sub_comp_settings, A)
 
             old_idx = deepcopy(recipe.idx)
@@ -384,69 +384,125 @@ Random.seed!(2131)
     end
 
 
-    @testset "SubCompressor: Multiplication (mul!)" begin
-        @testset "Left Multiplication: C = beta*C + alpha*(S*A)" begin
-            let a_matrix_rows = 20, 
-                a_matrix_cols = 12, 
-                comp_dim = 7,      
-                alpha_val = 2.5, 
-                beta_val = 1.5
+    @testset "Sub_Sampling: Multiplication (mul!)" begin
+        @testset "Left Multiplication" begin
+            let a_matrix_rows = 20,
+                a_matrix_cols = 12,
+                comp_dim = 7,
+                alpha = 2.5,
+                beta = 1.5
 
-                A_val = randn(a_matrix_rows, a_matrix_cols)
+                # Setup matrices and vectors 
+                A = randn(a_matrix_rows, a_matrix_cols)
+                B = randn(comp_dim, a_matrix_cols)
+                C1 = randn(comp_dim, a_matrix_cols)
+                C2 = randn(a_matrix_rows, a_matrix_cols)
+                x = randn(a_matrix_rows)
+                y = randn(comp_dim)
 
-                sc_left = SubCompressor(
+                # Keep copies for 5-argument mul! verification
+                C1c = deepcopy(C1)
+                C2c = deepcopy(C2)
+                yc = deepcopy(y)
+                xc = deepcopy(x)
+
+                # Setup the SubSampling compressor recipe
+                S_info = SubSampling(
                     cardinality=Left(),
                     compression_dim=comp_dim,
                     distribution=Uniform(cardinality=Left(), replace=false)
                 )
-                S_recipe_left = complete_compressor(sc_left, A_val)
+                S = complete_compressor(S_info, A)
 
-                # Output matrix C
-                C_output = randn(comp_dim, a_matrix_cols)
-                C_original = deepcopy(C_output) 
+                # Calculate all ground truth results
+                SA_exact = A[S.idx, :]
+                StB_exact = zeros(a_matrix_rows, a_matrix_cols); for i in 1:comp_dim; StB_exact[S.idx[i], :] = B[i, :]; end
+                Sx_exact = x[S.idx]
+                Sty_exact = zeros(a_matrix_rows); for i in 1:comp_dim; Sty_exact[S.idx[i]] = y[i]; end
 
-                # Ground truth for S*A (row sub-sampling of A)
-                SA_exact = A_val[S_recipe_left.idx, :]
+                # Test '*' operations by comparing to ground truths
+                @test S * A ≈ SA_exact
+                @test S' * B ≈ StB_exact
+                @test B' * S ≈ StB_exact'
+                @test A' * S' ≈ SA_exact'
+                @test S * x ≈ Sx_exact
+                @test S' * y ≈ Sty_exact
 
-                # Perform the multiplication using the function under test
-                mul!(C_output, S_recipe_left, A_val, alpha_val, beta_val)
+                # Test the 5-argument mul!
+                mul!(C1, S, A, alpha, beta)
+                @test C1 ≈ alpha * SA_exact + beta * C1c
 
-                # Verify the result
-                expected_C = alpha_val * SA_exact + beta_val * C_original
-                @test C_output ≈ expected_C
+                mul!(C2, S', B, alpha, beta)
+                @test C2 ≈ alpha * StB_exact + beta * C2c
+                
+                mul!(y, S, x, alpha, beta)
+                @test y ≈ alpha * Sx_exact + beta * yc
+
+                mul!(x, S', y, alpha, beta)
+                @test x ≈ alpha * Sty_exact + beta * xc
             end
         end
 
-        @testset "Right Multiplication: C = beta*C + alpha*(A*S)" begin
-            let a_matrix_rows = 18,
-                a_matrix_cols = 22,
-                comp_dim = 6,   
-                alpha_val = 2.5, 
-                beta_val = 1.5
+        # Test multiplications with right compressors
+        @testset "Right Multiplication" begin
+            let n = 20,         
+                comp_dim = 10,     
+                alpha = 2.0,
+                beta = 2.0
 
-                A_val = randn(a_matrix_rows, a_matrix_cols)
+                # Setup matrices and vectors with dimensions
+                A = randn(n, comp_dim)
+                B = randn(n, n)
+                # C1 is for S'*A, C2 is for B*S
+                C1 = randn(comp_dim, comp_dim)
+                C2 = randn(n, comp_dim)
+                x = randn(comp_dim)
+                y = randn(n)
 
-                # Setup SubCompressor and its recipe for Right compression
-                sc_right = SubCompressor(
+                # Keep copies for 5-argument mul! verification
+                C1c = deepcopy(C1)
+                C2c = deepcopy(C2)
+                yc = deepcopy(y)
+                xc = deepcopy(x)
+
+                # Setup the SubSampling compressor recipe. It's created from B, an n x n matrix.
+                # The operator S will have conceptual dimensions (n x comp_dim).
+                S_info = SubSampling(
                     cardinality=Right(),
                     compression_dim=comp_dim,
                     distribution=Uniform(cardinality=Right(), replace=false)
                 )
-                S_recipe_right = complete_compressor(sc_right, A_val)
+                S = complete_compressor(S_info, B)
 
-                # Output matrix C
-                C_output = randn(a_matrix_rows, comp_dim)
-                C_original = deepcopy(C_output) # For checking the beta part
+                # Calculate all ground truth results based on direct indexing/operations
+                StA_exact = A[S.idx, :]
+                BS_exact = B[:, S.idx]
+                BtS_exact = B'[:, S.idx]
+                ASt_exact = zeros(n, n); for i in 1:comp_dim; ASt_exact[:, S.idx[i]] = A[:, i]; end
+                Sx_exact = zeros(n); for i in 1:comp_dim; Sx_exact[S.idx[i]] = x[i]; end
+                Sty_exact = y[S.idx]
 
-                # Ground truth for A*S (column sub-sampling of A)
-                AS_exact = A_val[:, S_recipe_right.idx]
+                # Test '*' operations by comparing to ground truths
+                @test S' * A ≈ StA_exact
+                @test B * S ≈ BS_exact
+                @test B' * S ≈ BtS_exact
+                @test A * S' ≈ ASt_exact
+                @test S * x ≈ Sx_exact
+                @test y' * S ≈ (S' * y)'
+                @test S' * y ≈ Sty_exact
 
-                # Perform the multiplication using the function under test
-                mul!(C_output, A_val, S_recipe_right, alpha_val, beta_val)
+                # Test the 5-argument mul!
+                mul!(C1, S', A, alpha, beta)
+                @test C1 ≈ alpha * StA_exact + beta * C1c
 
-                # Verify the result
-                expected_C = alpha_val * AS_exact + beta_val * C_original
-                @test C_output ≈ expected_C
+                mul!(C2, B, S, alpha, beta)
+                @test C2 ≈ alpha * BS_exact + beta * C2c
+
+                mul!(y, S, x, alpha, beta)
+                @test y ≈ alpha * Sx_exact + beta * yc
+
+                mul!(x, S', y, alpha, beta)
+                @test x ≈ alpha * Sty_exact + beta * xc
             end
         end
     end
