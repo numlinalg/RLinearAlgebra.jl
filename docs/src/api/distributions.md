@@ -12,7 +12,9 @@ DistributionRecipe
 
 ## Distribution Structures
 ```@docs
+Uniform
 
+UniformRecipe
 ```
 
 ## Exported Functions
