@@ -12,9 +12,11 @@ directs =
         [
             "./",
             "Approximators/",
+            "Approximators/RangeApproximator/",
             "Solvers/",
             "Solvers/Loggers/",
             "Solvers/SubSolvers/",
+            "Solvers/ErrorMethods/",
             "Compressors/",
             "Compressors/Distributions/"
         ],

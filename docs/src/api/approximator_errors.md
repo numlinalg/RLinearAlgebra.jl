@@ -1,6 +1,6 @@
 # ApproximatorErrors
 ```@contents
-Pages = ["approximator_error.md"]
+Pages = ["approximator_errors.md"]
 ```
 
 ## Abstract Types

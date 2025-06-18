@@ -17,7 +17,7 @@ DistributionRecipe
 
 ## Exported Functions
 ```@docs
-complete_distrbution
+complete_distribution
 
 update_distribution!
 ```
