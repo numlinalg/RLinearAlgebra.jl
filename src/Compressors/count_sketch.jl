@@ -33,13 +33,11 @@ The compressed matrix is then formed by multiplying S A (for left compression) o
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
 - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
     mathematical description.
-- `nnz::Int64`, the target number of nonzeros for each column or row of the spares sign
-    matrix.
 - `type::Type{<:Number}`, the type of the elements in the compressor.
 
 # Constructor
 
-    CountSketch(;carinality=Left(), compression_dim=2)
+    CountSketch(;carinality=Left(), compression_dim=2, type=Float64)
 
 ## Keywords
 - `carinality::Cardinality`, the direction the compression matrix is intended to be
@@ -47,6 +45,8 @@ The compressed matrix is then formed by multiplying S A (for left compression) o
     By default `Left()` is chosen.
 - `compression_dim`, the target compression dimension. Referred to as ``s`` in the
     mathemtical description. By default this is set to 2.
+- `type::Type{<:Number}`, the type of the elements in the compressor. By default is set
+    to Float64.
 
 ## Returns
 - A `CountSketch` object.
@@ -57,22 +57,24 @@ The compressed matrix is then formed by multiplying S A (for left compression) o
 struct CountSketch <: Compressor
     cardinality::Cardinality
     compression_dim::Int64
+    type::Type{<:Number}
     # Check on the compression dimension
-    function CountSketch(cardinality, compression_dim)
+    function CountSketch(cardinality, compression_dim, type)
         if compression_dim <= 0
             throw(ArgumentError("Field 'compression_dim' must be positive."))
         end
 
-        return new(cardinality, compression_dim)
+        return new(cardinality, compression_dim, type)
     end
 end
 
 function CountSketch(;
     cardinality::Cardinality=Left(),
-    compression_dim::Int64=2
+    compression_dim::Int64=2,
+    type::Type{<:Number}=Float64
 )
     # Partially construct the count sketch datatype
-    return CountSketch(cardinality, compression_dim)
+    return CountSketch(cardinality, compression_dim, type)
 end
 
 """
@@ -84,6 +86,8 @@ The recipe containing all allocations and information for the CountSketch compre
 - `cardinality::C where C<:Cardinality`, the cardinality of the compressor. The
 value is either `Left()` or `Right()`.
 - `compression_dim::Int64`, the target compression dimension.
+- `n_rows::Int64`, the number of rows of the compression matrix.
+- `n_cols::Int64``, the number of columns of the compression matrix.
 - `mat::SparseMatrixCSC`, the compression matrix stored in a sparse form.
 """
 mutable struct CountSketchRecipe{C<:Cardinality} <: CompressorRecipe
@@ -98,13 +102,14 @@ function CountSketchRecipe(
     cardinality::Left,
     compression_dim::Int64,
     A::AbstractMatrix,
+    type::Type{<:Number},
 )
     # determine the initial size
     n_rows = compression_dim
     n_cols = size(A, 1)
     initial_size = n_cols
     # assign -1 or +1 in every row/column with probability 0.5
-    signs = rand([-1.0, 1.0], initial_size)
+    signs = convert(Vector{type}, rand([-1.0, 1.0], initial_size))
     groups = rand(1:compression_dim, initial_size)
     ptr = collect(1: initial_size)
     mat = sparse(groups, ptr, signs, n_rows, n_cols)
@@ -115,13 +120,14 @@ function CountSketchRecipe(
     cardinality::Right,
     compression_dim::Int64,
     A::AbstractMatrix,
+    type::Type{<:Number},
 )
     # determine the initial size
     n_rows = size(A, 2)
     n_cols = compression_dim
     initial_size = n_rows
     # assign -1 or +1 in every row/column with probability 0.5
-    signs = rand([-1.0, 1.0], initial_size)
+    signs = convert(Vector{type}, rand([-1.0, 1.0], initial_size))
     groups = rand(1:compression_dim, initial_size)
     ptr = collect(1: initial_size)
     mat = sparse(groups, ptr, signs, n_cols, n_rows)'
@@ -133,6 +139,7 @@ function complete_compressor(ingredients::CountSketch, A::AbstractMatrix)
         ingredients.cardinality,
         ingredients.compression_dim,
         A,
+        ingredients.type,
     )
 end
 

@@ -12,22 +12,22 @@ using ..ApproxTol
         @test supertype(CountSketch) == Compressor
 
         # Verify fields and types
-        @test fieldnames(CountSketch) == (:cardinality, :compression_dim)
-        @test fieldtypes(CountSketch) == (Cardinality, Int64)
+        @test fieldnames(CountSketch) == (:cardinality, :compression_dim, :type)
+        @test fieldtypes(CountSketch) == (Cardinality, Int64, Type{<:Number})
 
-        let cardinality = Left(), compression_dim = 0
+        let cardinality = Left(), compression_dim = 0, type = Float64
             @test_throws ArgumentError(
                 "Field 'compression_dim' must be positive."
             ) CountSketch(
-                cardinality, compression_dim
+                cardinality, compression_dim, type
             )
         end
 
-        let cardinality = Left(), compression_dim = -7
+        let cardinality = Left(), compression_dim = -7, type = Float64
             @test_throws ArgumentError(
                 "Field 'compression_dim' must be positive."
             ) CountSketch(
-                cardinality, compression_dim
+                cardinality, compression_dim, type
             )
         end
 
@@ -35,6 +35,16 @@ using ..ApproxTol
         for Card in [Left, Right]
             compressor = CountSketch(; cardinality=Card())
             @test typeof(compressor.cardinality) == Card
+        end
+
+        for type in [Bool, Int16, Int32, Int64, Float16, Float32, Float64]
+            compressor = CountSketch(; cardinality=Left(), type=type)
+            @test compressor.type == type
+        end
+
+        for type in [Bool, Int16, Int32, Int64, Float16, Float32, Float64]
+            compressor = CountSketch(; cardinality=Right(), type=type)
+            @test compressor.type == type
         end
 
     end
@@ -59,15 +69,16 @@ using ..ApproxTol
             n_cols = 2,
             c_dim = 3,
             A = ones(n_rows, n_cols),
+            type = Float32,
             compressor_recipe = complete_compressor(
-                CountSketch(; cardinality=card, compression_dim=c_dim), A
+                CountSketch(; cardinality=card, compression_dim=c_dim, type=type), A
             )
 
             # Test the values and types
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == c_dim
             @test compressor_recipe.n_cols == n_rows
-            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{Float64,Int64}
+            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test whether each column just contains one non-zero entry
             @test all(col -> count(!iszero, col) == 1, eachcol(Matrix(compressor_recipe.mat)))
         end
@@ -77,15 +88,16 @@ using ..ApproxTol
             n_cols = 2,
             c_dim = 3,
             A = ones(n_rows, n_cols),
+            type = Float32,
             compressor_recipe = CountSketchRecipe(
-                card, c_dim, A
+                card, c_dim, A, type
             )
 
             # Test the values and types
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == c_dim
             @test compressor_recipe.n_cols == n_rows
-            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{Float64,Int64}
+            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test whether each column just contains one non-zero entry
             @test all(col -> count(!iszero, col) == 1, eachcol(Matrix(compressor_recipe.mat)))
         end
@@ -95,15 +107,16 @@ using ..ApproxTol
             n_cols = 6,
             c_dim = 3,
             A = ones(n_rows, n_cols),
+            type = Int32,
             compressor_recipe = CountSketchRecipe(
-                card, c_dim, A
+                card, c_dim, A, type
             )
 
             # Test the values and types
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == n_cols
             @test compressor_recipe.n_cols == c_dim
-            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{Float64,Int64}
+            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test whether each row just contains one non-zero entry
             @test all(row -> count(!iszero, row) == 1, eachrow(Matrix(compressor_recipe.mat)))
         end
@@ -114,15 +127,16 @@ using ..ApproxTol
             n_cols = 6,
             c_dim = 3,
             A = ones(n_rows, n_cols),
+            type = Int32, 
             compressor_recipe = complete_compressor(
-                CountSketch(; cardinality=card, compression_dim=c_dim), A
+                CountSketch(; cardinality=card, compression_dim=c_dim, type=type), A
             )
 
             # Test the values and types
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == n_cols
             @test compressor_recipe.n_cols == c_dim
-            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{Float64,Int64}
+            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test whether each row just contains one non-zero entry
             @test all(row -> count(!iszero, row) == 1, eachrow(Matrix(compressor_recipe.mat)))
         end
@@ -136,8 +150,9 @@ using ..ApproxTol
             n_cols = 2,
             c_dim = 3,
             A = ones(n_rows, n_cols),
+            type = Float16,
             compressor_recipe = complete_compressor(
-                CountSketch(; cardinality=card, compression_dim=c_dim), A
+                CountSketch(; cardinality=card, compression_dim=c_dim, type=type), A
             ) 
 
             # copy to test that the compressor has changed
@@ -147,7 +162,7 @@ using ..ApproxTol
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == c_dim
             @test compressor_recipe.n_cols == n_rows
-            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{Float64,Int64}
+            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test that the matrix has changed
             @test compressor_recipe.mat != oldmat
         end
@@ -160,7 +175,7 @@ using ..ApproxTol
             type = Float16,
             A = ones(n_rows, n_cols),
             compressor_recipe = complete_compressor(
-                CountSketch(; cardinality=card, compression_dim=c_dim), A
+                CountSketch(; cardinality=card, compression_dim=c_dim, type=type), A
             )
 
             # copy to test that the compressor has changed
@@ -170,7 +185,7 @@ using ..ApproxTol
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == n_cols
             @test compressor_recipe.n_cols == c_dim
-            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{Float64,Int64}
+            @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test that the matrix has changed
             @test compressor_recipe.mat != oldmat
         end        
