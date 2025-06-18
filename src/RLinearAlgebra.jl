@@ -2,7 +2,7 @@ module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
 import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq!, qr!, LQ, Adjoint, norm
-import StatsBase: sample!
+import StatsBase: sample!, ProbabilityWeights, wsample!
 import Random: bitrand, rand!, randn!
 import SparseArrays: SparseMatrixCSC
 
@@ -23,7 +23,7 @@ export Cardinality, Left, Right, Undef
 export complete_compressor, update_compressor!
 export Gaussian, GaussianRecipe
 export SparseSign, SparseSignRecipe
-export SubSampling, SubSamplingRecipe
+export Sampling, SamplingRecipe
 
 # Export Distribution types and functions
 export Distribution, DistributionRecipe

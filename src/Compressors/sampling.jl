@@ -1,7 +1,7 @@
 """
-    SubSampling <: Compressor
+    Sampling <: Compressor
 
-An implementation of the sub-sampling compression method. This method selected 
+An implementation of the sampling compression method. This method selected 
 the rows/columns of the matrix by given distribution with number of rows/columns 
 setting as the compression dimension.
 
@@ -28,7 +28,7 @@ are chosen by sampling over all the columns with given distribution.
 
 # Constructor
 
-    SubSampling(;cardinality = Left(), compression_dim = 8, distribution, type = Float64)
+    Sampling(;cardinality = Left(), compression_dim = 8, distribution, type = Float64)
 
 ## Arguments
 
@@ -38,21 +38,20 @@ are chosen by sampling over all the columns with given distribution.
   - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
     mathemtical description. By default this is set to 2.
   - `distribution::Function, the function that returns a probability vector over indices.
-  - `type::Type{<:Number}`, the type of elements in the compressor.
 
 ## Returns
 
-  - A `SubSampling` object.
+  - A `Sampling` object.
 
 ## Throws
 
   - `ArgumentError` if `compression_dim` is non-positive
 """
-struct SubSampling <: Compressor
+struct Sampling <: Compressor
     cardinality::Cardinality
     compression_dim::Int64
     distribution::Distribution # Function that returns a probability vector over indices
-    function SubSampling(cardinality, compression_dim, distribution)
+    function Sampling(cardinality, compression_dim, distribution)
         # the compression dimension must be positive
         if compression_dim <= 0
             throw(ArgumentError("Field `compression_dim` must be positive."))
@@ -62,32 +61,33 @@ struct SubSampling <: Compressor
     end
 end
 
-function SubSampling(;
-    cardinality::Cardinality = Left(),
-    compression_dim::Int64 = 2,
-    distribution::Distribution = Uniform()
+function Sampling(;
+    cardinality::Cardinality=Left(),
+    compression_dim::Int64=2,
+    distribution::Distribution=Uniform()
 )
-    # Partially construct the SubSampling datatype
-    return SubSampling(cardinality, compression_dim, distribution)
+    # Partially construct the Sampling datatype
+    return Sampling(cardinality, compression_dim, distribution)
 end
 
 """
-    SubSamplingRecipe <: CompressorRecipe
+    SamplingRecipe{C<:Cardinality} <: CompressorRecipe
 
-The recipe containing all allocations and information for the sub-compressor.
+The recipe containing all allocations and information for the sampling compressor. 
+  Specify cardinality is for the different implementations of `mul!`.
 
 # Fields
 
   - `cardinality::Cardinality`, the cardinality of the compressor. The
     value is either `Left()` or `Right()`.
-  - `state_space`::Vector{Int64}, 
   - `compression_dim::Int64`, the target compression dimension.
+  - `n_rows::Int64`, number of rows of compression matrix.
+  - `n_cols::Int64`, number of columns of compression matrix.
   - `distribution::Distribution`
-  - `weights::ProbabilityWeights`, the weight vector that indicates the discrete probability of selecting each row/column
   - `idx::Vector{Int64}`, the index set that contains all the chosen indices.
   - `idx_v::SubArray`, the view of the `idx`.
 """
-mutable struct SubSamplingRecipe{C<:Cardinality} <: CompressorRecipe
+mutable struct SamplingRecipe{C<:Cardinality} <: CompressorRecipe
     cardinality::Cardinality
     compression_dim::Int64
     n_rows::Int64
@@ -111,7 +111,7 @@ function get_dims(compression_dim::Int64, cardinality::Right, A::AbstractMatrix)
     return n_rows, n_cols, initial_size
 end
 
-function complete_compressor(sub_sampling::SubSampling, A::AbstractMatrix)
+function complete_compressor(sub_sampling::Sampling, A::AbstractMatrix)
     n_rows, n_cols, _ = get_dims(sub_sampling.compression_dim, sub_sampling.cardinality, A)
     # Pull out the variables from ingredients
     compression_dim = sub_sampling.compression_dim
@@ -122,10 +122,16 @@ function complete_compressor(sub_sampling::SubSampling, A::AbstractMatrix)
     idx_v = view(idx,:)
     # Randomly generate samples from index set based on weights
     sample_distribution!(idx_v, idx, dist_recipe)
-    return SubSamplingRecipe{sub_sampling.cardinality}(sub_sampling.cardinality, compression_dim, n_rows, n_cols, dist_recipe, idx, idx_v)
+    return SamplingRecipe{typeof(sub_sampling.cardinality)}(sub_sampling.cardinality, 
+                                                            compression_dim, 
+                                                            n_rows, 
+                                                            n_cols, 
+                                                            dist_recipe, 
+                                                            idx, 
+                                                            idx_v)
 end
 
-function update_compressor!(S::SubSamplingRecipe, A, b, x)
+function update_compressor!(S::SamplingRecipe, A, b, x)
     update_distribution!(S.distribution_recipe, A, b, x)
     # Randomly generate samples from index set based on weights
     sample_distribution!(S.idx_v, S.idx, S.distribution_recipe)
@@ -136,7 +142,7 @@ end
 
 function mul!(
     C::AbstractArray, 
-    S::SubSamplingRecipe, 
+    S::SamplingRecipe{Left}, 
     A::AbstractArray, 
     alpha::Number, 
     beta::Number
@@ -144,7 +150,31 @@ function mul!(
     # Check the compatability of the sizes of the things being multiplied
     left_mul_dimcheck(C, S, A)
     for i in 1:length(S.idx_v)
-        C[i,:] .= beta .* C[i,:] + alpha * A[S.idx[i],:]
+        c_row = view(C, i, :)
+        a_row = view(A, S.idx[i], :)
+
+        c_row .= beta .* c_row .+ alpha .* a_row
+    end
+
+    return nothing
+end
+
+function mul!(
+    C::AbstractArray, 
+    S::SamplingRecipe{Right}, 
+    A::AbstractArray, 
+    alpha::Number, 
+    beta::Number
+)
+    # Check the compatability of the sizes of the things being multiplied
+    left_mul_dimcheck(C, S, A)
+    C .*= beta
+
+    for i in 1:length(S.idx_v)
+        c_row = view(C, S.idx[i], :)
+        a_row = view(A, i, :)
+
+        c_row .+= alpha .* a_row
     end
 
     return nothing
@@ -154,14 +184,38 @@ end
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
-    S::SubSamplingRecipe, 
+    S::SamplingRecipe{Right}, 
     alpha::Number, 
     beta::Number
 )
     # Check the compatability of the sizes of the things being multiplied
     right_mul_dimcheck(C, A, S)
     for i in 1:length(S.idx_v)
-        C[:,i] .= beta .* C[:,i] + alpha * A[:,S.idx[i]]
+        c_col = view(C, :, i)
+        a_col = view(A, :, S.idx[i])
+        
+        c_col .= beta .* c_col .+ alpha .* a_col
+    end
+    
+    return nothing
+end
+
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    S::SamplingRecipe{Left}, 
+    alpha::Number, 
+    beta::Number
+)
+    # Check the compatability of the sizes of the things being multiplied
+    right_mul_dimcheck(C, A, S)
+    C .*= beta
+
+    for i in 1:length(S.idx_v)
+        c_col = view(C, :, S.idx[i])
+        a_col = view(A, :, i)
+        
+        c_col .+= alpha .* a_col
     end
     
     return nothing
