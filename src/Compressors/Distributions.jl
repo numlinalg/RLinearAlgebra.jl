@@ -1,5 +1,6 @@
 """
     Distribution
+
 An abstract supertype for structures specifying distribution for indices in sampling methods.
 """
 abstract type Distribution end
@@ -52,7 +53,9 @@ end
 
 """
     update_distribution!(distribution::DistributionRecipe, A::AbstractMatrix)
+
 $(distribution_method_description[:update_distribution!])
+
 # Arguments
 - $(distribution_arg_list[:distribution_recipe])
 - $(distribution_arg_list[:A]) 
