@@ -1,8 +1,7 @@
 """
-    fwht!  
+    fwht!(x::AbstractVector, signs::BitVector; scaling::Int64 = 1)  
 
-Performs a Fast Walsh Hadamard Transform (FWHT), modifying the vector `x`. This means that 
-if you want an unmodified version of `x` you should copy it before calling this function. 
+Performs an in-place Fast Walsh Hadamard Transform on the vector x.  
 `signs` allows the user to input a boolean vector that flips the signs of the entries 
 of the vector `x` before applying the transform. `scaling` allows the user to scale the 
 result of the transform. Choosing a scaling of 1/sqrt{size(x)} will result in the FWHT 
@@ -11,7 +10,13 @@ being an orthogonal transform.
 # Arguments
 - `x::AbstractVector`, the vector the FJLT will be applied to.
 - `signs::Vector{Bool}`, whether the sign of each entry is positive or negative.
-- `scaling::Number`, how much the vector is scaled.
+
+# Keywords
+- `scaling::Number`, how much the vector is scaled, by default this is 1.
+
+
+# Returns
+- `nothing`
 """
 function fwht!(x::AbstractVector, signs::BitVector; scaling = 1)
     oa = 0
@@ -59,6 +64,8 @@ function fwht!(x::AbstractVector, signs::BitVector; scaling = 1)
 
     end
 
+    return nothing
+
 end
 
 # define a version that has no signs input
@@ -104,5 +111,7 @@ function fwht!(x::AbstractVector; scaling = 1)
         end
 
     end
+    
+    return nothing
 
 end
