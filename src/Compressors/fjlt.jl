@@ -297,7 +297,7 @@ function mul!(
         start_col = last_col + 1
     end
     
-    # Handle the last block that is last than the block size
+    # Handle the last block that is less than the block size, if it exists.
     if last_block_size > 0
         last_col = start_col + last_block_size - 1
         Av = view(A, :, start_col:last_col)
@@ -322,7 +322,7 @@ function mul!(
     return nothing 
 end
 
-# Calculates S * A and stores it in C  when S has left cardinality
+# Calculates A*S and stores it in C  when S has left cardinality
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
@@ -332,7 +332,7 @@ function mul!(
 )
     # Here padding does not allow us to use standard dim check
     # instead we check that rows of C == rows of S and cols of C == cols of A, but we only 
-    # cheeck that the cols of S > rows of A
+    # check that the cols of S > rows of A
     c_rows, c_cols = size(C, 1), size(C, 2)
     s_rows, s_cols = size(S, 1), size(S, 2)
     a_rows, a_cols = size(A, 1), size(A, 2)
@@ -351,8 +351,8 @@ function mul!(
         Av = view(A, start_row:last_row, :)
         Cv = view(C, start_row:last_row, 1:c_cols)
         pv = view(S.padding, :, :)
-        # Everything should be stored in the transpose of padding matrix because of 
-        # left padding matrix is strucuted with more rows than columns
+        # Everything should be stored in the transpose of padding matrix because 
+        # the padding matrix is column oriented
         mul!(pv', Av, S.op, alpha, zero(type))
         # Apply signs and fwht to the padding matrix along the columns of the padding matrix
         # this is equivalent to applying the hadamard transform to the rows of AS.op as desired
@@ -408,7 +408,7 @@ function mul!(
 )
     # Here padding does not allow us to use standard dim check
     # instead we check that rows of C == rows of A and cols of C == cols of S, but we only 
-    # cheeck that the rows of S > cols of A
+    # check that the rows of S > cols of A
     c_rows, c_cols = size(C, 1), size(C, 2)
     s_rows, s_cols = size(S, 1), size(S, 2)
     a_rows, a_cols = size(A, 1), size(A, 2)
