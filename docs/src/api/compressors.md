@@ -16,6 +16,8 @@ Cardinality
 Left
 
 Right
+
+Undef
 ```
 
 ## Compressor Structures

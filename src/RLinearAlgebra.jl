@@ -19,11 +19,15 @@ export RangeFinder, RangeFinderRecipe
 
 # Export Compressor types and functions
 export Compressor, CompressorRecipe, CompressorAdjoint
-export Cardinality, Left, Right
+export Cardinality, Left, Right, Undef
 export complete_compressor, update_compressor!
 export FJLT, FJLTRecipe
 export Gaussian, GaussianRecipe
 export SparseSign, SparseSignRecipe
+
+# Export Distribution types and functions
+export Distribution, DistributionRecipe
+export complete_distribution, update_distribution!, sample_distribution!
 
 # Export Solver types and functions
 export Solver, SolverRecipe
@@ -35,9 +39,10 @@ export BasicLogger, BasicLoggerRecipe
 export complete_logger, update_logger!, reset_logger!
 export threshold_stop
 
-# Export SubSolver types
+# Export SubSolver types and functions
 export SubSolver, SubSolverRecipe, ldiv!
 export complete_sub_solver, update_sub_solver!
+export QRSolver, QRSolverRecipe
 export LQSolver, LQSolverRecipe
 
 # Export SolverError types and functions
