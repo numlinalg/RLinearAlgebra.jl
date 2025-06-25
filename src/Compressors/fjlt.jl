@@ -78,6 +78,8 @@ struct FJLT <: Compressor
             throw(ArgumentError("Field `sparsity` must be between 0 and 1."))
         elseif block_size <= 0
             throw(ArgumentError("Field `block_size` must be positive."))
+        elseif typeof(cardinality) == Undef
+            throw(ArgumentError("Cardinality must be of type `Left` or `Right`."))
         end
 
         return new(cardinality, compression_dim, block_size, sparsity, type)

@@ -45,6 +45,12 @@ Random.seed!(2131)
             ) FJLT(cardinality, comp_dim, bs, sparsity, type)
         end
 
+        let cardinality = Undef(), comp_dim = 1, bs = 2, sparsity = 0.1, type = Float64
+            @test_throws ArgumentError(
+                "Cardinality must be of type `Left` or `Right`."
+            ) FJLT(cardinality, comp_dim, bs, sparsity, type)
+        end
+
         # Verify external constructor and type 
         for Card in [Left, Right]
             compressor = FJLT(; cardinality=Card())
