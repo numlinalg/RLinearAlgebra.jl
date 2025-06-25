@@ -359,7 +359,7 @@ Random.seed!(2131)
 
 
     @testset "Sampling: Multiplication (mul!)" begin
-        @testset "Left Multiplication" begin
+        @testset "Left Cardinality" begin
             let a_matrix_rows = 20,
                 a_matrix_cols = 12,
                 comp_dim = 7,
@@ -420,7 +420,7 @@ Random.seed!(2131)
         end
 
         # Test multiplications with right compressors
-        @testset "Right Multiplication" begin
+        @testset "Right Cardinality" begin
             let n = 20,         
                 comp_dim = 10,     
                 alpha = 2.0,
