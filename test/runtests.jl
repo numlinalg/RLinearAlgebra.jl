@@ -14,11 +14,12 @@ directs =
             "Approximators/",
             "Approximators/RangeApproximator/",
             "Solvers/",
+            "Solvers/ErrorMethods/",
             "Solvers/Loggers/",
             "Solvers/SubSolvers/",
             "Compressors/helpers/",
             "Compressors/",
-            "Solvers/ErrorMethods/",
+            "Compressors/Distributions/"
         ],
     )
 
