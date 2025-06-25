@@ -500,7 +500,6 @@ function mul!(
     mul!(transpose(C), S.parent, transpose(A), alpha, beta)
     return nothing
 end
-
 ########################################
 # 3 Arg Compressor-Array Multiplications
 ########################################
@@ -573,3 +572,5 @@ end
 include("Compressors/Distributions.jl")
 include("Compressors/gaussian.jl")
 include("Compressors/sparse_sign.jl")
+include("Compressors/fjlt.jl")
+include("Compressors/helpers/fwht.jl")
