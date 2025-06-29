@@ -49,7 +49,7 @@ export LQSolver, LQSolverRecipe
 # Export SolverError types and functions
 export SolverError, SolverErrorRecipe
 export complete_error, compute_error
-export FullResidual, FullResidualRecipe
+export FullResidual, FullResidualRecipe, CompressedResidual, CompressedResidualRecipe
 
 # Export ApproximatorError types and functions
 export ApproximatorError, ApproximatorErrorRecipe
