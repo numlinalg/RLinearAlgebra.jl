@@ -1,30 +1,33 @@
 """
    RandSVD 
 
-A struct that implements the Randomized SVD technique which uses compression from 
-    the right to form an low-rank svd that approximates the svd of   
-    ``A``. See [halko2011finding](@cite) for additional details.
+A struct that implements the Randomized SVD. The Randomized SVD technique compresses a 
+    matrix from the right to compute a rank ``k`` estimate to the truncated 
+    svd of a matrix ``A``. See [halko2011finding](@cite) for additional details.
 
 # Mathematical Description
-Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish to form a low 
-    rank approximation of ``A``. Specifically, we wish to find an Orthogonal ``U``,
-    diagonal matrix ``S``, and orthogonal matrix ``V`` such that ``USV' \\approx A``. 
-    A simple way to find such a matrix is to choose a ``k`` representing the number of 
-    singular vectors and values we wish to approximate. Then we can generate a compression matrix 
-    ``S\\in\\mathbb{R}^{n \\times k}`` and compute ``Q = \\text{qr}(AS)``. 
+Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` for which we wish to form a 
+    low-rank approximation with the form of an SVD. Specifically, we wish to find an 
+    orthogonal matrix ``U``, a diagonal matrix ``S``, and an orthogonal matrix ``V`` 
+    such that ``USV^\\top \\approx A``. A simple way to find such a matrix is to choose a ``k`` 
+    representing the number of singular vectors and values we wish to approximate. 
+    With this ``k``  we  generate a compression matrix 
+    ``S\\in\\mathbb{R}^{n \\times k}`` and compute ``Q = \\text{qr}(AS)`` as in the 
+    [RangeFinder](@ref). 
     With high probability we will have ``\\|A - QQ^\\top A\\|_2 \\leq
     (k+1) \\sigma_{k+1}``, where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
     of A. This bound is often conservative when the singular values of ``A`` decay quickly. 
-    In the case where the singular values decay slowly, by computing the qr factorization of
-    ``(AA^\\top)^q AS``, this is known as taking ``q`` power iterations. Power iterations 
-    drive the ``k+1`` constant in front of ``\\sigma_{k+1}`` in the bound closer to 1, 
-    leading to more accurate approximations. One can also improve the stability of these 
-    power iterations be orthogonalizing each matrix in what is known as the random subspace 
-    iteration. After computing ``Q`` we then compute ``W,S,V = \\text{SVD}(Q'A)`` and we
-    set ``U = QW``.
+    When the singular values decay slowly, we can apply ``A`` and ``A^\\top``, ``q`` times 
+    and take the the qr factorization of ``(AA^\\top)^q AS``, know as power iterations. 
+    Using these power iterations increases the relative gap between the singular values, 
+    which leads to  better RanddomizedSVD performance. Power iterations can be unstable. 
+    Luckily, their stability  can be improved by orthogonalizing ``AS`` after each 
+    application of ``A`` and ``A^\\top`` in what is known as the subspace iteration. 
+    After computing ``Q`` the RandomizedSVD concludes by computing 
+    ``W,S,V = \\text{SVD}(Q^\\top A)`` and  setting ``U = QW``.
 
 # Fields
-- `compressor::Compressor`, the technique that will compress the matrix from the right.
+- `compressor::Compressor`, the technique for compressing the matrix from the right.
 - `power_its::Int64`, the number of power iterations that should be performed.
 - `rand_subspace::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
@@ -60,11 +63,11 @@ A struct that contains the preallocated memory and completed compressor to form 
 - `power_its::Int64`, the number of power iterations that should be performed.
 - `rand_subspace::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
-- `U::AbstractArray`, the orthogonal matrix that approximates the top ``compressor_dim`` 
+- `U::AbstractArray`, the orthogonal matrix that approximates the top `compressor_dim` 
     left singular vectors of ``A``.
-- `S::AbstractVector`, a vector containing the top ``compressor_dim`` singular values of 
+- `S::AbstractVector`, a vector containing the top `compressor_dim` singular values of 
     ``A``.
-- `V::AbstractArray`, the orthogonal matrix that approximates the top ``compressor_dim`` 
+- `V::AbstractArray`, the orthogonal matrix that approximates the top `compressor_dim` 
     right singular vectors of ``A``.
 """
 mutable struct RandSVDRecipe <: RangeApproximatorRecipe
