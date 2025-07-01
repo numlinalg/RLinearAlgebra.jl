@@ -101,7 +101,6 @@ RangeApproximatorFields = Dict(
     :n_rows => Int64,
     :power_its => Int64,
     :rand_subspace => Bool,
-    :range => AbstractMatrix,
     :compressor => CompressorRecipe,
 )
 
