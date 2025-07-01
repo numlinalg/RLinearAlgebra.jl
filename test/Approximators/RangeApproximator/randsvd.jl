@@ -158,7 +158,8 @@ end
             for i = 1:compression_dim
                 @test diag_gram_matrix[i] ≈ 1
             end
-            # bound from theorem 9.1 of Halko Martinsson and Trop
+
+            # bound from theorem 9.1 of Halko Martinsson and Tropp is satisfied
             _,S,_ = svd(A)
             norm(S[1:5] - approx_rec.S) < norm(S[6:end])^2 + 
                 norm(Diagonal(S[6:end]) * 
@@ -214,14 +215,15 @@ end
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             # Check that the matrix is orthogonal
             gram_matrix = approx_rec.U' * approx_rec.U
-            # check that the norm is 1, the diagonal is all 1
+            # check that the norm is 1, the diagonal is all 1s
             @test opnorm(gram_matrix) ≈ 1
             # test that the diagonal is all ones
             diag_gram_matrix = diag(gram_matrix)
             for i = 1:compression_dim
                 @test diag_gram_matrix[i] ≈ 1
             end
-             # test bound from theorem 9.1 of Halko Martinsson and Trop
+
+             # test bound from theorem 9.1 of Halko Martinsson and Tropp is satisfied
              _,S,_ = svd(A)
              norm(S[1:5] - approx_rec.S) < norm(S[6:end])^2 + 
                  norm(Diagonal(S[6:end]) * 
