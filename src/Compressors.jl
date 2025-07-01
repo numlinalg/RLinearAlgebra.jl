@@ -37,6 +37,13 @@ A struct indicating matrix multiplication from the right.
 """
 struct Right <: Cardinality end
 
+"""
+    Undef <: Cardinality
+
+A struct indicating matrix multiplication is undefined.
+"""
+struct Undef <: Cardinality end
+
 ###################################
 # Docstring Components  
 ###################################
@@ -493,7 +500,6 @@ function mul!(
     mul!(transpose(C), S.parent, transpose(A), alpha, beta)
     return nothing
 end
-
 ########################################
 # 3 Arg Compressor-Array Multiplications
 ########################################
@@ -563,6 +569,9 @@ end
 ###################################
 # Include Compressor Files
 ###################################
+include("Compressors/Distributions.jl")
 include("Compressors/gaussian.jl")
 include("Compressors/sparse_sign.jl")
 include("Compressors/count_sketch.jl")
+include("Compressors/fjlt.jl")
+include("Compressors/helpers/fwht.jl")

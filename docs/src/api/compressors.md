@@ -16,6 +16,8 @@ Cardinality
 Left
 
 Right
+
+Undef
 ```
 
 ## Compressor Structures
@@ -30,6 +32,9 @@ CountSketch
 
 CountSketchRecipe
 
+FJLT
+
+FJLTRecipe
 ```
 
 ## Exported  Functions
@@ -46,4 +51,6 @@ RLinearAlgebra.left_mul_dimcheck
 RLinearAlgebra.right_mul_dimcheck
 
 RLinearAlgebra.sparse_idx_update!
+
+RLinearAlgebra.fwht!
 ```
