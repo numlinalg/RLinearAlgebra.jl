@@ -16,6 +16,8 @@ Cardinality
 Left
 
 Right
+
+Undef
 ```
 
 ## Compressor Structures
@@ -27,6 +29,9 @@ SparseSign
 
 SparseSignRecipe
 
+FJLT
+
+FJLTRecipe
 ```
 
 ## Exported  Functions
@@ -43,4 +48,6 @@ RLinearAlgebra.left_mul_dimcheck
 RLinearAlgebra.right_mul_dimcheck
 
 RLinearAlgebra.sparse_idx_update!
+
+RLinearAlgebra.fwht!
 ```
