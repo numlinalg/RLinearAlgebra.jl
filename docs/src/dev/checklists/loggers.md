@@ -1,17 +1,9 @@
-# Overview 
-The purpose of this page is to maintain checklists of tasks to complete when adding new 
-methods to the library. These checklists are organized by method.
+# Loggers checklist 
+If you are implementing a logging method for the library, make sure you have completed 
+the following steps before making a pull request. In the following guides, `BasicLogger`
+method is used as an example.
 
-## Create issue and use it!
-Please add a brief introduction when you create an issue. After the introduction, copy and paste the corresponding checklist. 
-You can check the 
-boxes after you finish each steps, to help you contribute smoothly!
-
-For example, If I want to add a `moving_average` logging method to the package, I will create an issue as follows:
 ```
-# Introduction
-Add the moving average method for both full and sketching residual. For more details, please see [the paper](https://arxiv.org/abs/2208.04989).
-# Checklist 
 ## Implementation
 1. Method's core codes (`src/Solvers/Loggers`):
     - [ ] Create a file in the directory `src/Solvers/Loggers`. For example, `src/Solvers/Loggers/basic_logger.jl`.
@@ -53,4 +45,3 @@ Add the moving average method for both full and sketching residual. For more det
 - [ ] Tag two people to review your pull request.
 - [ ] **Optional**: If possible, please also add Copilot as a reviewer and choose to adopt its suggestions if reasonable.
 ```
-Note that, the checklist is copied from [Loggers](@ref "Loggers checklist")

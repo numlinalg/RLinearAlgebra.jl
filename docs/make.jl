@@ -35,7 +35,11 @@ makedocs(
         "Contributing" => [
             "Contributing Overview" => "dev/contributing.md",
             "Design of Library" => "dev/design.md",
-            "Checklists" => "dev/checklists.md",
+            "Checklists" => [
+                "dev/checklists.md", 
+                "Compressors" => "dev/checklists/compressors.md",
+                "Loggers" => "dev/checklists/loggers.md"
+            ],
             "Style Guide" => "dev/style_guide.md",
         ],
         "References" => "references.md",
