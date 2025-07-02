@@ -14,11 +14,13 @@ directs =
             "Compressors/",
             "Approximators/",
             "Approximators/RangeApproximator/",
-            "Solvers/helpers/",
+            "Solvers/",
+            "Solvers/ErrorMethods/",
             "Solvers/Loggers/",
             "Solvers/SubSolvers/",
-            "Solvers/ErrorMethods/",
-            "Solvers/",
+            "Compressors/helpers/",
+            "Compressors/",
+            "Compressors/Distributions/"
         ],
     )
 
@@ -34,6 +36,9 @@ directs =
             if file != "runtests.jl"
                 include(direct * file)
             end
+
         end
+
     end
+
 end
