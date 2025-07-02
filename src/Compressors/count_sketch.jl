@@ -1,7 +1,9 @@
 """
     CountSketch <: Compressor
 
-An implementation of the count sketch compression method.
+An implementation of the count sketch compression method. See additional details in 
+[Woodruff14](@cite) Section 2.1, in which the CountSketch matrix is equivalently defined as sparse 
+embedding matrix.
 
 
 # Mathematical Description
@@ -53,6 +55,7 @@ The compressed matrix is then formed by multiplying S A (for left compression) o
 
 ## Throws
 - `ArgumentError` if `compression_dim` is non-positive
+- `ArgumentError` if `Undef()` is taken as the input for `cardinality`
 """
 struct CountSketch <: Compressor
     cardinality::Cardinality
@@ -62,6 +65,11 @@ struct CountSketch <: Compressor
     function CountSketch(cardinality, compression_dim, type)
         if compression_dim <= 0
             throw(ArgumentError("Field 'compression_dim' must be positive."))
+        end
+
+        if cardinality == Undef()
+            throw(ArgumentError("`cardinality` must be specified as `Left()` or `Right()`.\
+        `Undef()` is not allowed in `CountSketch` structure."))
         end
 
         return new(cardinality, compression_dim, type)
@@ -78,13 +86,13 @@ function CountSketch(;
 end
 
 """
-    CountSketchRecipe <: CountSketchRecipe
+    CountSketchRecipe <: CompressorRecipe
 
 The recipe containing all allocations and information for the CountSketch compressor.
 
 # Fields
-- `cardinality::C where C<:Cardinality`, the cardinality of the compressor. The
-value is either `Left()` or `Right()`.
+- `cardinality::C where C<:Cardinality`, the cardinality of the compressor. The 
+    value is either `Left()` or `Right()`.
 - `compression_dim::Int64`, the target compression dimension.
 - `n_rows::Int64`, the number of rows of the compression matrix.
 - `n_cols::Int64``, the number of columns of the compression matrix.
@@ -109,9 +117,9 @@ function CountSketchRecipe(
     n_cols = size(A, 1)
     initial_size = n_cols
     # assign -1 or +1 in every row/column with probability 0.5
-    signs = convert(Vector{type}, rand([-1.0, 1.0], initial_size))
+    signs = rand([type(-1.0), type(1.0)], initial_size)
     groups = rand(1:compression_dim, initial_size)
-    ptr = collect(1: initial_size)
+    ptr = collect(1:initial_size)
     mat = sparse(groups, ptr, signs, n_rows, n_cols)
     return CountSketchRecipe{Left}(cardinality, compression_dim, n_rows, n_cols, mat)
 end
@@ -127,10 +135,10 @@ function CountSketchRecipe(
     n_cols = compression_dim
     initial_size = n_rows
     # assign -1 or +1 in every row/column with probability 0.5
-    signs = convert(Vector{type}, rand([-1.0, 1.0], initial_size))
+    signs = rand([type(-1.0), type(1.0)], initial_size)
     groups = rand(1:compression_dim, initial_size)
-    ptr = collect(1: initial_size)
-    mat = sparse(groups, ptr, signs, n_cols, n_rows)'
+    ptr = collect(1:initial_size)
+    mat = sparse(groups, ptr, signs, n_cols, n_rows)
     return CountSketchRecipe{Right}(cardinality, compression_dim, n_rows, n_cols, mat)
 end
 
@@ -153,7 +161,7 @@ end
 # Calculates S.mat * A and stores it in C 
 function mul!(
     C::AbstractArray, 
-    S::CountSketchRecipe, 
+    S::CountSketchRecipe{Left}, 
     A::AbstractArray, 
     alpha::Number, 
     beta::Number
@@ -166,11 +174,36 @@ end
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
-    S::CountSketchRecipe, 
+    S::CountSketchRecipe{Left}, 
     alpha::Number, 
     beta::Number
 )
     right_mul_dimcheck(C, A, S)
     mul!(C, A, S.mat, alpha, beta)
+    return nothing
+end
+
+# Calculates S.mat * A and stores it in C 
+function mul!(
+    C::AbstractArray, 
+    S::CountSketchRecipe{Right}, 
+    A::AbstractArray, 
+    alpha::Number, 
+    beta::Number
+)
+    left_mul_dimcheck(C, S, A)
+    return mul!(C, S.mat', A, alpha, beta)
+end
+
+# Calculates A * S.mat and stores it in C 
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    S::CountSketchRecipe{Right}, 
+    alpha::Number, 
+    beta::Number
+)
+    right_mul_dimcheck(C, A, S)
+    mul!(C, A, S.mat', alpha, beta)
     return nothing
 end

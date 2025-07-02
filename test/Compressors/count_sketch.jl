@@ -4,7 +4,6 @@ import SparseArrays: sparse, SparseMatrixCSC
 import LinearAlgebra: mul!, lmul!
 import Random: randn!, seed!, rand
 using ..FieldTest
-using ..ApproxTol
 
 @testset "CountSketch" begin
     @testset "CountSketch: Compressor" begin
@@ -26,6 +25,15 @@ using ..ApproxTol
         let cardinality = Left(), compression_dim = -7, type = Float64
             @test_throws ArgumentError(
                 "Field 'compression_dim' must be positive."
+            ) CountSketch(
+                cardinality, compression_dim, type
+            )
+        end
+
+        let cardinality = Undef(), compression_dim = 2, type = Float64
+            @test_throws ArgumentError(
+                "`cardinality` must be specified as `Left()` or `Right()`.\
+                    `Undef()` is not allowed in `CountSketch` structure."
             ) CountSketch(
                 cardinality, compression_dim, type
             )
@@ -69,11 +77,11 @@ using ..ApproxTol
             n_cols = 2,
             c_dim = 3,
             A = ones(n_rows, n_cols),
-            type = Float32,
+            type = Float32
+            
             compressor_recipe = complete_compressor(
                 CountSketch(; cardinality=card, compression_dim=c_dim, type=type), A
             )
-
             # Test the values and types
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == c_dim
@@ -88,11 +96,11 @@ using ..ApproxTol
             n_cols = 2,
             c_dim = 3,
             A = ones(n_rows, n_cols),
-            type = Float32,
+            type = Float32
+            
             compressor_recipe = CountSketchRecipe(
                 card, c_dim, A, type
             )
-
             # Test the values and types
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == c_dim
@@ -107,18 +115,18 @@ using ..ApproxTol
             n_cols = 6,
             c_dim = 3,
             A = ones(n_rows, n_cols),
-            type = Int32,
+            type = Int32
+
             compressor_recipe = CountSketchRecipe(
                 card, c_dim, A, type
             )
-
             # Test the values and types
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == n_cols
             @test compressor_recipe.n_cols == c_dim
             @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test whether each row just contains one non-zero entry
-            @test all(row -> count(!iszero, row) == 1, eachrow(Matrix(compressor_recipe.mat)))
+            @test all(row -> count(!iszero, row) == 1, eachrow(Matrix((compressor_recipe.mat)')))
         end
 
         # Test with right compressor
@@ -127,18 +135,18 @@ using ..ApproxTol
             n_cols = 6,
             c_dim = 3,
             A = ones(n_rows, n_cols),
-            type = Int32, 
+            type = Int32
+
             compressor_recipe = complete_compressor(
                 CountSketch(; cardinality=card, compression_dim=c_dim, type=type), A
             )
-
             # Test the values and types
             @test compressor_recipe.cardinality == card
             @test compressor_recipe.n_rows == n_cols
             @test compressor_recipe.n_cols == c_dim
             @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test whether each row just contains one non-zero entry
-            @test all(row -> count(!iszero, row) == 1, eachrow(Matrix(compressor_recipe.mat)))
+            @test all(row -> count(!iszero, row) == 1, eachrow(Matrix((compressor_recipe.mat)')))
         end
 
     end
@@ -150,11 +158,11 @@ using ..ApproxTol
             n_cols = 2,
             c_dim = 3,
             A = ones(n_rows, n_cols),
-            type = Float16,
+            type = Float16
+
             compressor_recipe = complete_compressor(
                 CountSketch(; cardinality=card, compression_dim=c_dim, type=type), A
             ) 
-
             # copy to test that the compressor has changed
             oldmat = deepcopy(compressor_recipe.mat)
             update_compressor!(compressor_recipe)
@@ -165,6 +173,8 @@ using ..ApproxTol
             @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test that the matrix has changed
             @test compressor_recipe.mat != oldmat
+            # Test whether each column just contains one non-zero entry
+            @test all(col -> count(!iszero, col) == 1, eachcol(Matrix(compressor_recipe.mat)))
         end
 
         # test with right compressor
@@ -173,11 +183,11 @@ using ..ApproxTol
             n_cols = 6,
             c_dim = 3,
             type = Float16,
-            A = ones(n_rows, n_cols),
+            A = ones(n_rows, n_cols)
+
             compressor_recipe = complete_compressor(
                 CountSketch(; cardinality=card, compression_dim=c_dim, type=type), A
             )
-
             # copy to test that the compressor has changed
             oldmat = deepcopy(compressor_recipe.mat)
             update_compressor!(compressor_recipe)
@@ -188,11 +198,13 @@ using ..ApproxTol
             @test typeof(compressor_recipe.mat) == SparseMatrixCSC{type,Int64}
             # Test that the matrix has changed
             @test compressor_recipe.mat != oldmat
+            # Test whether each row just contains one non-zero entry
+            @test all(row -> count(!iszero, row) == 1, eachrow(Matrix((compressor_recipe.mat)')))
         end        
 
     end
 
-    @testset "Count Sketch: Left Multiplication" begin
+    @testset "Count Sketch: Left Cardinality" begin
         let n_rows = 20,
             n_cols = 3,
             nnz = 8,
@@ -202,7 +214,7 @@ using ..ApproxTol
             C1 = rand(c_dim, n_cols),
             C2 = rand(n_rows, n_cols),
             x = rand(n_rows),
-            y = rand(c_dim),
+            y = rand(c_dim)
 
             # copies are for comparing with the "true version"
             C1c = deepcopy(C1)
@@ -241,7 +253,7 @@ using ..ApproxTol
 
     end
 
-    @testset "Count Sketch: Right Multiplication" begin
+    @testset "Count Sketch: Right Cardinality" begin
         let n = 20,
             nnz = 8,
             c_dim = 10,
@@ -250,14 +262,14 @@ using ..ApproxTol
             C1 = rand(c_dim, c_dim),
             C2 = rand(n, c_dim),
             x = rand(c_dim),
-            y = rand(n),
+            y = rand(n)
             
             C1c = deepcopy(C1)
             C2c = deepcopy(C2)
             yc = deepcopy(y)
             S_info = CountSketch(; cardinality=Right(), compression_dim=c_dim)
             S = complete_compressor(S_info, B)
-            sparse_S = Matrix(deepcopy(S.mat))
+            sparse_S = Matrix(deepcopy(S.mat'))
 
             # Using * will test three element mul and * multiplication
             # Test matrix multiplication from the left
