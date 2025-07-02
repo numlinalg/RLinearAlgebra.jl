@@ -57,6 +57,11 @@ struct Sampling <: Compressor
             throw(ArgumentError("Field `compression_dim` must be positive."))
         end
 
+        if cardinality == Undef()
+            throw(ArgumentError("`cardinality` must be specified as `Left()` or `Right()`.\
+            `Undef()` is not allowed in `CountSketch` structure."))
+        end
+
         return new(cardinality, compression_dim, distribution)
     end
 end
@@ -121,7 +126,7 @@ function complete_compressor(sub_sampling::Sampling, A::AbstractMatrix)
     idx = Vector{Int64}(undef, compression_dim)
     idx_v = view(idx,:)
     # Randomly generate samples from index set based on weights
-    sample_distribution!(idx_v, idx, dist_recipe)
+    sample_distribution!(idx, dist_recipe)
     return SamplingRecipe{typeof(sub_sampling.cardinality)}(sub_sampling.cardinality, 
                                                             compression_dim, 
                                                             n_rows, 
@@ -131,15 +136,14 @@ function complete_compressor(sub_sampling::Sampling, A::AbstractMatrix)
                                                             idx_v)
 end
 
-function update_compressor!(S::SamplingRecipe, A, b, x)
-    update_distribution!(S.distribution_recipe, A, b, x)
+function update_compressor!(S::SamplingRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
+    update_distribution!(S.distribution_recipe, x, A, b)
     # Randomly generate samples from index set based on weights
-    sample_distribution!(S.idx_v, S.idx, S.distribution_recipe)
+    sample_distribution!(S.idx_v, S.distribution_recipe)
 end
     
 # Matrix-matrix multiplication
 # Begin with the left version
-
 function mul!(
     C::AbstractArray, 
     S::SamplingRecipe{Left}, 

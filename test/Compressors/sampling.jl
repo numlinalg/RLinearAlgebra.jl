@@ -284,7 +284,7 @@ Random.seed!(2131)
             # Store old distribution recipe state if it's supposed to change and be testable
             # For Uniform, update_distribution! re-initializes based on A
 
-            update_compressor!(recipe, A, x_dummy, b_dummy)
+            update_compressor!(recipe, x_dummy, A, b_dummy)
 
             # After updates, index should be changed
             @test recipe.idx != old_idx
@@ -328,7 +328,7 @@ Random.seed!(2131)
 
             old_idx = deepcopy(recipe.idx)
 
-            update_compressor!(recipe, A, x_dummy, b_dummy)
+            update_compressor!(recipe, x_dummy, A, b_dummy)
 
             # After updates, index should be changed
             @test recipe.idx != old_idx

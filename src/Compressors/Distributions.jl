@@ -45,19 +45,16 @@ $(distribution_method_description[:complete_distribution])
 - $(distribution_output_list[:distribution_recipe])
 """
 function complete_distribution(distribution::Distribution, A::AbstractMatrix)
-    throw(ArgumentError("No `complete_distribution!` method defined for a distribution of type \
+    return throw(ArgumentError("No `complete_distribution` method defined for a distribution of type \
     $(typeof(distribution)) and $(typeof(A))."))
-    return nothing
 end
 
 function complete_distribution(distribution::Distribution, A::AbstractMatrix, b::AbstractVector)
-    complete_distribution(distribution, A)
-    return nothing
+    return complete_distribution(distribution, A)
 end
 
-function complete_distribution(distribution::Distribution, A::AbstractMatrix, b::AbstractVector, x::AbstractVector)
-    complete_distribution(distribution, A, b)
-    return nothing
+function complete_distribution(distribution::Distribution, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
+    return complete_distribution(distribution, A, b)
 end
 
 """
@@ -73,19 +70,16 @@ $(distribution_method_description[:update_distribution!])
 - Modifies the `DistributionRecipe` in place and returns nothing.
 """
 function update_distribution!(distribution::DistributionRecipe, A::AbstractMatrix)
-    throw(ArgumentError("No `update_sub_solver!` method defined for a solver of type \
+    return throw(ArgumentError("No `update_distribution!` method defined for a distribution of type \
     $(typeof(distribution)) and $(typeof(A))."))
-    return nothing
 end
 
 function update_distribution!(distribution::DistributionRecipe, A::AbstractMatrix, b::AbstractVector)
-    update_distribution!(distribution, A)
-    return nothing
+    return update_distribution!(distribution, A)
 end
 
-function update_distribution!(distribution::DistributionRecipe, A::AbstractMatrix, b::AbstractVector, x::AbstractVector)
-    update_distribution!(distribution, A, b)
-    return nothing
+function update_distribution!(distribution::DistributionRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
+    return update_distribution!(distribution, A, b)
 end
 
 """
