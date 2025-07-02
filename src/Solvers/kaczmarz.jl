@@ -2,20 +2,20 @@
     Kaczmarz <: Solver
 
 An implementation of a Kaczmarz solver. Specifically, it is a solver that iteratively
-    updates a solution by projection the solution onto a compressed rowspace of the linear 
-    system.
+    updates a solution by projecting the solution onto a subspace of the row space of the 
+    linear system.
 
 # Mathematical Description
 Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system ``Ax=b``. 
     We can view the solution to this linear system as lying at the intersection of the 
     row hyperplanes, 
-    ``\\cap_{i \\in \\{1, \\dots, m\\}}\\{u \\in \\mathbb{R}^{n} : A_{i \\dot} u = b_i``.
-    Where ``A_{i \\dot}`` represents the ``i^\\text{th}`` row of ``A``. One way to find 
+    ``\\cap_{i \\in \\{1, \\ldots, m\\}}\\{u \\in \\mathbb{R}^{n} : A_{i \\cdot} u = b_i
+    \\}``,
+    where ``A_{i \\cdot}`` represents the ``i^\\text{th}`` row of ``A``. One way to find 
     this interesection is to iteratively project some abritrary point, ``x`` from one 
     hyperplane to the next, through 
     ``
-    x = x + \\alpha \\frac{b_i - \\lange A_{i\\dot}, x\\rangle}{\\| A_{i\\dot}\\|_2^2}
-    A_{i\\dot}.
+    x_{+} = x + \\alpha \\frac{b_i - \\lange A_{i\\cdot}, x\\rangle}{\\| A_{i\\cdot}.
     ``
     Doing this with random permutation of ``i`` can lead to a geometric convergence 
     [strohmer2009randomized](@cite).
@@ -24,17 +24,17 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
     ``s \\times n`` random matrix. If we let ``\\tilde A = S A`` and ``\\tilde b = Sb`` 
     then we can perform block kaczmarz as described by [needell2014paved](@cite) with 
     ``
-    x = x + \\alpha \\tilde A^\\top (\\tilde A \\tilde A^\\top)^\\dagger 
+    x_{+} = x + \\alpha \\tilde A^\\top (\\tilde A \\tilde A^\\top)^\\dagger 
     (\\tilde b - \\tilde A x).
     ``
 # Fields
-- `S::Compressor`, a technique for forming the compressed rowspace of the linear system.
+- `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
+    affect convergence.
+- `compressor::Compressor`, a technique for forming the compressed rowspace of the linear system.
 - `log::Logger`, a technique for logging the progress of the solver.
 - `error::SolverError`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
     compressed rowspace.
-- `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
-    affect convergence.
 
 # Constructor
     Kaczmarz(;
@@ -53,8 +53,13 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
     compressed rowspace.
 - `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
     affect convergence.
+
 ## Returns 
 - A `Kaczmarz` object.
+
+!!! info
+    The `alpha` parameter should be in ``(0,2]`` for convergence to be guaranteed,
+    but this condition is not enforced in the constructor.
 """
 mutable struct Kaczmarz <: Solver 
     alpha::Float64
@@ -64,7 +69,7 @@ mutable struct Kaczmarz <: Solver
     sub_solver::SubSolver
     function Kaczmarz(alpha, compressor, log, error, sub_solver) 
         if typeof(compressor.cardinality) != Left
-            throw(ArgumentError("Compressor must have cardinality `Left.`"))
+            throw(ArgumentError("Compressor must have cardinality `Left`."))
         end
 
         new(alpha, compressor, log, error, sub_solver)
@@ -91,20 +96,21 @@ function Kaczmarz(;
 end
 
 """
-    KaczmarzRecipe{T<:Number, 
-                        V<:AbstractVector,
-                        M<:AbstractMatrix, 
-                        VV<:SubArray,
-                        MV<:SubArray,
-                        C<:CompressorRecipe, 
-                        L<:LoggerRecipe,
-                        E<:SolverErrorRecipe, 
-                        B<:SubSolverRecipe
-                        } <: SolverRecipe
+    KaczmarzRecipe{
+        T<:Number, 
+        V<:AbstractVector,
+        M<:AbstractMatrix, 
+        VV<:SubArray,
+        MV<:SubArray,
+        C<:CompressorRecipe, 
+        L<:LoggerRecipe,
+        E<:SolverErrorRecipe, 
+        B<:SubSolverRecipe
+    } <: SolverRecipe
 
-An mutable structure containing all information relevant to the kcazmarz solver. It is
-    formed by calling the function `complete_solver` on `Kaczmarz` datatype, which includes
-    all the user controllewd parameters, and the linear system matrix `A` and constant 
+A mutable structure containing all information relevant to the Kaczmarz solver. It is
+    formed by calling the function `complete_solver` on `Kaczmarz` solver, which includes
+    all the user controlled parameters, and the linear system matrix `A` and constant 
     vector `b`.
 
 # Fields
@@ -154,11 +160,11 @@ mutable struct KaczmarzRecipe{
 end
 
 function complete_solver(
-        solver::Kaczmarz, 
-        x::AbstractVector, 
-        A::AbstractMatrix, 
-        b::AbstractVector
-    )
+    solver::Kaczmarz, 
+    x::AbstractVector, 
+    A::AbstractMatrix, 
+    b::AbstractVector
+)
     # Dimension checking will be performed in the complete_compressor
     compressor = complete_compressor(solver.compressor, x, A, b)
     logger = complete_logger(solver.log)
@@ -185,11 +191,8 @@ function complete_solver(
     # Assuming that max_it is defined in the logger
     alpha::Float64 = solver.alpha 
     # We assume the user is using compressors to only decrease dimension
-    n_rows::Int64 = compressor.n_rows
-    n_cols::Int64 = compressor.n_cols
-    sample_size = n_rows
-    initial_size = n_cols
-    rows_a, cols_a = size(A)
+    sample_size::Int64 = compressor.n_rows
+    cols_a = size(A, 2)
     # Allocate the information in the buffer using the types of A and b
     compressed_mat = zeros(eltype(A), sample_size, cols_a)
     compressed_vec = zeros(eltype(b), sample_size) 
@@ -227,9 +230,9 @@ end
 """
     kaczmarz_update!(solver::KaczmarzRecipe)
 
-A function that performs the Kaczmarz update when the sketch is a vector
-    data structures. In the case where the sketched matrix is a vector, ``a``, and the 
-    sketched constant vector is a scalar, ``c``, we can use 
+A function that performs the Kaczmarz update when the compression dimension is one. 
+    If ``a`` is the resulting compression of the coefficient matrix, 
+    and ``c`` is the resulting compression of the constant vector, 
     the standard Kacmarz update: ``x = x - \\alpha (a^\\top x -c) / \\|a\\|_2^2``. 
 
 # Arguments
@@ -243,7 +246,7 @@ function kaczmarz_update!(solver::KaczmarzRecipe)
     # the one dimension kaczmarz update
 
     # Compute the projection scaling (bi - dot(ai,x)) / ||ai||^2
-    scaling = solver.alpha * (dot(conj(solver.mat_view), solver.solution_vec)
+    scaling = solver.alpha * ((solver.mat_view*solver.solution_vec)[1]
         - solver.vec_view[1]) 
     scaling /= dot(solver.mat_view, solver.mat_view)
     # udpate the solution
@@ -280,10 +283,10 @@ function kaczmarz_update_block!(solver::KaczmarzRecipe)
 end
 
 function rsolve!(
-        solver::KaczmarzRecipe, 
-        x::AbstractVector, 
-        A::AbstractMatrix, 
-        b::AbstractVector
+    solver::KaczmarzRecipe, 
+    x::AbstractVector, 
+    A::AbstractMatrix, 
+    b::AbstractVector
 )
     reset_logger!(solver.log)
     solver.solution_vec = x
