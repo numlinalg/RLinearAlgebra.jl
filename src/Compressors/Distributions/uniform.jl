@@ -5,7 +5,7 @@ Uniform distribution over the row/column index set of a matrix.
 
 # Mathematical Description
 
-During the subcompression, the uniform distribution is defined on the domain of row/column 
+During the sampling, the uniform distribution is defined on the domain of row/column 
 indices. If it's compressing from the left, then it means every row index has the same 
 probability weight. If it's compressing from the right, then it means every column index 
 has the same probability weight.
@@ -13,9 +13,9 @@ has the same probability weight.
 # Fields
 - `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()` 
-    or `Undef`.
-- `replace::Bool`, an option to replace or not during the sampling process based 
-    on the given weights.
+    or `Undef()`.
+- `replace::Bool`, if `true`, then the sampling occurs with replacement; if `false`, 
+    then the sampling occurs without replacement.
 
 # Constructor
 
@@ -63,6 +63,9 @@ function complete_distribution(distribution::Uniform, A::AbstractMatrix)
         n_cols = size(A, 2)
         state_space = collect(1: n_cols)
         weights = ProbabilityWeights(ones(n_cols))
+    elseif cardinality == Undef()
+        throw(ArgumentError("`Uniform` cardinality must be specified as `Left()` or `Right()`.\
+        `Undef()` is not allowed in `complete_distribution`."))
     end
 
     return UniformRecipe(cardinality, distribution.replace, state_space, weights)
@@ -77,7 +80,15 @@ function update_distribution!(ingredients::UniformRecipe, A::AbstractMatrix)
         n_cols = size(A, 2)
         ingredients.state_space = collect(1: n_cols)
         ingredients.weights = ProbabilityWeights(ones(n_cols))
+    elseif ingredients.cardinality == Undef()
+        throw(ArgumentError("`Uniform` cardinality must be specified as `Left()` or `Right()`.\
+        `Undef()` is not allowed in `update_distribution!`."))
     end
 
+    return nothing
+end
+
+function sample_distribution!(x::AbstractVector, distribution::UniformRecipe)
+    wsample!(distribution.state_space, distribution.weights, x, ordered = true, replace = distribution.replace)
     return nothing
 end

@@ -18,6 +18,7 @@ distribution_arg_list = Dict{Symbol,String}(
     :distribution => "`distribution::Distribution`, a user-specified distribution function for sampling.",
     :distribution_recipe => "`distribution::DistributionRecipe`, a fully initialized realization of distribution.",
     :A => "`A::AbstractMatrix`, a coefficient matrix.",
+    :x => "`x::AbstractVector`, an abstract vector to store the sampled indices.",
 )
 
 distribution_output_list = Dict{Symbol,String}(
@@ -27,8 +28,9 @@ distribution_output_list = Dict{Symbol,String}(
 distribution_method_description = Dict{Symbol,String}(
     :complete_distribution => "A function that generates a `DistributionRecipe` given the 
     arguments.",
-    :update_distribution! => "A function that updates the `Distribution` in place given 
+    :update_distribution! => "A function that updates the `DistributionRecipe` in place given 
     arguments.",
+    :sample_distribution! => "A function that in place updates the `x` by given `DistributionRecipe` info.",
 )
 """
     complete_distribution(distribution::Distribution, A::AbstractMatrix)
@@ -86,9 +88,22 @@ function update_distribution!(distribution::DistributionRecipe, A::AbstractMatri
     return nothing
 end
 
-function sample_distribution!(y::SubArray, x::AbstractVector, distribution::DistributionRecipe)
-    wsample!(distribution.state_space, distribution.weights, y, ordered = true, replace = distribution.replace)
-    return nothing
+"""
+    sample_distribution!(x::AbstractVector, distribution::DistributionRecipe)
+
+$(distribution_method_description[:sample_distribution!])
+
+# Arguments
+- $(distribution_arg_list[:x]) 
+- $(distribution_arg_list[:distribution_recipe])
+
+# Outputs
+- Modifies the `x` in place by sampling that follows the weights and replacement given by 
+'DistributionRecipe'.
+"""
+function sample_distribution!(x::AbstractVector, distribution::DistributionRecipe)
+    return throw(ArgumentError("No `sample_distribution!` method defined for a distribution of type \
+    $(typeof(distribution)) and $(typeof(x))."))
 end
 
 ###########################################

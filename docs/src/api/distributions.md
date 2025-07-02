@@ -12,7 +12,9 @@ DistributionRecipe
 
 ## Distribution Structures
 ```@docs
+Uniform
 
+UniformRecipe
 ```
 
 ## Exported Functions
@@ -20,6 +22,8 @@ DistributionRecipe
 complete_distribution
 
 update_distribution!
+
+sample_distribution!
 ```
 
 ## Internal Functions
