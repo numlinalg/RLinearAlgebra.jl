@@ -11,13 +11,14 @@ directs =
         @__DIR__,
         [
             "./",
+            "Compressors/",
             "Approximators/",
             "Approximators/RangeApproximator/",
-            "Solvers/",
+            "Solvers/helpers/",
             "Solvers/Loggers/",
             "Solvers/SubSolvers/",
             "Solvers/ErrorMethods/",
-            "Compressors/",
+            "Solvers/",
         ],
     )
 
@@ -28,7 +29,8 @@ directs =
         # Only test files that end in .jl
         files_to_test = files_in_direct[occursin.(r".jl$", files_in_direct)]
         for file in files_to_test
-            # Make sure you do not call the runtest file otherwise you have infinite recursion
+            # Make sure you do not call the runtest file otherwise you have infinite 
+            # recursion
             if file != "runtests.jl"
                 include(direct * file)
             end

@@ -29,4 +29,6 @@ rsolve!
 RLinearAlgebra.kaczmarz_update!
 
 RLinearAlgebra.kaczmarz_update_block!
+
+RLinearAlgebra.dotu
 ```

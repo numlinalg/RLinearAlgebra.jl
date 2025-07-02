@@ -30,7 +30,8 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
 # Fields
 - `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
     affect convergence.
-- `compressor::Compressor`, a technique for forming the compressed rowspace of the linear system.
+- `compressor::Compressor`, a technique for forming the compressed rowspace of the linear 
+    system.
 - `log::Logger`, a technique for logging the progress of the solver.
 - `error::SolverError`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
@@ -233,7 +234,7 @@ end
 A function that performs the Kaczmarz update when the compression dimension is one. 
     If ``a`` is the resulting compression of the coefficient matrix, 
     and ``c`` is the resulting compression of the constant vector, 
-    the standard Kacmarz update: ``x = x - \\alpha (a^\\top x -c) / \\|a\\|_2^2``. 
+    then we perform the update: ``x = x - \\alpha (a^\\top x -c) / \\|a\\|_2^2``. 
 
 # Arguments
 - `solver::KaczmarzRecipe`, the solver information required for performing the update.
@@ -246,7 +247,7 @@ function kaczmarz_update!(solver::KaczmarzRecipe)
     # the one dimension kaczmarz update
 
     # Compute the projection scaling (bi - dot(ai,x)) / ||ai||^2
-    scaling = solver.alpha * ((solver.mat_view*solver.solution_vec)[1]
+    scaling = solver.alpha * (dotu(solver.mat_view, solver.solution_vec) 
         - solver.vec_view[1]) 
     scaling /= dot(solver.mat_view, solver.mat_view)
     # udpate the solution
@@ -258,9 +259,9 @@ end
 """
     kaczmarz_update_block!(solver::KaczmarzRecipe)
 
-A function that performs the kaczmarz update when the sketch is a block  Kaczmarz update.  
-    In the block case where the sketch matrix is a matrix, ``B``, and the sketched contant 
-    vector is a vector, `g` we perform the updated: 
+A function that performs the kaczmarz update when the compression dim is greater than 1.  
+    In the block case where the compressed matrix s ``B``, and the compressed contant 
+    vector ``g``, we perform the updated: 
     ``x = x - \\alpha B^\\top (BB^\\top)^\\dagger(Bx - g)``.
 
 # Arguments
@@ -315,6 +316,7 @@ function rsolve!(
         else
             kaczmarz_update_block!(solver)
         end
+
     end
 
     return solver.solution_vec, solver

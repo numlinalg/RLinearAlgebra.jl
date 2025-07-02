@@ -157,7 +157,11 @@ mutable struct KTestSubSolverRecipe <: SubSolverRecipe
     A::AbstractMatrix
 end
 
-function RLinearAlgebra.complete_sub_solver(solver::KTestSubSolver, A::AbstractMatrix, b::AbstractVector)
+function RLinearAlgebra.complete_sub_solver(
+    solver::KTestSubSolver, 
+    A::AbstractMatrix, 
+    b::AbstractVector
+)
     return KTestSubSolverRecipe(A)
 end
 
