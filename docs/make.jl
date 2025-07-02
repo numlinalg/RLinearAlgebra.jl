@@ -50,5 +50,7 @@ makedocs(
 # See "Hosting Documentation" and deploydocs() in the Documenter manual
 # for more information.
 deploydocs(
-    repo = "github.com/numlinalg/RLinearAlgebra.jl"
+    repo = "github.com/numlinalg/RLinearAlgebra.jl",
+    devbranch = "master", # master's newest commit will become dev
+    push_preview = true # pull requests to the master will become available
 )
