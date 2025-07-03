@@ -24,6 +24,7 @@ export complete_compressor, update_compressor!
 export FJLT, FJLTRecipe
 export Gaussian, GaussianRecipe
 export SparseSign, SparseSignRecipe
+export SRHT, SRHTRecipe
 
 # Export Distribution types and functions
 export Distribution, DistributionRecipe
@@ -43,8 +44,8 @@ export threshold_stop
 # Export SubSolver types and functions
 export SubSolver, SubSolverRecipe, ldiv!
 export complete_sub_solver, update_sub_solver!
-export QRSolver, QRSolverRecipe
 export LQSolver, LQSolverRecipe
+export QRSolver, QRSolverRecipe
 
 # Export SolverError types and functions
 export SolverError, SolverErrorRecipe
