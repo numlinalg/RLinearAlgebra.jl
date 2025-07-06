@@ -2,7 +2,7 @@ module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
 import LinearAlgebra: Adjoint, axpby!, dot, ldiv!, lmul!, lq!, lq, LQ, mul!, norm, qr!
-import StatsBase: sample!, ProbabilityWeights, wsample!
+import StatsBase: sample, sample!, ProbabilityWeights, wsample!
 import Random: bitrand, rand!, randn!
 import SparseArrays: SparseMatrixCSC, sprandn
 
@@ -24,6 +24,7 @@ export complete_compressor, update_compressor!
 export FJLT, FJLTRecipe
 export Gaussian, GaussianRecipe
 export SparseSign, SparseSignRecipe
+export SRHT, SRHTRecipe
 
 # Export Distribution types and functions
 export Distribution, DistributionRecipe
@@ -43,8 +44,8 @@ export threshold_stop
 # Export SubSolver types and functions
 export SubSolver, SubSolverRecipe, ldiv!
 export complete_sub_solver, update_sub_solver!
-export QRSolver, QRSolverRecipe
 export LQSolver, LQSolverRecipe
+export QRSolver, QRSolverRecipe
 
 # Export SolverError types and functions
 export SolverError, SolverErrorRecipe
