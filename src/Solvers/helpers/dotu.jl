@@ -20,8 +20,8 @@ function dotu(a::AbstractArray, b::AbstractArray)
     end
 
     accum = zero(eltype(a))
-    @simd for i = 1:n_a
-        accum += a[i] * b[i]
+    @simd for i in 1:n_a
+        @inbounds accum += a[i] * b[i]
     end
 
     return accum   
