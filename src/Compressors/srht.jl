@@ -78,7 +78,7 @@ struct SRHT <: Compressor
 end
 
 function SRHT(;
-    cardinality = Right(),
+    cardinality = Left(),
     compression_dim::Int64=2,
     block_size::Int64=10,
     type::Type{N}=Float64
@@ -133,13 +133,12 @@ function SRHTRecipe(
     # Generate the padded matrix and signs which need padded size
     padded_matrix = zeros(type, padded_size, block_size)
     signs = bitrand(padded_size)
-    idx = sample(1:paddded_size, compression_dim, replace = false)
-    scaling = sqrt(compression_dim) / sqrt(padded_size)
-    return SRHTRecipe{typeof(cardinality), typeof(padding)}(
+    idx = sample(1:padded_size, compression_dim, replace = false)
+    scaling = type(sqrt(compression_dim) / sqrt(padded_size))
+    return SRHTRecipe{typeof(cardinality), typeof(padded_matrix)}(
         cardinality,
         n_rows,
         n_cols,
-        sparsity,
         scaling,
         idx,
         signs,
@@ -163,13 +162,12 @@ function SRHTRecipe(
     # Generate the padded matrix and signs which need padded size
     padded_matrix = zeros(type, block_size, padded_size)
     signs = bitrand(padded_size)
-    idx = sample(1:paddded_size, compression_dim, replace = false)
-    scaling = sqrt(compression_dim) / sqrt(padded_size)
-    return SRHTRecipe{typeof(cardinality), typeof(padding)}(
+    idx = sample(1:padded_size, compression_dim, replace = false)
+    scaling = type(sqrt(compression_dim) / sqrt(padded_size))
+    return SRHTRecipe{typeof(cardinality), typeof(padded_matrix)}(
         cardinality,
         n_rows,
         n_cols,
-        sparsity,
         scaling,
         idx,
         signs,
@@ -190,14 +188,14 @@ end
 # Because the padded size depends on cardinality the update compressor functions 
 # must also depend on cardinality
 function update_compressor!(S::SRHTRecipe{Left, <:AbstractMatrix})
-    padded_size = size(S.padded_matrix, 1)
+    padded_size = size(S.padding, 1)
     sample!(1:padded_size, S.op, replace = false)
     rand!(S.signs)
     return nothing
 end
 
 function update_compressor!(S::SRHTRecipe{Right, <:AbstractMatrix})
-    padded_size = size(S.padded_matrix, 2)
+    padded_size = size(S.padding, 2)
     sample!(1:padded_size, S.op, replace = false)
     rand!(S.signs)
     return nothing
@@ -243,7 +241,7 @@ function mul!(
         end
 
         # Apply the operator to the matrix
-        Cv .= beta .* Cv .+ alpha .* pv[S.op, :]
+        Cv .= beta .* Cv .+ alpha .* S.padding[S.op, :]
         start_col = last_col + 1
     end
     
@@ -298,11 +296,11 @@ function mul!(
         last_row = start_row + b_size - 1
         Av = view(A, start_row:last_row, :)
         Cv = view(C, start_row:last_row, :)
-        pv = view(S.padding, :, :)
+        pv = view(S.padding, S.op, :)
         # Everything should be stored in the transpose of padding matrix because 
         # the padding matrix is column oriented
-        fill!(pv, zero(type))
-        pv' .= alpha .* Av[:, S.op] 
+        fill!(S.padding, zero(type))
+        pv' .= alpha .* Av 
         # Apply signs and fwht to the padding matrix along the columns of the padding matrix
         # this is equivalent to applying the hadamard transform to the rows of AS.op 
         # as desired
@@ -326,11 +324,11 @@ function mul!(
         last_row = start_row + last_block_size - 1
         Av = view(A, start_row:last_row, :)
         Cv = view(C, start_row:last_row, :)
-        pv = view(S.padding, :, 1:last_block_size)
+        pv = view(S.padding, S.op, 1:last_block_size)
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is structured with more rows than columns
-        fill!(pv, zero(type))
-        pv' .= alpha .* Av[:, S.op] 
+        fill!(S.padding, zero(type))
+        pv' .= alpha .* Av 
         # Apply signs and fwht to the padding matrix
         for i in 1:last_block_size
             pv = view(S.padding, :, i)
@@ -387,7 +385,7 @@ function mul!(
         end
 
         # Apply the operator to the matrix
-        Cv .= beta .* Cv .+ alpha .* pv[:, S.op]
+        Cv .= beta .* Cv .+ alpha .* S.padding[:, S.op]
         start_row = last_row + 1
     end
     
@@ -441,11 +439,11 @@ function mul!(
         last_col = start_col + b_size - 1
         Av = view(A, :, start_col:last_col)
         Cv = view(C, :, start_col:last_col)
-        pv = view(S.padding, :, :)
+        pv = view(S.padding, :, S.op)
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is structured with more rows than columns
-        fill!(pv, zero(type))
-        pv' .= alpha .* Av[S.op, :] 
+        fill!(S.padding, zero(type))
+        pv' .= alpha .* Av 
         # Apply signs and fwht to the padding matrix
         for i in 1:b_size
             pv = view(S.padding, i, :)
@@ -466,11 +464,11 @@ function mul!(
         last_col = start_col + last_block_size - 1
         Av = view(A, :, start_col:last_col)
         Cv = view(C, :, start_col:last_col)
-        pv = view(S.padding, 1:last_block_size, :)
+        pv = view(S.padding, 1:last_block_size, S.op)
         # Everything should be stored in the transpose of padding matrix because of 
         # left padding matrix is structured with more rows than columns
-        fill!(pv, zero(type))
-        pv' .= alpha .* Av[S.op, :] 
+        fill!(S.padding, zero(type))
+        pv' .= alpha .* Av 
         # Apply and fwht to the padding matrix
         for i in 1:last_block_size
             pv = view(S.padding, i, :)
