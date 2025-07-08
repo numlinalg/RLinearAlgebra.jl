@@ -161,15 +161,15 @@ mutable struct KaczmarzRecipe{
 end
 
 function complete_solver(
-    solver::Kaczmarz, 
+    ingredients::Kaczmarz, 
     x::AbstractVector, 
     A::AbstractMatrix, 
     b::AbstractVector
 )
     # Dimension checking will be performed in the complete_compressor
-    compressor = complete_compressor(solver.compressor, x, A, b)
-    logger = complete_logger(solver.log)
-    error = complete_error(solver.error, solver, A, b) 
+    compressor = complete_compressor(ingredients.compressor, x, A, b)
+    logger = complete_logger(ingredients.log)
+    error = complete_error(ingredients.error, ingredients, A, b) 
     # Check that required fields are in the types
     if !isdefined(error, :residual)
         throw(
@@ -190,7 +190,7 @@ function complete_solver(
     end
 
     # Assuming that max_it is defined in the logger
-    alpha::Float64 = solver.alpha 
+    alpha::Float64 = ingredients.alpha 
     # We assume the user is using compressors to only decrease dimension
     sample_size::Int64 = compressor.n_rows
     cols_a = size(A, 2)
@@ -198,7 +198,7 @@ function complete_solver(
     compressed_mat = zeros(eltype(A), sample_size, cols_a)
     compressed_vec = zeros(eltype(b), sample_size) 
     # Since sub_solver is applied to compressed matrices use here
-    sub_solver = complete_sub_solver(solver.sub_solver, compressed_mat, compressed_vec)
+    sub_solver = complete_sub_solver(ingredients.sub_solver, compressed_mat, compressed_vec)
     mat_view = view(compressed_mat, 1:sample_size, :)
     vec_view = view(compressed_vec, 1:sample_size)
     solution_vec = x
