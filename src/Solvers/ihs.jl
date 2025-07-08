@@ -1,3 +1,96 @@
+"""
+    IHS <: Solver
+
+An implementation of the Iterative Hessian Sketch solver for solving over determined 
+least squares problems (@cite)[pilanci2014iterative].
+ 
+# Mathematical Description
+Let ``A`` be an ``m \\times n`` matrix and consider the least square problem ``\\min_x 
+\\|Ax - b \\|_2^2. Iterative Hessian Sketch 
+
+# Fields
+- `alpha::Float64`, a step size parameter.
+- `compressor::Compressor`, a technique for forming the compressed linear system.
+- `log::Logger`, a technique for logging the progress of the solver.
+- `error::SolverError', a method for estimating the progress of the solver.
+
+# Constructor
+    function IHS(;
+        compressor::Compressor = SparseSign(cardinality = Left()),
+        log::Logger = BasicLogger(),
+        error::SolverError = FullResidual(),
+        alpha::Float64 = 1.0
+    )
+## Keywords
+- `compressor::Compressor`, a technique for forming the compressed linear system.
+- `log::Logger`, a technique for logging the progress of the solver.
+- `error::SolverError', a method for estimating the progress of the solver.
+- `alpha::Float64`, a step size parameter.
+
+# Returns
+- A `IHS` object.
+"""
+mutable struct IHS <: Solver
+    alpha::Float64
+    log::Logger
+    compressor::Compressor
+    error::Error
+    function IHS(alpha, compressor, log, error)
+        if typeof(compressor.cardinality) != Left
+            @warn "Compressor has cardinality `Right` but IHS compresses  from the  `Left`."
+        end 
+
+        new(alpha, compressor, log, error, subsolver)
+    end
+
+end
+
+function IHS(;
+    compressor::Compressor = SparseSign(cardinality = Left()),
+    log::Logger = BasicLogger(),
+    error::SolverError = FullResidual(),
+    alpha::Float64 = 1.0
+)
+    return IHS(
+        alpha, 
+        compressor,
+        log,
+        error
+    )
+end
+
+"""
+    IHSRecipe{
+        Type<:Number, 
+        LR<:LoggerRecipe,
+        CR<:CompressorRecipe,
+        ER<:ErrorRecipe,
+        M<:AbstractArray, 
+        MV<:SubArray, 
+        V<:AbstractVector
+    } <: SolverRecip
+
+A mutable structure containing all information relevant to the Iterative Hessian Sketch 
+solver. It is formed by calling the function `complete_solver` on a `IHS` solver, which 
+includes all the user controlled parameters, the linear system matrix `A` and constant 
+vector `b`.
+
+# Fields
+- `compressor::CompressorRecipe`, a technique for compressing the matrix ``A``.
+- `logger::LoggerRecipe`, a technique for logging the progress of the solver.
+- `error::SolverErrorRecipe`, a technique for estimating the progress of the solver.
+- `compresed_mat::AbstractMatrix`, a buffer for storing the compressed matrix.
+- `mat_view::SubArray`, a container for storing a view of the compressed matrix buffer.
+- `residual_vec::AbstractVector`, a vector that contains the residual of the linear system 
+    ``Ax-b``.
+- `gradient_vec::AbstractVector`, a vector that contains the gradient of the least squares 
+    problem, ``A^\\top(b-Ax)``.
+- `update_vec::AbstractVector`, a vector that contains the update by solving the IHS 
+    subproblem.
+- `solution_vec::AbstractVector`, a vector storing the current IHS solution.
+- `R::UpperTriangular`, a containter for storing the upper triangular portion of the R 
+    factor from a QR factorization of `mat_view`. This is used to solve the IHS sub-problem.
+"""
 mutable struct IHSRecipe{
     Type<:Number, 
     LR<:LoggerRecipe,
@@ -6,7 +99,7 @@ mutable struct IHSRecipe{
     M<:AbstractArray, 
     MV<:SubArray, 
     V<:AbstractVector
-}
+} <: SolverRecipe
     logger::LR
     compressor::CR
     error::ER
