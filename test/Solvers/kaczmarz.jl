@@ -222,7 +222,9 @@ end
         end 
         
         # Test that error gets returned with right compressor
-        @test_throws ArgumentError("Compressor must have cardinality `Left`.") Kaczmarz(
+        @test_logs (:warn, 
+               "Compressor has cardinality `Right` but IHS compresses  from the  `Left`." 
+        ) Kaczmarz(
             alpha = 2.0,
             compressor = KTestCompressor(Right(), 5),
             log = KTestLog(),

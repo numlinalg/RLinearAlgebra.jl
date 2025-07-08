@@ -70,7 +70,7 @@ mutable struct Kaczmarz <: Solver
     sub_solver::SubSolver
     function Kaczmarz(alpha, compressor, log, error, sub_solver) 
         if typeof(compressor.cardinality) != Left
-            throw(ArgumentError("Compressor must have cardinality `Left`."))
+            @warn "Compressor has cardinality `Right` but IHS compresses  from the  `Left`."
         end
 
         new(alpha, compressor, log, error, sub_solver)
