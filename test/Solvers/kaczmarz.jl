@@ -1,6 +1,6 @@
 module KaczmarzTest
 using Test, RLinearAlgebra, LinearAlgebra
-import RLinearAlgebra: complete_compressor
+import RLinearAlgebra: complete_compressor, update_compressor!
 import LinearAlgebra: mul!, norm
 import Random: randn!
 using ..FieldTest
@@ -187,7 +187,7 @@ end
     xsol = rand(n_cols)
     b = A * xsol
 
-    @testset "Kaczmarz" begin
+    @testset "Kaczmarz Technique" begin
         @test supertype(Kaczmarz) == Solver
 
         # test fieldnames and types
@@ -223,7 +223,8 @@ end
         
         # Test that error gets returned with right compressor
         @test_logs (:warn, 
-               "Compressor has cardinality `Right` but IHS compresses  from the  `Left`." 
+               "Compressor has cardinality `Right` but kaczmarz\
+               compresses  from the  `Left`." 
         ) Kaczmarz(
             alpha = 2.0,
             compressor = KTestCompressor(Right(), 5),
@@ -463,7 +464,7 @@ end
                 solver_rec.solution_vec = deepcopy(x) 
     
                 # compute comparison update
-                test_sol =  x - sA' * pinv(sA * sA') * (sA * x - sb)
+                test_sol =  x + sA \ (sb - sA * x)
     
                 # compute the update
                 RLinearAlgebra.kaczmarz_update_block!(solver_rec)
@@ -540,7 +541,7 @@ end
     
             # test when the block size is one threshold stop 
             # orthogonalize Q to control the residual
-            let A = rand(type, n_rows, n_cols),
+            let A = Array(qr(rand(type, n_rows, n_cols)).Q),
                 xsol = ones(type, n_cols),
                 b = A * xsol,
                 comp_dim = 1,
@@ -568,11 +569,13 @@ end
                 result = rsolve!(solver_rec, x, A, b)
                 # test that the error decreases
                 @test norm(x_st - xsol) > norm(x - xsol)
+                # test that the solver actually converged
+                @test solver_rec.log.converged
             end
     
             # test when the block size is greter than 1 using threshold stop 
             # Orthogonalize Q to control the residual
-            let A = rand(type, n_rows, n_cols),
+            let A = Array(qr(rand(type, n_rows, n_cols)).Q),
                 xsol = ones(type, n_cols),
                 b = A * xsol,
                 comp_dim = 2,
@@ -600,6 +603,8 @@ end
                 result = rsolve!(solver_rec, x, A, b)
                 #test that the error decreases
                 @test norm(x_st - xsol) > norm(x - xsol)
+                # test that the solver actually converged
+                @test solver_rec.log.converged
             end
 
         end

@@ -70,7 +70,8 @@ mutable struct Kaczmarz <: Solver
     sub_solver::SubSolver
     function Kaczmarz(alpha, compressor, log, error, sub_solver) 
         if typeof(compressor.cardinality) != Left
-            @warn "Compressor has cardinality `Right` but IHS compresses  from the  `Left`."
+            @warn "Compressor has cardinality `Right` but kaczmarz\
+            compresses  from the  `Left`."
         end
 
         new(alpha, compressor, log, error, sub_solver)
@@ -250,7 +251,7 @@ function kaczmarz_update!(solver::KaczmarzRecipe)
     scaling = solver.alpha * (dotu(solver.mat_view, solver.solution_vec) 
         - solver.vec_view[1]) 
     scaling /= dot(solver.mat_view, solver.mat_view)
-    # udpate the solution
+    # udpate the solution computes solution_vec = solution_vec - scaling * mat_view'
     axpby!(-scaling, solver.mat_view', 1.0, solver.solution_vec)
     return nothing
 end
@@ -260,9 +261,10 @@ end
     kaczmarz_update_block!(solver::KaczmarzRecipe)
 
 A function that performs the kaczmarz update when the compression dim is greater than 1.  
-    In the block case where the compressed matrix s ``B``, and the compressed contant 
-    vector ``g``, we perform the updated: 
-    ``x = x - \\alpha B^\\top (BB^\\top)^\\dagger(Bx - g)``.
+    In the block case where the compressed matrix ``\\tilde A``, and the compressed 
+    contant vector ``\\tilde b``, we perform the updated: 
+    ``x = x - \\alpha \\tilde A^\\top (\\tilde A \\tilde A^\\top)^\\dagger
+    (\\tilde Ax-\\tilde b)``.
 
 # Arguments
 - `solver::KaczmarzRecipe`, the solver information required for performing the update.
@@ -275,10 +277,13 @@ function kaczmarz_update_block!(solver::KaczmarzRecipe)
     # the one dimension kaczmarz update
     # sub-solver needs to designed for new compressed matrix
     update_sub_solver!(solver.sub_solver, solver.mat_view)
-    # Compute the block residual
+    # Compute the block residual 
+    # (computes solver.vec_view - solver.mat_view * solver.solution_vec)
     mul!(solver.vec_view, solver.mat_view, solver.solution_vec, -1.0, 1.0)
-    # use sub-solver to find update the solution
+    # use sub-solver to find update the solution (solves min ||tilde A - tilde b|| and 
+    # stores in update_vec)
     ldiv!(solver.update_vec, solver.sub_solver, solver.vec_view)
+    # computes solver.solution_vec = solver.solution_vec + alpha * solver.update_vec
     axpby!(solver.alpha, solver.update_vec, 1.0, solver.solution_vec)
     return nothing
 end
@@ -291,13 +296,12 @@ function rsolve!(
 )
     reset_logger!(solver.log)
     solver.solution_vec = x
-    err = 0.0
     for i in 1:solver.log.max_it
         err = compute_error(solver.error, solver, A, b)
         # Update log adds value of err to log and checks stopping
         update_logger!(solver.log, err, i)
         if solver.log.converged
-            return solver.solution_vec, solver.log
+            return nothing
         end
 
         # generate a new version of the compression matrix
@@ -319,5 +323,5 @@ function rsolve!(
 
     end
 
-    return solver.solution_vec, solver
+    return nothing 
 end
