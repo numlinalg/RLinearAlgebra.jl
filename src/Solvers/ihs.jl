@@ -34,13 +34,13 @@ mutable struct IHS <: Solver
     alpha::Float64
     log::Logger
     compressor::Compressor
-    error::Error
-    function IHS(alpha, compressor, log, error)
+    error::SolverError
+    function IHS(alpha, log, compressor, error)
         if typeof(compressor.cardinality) != Left
             @warn "Compressor has cardinality `Right` but IHS compresses  from the  `Left`."
         end 
 
-        new(alpha, compressor, log, error, subsolver)
+        new(alpha, log, compressor, error)
     end
 
 end
@@ -53,8 +53,8 @@ function IHS(;
 )
     return IHS(
         alpha, 
-        compressor,
         log,
+        compressor,
         error
     )
 end
@@ -95,21 +95,22 @@ mutable struct IHSRecipe{
     Type<:Number, 
     LR<:LoggerRecipe,
     CR<:CompressorRecipe,
-    ER<:ErrorRecipe,
+    ER<:SolverErrorRecipe,
     M<:AbstractArray, 
     MV<:SubArray, 
     V<:AbstractVector
 } <: SolverRecipe
-    logger::LR
+    log::LR
     compressor::CR
     error::ER
+    alpha::Float64
     compressed_mat::M
     mat_view::MV
     residual_vec::V
     gradient_vec::V
     update_vec::V
     solution_vec::V
-    R::UpperTriangular{T, M}
+    R::UpperTriangular{Type, M}
 end
 
 function complete_solver(
@@ -120,7 +121,7 @@ function complete_solver(
 )
     compressor = complete_compressor(ingredients.compressor, x, A, b)
     logger = complete_logger(ingredients.log) 
-    error = complete_error(ingredients.error)
+    error = complete_error(ingredients.error, ingredients, A, b)
     sample_size::Int64 = compressor.n_rows
     rows_a, cols_a = size(A)
     # Check that required fields are in the types
@@ -145,20 +146,24 @@ function complete_solver(
     # Check that the sketch size is larger than the column dimension and return a warning
     # otherwise
     if cols_a > sample_size
-        @warn "Compression dimension not larger than column dimension this will lead to \
-        singular QR decompositions, which cannot be inverted"
+        throw(
+            ArgumentError(
+                "Compression dimension not larger than column dimension this will lead to \
+                singular QR decompositions, which cannot be inverted"
+            )
+        )
     end
 
-    compressed_mat = zeros(ingredients.type, sample_size, cols_a)
-    res = zeros(ingredients.type, rows_a) 
-    grad = zeros(ingredients.type, cols_a) 
-    update_vec = zeros(ingredients.type, cols_a) 
+    compressed_mat = zeros(eltype(A), sample_size, cols_a)
+    res = zeros(eltype(A), rows_a) 
+    grad = zeros(eltype(A), cols_a) 
+    update_vec = zeros(eltype(A), cols_a) 
     solution_vec = x
     mat_view = view(compressed_mat, 1:sample_size, :)
-    R = UpperTriangular(mat_view[1:cols_a])
+    R = UpperTriangular(mat_view[1:cols_a, :])
 
     return IHSRecipe{
-        ingredients.type,
+        eltype(compressed_mat),
         typeof(logger),
         typeof(compressor),
         typeof(error),
@@ -169,6 +174,7 @@ function complete_solver(
         logger, 
         compressor, 
         error, 
+        ingredients.alpha,
         compressed_mat, 
         mat_view, 
         res, 
@@ -180,14 +186,15 @@ function complete_solver(
 end
 
 function rsolve!(solver::IHSRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
-    reset_logger!(solver.logger)
+    reset_logger!(solver.log)
     solver.solution_vec = x
     err = 0.0
+    copyto!(solver.residual_vec, b)
     for i in 1:solver.log.max_it
-        mul!(solver.resdual_vec, A, solver.solution_vec, -1.0, 1.0)
-        mul!(solver.gradient_vec, A', solver.res)
+        mul!(solver.residual_vec, A, solver.solution_vec, -1.0, 1.0)
+        mul!(solver.gradient_vec, A', solver.residual_vec)
         err = compute_error(solver.error, solver, A, b)
-        update_logger!(solver.logger, err, i)
+        update_logger!(solver.log, err, i)
         if solver.log.converged
             return solver.solution_vec, solver.log
         end
@@ -200,13 +207,13 @@ function rsolve!(solver::IHSRecipe, x::AbstractVector, A::AbstractMatrix, b::Abs
         # Compress the matrix
         mul!(solver.mat_view, solver.compressor, A)
         # Update the subsolver 
-        solver.R = UpperTriangular(qr!(solver.ma_view).R)
+        solver.R = UpperTriangular(qr!(solver.mat_view).R)
         # Compute first R' solver
         ldiv!(solver.update_vec, solver.R', solver.gradient_vec)
         # Compute second R Solve
         ldiv!(solver.gradient_vec, solver.R, solver.update_vec)
         # update the solution
-        axpy!(1.0, solver.gradient_vec, 1.0, solver.solution_vec)
+        axpy!(solver.alpha, solver.gradient_vec, solver.solution_vec)
     end
 
     return solver.solution_vec, solver
