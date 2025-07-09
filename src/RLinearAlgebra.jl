@@ -24,6 +24,7 @@ export complete_compressor, update_compressor!
 export FJLT, FJLTRecipe
 export Gaussian, GaussianRecipe
 export SparseSign, SparseSignRecipe
+export Sampling, SamplingRecipe
 
 # Export Distribution types and functions
 export Distribution, DistributionRecipe

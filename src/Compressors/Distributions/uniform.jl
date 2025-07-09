@@ -24,7 +24,7 @@ has the same probability weight.
 ## Returns
 - A `Uniform` object.
 """
-struct Uniform <: Distribution
+mutable struct Uniform <: Distribution
     cardinality::Cardinality
     replace::Bool
 end
