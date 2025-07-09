@@ -1,51 +1,51 @@
 """
     Sampling <: Compressor
 
-An implementation of the sampling compression method. This method selected 
-the rows/columns of the matrix by given distribution with number of rows/columns 
-setting as the compression dimension.
+An implementation of the sampling compression method. This method subsets the rows 
+or columns of a matrix according to a user-supplied distribution. The size of the 
+subset is also provided by the user.
 
 # Mathematical Description
 
 Let ``A`` be an ``m \\times n`` matrix that we want to compress.
 
 If we want to compress ``A`` from the left (i.e., we reduce the number of rows), then
-we create an index set to contain all the indices of seletec rows. The indices are 
-chosen by sampling over all the rows with given distribution.
+we create an index set to contain all the indices of selected rows. The indices are 
+chosen by sampling over all the rows with the user-specified distribution in the 
+`distribution` field..
 
 If ``A`` is compressed from the right (i.e., we reduce the number of columns), then
 we create an index set to contain all the indices of selected columns. The indices 
-are chosen by sampling over all the columns with given distribution.
+are chosen by sampling over all the columns with the user-specified distribution 
+in the `distribution` field.
 
 # Fields
-
-  - `cardinality::Cardinality`, the direction the compression matrix is intended to be
+- `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
-  - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
-    mathematical description.
-  - `distribution::Function, the function that returns a probability vector over indices.
-  - `type::Type{<:Number}`, the type of the elements in the compressor.
+- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in 
+    the mathematical description.
+- `distribution::Distribution`, the distribution being used to assign probability weights
+    on the indices.
 
 # Constructor
 
-    Sampling(;cardinality = Left(), compression_dim = 8, distribution, type = Float64)
+    Sampling(;cardinality = Left(), compression_dim = 2, distribution)
 
 ## Arguments
-
-  - `cardinality::Cardinality`, the direction the compression matrix is intended to be
+- `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
     By default `Left()` is chosen.
-  - `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
+- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
     mathemtical description. By default this is set to 2.
-  - `distribution::Function, the function that returns a probability vector over indices.
+- `distribution::Distribution`, the distribution being used to assign probability weights
+    on the indices. By default this is set as `Uniform` distribution.
 
 ## Returns
-
-  - A `Sampling` object.
+- A `Sampling` object.
 
 ## Throws
-
-  - `ArgumentError` if `compression_dim` is non-positive
+- `ArgumentError` if `compression_dim` is non-positive
+- `ArgumentError` if `Undef()` is taken as the input for `cardinality`
 """
 struct Sampling <: Compressor
     cardinality::Cardinality
@@ -79,18 +79,16 @@ end
     SamplingRecipe{C<:Cardinality} <: CompressorRecipe
 
 The recipe containing all allocations and information for the sampling compressor. 
-  Specify cardinality is for the different implementations of `mul!`.
 
 # Fields
-
-  - `cardinality::Cardinality`, the cardinality of the compressor. The
+- `cardinality::Cardinality`, the cardinality of the compressor. The
     value is either `Left()` or `Right()`.
-  - `compression_dim::Int64`, the target compression dimension.
-  - `n_rows::Int64`, number of rows of compression matrix.
-  - `n_cols::Int64`, number of columns of compression matrix.
-  - `distribution::Distribution`
-  - `idx::Vector{Int64}`, the index set that contains all the chosen indices.
-  - `idx_v::SubArray`, the view of the `idx`.
+- `compression_dim::Int64`, the target compression dimension.
+- `n_rows::Int64`, number of rows of compression matrix.
+- `n_cols::Int64`, number of columns of compression matrix.
+- `distribution_recipe::DistributionRecipe`, the user-specified distribution recipe.
+- `idx::Vector{Int64}`, the index set that contains all the chosen indices.
+- `idx_v::SubArray`, the view of the `idx`.
 """
 mutable struct SamplingRecipe{C<:Cardinality} <: CompressorRecipe
     cardinality::Cardinality
@@ -127,13 +125,15 @@ function complete_compressor(sub_sampling::Sampling, A::AbstractMatrix)
     idx_v = view(idx,:)
     # Randomly generate samples from index set based on weights
     sample_distribution!(idx, dist_recipe)
-    return SamplingRecipe{typeof(sub_sampling.cardinality)}(sub_sampling.cardinality, 
-                                                            compression_dim, 
-                                                            n_rows, 
-                                                            n_cols, 
-                                                            dist_recipe, 
-                                                            idx, 
-                                                            idx_v)
+    return SamplingRecipe{typeof(sub_sampling.cardinality)}(
+        sub_sampling.cardinality, 
+        compression_dim, 
+        n_rows, 
+        n_cols, 
+        dist_recipe, 
+        idx, 
+        idx_v
+    )
 end
 
 function update_compressor!(S::SamplingRecipe, x::AbstractVector, A::AbstractMatrix, b::AbstractVector)
@@ -173,7 +173,6 @@ function mul!(
     # Check the compatability of the sizes of the things being multiplied
     left_mul_dimcheck(C, S, A)
     C .*= beta
-
     for i in 1:length(S.idx_v)
         c_row = view(C, S.idx[i], :)
         a_row = view(A, i, :)
