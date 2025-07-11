@@ -2,7 +2,7 @@ module IHSTest
 using Test, RLinearAlgebra, LinearAlgebra
 import RLinearAlgebra: complete_compressor
 import LinearAlgebra: mul!, norm
-import Random: randn!
+import Random: randn!, seed!
 using ..FieldTest
 using ..ApproxTol
 
@@ -150,7 +150,7 @@ end
 
 
 @testset "IHS" begin
-    Random.seed!(12312)
+    seed!(12312)
     n_rows = 20
     n_cols = 2
     A = rand(n_rows, n_cols)
