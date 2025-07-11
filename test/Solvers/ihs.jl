@@ -150,6 +150,7 @@ end
 
 
 @testset "IHS" begin
+    Random.seed!(12312)
     n_rows = 20
     n_cols = 2
     A = rand(n_rows, n_cols)
@@ -382,7 +383,7 @@ end
                 xsol = ones(type, n_cols),
                 b = A * xsol,
                 # need to choose compression dim to be large enough
-                comp_dim = 7 * size(A, 2),
+                comp_dim = 9 * size(A, 2),
                 alpha = 1.0,
                 n_rows = size(A, 1),
                 n_cols = size(A, 2),
@@ -412,7 +413,7 @@ end
                 xsol = ones(type, n_cols),
                 b = A * xsol,
                 # need to choose compression dim to be large enough
-                comp_dim = 7 * size(A, 2),
+                comp_dim = 9 * size(A, 2),
                 alpha = 1.0,
                 n_rows = size(A, 1),
                 n_cols = size(A, 2),
