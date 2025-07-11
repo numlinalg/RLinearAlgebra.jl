@@ -16,6 +16,7 @@ export Approximator, ApproximatorRecipe, ApproximatorAdjoint
 export rapproximate, rapproximate!, complete_approximator
 export RangeApproximator, RangeApproximatorRecipe
 export RangeFinder, RangeFinderRecipe
+export CUR, CURRecipe
 
 # Export Compressor types and functions
 export Compressor, CompressorRecipe, CompressorAdjoint
