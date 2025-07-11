@@ -5,14 +5,21 @@ An implementation of the Iterative Hessian Sketch solver for solving over determ
 least squares problems (@cite)[pilanci2014iterative].
  
 # Mathematical Description
-Let ``A`` be an ``m \\times n`` matrix and consider the least square problem ``\\min_x 
-\\|Ax - b \\|_2^2. Iterative Hessian Sketch 
+Let ``A  \\in \\mathbb{R}^{m \\times n}`` and consider the least square problem ``\\min_x 
+\\|Ax - b \\|_2^2``. If we let ``S \\in \\mathbb{R}^{s \\times m}`` be a compression matrix, then 
+Iterative Hessian Sketch iteratively finds a solution to this problem
+by repeatedly updating ``x_{k+1} = x_k + \\alpha u_k``where ``u_k`` is the solution to the 
+convex optimization problem, 
+``u_k = \\min_u \\{\\|S_k Au\\|_2^2 - \\langle A, b - Ax_k \\rangle \\}.`` This method 
+has been to shown to converge geometrically at a rate ``\\rho \\in (0, 1/2]``, typically the 
+required compression dimension needs to be 4-8 times the size of n for the algorithm to 
+perform successfully.
 
 # Fields
 - `alpha::Float64`, a step size parameter.
 - `compressor::Compressor`, a technique for forming the compressed linear system.
 - `log::Logger`, a technique for logging the progress of the solver.
-- `error::SolverError', a method for estimating the progress of the solver.
+- `error::SolverError`, a method for estimating the progress of the solver.
 
 # Constructor
     function IHS(;
@@ -37,7 +44,7 @@ mutable struct IHS <: Solver
     error::SolverError
     function IHS(alpha, log, compressor, error)
         if typeof(compressor.cardinality) != Left
-            @warn "Compressor has cardinality `Right` but IHS compresses  from the  `Left`."
+            @warn "Compressor has cardinality `Right` but IHS compresses from the `Left`."
         end 
 
         new(alpha, log, compressor, error)
@@ -72,23 +79,22 @@ end
 
 A mutable structure containing all information relevant to the Iterative Hessian Sketch 
 solver. It is formed by calling the function `complete_solver` on a `IHS` solver, which 
-includes all the user controlled parameters, the linear system matrix `A` and constant 
+includes all the user controlled parameters, the linear system `A`, and the constant 
 vector `b`.
 
 # Fields
 - `compressor::CompressorRecipe`, a technique for compressing the matrix ``A``.
 - `logger::LoggerRecipe`, a technique for logging the progress of the solver.
 - `error::SolverErrorRecipe`, a technique for estimating the progress of the solver.
-- `compresed_mat::AbstractMatrix`, a buffer for storing the compressed matrix.
+- `compressed_mat::AbstractMatrix`, a buffer for storing the compressed matrix.
 - `mat_view::SubArray`, a container for storing a view of the compressed matrix buffer.
 - `residual_vec::AbstractVector`, a vector that contains the residual of the linear system 
     ``Ax-b``.
 - `gradient_vec::AbstractVector`, a vector that contains the gradient of the least squares 
     problem, ``A^\\top(b-Ax)``.
-- `update_vec::AbstractVector`, a vector that contains the update by solving the IHS 
-    subproblem.
+- `buffer_vec::AbstractVector`, a buffer vector for storing intermediate linear system solves.
 - `solution_vec::AbstractVector`, a vector storing the current IHS solution.
-- `R::UpperTriangular`, a containter for storing the upper triangular portion of the R 
+- `R::UpperTriangular`, a container for storing the upper triangular portion of the R 
     factor from a QR factorization of `mat_view`. This is used to solve the IHS sub-problem.
 """
 mutable struct IHSRecipe{
@@ -108,7 +114,7 @@ mutable struct IHSRecipe{
     mat_view::MV
     residual_vec::V
     gradient_vec::V
-    update_vec::V
+    buffer_vec::V
     solution_vec::V
     R::UpperTriangular{Type, M}
 end
@@ -149,7 +155,7 @@ function complete_solver(
         throw(
             ArgumentError(
                 "Compression dimension not larger than column dimension this will lead to \
-                singular QR decompositions, which cannot be inverted"
+                singular QR decompositions, which cannot be inverted."
             )
         )
     end
@@ -157,7 +163,7 @@ function complete_solver(
     compressed_mat = zeros(eltype(A), sample_size, cols_a)
     res = zeros(eltype(A), rows_a) 
     grad = zeros(eltype(A), cols_a) 
-    update_vec = zeros(eltype(A), cols_a) 
+    buffer_vec = zeros(eltype(A), cols_a) 
     solution_vec = x
     mat_view = view(compressed_mat, 1:sample_size, :)
     R = UpperTriangular(mat_view[1:cols_a, :])
@@ -169,7 +175,7 @@ function complete_solver(
         typeof(error),
         typeof(compressed_mat),
         typeof(mat_view),
-        typeof(update_vec)
+        typeof(buffer_vec)
     }(
         logger, 
         compressor, 
@@ -179,7 +185,7 @@ function complete_solver(
         mat_view, 
         res, 
         grad, 
-        update_vec, 
+        buffer_vec, 
         solution_vec, 
         R
     )
@@ -190,13 +196,15 @@ function rsolve!(solver::IHSRecipe, x::AbstractVector, A::AbstractMatrix, b::Abs
     solver.solution_vec = x
     err = 0.0
     copyto!(solver.residual_vec, b)
+    # compute the initial residual r = b - Ax
+    mul!(solver.residual_vec, A, solver.solution_vec, -1.0, 1.0)
     for i in 1:solver.log.max_it
-        mul!(solver.residual_vec, A, solver.solution_vec, -1.0, 1.0)
+        # compute the gradient A'r
         mul!(solver.gradient_vec, A', solver.residual_vec)
         err = compute_error(solver.error, solver, A, b)
         update_logger!(solver.log, err, i)
         if solver.log.converged
-            return solver.solution_vec, solver.log
+            return nothing
         end
 
         # generate a new compressor
@@ -207,15 +215,20 @@ function rsolve!(solver::IHSRecipe, x::AbstractVector, A::AbstractMatrix, b::Abs
         # Compress the matrix
         mul!(solver.mat_view, solver.compressor, A)
         # Update the subsolver 
+        # This is the only piece of allocating code
         solver.R = UpperTriangular(qr!(solver.mat_view).R)
-        # Compute first R' solver
-        ldiv!(solver.update_vec, solver.R', solver.gradient_vec)
-        # Compute second R Solve
-        ldiv!(solver.gradient_vec, solver.R, solver.update_vec)
+        # Compute first R' solver R'R x = g
+        ldiv!(solver.buffer_vec, solver.R', solver.gradient_vec)
+        # Compute second R Solve Rx = (R')^(-1)g will be stored in gradient_vec
+        ldiv!(solver.gradient_vec, solver.R, solver.buffer_vec)
         # update the solution
+        # solver.solution_vec = solver.solution_vec + alpha * solver.gradient_vec
         axpy!(solver.alpha, solver.gradient_vec, solver.solution_vec)
+        # compute the fast update of r = r - A * gradient_vec
+        # note: in this case gradient vec stores the update
+        mul!(solver.residual_vec, A, solver.gradient_vec, -1.0, 1.0)
     end
 
-    return solver.solution_vec, solver
+    return nothing
 
 end

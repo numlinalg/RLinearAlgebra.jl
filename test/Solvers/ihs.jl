@@ -150,7 +150,7 @@ end
 
 
 @testset "IHS" begin
-    n_rows = 40
+    n_rows = 20
     n_cols = 2
     A = rand(n_rows, n_cols)
     xsol = rand(n_cols)
@@ -189,7 +189,7 @@ end
         
         # Test that error gets returned with right compressor
         @test_logs (:warn,
-            "Compressor has cardinality `Right` but IHS compresses  from the  `Left`."
+            "Compressor has cardinality `Right` but IHS compresses from the `Left`."
         ) IHS(
             alpha = 2.0,
             compressor = ITestCompressor(Right(), 5),
@@ -211,7 +211,7 @@ end
             :mat_view, 
             :residual_vec,
             :gradient_vec,
-            :update_vec, 
+            :buffer_vec, 
             :solution_vec, 
             :R
         )
@@ -305,7 +305,7 @@ end
             
             @test_throws ArgumentError(
                 "Compression dimension not larger than column dimension this will lead to \
-                singular QR decompositions, which cannot be inverted"
+                singular QR decompositions, which cannot be inverted."
             ) complete_solver(solver, x, A, b)
         end
 
@@ -352,7 +352,7 @@ end
             @test typeof(solver_rec.alpha) == Float64
             @test typeof(solver_rec.compressed_mat) == Matrix{Float64}
             @test typeof(solver_rec.solution_vec) == Vector{Float64}
-            @test typeof(solver_rec.update_vec) == Vector{Float64}
+            @test typeof(solver_rec.buffer_vec) == Vector{Float64}
             @test typeof(solver_rec.gradient_vec) == Vector{Float64}
             @test typeof(solver_rec.residual_vec) == Vector{Float64}
             @test typeof(solver_rec.mat_view) <: SubArray
@@ -360,7 +360,7 @@ end
             # Test sizes of vectors and matrices
             @test size(solver_rec.compressor) == (comp_dim, n_rows)
             @test size(solver_rec.compressed_mat) == (comp_dim, n_cols)
-            @test size(solver_rec.update_vec) == (n_cols,)
+            @test size(solver_rec.buffer_vec) == (n_cols,)
             @test size(solver_rec.solution_vec) == (n_cols,)
             @test size(solver_rec.gradient_vec) == (n_cols,)
             @test size(solver_rec.residual_vec) == (n_rows,)
@@ -368,7 +368,7 @@ end
             # test values of entries
             solver_rec.alpha == alpha
             solver_rec.solution_vec == x
-            solver_rec.update_vec == zeros(n_cols)
+            solver_rec.buffer_vec == zeros(n_cols)
             solver_rec.gradient_vec == zeros(n_cols)
             solver_rec.residual_vec == zeros(n_rows)
         end
@@ -378,10 +378,11 @@ end
     @testset "IHS: rsolve!" begin
         for type in [Float16, Float32, Float64, ComplexF32, ComplexF64]
             # test maxit stop
-            let A = rand(type, n_rows, n_cols),
+            let A = Array(qr(rand(type, n_rows, n_cols)).Q),
                 xsol = ones(type, n_cols),
                 b = A * xsol,
-                comp_dim = 10 * size(A, 2),
+                # need to choose compression dim to be large enough
+                comp_dim = 7 * size(A, 2),
                 alpha = 1.0,
                 n_rows = size(A, 1),
                 n_cols = size(A, 2),
@@ -402,15 +403,16 @@ end
                 solver_rec = complete_solver(solver, x, A, b)
                 
                 result = rsolve!(solver_rec, x, A, b)
-                #test that the error decreases
+                #test that the residual decreases
                 @test norm(A * x_st - b) > norm(A * x - b)
             end
     
             # using threshold stop 
-            let A = rand(type, n_rows, n_cols),
+            let A = Array(qr(rand(type, n_rows, n_cols)).Q),
                 xsol = ones(type, n_cols),
                 b = A * xsol,
-                comp_dim = 10 * size(A, 2),
+                # need to choose compression dim to be large enough
+                comp_dim = 7 * size(A, 2),
                 alpha = 1.0,
                 n_rows = size(A, 1),
                 n_cols = size(A, 2),
@@ -418,8 +420,8 @@ end
                 x_st = deepcopy(x)
             
                 comp = ITestCompressor(Left(), comp_dim)
-                #check 20 iterations
-                log = ITestLog(20, 0.05)
+                #check 40 iterations we make a 1% improvement
+                log = ITestLog(40, norm(b) * .99)
                 err = ITestError()
                 solver = IHS(
                     compressor = comp,
@@ -433,6 +435,7 @@ end
                 result = rsolve!(solver_rec, x, A, b)
                 #test that the error decreases
                 @test norm(A * x_st - b) > norm(A * x - b)
+                @test solver_rec.log.converged
             end
 
         end
