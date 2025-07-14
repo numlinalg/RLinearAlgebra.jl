@@ -56,54 +56,7 @@ randomized rangefinder.
 """
 abstract type RangeApproximatorRecipe <: ApproximatorRecipe end
 
-"""
-   CUR 
 
-An abstract type for the structures that contain the user-controlled parameters 
-corresponding to the Approximator methods that produce an CUR decomposition of a matrix A. 
-"""
-abstract type CUR <: Approximator end
-
-"""
-   CURRecipe 
-
-An abstract type for the structures that contain the user-controlled parameters, 
-linear system information, and preallocated memory for methods
-corresponding to the Approximator methods that produce a CUR decomposition of a matrix A.
-"""
-abstract type CURRecipe <: ApproximatorRecipe end
-
-"""
-    CURCore
-
-An abstract type for the structures that contain the user controlled parameters for methods
-that compute the core matrix in a CUR decomposition.
-"""
-abstract type CURCore end
-
-"""
-    CURCoreRecipe
-
-An abstract type for the structures that contain the preallocated memory and user controlled
-parameters for methods that compute the core matrix in a CUR decomposition.
-"""
-abstract type CURCoreRecipe end
-
-"""
-    Selector
-
-An abstract type containing user controlled parameters for a technique that select indices 
-from a matrix.
-"""
-abstract type Selector end
-
-"""
-    SelectorRecipe
-
-An abstract type containing user controlled parameters and preallocated memory for a
-technique that selects indices from matrix.
-"""
-abstract type SelectorRecipe end
 ###################################
 # Docstring Components  
 ###################################
@@ -120,6 +73,7 @@ approx_arg_list = Dict{Symbol,String}(
     :A => "`A::AbstractMatrix`, a target matrix for approximation.",
     :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a 
     compression method for a specific matrix or collection of matrices and vectors.",
+
 )
 
 approx_output_list = Dict{Symbol,String}(
@@ -130,8 +84,10 @@ approx_output_list = Dict{Symbol,String}(
 approx_method_description = Dict{Symbol,String}(
     :complete_approximator => "A function that generates an `ApproximatorRecipe` given 
     arguments.",
+
     :update_approximator => "A function that updates the `ApproximatorRecipe` in place
     given the arguments.",
+
     :rapproximate => "A function that computes a low-rank approximation of the matrix `A`
     using the information in the provided `Approximator` data structure.",
     :complete_approximator_error => "A function that generates an `ApproximatorErrorRecipe`
@@ -208,6 +164,7 @@ function complete_approximator(approximator::Approximator, A::AbstractMatrix)
         )
     )
 end
+
 
 ###################################
 # rapproximate Interface 
@@ -477,3 +434,8 @@ end
 ############################################
 include("Approximators/RangeApproximators/rangefinder.jl")
 include("Approximators/RangeApproximators/helpers/power_its.jl")
+
+############################################
+# Include the selector files
+############################################
+include("Approximators/Selectors.jl")

@@ -16,7 +16,6 @@ export Approximator, ApproximatorRecipe, ApproximatorAdjoint
 export rapproximate, rapproximate!, complete_approximator
 export RangeApproximator, RangeApproximatorRecipe
 export RangeFinder, RangeFinderRecipe
-export CUR, CURRecipe
 
 # Export Compressor types and functions
 export Compressor, CompressorRecipe, CompressorAdjoint
@@ -56,4 +55,7 @@ export FullResidual, FullResidualRecipe
 export ApproximatorError, ApproximatorErrorRecipe
 export complete_approximator_error, compute_approximator_error, compute_approximator_error!
 
+# Export Selector types and functions
+export Selector, SelectorRecipe
+export complete_selector, update_selector!, select_indices!
 end #module
