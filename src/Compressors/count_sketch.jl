@@ -42,7 +42,7 @@ The compressed matrix is then formed by multiplying S A (for left compression) o
     CountSketch(;carinality=Left(), compression_dim=2, type=Float64)
 
 ## Keywords
-- `carinality::Cardinality`, the direction the compression matrix is intended to be
+- `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
     By default `Left()` is chosen.
 - `compression_dim`, the target compression dimension. Referred to as ``s`` in the
@@ -68,8 +68,12 @@ struct CountSketch <: Compressor
         end
 
         if cardinality == Undef()
-            throw(ArgumentError("`cardinality` must be specified as `Left()` or `Right()`.\
-        `Undef()` is not allowed in `CountSketch` structure."))
+            throw(
+                ArgumentError(
+                    "`cardinality` must be specified as `Left()` or `Right()`.\
+                    `Undef()` is not allowed in `CountSketch` structure."
+                )
+            )
         end
 
         return new(cardinality, compression_dim, type)
@@ -183,7 +187,7 @@ function mul!(
     return nothing
 end
 
-# Calculates S.mat * A and stores it in C 
+# Calculates S.mat' * A and stores it in C 
 function mul!(
     C::AbstractArray, 
     S::CountSketchRecipe{Right}, 
@@ -195,7 +199,7 @@ function mul!(
     return mul!(C, S.mat', A, alpha, beta)
 end
 
-# Calculates A * S.mat and stores it in C 
+# Calculates A * S.mat' and stores it in C 
 function mul!(
     C::AbstractArray, 
     A::AbstractArray, 
