@@ -150,3 +150,4 @@ include("Solvers/ErrorMethods.jl")
 #############################
 # The Solver Routine Files
 ############################
+include("Solvers/col_projection.jl")

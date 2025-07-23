@@ -17,7 +17,7 @@ affect convergence.
 #------------------------------------------------------------------
 mutable struct col_projection <: Solver 
     alpha::Float64
-    S::Compressor
+    compressor::Compressor
     log::Logger
     error::SolverError
     sub_solver::SubSolver
@@ -34,14 +34,14 @@ end
 
 function col_projection(;
     alpha::Float64 = 1.0,
-    S::Compressor = SparseSign(cardinality=Right()), 
+    compressor::Compressor = SparseSign(cardinality=Right()), 
     log::Logger = BasicLogger(),
     error::SolverError = FullResidual(),
     sub_solver::SubSolver = QRSolver(), 
 )
     return  col_projection(
         alpha, 
-        S, 
+        compressor, 
         log, 
         error, 
         sub_solver
@@ -53,7 +53,7 @@ end
     col_projectionRecipe{
         T<:Number, 
         V<:AbstractVector,
-        M<:AbstractMatrix, 
+        M<:AbstractArray, 
         MV<:SubArray,
         C<:CompressorRecipe, 
         L<:LoggerRecipe,
@@ -71,7 +71,7 @@ A mutable structure containing all information relevant to the col_projection so
 mutable struct col_projectionRecipe{
     T<:Number, 
     V<:AbstractVector,
-    M<:AbstractMatrix, 
+    M<:AbstractArray, 
     MV<:SubArray,
     C<:CompressorRecipe, 
     L<:LoggerRecipe,
@@ -97,12 +97,11 @@ function complete_solver(
     A::AbstractMatrix, 
     b::AbstractVector
 )
-    # Check the dimensions align
 
     # Dimension checking will be performed in the complete_compressor
-    compressor = complete_compressor(solver.S, A, b)
-    logger = complete_logger(solver.log, A, b)
-    error = complete_error(solver.error, A, b) 
+    compressor = complete_compressor(solver.compressor, A, b)
+    logger = complete_logger(solver.log)
+    error = complete_error(solver.error, solver, A, b) 
     # Check that required fields are in the types
     if !isdefined(error, :residual)
         throw(
@@ -158,23 +157,23 @@ function complete_solver(
                         )
 end
 
-function col_proj_update!(solver::ColProjRecipe)
+function col_proj_update!(solver::col_projectionRecipe)
     # one-dimensional subarray
     scaling = solver.alpha * dot(solver.mat_view, solver.residual_vec) 
     scaling /= dot(solver.mat_view, solver.mat_view)
     # x_new = x_old - alpha * S * update_vec
-    mul!(solver.solution_vec, solver.compressor, scaling, -1.0, 1.0)
+    mul!(solver.solution_vec, solver.S, scaling, -1.0, 1.0)
     # recompute the residual
     mul!(solver.residual_vec, solver.mat_view, scaling, -1.0, 1.0)
 end
 
-function col_proj_update_block!(solver::ColProjRecipe)
+function col_proj_update_block!(solver::col_projectionRecipe)
     # update the subsolver and solve for update vector
     update_sub_solver!(solver.sub_solver, solver.mat_view)
     ldiv!(solver.update_vec, solver.sub_solver, solver.residual_vec)
     # x_new = x_old - alpha * S * update_vec
-    mul!(solver.solution_vec, solver.compressor, solver.update_vec, -solver.alpha, 1.0)
-    # recomputet the Residual
+    mul!(solver.solution_vec, solver.S, solver.update_vec, -solver.alpha, 1.0)
+    # recomputet the residual
     mul!(solver.residual_vec, solver.mat_view, solver.update_vec, -solver.alpha, 1.0)
 end
 

@@ -33,11 +33,11 @@ function RLinearAlgebra.complete_compressor(
     n_cols = comp.compression_dim
     # Make a gaussian compressor
     op = randn(n_rows, n_cols) ./ sqrt(n_rows)
-    return ColCompressorRecipe(comp.cardinality, n_rows, n_cols, op)
+    return ColTestCompressorRecipe(comp.cardinality, n_rows, n_cols, op)
 end
 
 function RLinearAlgebra.update_compressor!(
-    comp::ColCompressorRecipe,
+    comp::ColTestCompressorRecipe,
     x::AbstractVector,
     A::AbstractMatrix,
     b::AbstractVector
@@ -50,7 +50,7 @@ end
 function RLinearAlgebra.mul!(
     C::AbstractArray,
     A::AbstractArray,
-    S::Main.col_projectionTest.ColCompressorRecipe, 
+    S::Main.col_projectionTest.ColTestCompressorRecipe, 
     alpha::Number, 
     beta::Number
 )
@@ -87,18 +87,18 @@ end
 ##############################
 # Residual-less Error Recipe
 ##############################
-# mutable struct KTestErrorNoRes <: RLinearAlgebra.SolverError end
+mutable struct ColTestErrorNoRes <: RLinearAlgebra.SolverError end
 
-# mutable struct KTestErrorRecipeNoRes <: RLinearAlgebra.SolverErrorRecipe end
+mutable struct ColTestErrorRecipeNoRes <: RLinearAlgebra.SolverErrorRecipe end
 
-# function RLinearAlgebra.complete_error(
-#     error::KTestErrorNoRes, 
-#     solver::Kaczmarz,
-#     A::AbstractMatrix, 
-#     b::AbstractVector 
-# )
-#     return KTestErrorRecipeNoRes()
-# end
+function RLinearAlgebra.complete_error(
+    error::ColTestErrorNoRes, 
+    solver::col_projection,
+    A::AbstractMatrix, 
+    b::AbstractVector 
+)
+    return ColTestErrorRecipeNoRes()
+end
 
 ############################
 # Loggers
@@ -239,7 +239,7 @@ end
 
         # test fieldnames and types
         @test fieldnames(col_projectionRecipe) == (
-            :compressor, 
+            :S, 
             :log, 
             :error, 
             :sub_solver, 
@@ -263,5 +263,211 @@ end
             AbstractVector,
         )  
     end
+
+    @testset "col_projection: Complete Solver" begin
+        # test error method with no residual error 
+        let A = A,
+            xsol = xsol,
+            b = b,
+            comp_dim = 2,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = zeros(n_cols)
+
+            comp = ColTestCompressor(Right(), comp_dim)
+            log = ColTestLog()
+            err = ColTestErrorNoRes()
+            sub_solver = ColTestSubSolver()
+            solver = col_projection(
+                compressor = comp,
+                log = log,
+                error = err,
+                sub_solver = sub_solver,
+                alpha = alpha
+            )
+
+            @test_throws ArgumentError(
+                "ErrorRecipe $(typeof(ColTestErrorRecipeNoRes())) does not contain the \
+                field 'residual' and is not valid for a col_projection solver."
+            ) complete_solver(solver, x, A, b)
+        end
+
+        # test logger method with no converged field 
+        let A = A,
+            xsol = xsol,
+            b = b,
+            comp_dim = 2,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = zeros(n_cols)
+
+            comp = ColTestCompressor(Right(), comp_dim)
+            log = ColTestLogNoCov()
+            err = ColTestError()
+            sub_solver = ColTestSubSolver()
+            solver = col_projection(
+                compressor = comp,
+                log = log,
+                error = err,
+                sub_solver = sub_solver,
+                alpha = alpha
+            )
+
+            @test_throws ArgumentError(
+                "LoggerRecipe $(typeof(ColTestLogRecipeNoCov())) does not contain \
+                the field 'converged' and is not valid for a col_projection solver."
+            ) complete_solver(solver, x, A, b)
+        end
+
+        let A = A,
+            xsol = xsol,
+            b = b,
+            comp_dim = 2,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = zeros(n_cols)
+
+            comp = ColTestCompressor(Right(), comp_dim)
+            log = ColTestLog()
+            err = ColTestError()
+            sub_solver = ColTestSubSolver()
+            solver = col_projection(
+                compressor = comp,
+                log = log,
+                error = err,
+                sub_solver = sub_solver,
+                alpha = alpha
+            )
+
+            solver_rec = complete_solver(solver, x, A, b)
+
+            # test types of the contents of the solver
+            @test typeof(solver_rec) == col_projectionRecipe{
+                Float64, 
+                Vector{Float64}, 
+                Matrix{Float64}, 
+                SubArray{Float64, 2, Matrix{Float64}, Tuple{Base.Slice{Base.OneTo{Int64}}, UnitRange{Int64}}, true}, 
+                Main.col_projectionTest.ColTestCompressorRecipe, 
+                Main.col_projectionTest.ColTestLogRecipe, 
+                Main.col_projectionTest.ColTestErrorRecipe, 
+                Main.col_projectionTest.ColTestSubSolverRecipe
+            }
+            @test typeof(solver_rec.S) == ColTestCompressorRecipe
+            @test typeof(solver_rec.log) == ColTestLogRecipe
+            @test typeof(solver_rec.error) == ColTestErrorRecipe
+            @test typeof(solver_rec.sub_solver) == ColTestSubSolverRecipe
+            @test typeof(solver_rec.alpha) == Float64
+            @test typeof(solver_rec.compressed_mat) == Matrix{Float64}
+            @test typeof(solver_rec.solution_vec) == Vector{Float64}
+            @test typeof(solver_rec.update_vec) == Vector{Float64}
+            @test typeof(solver_rec.mat_view) <: SubArray
+            @test typeof(solver_rec.residual_vec) == Vector{Float64}
+
+            # Test sizes of vectors and matrices
+            @test size(solver_rec.S) == (n_cols, comp_dim)
+            @test size(solver_rec.compressed_mat) == (n_rows, comp_dim)
+            @test size(solver_rec.update_vec) == (comp_dim,)
+
+            # test values of entries
+            solver_rec.alpha == alpha
+            solver_rec.solution_vec == x
+            solver_rec.update_vec == zeros(n_cols)
+        end
+        
+    end
+    # @testset "col_projection: Column Projection Update" begin
+    #     # Begin with a test of an update when the block size is 1
+    #     for type in [Float32, Float64, ComplexF32, ComplexF64]
+    #         let A = rand(type, n_rows, n_cols),
+    #             xsol = ones(type, n_cols),
+    #             b = A * xsol,
+    #             comp_dim = 1,
+    #             alpha = 1.0,
+    #             n_rows = size(A, 1),
+    #             n_cols = size(A, 2),
+    #             x = zeros(type, n_cols)
+
+    #             comp = ColTestCompressor(Right(), comp_dim)
+    #             log = ColTestLog()
+    #             err = ColTestError()
+    #             sub_solver = ColTestSubSolver()
+    #             solver = col_projection(
+    #                 compressor = comp,
+    #                 log = log,
+    #                 error = err,
+    #                 sub_solver = sub_solver,
+    #                 alpha = alpha
+    #             )
+
+    #             solver_rec = complete_solver(solver, x, A, b)
+
+    #             # Sketch the matrix and vector
+    #             As = A * solver_rec.compressor
+    #             solver_rec.mat_view = view(As, :, 1:comp_dim)
+    #             solver_rec.solution_vec = deepcopy(x) 
+    #             solver_rec.residual_vec = b - As
+    #             solver.solution_vec = x
+
+    #             # compute comparison update
+    #             sc = dot(solver.mat_view, residual_vec) / dot(As, As) * alpha
+    #             test_sol = x - solver.S * sc
+
+    #             # compute the update
+    #             RLinearAlgebra.col_projection_update!(solver_rec)
+    #             @test solver_rec.solution_vec ≈ test_sol
+    #         end
+
+    #     end
+
+    # end
+
+    # @testset "col_projection: Block Column Projection Update" begin
+    #     # Begin with a test of an update when the block size is 2
+    #     for type in [Float32, Float64, ComplexF32, ComplexF64]
+    #         let A = rand(type, n_rows, n_cols),
+    #             xsol = ones(type, n_cols),
+    #             b = A * xsol,
+    #             comp_dim = 1,
+    #             alpha = 1.0,
+    #             n_rows = size(A, 1),
+    #             n_cols = size(A, 2),
+    #             x = zeros(type, n_cols)
+
+    #             comp = ColTestCompressor(Left(), comp_dim)
+    #             log = ColTestLog()
+    #             err = ColTestError()
+    #             sub_solver = ColTestSubSolver()
+    #             solver = col_projection(
+    #                 compressor = comp,
+    #                 log = log,
+    #                 error = err,
+    #                 sub_solver = sub_solver,
+    #                 alpha = alpha
+    #             )
+
+    #             solver_rec = complete_solver(solver, x, A, b)
+
+    #             # Sketch the matrix and vector
+    #             sA = solver_rec.compressor * A 
+    #             solver_rec.vec_view = view(sb, 1:comp_dim)
+    #             solver_rec.mat_view = view(sA, 1:comp_dim, :)
+    #             solver_rec.solution_vec = deepcopy(x) 
+
+    #             # compute comparison update
+    #             test_sol =  x + As \ (sb - sA * x)
+
+    #             # compute the update
+    #             RLinearAlgebra.col_update_block!(solver_rec)
+    #             @test solver_rec.solution_vec ≈ test_sol
+    #         end
+
+    #    end
+
+    #end
+
+end
 
 end
