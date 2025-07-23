@@ -1,6 +1,5 @@
 # Overview 
-The purpose of this page is to maintain checklists of tasks to complete when adding new 
-methods to the library. These checklists are organized by method.
+The purpose of this page is to offer checklists of tasks, for everyone who help to improve the package. These checklists are organized by method.
 
 ## Create issue and use it!
 Please add a brief introduction when you create an issue. After the introduction, copy and paste the corresponding checklist. 
