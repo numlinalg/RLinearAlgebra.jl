@@ -11,6 +11,8 @@ directs =
         @__DIR__,
         [
             "./",
+            "Compressors/helpers/",
+            "Compressors/Distributions/",
             "Compressors/",
             "Approximators/",
             "Approximators/RangeApproximator/",
@@ -19,9 +21,6 @@ directs =
             "Solvers/Loggers/",
             "Solvers/SubSolvers/",
             "Solvers/",
-            "Compressors/helpers/",
-            "Compressors/",
-            "Compressors/Distributions/"
         ],
     )
 

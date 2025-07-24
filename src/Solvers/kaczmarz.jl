@@ -295,6 +295,24 @@ function rsolve!(
     b::AbstractVector
 )
     reset_logger!(solver.log)
+    # Check for dimension errors
+    if size(x,1) != size(A, 2)
+        throw(
+            DimensionMismatch(
+                "Dimension of `x`, $(size(x,1)) is different from number of columns in `A`,\
+                $(size(A,2))."
+            )
+        )
+    elseif size(b, 1) != size(A, 1)
+        throw(
+            DimensionMismatch(
+                "Dimension of `b`, $(size(b,1)) is different from number of rows in `A`,\
+                $(size(A,1))."
+            )
+        )
+
+    end
+
     solver.solution_vec = x
     for i in 1:solver.log.max_it
         err = compute_error(solver.error, solver, A, b)

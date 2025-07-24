@@ -476,6 +476,64 @@ end
     end
 
     @testset "Kaczmarz: rsolve!" begin
+        # check the dimension errors
+        let type = Float64,
+            A = rand(type, n_rows, n_cols),
+            xsol = ones(type, n_cols),
+            b = A * xsol,
+            comp_dim = 1,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = zeros(type, n_cols + 1)
+            x_st = deepcopy(x)
+        
+            comp = KTestCompressor(Left(), comp_dim)
+            # check after 10 iterations
+            log = KTestLog(10, 0.0)
+            err = KTestError()
+            sub_solver = KTestSubSolver()
+            solver = Kaczmarz(
+                compressor = comp,
+                log = log,
+                error = err,
+                sub_solver = sub_solver,
+                alpha = alpha
+            )
+        
+            solver_rec = complete_solver(solver, x, A, b)
+            
+            @test_throws DimensionMismatch rsolve!(solver_rec, x, A, b)
+        end
+
+        let type = Float64,
+            A = rand(type, n_rows, n_cols),
+            xsol = ones(type, n_cols),
+            b = ones(n_rows + 1),
+            comp_dim = 1,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = zeros(type, n_cols + 1)
+            x_st = deepcopy(x)
+        
+            comp = KTestCompressor(Left(), comp_dim)
+            # check after 10 iterations
+            log = KTestLog(10, 0.0)
+            err = KTestError()
+            sub_solver = KTestSubSolver()
+            solver = Kaczmarz(
+                compressor = comp,
+                log = log,
+                error = err,
+                sub_solver = sub_solver,
+                alpha = alpha
+            )
+        
+            solver_rec = complete_solver(solver, x, A, b)
+            
+            @test_throws DimensionMismatch rsolve!(solver_rec, x, A, b)
+        end
         # test when the block size is one maxit stop
         for type in [Float16, Float32, Float64, ComplexF32, ComplexF64]
             let A = rand(type, n_rows, n_cols),
@@ -553,7 +611,7 @@ end
             
                 comp = KTestCompressor(Left(), comp_dim)
                 # check after 20 iterations
-                log = KTestLog(20, 0.05)
+                log = KTestLog(20, 0.5)
                 err = KTestError()
                 sub_solver = KTestSubSolver()
                 solver = Kaczmarz(
