@@ -477,6 +477,7 @@ end
 
     @testset "Kaczmarz: rsolve!" begin
         # check the dimension errors
+        # x wrong dimension
         let type = Float64,
             A = rand(type, n_rows, n_cols),
             xsol = ones(type, n_cols),
@@ -506,6 +507,7 @@ end
             @test_throws DimensionMismatch rsolve!(solver_rec, x, A, b)
         end
 
+        # b wrong dimension
         let type = Float64,
             A = rand(type, n_rows, n_cols),
             xsol = ones(type, n_cols),
@@ -514,7 +516,7 @@ end
             alpha = 1.0,
             n_rows = size(A, 1),
             n_cols = size(A, 2),
-            x = zeros(type, n_cols + 1)
+            x = zeros(type, n_cols)
             x_st = deepcopy(x)
         
             comp = KTestCompressor(Left(), comp_dim)
@@ -534,6 +536,7 @@ end
             
             @test_throws DimensionMismatch rsolve!(solver_rec, x, A, b)
         end
+
         # test when the block size is one maxit stop
         for type in [Float16, Float32, Float64, ComplexF32, ComplexF64]
             let A = rand(type, n_rows, n_cols),
