@@ -15,6 +15,10 @@ makedocs(
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
+        "Tutorials" => [
+            "Introduction" => "tutorials/introduction.md",
+            "Getting started" => "tutorials/getting_started.md"
+        ],
         "API Reference" => [
             "Compressors" => "api/compressors.md",
             "Solvers" => [
