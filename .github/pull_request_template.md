@@ -1,5 +1,5 @@
 <!--- Provide a general summary of your changes in the Title above -->
-<!--- Please be sure to request review from @vp314, @dmaldona, and or @nathanielpritchard -->
+<!--- Please be sure to request review from @vp314, @dmaldona, and/or @nathanielpritchard -->
 
 ## Description
 <!--- Describe your changes in detail and include references -->
