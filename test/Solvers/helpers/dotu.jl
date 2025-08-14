@@ -15,13 +15,14 @@ import LinearAlgebra: dot
     
     # test that the dot product works for multiple types
     for type in [Int32, Int64, Float16, Float32, Float64, ComplexF32, ComplexF64]
-        let n = 10,
-            a = ones(type, n),
-            b = ones(type, n)
+        for n in [0, 1, 4, 8, 9]
+            let n = n,
+                a = ones(type, n),
+                b = ones(type, n)
 
-            @test dot(conj(a), b) == dotu(a, b)
+                @test dot(conj(a), b) == dotu(a, b)
+            end
         end
-    
     end
 
 end
