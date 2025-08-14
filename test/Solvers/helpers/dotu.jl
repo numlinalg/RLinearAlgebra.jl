@@ -20,7 +20,7 @@ import LinearAlgebra: dot
                 a = ones(type, n),
                 b = ones(type, n)
 
-                @test dot(conj(a), b) == dotu(a, b)
+                @test dotu(a, b) == dot(conj(a), b)
             end
         end
     end
