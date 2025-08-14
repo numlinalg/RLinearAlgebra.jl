@@ -17,6 +17,7 @@ end
     x = rand(2)
 
     @test_throws ArgumentError complete_sub_solver(TestSubSolver(), A)
+    @test_throws ArgumentError complete_sub_solver(TestSubSolver(), A, b)
     @test_throws ArgumentError update_sub_solver!(TestSubSolverRecipe(), A)
     @test_throws ArgumentError ldiv!(x, TestSubSolverRecipe(), b)
 end

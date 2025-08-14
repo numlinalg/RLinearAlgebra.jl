@@ -12,7 +12,9 @@ SolverRecipe
 
 ## Solver Structures
 ```@docs
+Kaczmarz
 
+KaczmarzRecipe
 ```
 
 ## Exported Functions
@@ -20,4 +22,13 @@ SolverRecipe
 complete_solver
 
 rsolve!
+```
+
+## Internal Functions
+```@docs
+RLinearAlgebra.kaczmarz_update!
+
+RLinearAlgebra.kaczmarz_update_block!
+
+RLinearAlgebra.dotu
 ```

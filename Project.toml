@@ -8,7 +8,7 @@ authors = [
     "Tunan Wang <tunan.wang@wisc.edu>", 
     "Vivak Patel <vivak.patel@wisc.edu>"
 ]
-version = "0.2.3"
+version = "0.2.4"
 
 
 [deps]
