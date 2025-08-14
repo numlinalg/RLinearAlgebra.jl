@@ -12,7 +12,9 @@ SolverRecipe
 
 ## Solver Structures
 ```@docs
+IHS
 
+IHSRecipe
 ```
 
 ## Exported Functions
