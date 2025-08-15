@@ -2,7 +2,7 @@
     CountSketch <: Compressor
 
 An implementation of the count sketch compression method. See additional details in 
-[Woodruff14](@cite) Section 2.1, in which the CountSketch matrix is equivalently defined as sparse 
+[woodruff2014sketch](@cite) Section 2.1, in which the CountSketch matrix is equivalently defined as sparse 
 embedding matrix.
 
 
