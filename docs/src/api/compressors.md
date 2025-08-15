@@ -28,6 +28,9 @@ GaussianRecipe
 SparseSign
 
 SparseSignRecipe
+CountSketch
+
+CountSketchRecipe
 
 FJLT
 
