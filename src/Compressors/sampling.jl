@@ -102,20 +102,18 @@ end
 function get_dims(compression_dim::Int64, cardinality::Left, A::AbstractMatrix)
     n_rows = compression_dim
     n_cols = size(A, 1)
-    initial_size = n_cols
-    return n_rows, n_cols, initial_size
+    return n_rows, n_cols
 end
 
 # Computes the dimensions of the CompressorRecipe 
 function get_dims(compression_dim::Int64, cardinality::Right, A::AbstractMatrix)
     n_rows = size(A, 2)
     n_cols = compression_dim
-    initial_size = n_rows
-    return n_rows, n_cols, initial_size
+    return n_rows, n_cols
 end
 
 function complete_compressor(sub_sampling::Sampling, A::AbstractMatrix)
-    n_rows, n_cols, _ = get_dims(sub_sampling.compression_dim, sub_sampling.cardinality, A)
+    n_rows, n_cols = get_dims(sub_sampling.compression_dim, sub_sampling.cardinality, A)
     # Pull out the variables from ingredients
     compression_dim = sub_sampling.compression_dim
     sub_sampling.distribution.cardinality = sub_sampling.cardinality
