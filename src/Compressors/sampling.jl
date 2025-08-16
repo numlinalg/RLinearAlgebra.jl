@@ -1,7 +1,7 @@
 """
     Sampling <: Compressor
 
-An implementation of the sampling compression method. This method subsets the rows 
+This method subsets the rows 
 or columns of a matrix according to a user-supplied distribution. The size of the 
 subset is also provided by the user.
 
@@ -12,7 +12,7 @@ Let ``A`` be an ``m \\times n`` matrix that we want to compress.
 If we want to compress ``A`` from the left (i.e., we reduce the number of rows), then
 we create an index set to contain all the indices of selected rows. The indices are 
 chosen by sampling over all the rows with the user-specified distribution in the 
-`distribution` field..
+`distribution` field.
 
 If ``A`` is compressed from the right (i.e., we reduce the number of columns), then
 we create an index set to contain all the indices of selected columns. The indices 
@@ -22,8 +22,7 @@ in the `distribution` field.
 # Fields
 - `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
-- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in 
-    the mathematical description.
+- `compression_dim::Int64`, the target compression dimension.
 - `distribution::Distribution`, the distribution being used to assign probability weights
     on the indices.
 
@@ -35,8 +34,7 @@ in the `distribution` field.
 - `cardinality::Cardinality`, the direction the compression matrix is intended to be
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
     By default `Left()` is chosen.
-- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
-    mathemtical description. By default this is set to 2.
+- `compression_dim::Int64`, the target compression dimension. By default this is set to 2.
 - `distribution::Distribution`, the distribution being used to assign probability weights
     on the indices. By default this is set as `Uniform` distribution.
 
@@ -59,7 +57,7 @@ struct Sampling <: Compressor
 
         if cardinality == Undef()
             throw(ArgumentError("`cardinality` must be specified as `Left()` or `Right()`.\
-            `Undef()` is not allowed in `CountSketch` structure."))
+            `Undef()` is not allowed in `Sampling` structure."))
         end
 
         return new(cardinality, compression_dim, distribution)
@@ -100,6 +98,7 @@ mutable struct SamplingRecipe{C<:Cardinality} <: CompressorRecipe
     idx_v::SubArray
 end
 
+# Computes the dimensions of the CompressorRecipe 
 function get_dims(compression_dim::Int64, cardinality::Left, A::AbstractMatrix)
     n_rows = compression_dim
     n_cols = size(A, 1)
@@ -107,6 +106,7 @@ function get_dims(compression_dim::Int64, cardinality::Left, A::AbstractMatrix)
     return n_rows, n_cols, initial_size
 end
 
+# Computes the dimensions of the CompressorRecipe 
 function get_dims(compression_dim::Int64, cardinality::Right, A::AbstractMatrix)
     n_rows = size(A, 2)
     n_cols = compression_dim

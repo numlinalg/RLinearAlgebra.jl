@@ -27,7 +27,7 @@ Random.seed!(2131)
         let cardinality = Undef(), compression_dim = 2, distribution = Uniform()
             @test_throws ArgumentError(
                 "`cardinality` must be specified as `Left()` or `Right()`.\
-                `Undef()` is not allowed in `CountSketch` structure."
+                `Undef()` is not allowed in `Sampling` structure."
             ) Sampling(
                 cardinality, compression_dim, distribution
             )
