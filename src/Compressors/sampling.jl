@@ -153,11 +153,14 @@ function mul!(
 )
     # Check the compatability of the sizes of the things being multiplied
     left_mul_dimcheck(C, S, A)
-    for i in 1:length(S.idx_v)
-        c_row = view(C, i, :)
-        a_row = view(A, S.idx[i], :)
-
-        c_row .= beta .* c_row .+ alpha .* a_row
+    # if C and A are vectors
+    if size(C, 2) == 1
+       A_sub = view(A, S.idx_v)
+       axpby!(alpha, A_sub, beta, C)
+    #if C and A are matrices
+    else
+        A_sub = view(A, S.idx_v, :)
+        mul!(C, A_sub, I, alpha, beta)
     end
 
     return nothing
@@ -171,13 +174,14 @@ function mul!(
     beta::Number
 )
     # Check the compatability of the sizes of the things being multiplied
-    left_mul_dimcheck(C, S, A)
-    C .*= beta
-    for i in 1:length(S.idx_v)
-        c_row = view(C, S.idx[i], :)
-        a_row = view(A, i, :)
-
-        c_row .+= alpha .* a_row
+    #left_mul_dimcheck(C, S, A)
+    C .*= beta 
+    if size(C, 2) == 1
+       C_sub = view(C, S.idx_v)
+       axpby!(alpha, A, 1, C_sub)
+    else
+        C_sub = view(C, S.idx_v, :)
+        mul!(C_sub, A, I, alpha, 1)
     end
 
     return nothing
@@ -193,13 +197,9 @@ function mul!(
 )
     # Check the compatability of the sizes of the things being multiplied
     right_mul_dimcheck(C, A, S)
-    for i in 1:length(S.idx_v)
-        c_col = view(C, :, i)
-        a_col = view(A, :, S.idx[i])
-        
-        c_col .= beta .* c_col .+ alpha .* a_col
-    end
-    
+    A_sub = view(A, :, S.idx_v)
+    mul!(C, A_sub, I, alpha, beta)
+
     return nothing
 end
 
@@ -213,13 +213,8 @@ function mul!(
     # Check the compatability of the sizes of the things being multiplied
     right_mul_dimcheck(C, A, S)
     C .*= beta
+    C_sub = view(C, :, S.idx_v)
+    mul!(C_sub, A, I, alpha, 1)
 
-    for i in 1:length(S.idx_v)
-        c_col = view(C, :, S.idx[i])
-        a_col = view(A, :, i)
-        
-        c_col .+= alpha .* a_col
-    end
-    
     return nothing
 end
