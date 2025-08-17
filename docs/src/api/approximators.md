@@ -18,13 +18,13 @@ RangeApproximatorRecipe
 
 ## Approximator Structures
 ```@docs
-RangeFinder
-
-RangeFinderRecipe
-
 RandSVD
 
 RandSVDRecipe
+
+RangeFinder
+
+RangeFinderRecipe
 ```
 
 ## Exported Functions

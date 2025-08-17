@@ -3,7 +3,8 @@
 
 A struct that implements the Randomized SVD. The Randomized SVD technique compresses a 
     matrix from the right to compute a rank ``k`` estimate to the truncated 
-    svd of a matrix ``A``. See [halko2011finding](@cite) for additional details.
+    SVD of a matrix ``A``. See Algorithm 5.1 in [halko2011finding](@cite) for additional 
+    details.
 
 # Mathematical Description
 Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` for which we wish to form a 
