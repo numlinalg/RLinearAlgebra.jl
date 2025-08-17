@@ -1,5 +1,5 @@
 """
-   RandSVD 
+    RandSVD 
 
 A struct that implements the Randomized SVD. The Randomized SVD technique compresses a 
     matrix from the right to compute a rank ``k`` estimate to the truncated 
@@ -10,22 +10,26 @@ A struct that implements the Randomized SVD. The Randomized SVD technique compre
 Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` for which we wish to form a 
     low-rank approximation with the form of an SVD. Specifically, we wish to find an 
     orthogonal matrix ``U``, a diagonal matrix ``S``, and an orthogonal matrix ``V`` 
-    such that ``USV^\\top \\approx A``. A simple way to find such a matrix is to choose a ``k`` 
-    representing the number of singular vectors and values we wish to approximate. 
-    With this ``k``  we  generate a compression matrix 
+    such that ``USV^\\top \\approx A``. A simple way to find such a matrix is to choose a 
+    ``k`` representing the number of singular vectors and values we wish to approximate. 
+    With this ``k``,  we  generate a compression matrix 
     ``S\\in\\mathbb{R}^{n \\times k}`` and compute ``Q = \\text{qr}(AS)`` as in the 
     [RangeFinder](@ref). 
-    With high probability we will have ``\\|A - QQ^\\top A\\|_2 \\leq
-    (k+1) \\sigma_{k+1}``, where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
-    of A. This bound is often conservative when the singular values of ``A`` decay quickly. 
-    When the singular values decay slowly, we can apply ``A`` and ``A^\\top``, ``q`` times 
-    and take the the qr factorization of ``(AA^\\top)^q AS``, know as power iterations. 
+    With high probability we will have ``\\mathbb{E} \\|A - QQ^\\top A\\|_F \\leq
+    \\sqrt{k+1} (\\sum_{i=k+1}^{\\min{(m,n)}}\\sigma_{i})^{1/2}``
+    , where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value of (see Theorem 10.5 
+    of [halko2011finding](@cite)). This bound is often conservative when the singular 
+    values of ``A`` decay quickly. 
+
+When the singular values decay slowly, we can apply ``A`` and ``A^\\top``, ``q`` times 
+    and take the qr factorization of ``(AA^\\top)^q AS``, know as power iterations. 
     Using these power iterations increases the relative gap between the singular values, 
-    which leads to  better RanddomizedSVD performance. Power iterations can be unstable. 
-    Luckily, their stability  can be improved by orthogonalizing ``AS`` after each 
-    application of ``A`` and ``A^\\top`` in what is known as the subspace iteration. 
-    After computing ``Q`` the RandomizedSVD concludes by computing 
-    ``W,S,V = \\text{SVD}(Q^\\top A)`` and  setting ``U = QW``.
+    which leads to  better RandomizedSVD performance. 
+
+Power iterations can be unstable. Luckily, their stability  can be improved by 
+    orthogonalizing ``AS`` after each application of ``A`` and ``A^\\top`` in what is known 
+    as the subspace iteration. After computing ``Q`` the RandomizedSVD concludes by 
+    computing ``W,S,V = \\text{SVD}(Q^\\top A)`` and  setting ``U = QW``.
 
 # Fields
 - `compressor::Compressor`, the technique for compressing the matrix from the right.

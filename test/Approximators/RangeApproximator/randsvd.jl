@@ -31,7 +31,7 @@ end
 function RLinearAlgebra.mul!(
     C::AbstractMatrix, 
     A::AbstractMatrix, 
-    S::Main.RandomizedSVD.TestCompressorRecipe, 
+    S::TestCompressorRecipe, 
     alpha::Float64, 
     beta::Float64
 )
@@ -98,39 +98,159 @@ end
         let n_rows = 10,
             n_cols = 10,
             compression_dim = 5,
+            power_its = 2,
+            ortho = true,
             cardinality = Right(),
-            A = rand(n_rows, n_cols)
-
+            A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
-            approx = RandSVD(compressor, 2, true)
-            approx_rec = complete_approximator(approx, A)
-            approx_rec.compressor.cardinality == Right()
 
-            @test approx_rec.power_its == 2
-            @test approx_rec.rand_subspace == true
+            approx = RandSVD(compressor, power_its, ortho)
+            approx_rec = complete_approximator(approx, A)
+            @test approx_rec.compressor.cardinality == Right()
+
+            @test approx_rec.power_its == power_its 
+            @test approx_rec.rand_subspace == ortho 
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 5
         end
         
         # Test when wrong cardinality, left, is specified
+        # By testing the rapproximate function we also test rapproximate!
+        # with power iterations
         let n_rows = 10,
             n_cols = 10,
             compression_dim = 5,
+            power_its = 2,
+            ortho = true,
             cardinality = Left(),
-            A = rand(n_rows, n_cols)
-
+            A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
-            approx = RandSVD(compressor, 2, false)
-            @test_logs (:warn,
-                "Compressor with cardinality `Left` being applied from `Right`."
-            ) complete_approximator(approx, A)
-            approx_rec = complete_approximator(approx, A)
-            approx_rec.compressor.cardinality == Left()
+
+            approx = RandSVD(compressor, power_its, ortho)
+            approx_rec = rapproximate(approx, A)
             
-            @test approx_rec.power_its == 2
-            @test approx_rec.rand_subspace == false 
+            @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+            # Check that the matrix is orthogonal
+            gram_matrix = approx_rec.U' * approx_rec.U
+            # test that the diagonal is all ones
+            diag_gram_matrix = diag(gram_matrix)
+            for i = 1:compression_dim
+                @test diag_gram_matrix[i] ≈ 1
+            end
+
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
+
+            # bound from theorem 9.1 of Halko Martinsson and Tropp is satisfied
+            _,S,_ = svd(A)
+            norm(S[1:5] - approx_rec.S) < norm(S[6:end])^2 + 
+                norm(Diagonal(S[6:end]) * 
+                approx_rec.compressor.op[6:end, :] * 
+                pinv(approx_rec.compressor.op[1:5, :]))^2
+        end
+
+
+        # Test that compression_dim == n_rows gives a matrix that spans the range of A
+        # with power iterations, this way the approximation is exact
+        let n_rows = 10,
+            n_cols = 10,
+            compression_dim = 10,
+            power_its = 2,
+            ortho = false,
+            cardinality = Left(),
+            A = rand(n_rows, n_cols),
+            compressor = TestCompressor(cardinality, compression_dim)
+
+            approx = RandSVD(compressor, power_its, ortho)
+            approx_rec = rapproximate(approx, A)
+            
+            @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+            @test approx_rec.compressor.cardinality == Left()
+            @test approx_rec.power_its == power_its 
+            @test approx_rec.rand_subspace == ortho 
             @test approx_rec.n_rows == 10
-            @test approx_rec.n_cols == 5
+            @test approx_rec.n_cols == 10 
+            # Check that the matrix is orthogonal
+            gram_matrix = approx_rec.U' * approx_rec.U
+            # test that the diagonal is all ones
+            diag_gram_matrix = diag(gram_matrix)
+            for i = 1:compression_dim
+                @test diag_gram_matrix[i] ≈ 1
+            end
+            
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
+            # Test that this spans the range and that the mul! function work
+            @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
+            @test norm(A - A * approx_rec * approx_rec') < ATOL
+        end
+
+        # By testing the rapproximate function we also test rapproximate!
+        # with subspace iterations
+        let n_rows = 10,
+            n_cols = 10,
+            compression_dim = 5,
+            power_its = 2,
+            ortho = true,
+            cardinality = Left(),
+            A = rand(n_rows, n_cols),
+            compressor = TestCompressor(cardinality, compression_dim)
+
+            approx = RandSVD(compressor, power_its, ortho)
+            approx_rec = rapproximate(approx, A)
+            
+            @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+            # Check that the matrix is orthogonal
+            gram_matrix = approx_rec.U' * approx_rec.U
+            # test that the diagonal is all ones
+            diag_gram_matrix = diag(gram_matrix)
+            for i = 1:compression_dim
+                @test diag_gram_matrix[i] ≈ 1
+            end
+
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
+             # test bound from theorem 9.1 of Halko Martinsson and Tropp is satisfied
+             _,S,_ = svd(A)
+             norm(S[1:5] - approx_rec.S) < norm(S[6:end])^2 + 
+                 norm(Diagonal(S[6:end]) * 
+                 approx_rec.compressor.op[6:end, :] * 
+                 pinv(approx_rec.compressor.op[1:5, :]))^2
+        end
+
+        # Test that compression_dim == n_rows gives a matrix that spans the range of A 
+        # with subspace iterations, so that the approximation is exact
+        let n_rows = 10,
+            n_cols = 10,
+            compression_dim = 10,
+            power_its = 2,
+            ortho = true,
+            cardinality = Left(),
+            A = rand(n_rows, n_cols),
+            compressor = TestCompressor(cardinality, compression_dim)
+
+            approx = RandSVD(compressor, power_its, ortho)
+            approx_rec = rapproximate(approx, A)
+            
+            @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+            @test approx_rec.compressor.cardinality == Left()
+            @test approx_rec.power_its == power_its
+            @test approx_rec.rand_subspace == ortho 
+            @test approx_rec.n_rows == 10
+            @test approx_rec.n_cols == 10 
+            # Check that the matrix is orthogonal
+            gram_matrix = approx_rec.U' * approx_rec.U
+            # test that the diagonal is all ones
+            diag_gram_matrix = diag(gram_matrix)
+            for i = 1:compression_dim
+                @test diag_gram_matrix[i] ≈ 1
+            end
+            
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
+            # Test that this spans the range and that the mul! function work
+            @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
+            @test norm(A - A * approx_rec * approx_rec') < ATOL
         end
         
     end
@@ -142,23 +262,25 @@ end
             n_cols = 10,
             compression_dim = 5,
             cardinality = Right(),
-            A = rand(n_rows, n_cols)
-
+            power_its = 2,
+            ortho = false,
+            A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
-            approx = RandSVD(compressor, 2, false)
+
+            approx = RandSVD(compressor, power_its, ortho)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             # Check that the matrix is orthogonal
             gram_matrix = approx_rec.U' * approx_rec.U
-            # check that the norm is 1, the diagonal is all 1
-            @test opnorm(gram_matrix) ≈ 1
             # test that the diagonal is all ones
             diag_gram_matrix = diag(gram_matrix)
             for i = 1:compression_dim
                 @test diag_gram_matrix[i] ≈ 1
             end
 
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
             # bound from theorem 9.1 of Halko Martinsson and Tropp is satisfied
             _,S,_ = svd(A)
             norm(S[1:5] - approx_rec.S) < norm(S[6:end])^2 + 
@@ -167,34 +289,37 @@ end
                 pinv(approx_rec.compressor.op[1:5, :]))^2
         end
 
+
         # Test that compression_dim == n_rows gives a matrix that spans the range of A
         # with power iterations, this way the approximation is exact
         let n_rows = 10,
             n_cols = 10,
             compression_dim = 10,
+            power_its = 2,
+            ortho = false,
             cardinality = Right(),
-            A = rand(n_rows, n_cols)
-
+            A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
-            approx = RandSVD(compressor, 2, false)
+
+            approx = RandSVD(compressor, power_its, ortho)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
-            approx_rec.compressor.cardinality == Right()
-            @test approx_rec.power_its == 2
-            @test approx_rec.rand_subspace == false
+            @test approx_rec.compressor.cardinality == Right()
+            @test approx_rec.power_its == power_its 
+            @test approx_rec.rand_subspace == ortho
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal
             gram_matrix = approx_rec.U' * approx_rec.U
-            # check that the norm is 1, the diagonal is all 1
-            @test opnorm(gram_matrix) ≈ 1
             # test that the diagonal is all ones
             diag_gram_matrix = diag(gram_matrix)
             for i = 1:compression_dim
                 @test diag_gram_matrix[i] ≈ 1
             end
             
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
             # Test that this spans the range and that the mul! function work
             @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
             @test norm(A - A * approx_rec * approx_rec') < ATOL
@@ -206,23 +331,25 @@ end
             n_cols = 10,
             compression_dim = 5,
             cardinality = Right(),
-            A = rand(n_rows, n_cols)
-
+            power_its = 2, 
+            ortho = true,
+            A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
-            approx = RandSVD(compressor, 2, true)
+
+            approx = RandSVD(compressor, power_its, ortho)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             # Check that the matrix is orthogonal
             gram_matrix = approx_rec.U' * approx_rec.U
-            # check that the norm is 1, the diagonal is all 1s
-            @test opnorm(gram_matrix) ≈ 1
             # test that the diagonal is all ones
             diag_gram_matrix = diag(gram_matrix)
             for i = 1:compression_dim
                 @test diag_gram_matrix[i] ≈ 1
             end
 
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
              # test bound from theorem 9.1 of Halko Martinsson and Tropp is satisfied
              _,S,_ = svd(A)
              norm(S[1:5] - approx_rec.S) < norm(S[6:end])^2 + 
@@ -237,33 +364,172 @@ end
             n_cols = 10,
             compression_dim = 10,
             cardinality = Right(),
-            A = rand(n_rows, n_cols)
-
+            power_its = 2,
+            ortho = true,
+            A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
-            approx = RandSVD(compressor, 2, true)
+
+            approx = RandSVD(compressor, power_its, ortho)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
-            approx_rec.compressor.cardinality == Right()
-            @test approx_rec.power_its == 2
-            @test approx_rec.rand_subspace == true
+            @test approx_rec.compressor.cardinality == Right()
+            @test approx_rec.power_its == power_its 
+            @test approx_rec.rand_subspace == ortho 
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal
             gram_matrix = approx_rec.U' * approx_rec.U
-            # check that the norm is 1, the diagonal is all 1
-            @test opnorm(gram_matrix) ≈ 1
             # test that the diagonal is all ones
             diag_gram_matrix = diag(gram_matrix)
             for i = 1:compression_dim
                 @test diag_gram_matrix[i] ≈ 1
             end
             
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
+            # Test that this spans the range and that the mul! function work
+            @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
+            @test norm(A - A * approx_rec * approx_rec') < ATOL
+        end
+        
+        # Perform same sets of test from the left
+        # By testing the rapproximate function we also test rapproximate!
+        # with power iterations
+        let n_rows = 10,
+            n_cols = 10,
+            compression_dim = 5,
+            cardinality = Left(),
+            power_its = 2,
+            ortho = false,
+            A = rand(n_rows, n_cols),
+            compressor = TestCompressor(cardinality, compression_dim)
+
+            approx = RandSVD(compressor, power_its, ortho)
+            approx_rec = rapproximate(approx, A)
+            
+            @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+            # Check that the matrix is orthogonal
+            gram_matrix = approx_rec.U' * approx_rec.U
+            # test that the diagonal is all ones
+            diag_gram_matrix = diag(gram_matrix)
+            for i = 1:compression_dim
+                @test diag_gram_matrix[i] ≈ 1
+            end
+
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
+            # bound from theorem 9.1 of Halko Martinsson and Tropp is satisfied
+            _,S,_ = svd(A)
+            norm(S[1:5] - approx_rec.S) < norm(S[6:end])^2 + 
+                norm(Diagonal(S[6:end]) * 
+                approx_rec.compressor.op[6:end, :] * 
+                pinv(approx_rec.compressor.op[1:5, :]))^2
+        end
+
+
+        # Test that compression_dim == n_rows gives a matrix that spans the range of A
+        # with power iterations, this way the approximation is exact
+        let n_rows = 10,
+            n_cols = 10,
+            compression_dim = 10,
+            power_its = 2,
+            ortho = false,
+            cardinality = Left(),
+            A = rand(n_rows, n_cols),
+            compressor = TestCompressor(cardinality, compression_dim)
+
+            approx = RandSVD(compressor, power_its, ortho)
+            approx_rec = rapproximate(approx, A)
+            
+            @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+            @test approx_rec.compressor.cardinality == Left()
+            @test approx_rec.power_its == power_its 
+            @test approx_rec.rand_subspace == ortho
+            @test approx_rec.n_rows == 10
+            @test approx_rec.n_cols == 10 
+            # Check that the matrix is orthogonal
+            gram_matrix = approx_rec.U' * approx_rec.U
+            # test that the diagonal is all ones
+            diag_gram_matrix = diag(gram_matrix)
+            for i = 1:compression_dim
+                @test diag_gram_matrix[i] ≈ 1
+            end
+            
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
             # Test that this spans the range and that the mul! function work
             @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
             @test norm(A - A * approx_rec * approx_rec') < ATOL
         end
 
+        # By testing the rapproximate function we also test rapproximate!
+        # with subspace iterations
+        let n_rows = 10,
+            n_cols = 10,
+            compression_dim = 5,
+            cardinality = Left(),
+            power_its = 2, 
+            ortho = true,
+            A = rand(n_rows, n_cols),
+            compressor = TestCompressor(cardinality, compression_dim)
+
+            approx = RandSVD(compressor, power_its, ortho)
+            approx_rec = rapproximate(approx, A)
+            
+            @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+            # Check that the matrix is orthogonal
+            gram_matrix = approx_rec.U' * approx_rec.U
+            # test that the diagonal is all ones
+            diag_gram_matrix = diag(gram_matrix)
+            for i = 1:compression_dim
+                @test diag_gram_matrix[i] ≈ 1
+            end
+
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
+             # test bound from theorem 9.1 of Halko Martinsson and Tropp is satisfied
+             _,S,_ = svd(A)
+             norm(S[1:5] - approx_rec.S) < norm(S[6:end])^2 + 
+                 norm(Diagonal(S[6:end]) * 
+                 approx_rec.compressor.op[6:end, :] * 
+                 pinv(approx_rec.compressor.op[1:5, :]))^2
+        end
+
+        # Test that compression_dim == n_rows gives a matrix that spans the range of A 
+        # with subspace iterations, so that the approximation is exact
+        let n_rows = 10,
+            n_cols = 10,
+            compression_dim = 10,
+            cardinality = Left(),
+            power_its = 2,
+            ortho = true,
+            A = rand(n_rows, n_cols),
+            compressor = TestCompressor(cardinality, compression_dim)
+
+            approx = RandSVD(compressor, power_its, ortho)
+            approx_rec = rapproximate(approx, A)
+            
+            @test typeof(approx_rec.compressor) == TestCompressorRecipe  
+            @test approx_rec.compressor.cardinality == Left()
+            @test approx_rec.power_its == power_its 
+            @test approx_rec.rand_subspace == ortho 
+            @test approx_rec.n_rows == 10
+            @test approx_rec.n_cols == 10 
+            # Check that the matrix is orthogonal
+            gram_matrix = approx_rec.U' * approx_rec.U
+            # test that the diagonal is all ones
+            diag_gram_matrix = diag(gram_matrix)
+            for i = 1:compression_dim
+                @test diag_gram_matrix[i] ≈ 1
+            end
+            
+            # check that the off diagonals are nearly zero 
+            @test opnorm(gram_matrix) ≈ 1
+            # Test that this spans the range and that the mul! function work
+            @test norm(A - approx_rec * (approx_rec' * A)) < ATOL
+            @test norm(A - A * approx_rec * approx_rec') < ATOL
+        end
     end
 
     @testset "RandSVD Recipe: mul!" begin
