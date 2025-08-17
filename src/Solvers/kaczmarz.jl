@@ -2,8 +2,8 @@
     Kaczmarz <: Solver
 
 An implementation of a Kaczmarz solver. Specifically, it is a solver that iteratively
-    updates a solution by projecting the solution onto a subspace of the row space of the 
-    linear system.
+    updates an iterate by projecting the iterate onto (a subspace of) the row space of a
+    consistent linear system.
 
 # Mathematical Description
 Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system ``Ax=b``. 
