@@ -27,6 +27,8 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
     x_{+} = x + \\alpha \\tilde A^\\top (\\tilde A \\tilde A^\\top)^\\dagger 
     (\\tilde b - \\tilde A x).
     ``
+    While, `S` is often random, in reality, whether `S` is deterministic or random is 
+    quite flexible see [patel2023randomized](@cite) for more details.
 # Fields
 - `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
     affect convergence.
@@ -46,21 +48,22 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
         alpha::Float64 = 1.0
     )
 ## Keywords
-- `compresor::Compressor`, a technique for forming the compressed rowspace of the 
+- `compressor::Compressor`, a technique for forming the compressed rowspace of the 
     linear system.
 - `log::Logger`, a technique for logging the progress of the solver.
 - `error::SolverError`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
     compressed rowspace.
 - `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
-    affect convergence.
+    affect convergence. By default this value is 1.
 
 ## Returns 
 - A `Kaczmarz` object.
 
 !!! info
-    The `alpha` parameter should be in ``(0,2]`` for convergence to be guaranteed,
-    but this condition is not enforced in the constructor.
+    The `alpha` parameter should be in ``(0,2)`` (setting it to be 2 can lead to cyclic 
+    behavior [motzkin1954relaxation](@cite)) for convergence to be guaranteed, but this 
+    condition is not enforced in the constructor.
 """
 mutable struct Kaczmarz <: Solver 
     alpha::Float64
