@@ -329,6 +329,7 @@ function rsolve!(
         rows_s, cols_s =  size(solver.compressor)
         solver.mat_view = view(solver.compressed_mat, 1:rows_s, :)
         solver.vec_view = view(solver.compressed_vec, 1:rows_s)
+
         # compress the matrix and constant vector
         mul!(solver.mat_view, solver.compressor, A)
         mul!(solver.vec_view, solver.compressor, b)
