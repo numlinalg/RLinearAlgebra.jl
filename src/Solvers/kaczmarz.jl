@@ -53,7 +53,7 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
 - `log::Logger`, a technique for logging the progress of the solver.
 - `error::SolverError`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
-    compressed rowspace.
+    compressed rowspace. When the `compression_dim = 1` this is not used.
 - `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
     affect convergence. By default this value is 1.
 
