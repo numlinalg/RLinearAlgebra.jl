@@ -61,9 +61,9 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
 - A `Kaczmarz` object.
 
 !!! info
-    The `alpha` parameter should be in ``(0,2)`` (setting it to be 2 can lead to cyclic 
-    behavior [motzkin1954relaxation](@cite)) for convergence to be guaranteed, but this 
-    condition is not enforced in the constructor.
+    The `alpha` parameter should be in ``(0,2)``  for convergence to be guaranteed. This 
+    condition is not enforced in the constructor. There are some instances where setting 
+    `alpha = 2` can lead to non-convergent cycles [motzkin1954relaxation](@cite).
 """
 mutable struct Kaczmarz <: Solver 
     alpha::Float64
