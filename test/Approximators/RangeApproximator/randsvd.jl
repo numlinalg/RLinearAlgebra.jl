@@ -43,32 +43,46 @@ end
         supertype(RandSVD) == Approximator
 
         # test the fieldnames and types
-        fieldnames(RandSVD) == (:compressor, :power_its, :rand_subspace)
-        fieldtypes(RandSVD) == (Compressor, Int64, Bool)
+        fieldnames(RandSVD) == (:compressor, :power_its, :orthogonalize, :block_size)
+        fieldtypes(RandSVD) == (Compressor, Int64, Bool, Int64)
         
         # test errors
         let compressor = TestCompressor(),
             power_its = -1,
-            rand_subspace = false
+            orthogonalize = false,
+            block_size = 0
 
             @test_throws ArgumentError(
                 "Field `power_its` must be non-negative."
-            ) RandSVD(compressor, power_its, rand_subspace)
+            ) RandSVD(compressor, power_its, orthogonalize, block_size)
+        end
+
+        let compressor = TestCompressor(),
+            power_its = 0,
+            orthogonalize = false,
+            block_size = -1
+
+            @test_throws ArgumentError(
+                "Field `block_size` must be non-negative."
+            ) RandSVD(compressor, power_its, orthogonalize, block_size)
         end
 
         # Test constructor
         let compressor = TestCompressor(),
             power_its = 2,
-            rand_subspace = false,
+            orthogonalize = false,
+            block_size = 2
             rf = RandSVD(
                 compressor = compressor, 
                 power_its = power_its, 
-                rand_subspace = rand_subspace
+                orthogonalize = orthogonalize,
+                block_size = block_size
             ) 
 
             @test typeof(rf.compressor) == TestCompressor
             @test rf.power_its == 2
-            @test rf.rand_subspace == false
+            @test rf.orthogonalize == false
+            @test rf.block_size == 2
         end
     
     end
@@ -79,7 +93,7 @@ end
 
         # test the fieldnames and types
         @test fieldnames(RandSVDRecipe) == (
-            :n_rows, :n_cols, :compressor, :power_its, :rand_subspace, :U, :S, :V
+            :n_rows, :n_cols, :compressor, :power_its, :orthogonalize, :U, :S, :V, :buffer
         )
         @test fieldtypes(RandSVDRecipe) == (
             Int64, 
@@ -89,31 +103,57 @@ end
             Bool, 
             AbstractArray, 
             AbstractVector, 
+            AbstractArray,
             AbstractArray
         )
     end
     
     @testset "RandSVD: Complete Approximator" begin
-        # Test when correct cardinality, right, is specified
+        # Test when correct cardinality, right, is specified with blocksize 0
         let n_rows = 10,
             n_cols = 10,
             compression_dim = 5,
             power_its = 2,
             ortho = true,
+            block_size = 0,
             cardinality = Right(),
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = complete_approximator(approx, A)
             @test approx_rec.compressor.cardinality == Right()
 
             @test approx_rec.power_its == power_its 
-            @test approx_rec.rand_subspace == ortho 
+            @test approx_rec.orthogonalize == ortho 
             @test approx_rec.n_rows == 10
-            @test approx_rec.n_cols == 5
+            @test approx_rec.n_cols == n_cols
+            @test size(approx_rec.buffer) == (compression_dim, n_cols)
         end
         
+        # Test when correct cardinality, right, is specified with blocksize 0
+        let n_rows = 10,
+            n_cols = 10,
+            compression_dim = 5,
+            power_its = 2,
+            block_size = 0,
+            ortho = true,
+            block_size = 3,
+            cardinality = Right(),
+            A = rand(n_rows, n_cols),
+            compressor = TestCompressor(cardinality, compression_dim)
+
+            approx = RandSVD(compressor, power_its, ortho, block_size)
+            approx_rec = complete_approximator(approx, A)
+            @test approx_rec.compressor.cardinality == Right()
+
+            @test approx_rec.power_its == power_its 
+            @test approx_rec.orthogonalize == ortho 
+            @test approx_rec.n_rows == n_rows
+            @test approx_rec.n_cols == n_cols
+            @test size(approx_rec.buffer) == (compression_dim, block_size)
+        end
+
         # Test when wrong cardinality, left, is specified
         # By testing the rapproximate function we also test rapproximate!
         # with power iterations
@@ -121,12 +161,13 @@ end
             n_cols = 10,
             compression_dim = 5,
             power_its = 2,
+            block_size = 0,
             ortho = true,
             cardinality = Left(),
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
@@ -156,18 +197,19 @@ end
             n_cols = 10,
             compression_dim = 10,
             power_its = 2,
+            block_size = 0,
             ortho = false,
             cardinality = Left(),
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             @test approx_rec.compressor.cardinality == Left()
             @test approx_rec.power_its == power_its 
-            @test approx_rec.rand_subspace == ortho 
+            @test approx_rec.orthogonalize == ortho 
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal
@@ -186,17 +228,18 @@ end
         end
 
         # By testing the rapproximate function we also test rapproximate!
-        # with subspace iterations
+        # with orthogonalized power iterations
         let n_rows = 10,
             n_cols = 10,
             compression_dim = 5,
             power_its = 2,
+            block_size = 0,
             ortho = true,
             cardinality = Left(),
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
@@ -224,18 +267,19 @@ end
             n_cols = 10,
             compression_dim = 10,
             power_its = 2,
+            block_size = 0,
             ortho = true,
             cardinality = Left(),
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             @test approx_rec.compressor.cardinality == Left()
             @test approx_rec.power_its == power_its
-            @test approx_rec.rand_subspace == ortho 
+            @test approx_rec.orthogonalize == ortho 
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal
@@ -264,10 +308,11 @@ end
             cardinality = Right(),
             power_its = 2,
             ortho = false,
+            block_size = 0,
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
@@ -296,18 +341,19 @@ end
             n_cols = 10,
             compression_dim = 10,
             power_its = 2,
+            block_size = 0,
             ortho = false,
             cardinality = Right(),
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             @test approx_rec.compressor.cardinality == Right()
             @test approx_rec.power_its == power_its 
-            @test approx_rec.rand_subspace == ortho
+            @test approx_rec.orthogonalize == ortho
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal
@@ -332,11 +378,12 @@ end
             compression_dim = 5,
             cardinality = Right(),
             power_its = 2, 
+            block_size = 0,
             ortho = true,
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
@@ -365,17 +412,18 @@ end
             compression_dim = 10,
             cardinality = Right(),
             power_its = 2,
+            block_size = 0,
             ortho = true,
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             @test approx_rec.compressor.cardinality == Right()
             @test approx_rec.power_its == power_its 
-            @test approx_rec.rand_subspace == ortho 
+            @test approx_rec.orthogonalize == ortho 
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal
@@ -401,11 +449,12 @@ end
             compression_dim = 5,
             cardinality = Left(),
             power_its = 2,
+            block_size = 0,
             ortho = false,
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
@@ -434,18 +483,19 @@ end
             n_cols = 10,
             compression_dim = 10,
             power_its = 2,
+            block_size = 0,
             ortho = false,
             cardinality = Left(),
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             @test approx_rec.compressor.cardinality == Left()
             @test approx_rec.power_its == power_its 
-            @test approx_rec.rand_subspace == ortho
+            @test approx_rec.orthogonalize == ortho
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal
@@ -470,11 +520,12 @@ end
             compression_dim = 5,
             cardinality = Left(),
             power_its = 2, 
+            block_size = 0,
             ortho = true,
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
@@ -503,17 +554,18 @@ end
             compression_dim = 10,
             cardinality = Left(),
             power_its = 2,
+            block_size = 0,
             ortho = true,
             A = rand(n_rows, n_cols),
             compressor = TestCompressor(cardinality, compression_dim)
 
-            approx = RandSVD(compressor, power_its, ortho)
+            approx = RandSVD(compressor, power_its, ortho, block_size)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             @test approx_rec.compressor.cardinality == Left()
             @test approx_rec.power_its == power_its 
-            @test approx_rec.rand_subspace == ortho 
+            @test approx_rec.orthogonalize == ortho 
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal
@@ -535,14 +587,17 @@ end
     @testset "RandSVD Recipe: mul!" begin
         n_rows = 10
         n_cols = 10
-        compression_dim = 10 
+        compression_dim = 10
+        block_size = 0 
+        power_its = 2
+        orthogonalize = true
         cardinality = Right()
         A = rand(n_rows, n_cols)
         C = rand(n_rows, n_cols)
         v = rand(n_cols)
         b = rand(n_cols)
         compressor = TestCompressor(cardinality, compression_dim)
-        approx = RandSVD(compressor, 2, true)
+        approx = RandSVD(compressor, power_its, orthogonalize, block_size)
         approx_rec = rapproximate(approx, A)
         # Check that the size function works
         size(approx_rec) == (approx_rec.n_rows, approx_rec.n_cols)

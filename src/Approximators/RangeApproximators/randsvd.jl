@@ -28,34 +28,43 @@ When the singular values decay slowly, we can apply ``A`` and ``A^\\top``, ``q``
 
 Power iterations can be unstable. Luckily, their stability  can be improved by 
     orthogonalizing ``AS`` after each application of ``A`` and ``A^\\top`` in what is known 
-    as the subspace iteration. After computing ``Q`` the RandomizedSVD concludes by 
-    computing ``W,S,V = \\text{SVD}(Q^\\top A)`` and  setting ``U = QW``.
+    as the orthogonalized power iteration. After computing ``Q`` the RandomizedSVD 
+    concludes by computing ``W,S,V = \\text{SVD}(Q^\\top A)`` and  setting ``U = QW``.
 
 # Fields
 - `compressor::Compressor`, the technique for compressing the matrix from the right.
 - `power_its::Int64`, the number of power iterations that should be performed.
-- `rand_subspace::Bool`, a boolean indicating whether the `power_its` should be performed 
+- `orthogonalize::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
+-`block_size::Int64`, the size of the tile when performing matrix multiplication. By 
+    default, `block_size = 0`, this will be set to be the number of columns in 
+    the original matrix.
 """
 mutable struct RandSVD <: RangeApproximator
     compressor::Compressor
     power_its::Int64
-    rand_subspace::Bool
-    function RandSVD(compressor, power_its, rand_subspace)
+    orthogonalize::Bool
+    block_size::Int64
+    function RandSVD(compressor, power_its, orthogonalize, block_size)
         if power_its < 0
             return throw(ArgumentError("Field `power_its` must be non-negative."))
         end
+
+        if block_size < 0
+            return throw(ArgumentError("Field `block_size` must be non-negative."))
+        end
         
-        return new(compressor, power_its, rand_subspace)
+        return new(compressor, power_its, orthogonalize, block_size)
     end
 
 end
 
 RandSVD(;
     compressor = SparseSign(), 
-    rand_subspace = false, 
-    power_its = 1
-) = RandSVD(compressor, power_its, rand_subspace)
+    orthogonalize = false, 
+    power_its = 1,
+    block_size = 0,
+) = RandSVD(compressor, power_its, orthogonalize, block_size)
 
 """
     RandSVDRecipe
@@ -64,9 +73,11 @@ A struct that contains the preallocated memory and completed compressor to form 
     RandSVD approximation to the matrix ``A``.
 
 # Fields
+- `n_rows::Int64`, the number of rows in the approximation. {THIS IS NOT RIGHT}
+- `n_cols::Int64`, the number of columns in the approximation. {THIS IS NOT RIGHT}
 - `compressor::CompressorRecipe`, the compressor to be applied from the right to ``A``.
 - `power_its::Int64`, the number of power iterations that should be performed.
-- `rand_subspace::Bool`, a boolean indicating whether the `power_its` should be performed 
+- `orthogonalize::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
 - `U::AbstractArray`, the orthogonal matrix that approximates the top `compressor_dim` 
     left singular vectors of ``A``.
@@ -74,16 +85,19 @@ A struct that contains the preallocated memory and completed compressor to form 
     ``A``.
 - `V::AbstractArray`, the orthogonal matrix that approximates the top `compressor_dim` 
     right singular vectors of ``A``.
+-`buffer::AbstractArray`, the storage for matrix multiplication with this low-rank 
+    approximation.
 """
 mutable struct RandSVDRecipe <: RangeApproximatorRecipe
     n_rows::Int64
     n_cols::Int64
     compressor::CompressorRecipe
     power_its::Int64
-    rand_subspace::Bool
+    orthogonalize::Bool
     U::AbstractArray
     S::AbstractVector
     V::AbstractArray
+    buffer::AbstractArray
 end
 
 function complete_approximator(approx::RandSVD, A::AbstractMatrix)
@@ -95,26 +109,29 @@ function complete_approximator(approx::RandSVD, A::AbstractMatrix)
 
     compress = complete_compressor(approx.compressor, A)
     # Determine the dimensions of the range approximator
-    a_rows = size(A, 1)
+    a_rows, a_cols = size(A)
     c_cols = size(compress, 2)
+    # if the blocksize zero set to be number of columns in A
+    bsize = approx.block_size == 0 ? size(A, 2) : approx.block_size
     approx_recipe = RandSVDRecipe(
         a_rows,
-        c_cols,
+        a_cols,
         compress, 
         approx.power_its,
-        approx.rand_subspace, 
+        approx.orthogonalize, 
         Matrix{type}(undef, 2, 2),
         Vector{type}(undef,2),
-        Matrix{type}(undef, 2, 2)
+        Matrix{type}(undef, 2, 2),
+        Matrix{type}(undef, c_cols, bsize) 
     )
 end
 
 function rapproximate!(approx::RandSVDRecipe, A::AbstractMatrix)
-    # User may wish to choose to use a different subspace iteration
-    if approx.rand_subspace 
+    # User may wish to choose to use a different power iteration
+    if approx.orthogonalize 
         Q = rand_power_it(A, approx)
     else
-        Q = rand_subspace_it(A, approx)
+        Q = rand_ortho_it(A, approx)
     end
     U, approx.S, approx.V = svd(Q' * A)
     approx.U = Q * U

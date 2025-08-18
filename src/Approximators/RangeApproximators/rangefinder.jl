@@ -20,34 +20,34 @@ Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish t
     ``(AA^\\top)^q AS``, this is known as taking ``q`` power iterations. Power iterations 
     drive the ``k+1`` constant in front of ``\\sigma_{k+1}`` in the bound closer to 1, 
     leading to more accurate approximations. One can also improve the stability of these 
-    power iterations be orthogonalizing each matrix in what is known as the random subspace 
-    iteration.
+    power iterations be orthogonalizing each matrix in what is known as the orthogonalized 
+    random power iteration.
 
 # Fields
 - `compressor::Compressor`, the technique that will compress the matrix from the right.
 - `power_its::Int64`, the number of power iterations that should be performed.
-- `rand_subspace::Bool`, a boolean indicating whether the `power_its` should be performed 
+- `orthogonalize::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
 """
 mutable struct RangeFinder <: RangeApproximator
     compressor::Compressor
     power_its::Int64
-    rand_subspace::Bool
-    function RangeFinder(compressor, power_its, rand_subspace)
+    orthogonalize::Bool
+    function RangeFinder(compressor, power_its, orthogonalize)
         if power_its < 0
             return throw(ArgumentError("Field `power_its` must be non-negative."))
         end
         
-        return new(compressor, power_its, rand_subspace)
+        return new(compressor, power_its, orthogonalize)
     end
 
 end
 
 RangeFinder(;
     compressor = SparseSign(), 
-    rand_subspace = false, 
+    orthogonalize = false, 
     power_its = 1
-) = RangeFinder(compressor, rand_subspace, power_its)
+) = RangeFinder(compressor, orthogonalize, power_its)
 
 """
     RangeFinderRecipe
@@ -58,7 +58,7 @@ A struct that contains the preallocated memory and completed compressor to form 
 # Fields
 - `compressor::CompressorRecipe`, the compressor to be applied from the right to ``A``.
 - `power_its::Int64`, the number of power iterations that should be performed.
-- `rand_subspace::Bool`, a boolean indicating whether the `power_its` should be performed 
+- `orthogonalize::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
 - `range::AbstractMatrix`, the orthogonal matrix that approximates the range of ``A``.
 """
@@ -67,7 +67,7 @@ mutable struct RangeFinderRecipe <: RangeApproximatorRecipe
     n_cols::Int64
     compressor::CompressorRecipe
     power_its::Int64
-    rand_subspace::Bool
+    orthogonalize::Bool
     range::AbstractMatrix
 end
 
@@ -87,17 +87,17 @@ function complete_approximator(approx::RangeFinder, A::AbstractMatrix)
         c_cols,
         compress, 
         approx.power_its,
-        approx.rand_subspace, 
+        approx.orthogonalize, 
         Matrix{type}(undef, 2, 2)
     )
 end
 
 function rapproximate!(approx::RangeFinderRecipe, A::AbstractMatrix)
-    # User may wish to choose to use a different subspace iteration
-    if approx.rand_subspace 
+    # User may wish to choose to use a different power iteration
+    if approx.orthogonalize 
         approx.range = rand_power_it(A, approx)
     else
-        approx.range = rand_subspace_it(A, approx)
+        approx.range = rand_ortho_it(A, approx)
     end
 
     return nothing

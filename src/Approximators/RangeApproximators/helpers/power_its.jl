@@ -37,7 +37,7 @@ end
 
 
 """
-    rand_subspace_it(approx::RangeFinderRecipe, A::AbstractMatrix)
+    rand_ortho_it(approx::RangeFinderRecipe, A::AbstractMatrix)
 
 Function that performs the randomized rangefinder procedure presented in Algortihm 4.4 of 
 [halko2011finding](@cite).
@@ -50,7 +50,7 @@ recipe.
 # Returns 
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
-function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
+function rand_ortho_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
     comp_mat = approx.compressor
     a_rows, a_cols = size(A)
     s_rows, s_cols = size(comp_mat)
