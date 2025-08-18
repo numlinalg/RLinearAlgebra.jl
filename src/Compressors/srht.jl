@@ -55,6 +55,7 @@ to reflect the number of columns in ``A``.
 
 ## Throws
 - `ArgumentError` if `compression_dim` is non-positive or if `block_size` is non-positive.
+- `ArgumentError` if Cardinality is not either `Left` or `Right`.
 """
 struct SRHT <: Compressor
     cardinality::Cardinality
@@ -105,7 +106,21 @@ The recipe containing all allocations and information for the SRHT compressor.
 
 # Constructor
     SRHTRecipe(
-        
+        compression_dim::Int64,
+        block_size::Int64,
+        cardinality::Left,
+        A::AbstractMatrix,
+        type::Type{<:Number}
+    )
+   
+## Keywords
+- `compression_dim::Int64`, the target compression dimension. Referred to as ``s`` in the
+    mathematical description.
+- `block_size::Int64`, the number of vectors in the padding matrix.
+- `cardinality::Left`, the direction the compression matrix is intended to be
+    applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
+- `A::AbstractMatrix`, the matrix being compressed.
+- `type::Type{<:Number}`, the type of elements in the compressor.
 """
 mutable struct SRHTRecipe{C<:Cardinality, M<:AbstractMatrix} <: CompressorRecipe
     cardinality::C

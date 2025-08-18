@@ -398,7 +398,7 @@ Random.seed!(1223)
     # Test multimplcations with right compressors
     # Here we want to test the multiplication with matrices and vectors in the 
     # transposed and normal orientations for both the three and five argument mul!
-    @testset "FJLT: Right Multiplication" begin
+    @testset "SRHT: Right Multiplication" begin
         # Do right multiplicatin from the left side
         # test right multiplication from the left with power of 2
         let n_rows = 2,
