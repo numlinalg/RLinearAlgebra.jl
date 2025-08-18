@@ -572,6 +572,7 @@ end
 include("Compressors/Distributions.jl")
 include("Compressors/gaussian.jl")
 include("Compressors/sparse_sign.jl")
+include("Compressors/count_sketch.jl")
 include("Compressors/fjlt.jl")
 include("Compressors/srht.jl")
 include("Compressors/helpers/fwht.jl")

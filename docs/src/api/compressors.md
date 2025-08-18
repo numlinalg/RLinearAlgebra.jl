@@ -33,6 +33,9 @@ GaussianRecipe
 SparseSign
 
 SparseSignRecipe
+CountSketch
+
+CountSketchRecipe
 
 SRHT 
 
