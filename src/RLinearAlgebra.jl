@@ -10,6 +10,7 @@ import SparseArrays: SparseMatrixCSC, sprandn
 include("Compressors.jl")
 include("Solvers.jl")
 include("Approximators.jl")
+include("helpers/mul_dim_checks.jl")
 
 # Export Approximator types and functions
 export Approximator, ApproximatorRecipe, ApproximatorAdjoint
