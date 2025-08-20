@@ -326,35 +326,3 @@ function rsolve!(
 
     return nothing 
 end
-
-#----------------------------------------------------------------------
-"""
-    LSgradient <: SolverErrorRecipe
-
-A structure for the full gradient of ||b-Ax||_2^2, `A'(b-Ax)`.
-
-# Fields
-- `gradient::AbstractVector`, a container for the full gradient.
-"""
-struct LSgradient <: SolverError end
-
-mutable struct LSgradientRecipe{V<:AbstractVector} <: SolverErrorRecipe
-    gradient::V
-end
-
-function complete_error(error::LSgradient, A::AbstractMatrix, b::AbstractVector)
-    return LSgradientRecipe{typeof(b)}(zeros(size(A,2)))
-end
-
-function compute_error(
-        error::LSgradientRecipe, 
-        solver::col_projectionRecipe, 
-        A::AbstractMatrix, 
-        b::AbstractVector
-    )::Float64
-    # copyto!(error.gradient, b)
-    # coompute A'r
-    mul!(error.gradient, A', solver.residual_vec) 
-    
-    return dot(error.gradient, error.gradient)
-end
