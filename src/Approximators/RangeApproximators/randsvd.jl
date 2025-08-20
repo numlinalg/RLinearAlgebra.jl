@@ -62,7 +62,7 @@ end
 RandSVD(;
     compressor = SparseSign(), 
     orthogonalize = false, 
-    power_its = 1,
+    power_its = 0,
     block_size = 0,
 ) = RandSVD(compressor, power_its, orthogonalize, block_size)
 

@@ -46,7 +46,7 @@ end
 RangeFinder(;
     compressor = SparseSign(), 
     orthogonalize = false, 
-    power_its = 1
+    power_its = 0
 ) = RangeFinder(compressor, orthogonalize, power_its)
 
 """
