@@ -57,6 +57,17 @@ function RLinearAlgebra.mul!(
     mul!(C, A, S.op, alpha, beta)
 end
 
+# Define a left mul function for test compressor
+function RLinearAlgebra.mul!(
+    C::AbstractArray,
+    S::Main.col_projectionTest.ColTestCompressorRecipe, 
+    A::AbstractArray,
+    alpha::Number, 
+    beta::Number
+)
+    mul!(C, S.op, A, alpha, beta)
+end
+
 ##########################
 # Error Method
 ##########################
@@ -378,95 +389,231 @@ end
         end
         
     end
-    # @testset "col_projection: Column Projection Update" begin
-    #     # Begin with a test of an update when the block size is 1
-    #     for type in [Float32, Float64, ComplexF32, ComplexF64]
-    #         let A = rand(type, n_rows, n_cols),
-    #             xsol = ones(type, n_cols),
-    #             b = A * xsol,
-    #             comp_dim = 1,
-    #             alpha = 1.0,
-    #             n_rows = size(A, 1),
-    #             n_cols = size(A, 2),
-    #             x = zeros(type, n_cols)
 
-    #             comp = ColTestCompressor(Right(), comp_dim)
-    #             log = ColTestLog()
-    #             err = ColTestError()
-    #             sub_solver = ColTestSubSolver()
-    #             solver = col_projection(
-    #                 compressor = comp,
-    #                 log = log,
-    #                 error = err,
-    #                 sub_solver = sub_solver,
-    #                 alpha = alpha
-    #             )
+    @testset "col_projection: Column Projection Update" begin
+        # Begin with a test of an update when the block size is 1
+        for type in [Float32, Float64, ComplexF32, ComplexF64]
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
 
-    #             solver_rec = complete_solver(solver, x, A, b)
+                comp = ColTestCompressor(Right(), comp_dim)
+                log = ColTestLog()
+                err = ColTestError()
+                sub_solver = ColTestSubSolver()
+                solver = col_projection(
+                    compressor = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
 
-    #             # Sketch the matrix and vector
-    #             As = A * solver_rec.compressor
-    #             solver_rec.mat_view = view(As, :, 1:comp_dim)
-    #             solver_rec.solution_vec = deepcopy(x) 
-    #             solver_rec.residual_vec = b - As
-    #             solver.solution_vec = x
+                solver_rec = complete_solver(solver, x, A, b)
 
-    #             # compute comparison update
-    #             sc = dot(solver.mat_view, residual_vec) / dot(As, As) * alpha
-    #             test_sol = x - solver.S * sc
+                # Sketch the matrix and vector
+                As = A * solver_rec.S
+                solver_rec.mat_view = view(As, :, 1:comp_dim)
+                solver_rec.solution_vec = deepcopy(x) 
+                solver_rec.residual_vec .= b .- As
 
-    #             # compute the update
-    #             RLinearAlgebra.col_projection_update!(solver_rec)
-    #             @test solver_rec.solution_vec ≈ test_sol
-    #         end
+                # compute comparison update
+                sc = dot(solver_rec.mat_view, solver_rec.residual_vec) / dot(solver_rec.mat_view, solver_rec.mat_view) * alpha
+                # lift sc to a 1-dimensinoal vec
+                sc_vec = fill(sc, 1)
+                #test_sol = x - solver_rec.S * sc
+                test_sol = deepcopy(x)
+                RLinearAlgebra.mul!(test_sol, solver_rec.S, sc_vec, -1.0, 1.0)
 
-    #     end
+                # compute the update
+                RLinearAlgebra.col_proj_update!(solver_rec)
+                @test solver_rec.solution_vec ≈ test_sol
+            end
 
-    # end
+        end
 
-    # @testset "col_projection: Block Column Projection Update" begin
-    #     # Begin with a test of an update when the block size is 2
-    #     for type in [Float32, Float64, ComplexF32, ComplexF64]
-    #         let A = rand(type, n_rows, n_cols),
-    #             xsol = ones(type, n_cols),
-    #             b = A * xsol,
-    #             comp_dim = 1,
-    #             alpha = 1.0,
-    #             n_rows = size(A, 1),
-    #             n_cols = size(A, 2),
-    #             x = zeros(type, n_cols)
+    end
 
-    #             comp = ColTestCompressor(Left(), comp_dim)
-    #             log = ColTestLog()
-    #             err = ColTestError()
-    #             sub_solver = ColTestSubSolver()
-    #             solver = col_projection(
-    #                 compressor = comp,
-    #                 log = log,
-    #                 error = err,
-    #                 sub_solver = sub_solver,
-    #                 alpha = alpha
-    #             )
+    @testset "col_projection: Block Column Projection Update" begin
+        # Begin with a test of an update when the block size is 2
+        for type in [Float32, Float64, ComplexF32, ComplexF64]
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 2,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
 
-    #             solver_rec = complete_solver(solver, x, A, b)
+                comp = ColTestCompressor(Right(), comp_dim)
+                log = ColTestLog()
+                err = ColTestError()
+                sub_solver = ColTestSubSolver()
+                solver = col_projection(
+                    compressor = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
 
-    #             # Sketch the matrix and vector
-    #             sA = solver_rec.compressor * A 
-    #             solver_rec.vec_view = view(sb, 1:comp_dim)
-    #             solver_rec.mat_view = view(sA, 1:comp_dim, :)
-    #             solver_rec.solution_vec = deepcopy(x) 
+                solver_rec = complete_solver(solver, x, A, b)
 
-    #             # compute comparison update
-    #             test_sol =  x + As \ (sb - sA * x)
+                # Sketch the matrix and vector
+                As = A * solver_rec.S
+                solver_rec.mat_view = view(As, :, 1:comp_dim)
+                solver_rec.solution_vec = deepcopy(x) 
+                solver_rec.residual_vec = b - A * x
 
-    #             # compute the update
-    #             RLinearAlgebra.col_update_block!(solver_rec)
-    #             @test solver_rec.solution_vec ≈ test_sol
-    #         end
+                # # compute comparison update
+                test_sol = deepcopy(x)
+                #RLinearAlgebra.mul!(test_sol, solver_rec.S, sc_vec, -1.0, 1.0)
 
-    #    end
+                test_update = solver_rec.mat_view \ solver_rec.residual_vec
+                RLinearAlgebra.mul!(test_sol, solver_rec.S, test_update, -alpha, 1)
 
-    #end
+                # compute the update
+                RLinearAlgebra.col_proj_update_block!(solver_rec)
+                # @test solver_rec.solution ≈ 
+                @test solver_rec.solution_vec ≈ test_sol
+            end
+
+        end
+
+    end
+
+    #################################### rsolve! to add ComplexF32 and ComplexF64 ################################
+    @testset "col_projection: rsolve!" begin
+        # test when the block size is one maxit stop
+        for type in [Float16, Float32, Float64]
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+
+                x = zeros(type, n_cols)
+                x_st = deepcopy(x)
+                comp = ColTestCompressor(Right(), comp_dim)
+                # check after 10 iterations
+                log = ColTestLog(10, 0.0)
+                err = ColTestError()
+                sub_solver = ColTestSubSolver()
+                solver = col_projection(
+                    compressor = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+
+                solver_rec = complete_solver(solver, x, A, b)
+                result = rsolve!(solver_rec, x, A, b)
+                # test that the residual decrease is acceptable
+                @test norm(b - A * x) < norm(b - A * x_st)
+            end
+
+            # test when the block size is greater than 1 maxit stop
+            let A = rand(type, n_rows, n_cols),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 2,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                x_st = deepcopy(x)
+
+                comp = ColTestCompressor(Right(), comp_dim)
+                #check 10 iterations
+                log = ColTestLog(10, 0.0)
+                err = ColTestError()
+                sub_solver = ColTestSubSolver()
+                solver = col_projection(
+                    compressor = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+
+                solver_rec = complete_solver(solver, x, A, b)
+                result = rsolve!(solver_rec, x, A, b)
+                # test that the residual decrease is acceptable
+                @test norm(b - A * x) < norm(b - A * x_st)
+            end
+
+            # test when the block size is one threshold stop 
+            let A = Array(transpose(qr(transpose(rand(type, n_rows, n_cols))).Q)),
+                xsol = ones(type, n_cols), 
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                x_st = deepcopy(x)
+
+                comp = ColTestCompressor(Right(), comp_dim)
+                # check after 50 iterations
+                log = ColTestLog(50, 0.5)
+                err = ColTestError()
+                sub_solver = ColTestSubSolver()
+                solver = col_projection(
+                    compressor = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+
+                solver_rec = complete_solver(solver, x, A, b)
+                result = rsolve!(solver_rec, x, A, b)
+                # test that the solver actually converged
+                @test solver_rec.log.converged
+            end
+
+            # test when the block size is greter than 1 using threshold stop 
+            let A = Array(transpose(qr(transpose(rand(type, n_rows, n_cols))).Q)),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 2,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                x_st = deepcopy(x)
+
+                comp = ColTestCompressor(Right(), comp_dim)
+                #check 50 iterations
+                log = ColTestLog(50, 0.5)
+                err = ColTestError()
+                sub_solver = ColTestSubSolver()
+                solver = col_projection(
+                    compressor = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+
+                solver_rec = complete_solver(solver, x, A, b)
+                result = rsolve!(solver_rec, x, A, b)
+                # test that the solver actually converged
+                @test solver_rec.log.converged
+            end
+
+        end
+
+    end                
 
 end
 
