@@ -128,12 +128,17 @@ end
 
 function rapproximate!(approx::RandSVDRecipe, A::AbstractMatrix)
     # User may wish to choose to use a different power iteration
+    
     if approx.orthogonalize 
-        Q = rand_power_it(A, approx)
+        Q = rand_ortho_it(A, approx) 
     else
-        Q = rand_ortho_it(A, approx)
+        Q = rand_power_it(A, approx)
     end
-    U, approx.S, approx.V = svd(Q' * A)
+
+    QA = Matrix{Float64}(undef, size(Q, 2), size(A, 2))
+    # Making Q an Array is far more efficient than not
+    mul!(QA, Q', A)
+    U, approx.S, approx.V = svd(QA)
     approx.U = Q * U
     return nothing
 end

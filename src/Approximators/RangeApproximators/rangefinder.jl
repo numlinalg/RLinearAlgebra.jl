@@ -95,9 +95,9 @@ end
 function rapproximate!(approx::RangeFinderRecipe, A::AbstractMatrix)
     # User may wish to choose to use a different power iteration
     if approx.orthogonalize 
-        approx.range = rand_power_it(A, approx)
-    else
         approx.range = rand_ortho_it(A, approx)
+    else
+        approx.range = rand_power_it(A, approx)
     end
 
     return nothing

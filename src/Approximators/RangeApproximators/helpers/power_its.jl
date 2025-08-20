@@ -31,8 +31,8 @@ function rand_power_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
     
     end
     
-    # Return the economical qr of the matrix Q
-    return view(qr!(compressed_mat).Q, :, 1:s_cols) 
+    # Return the economical qr of the matrix Q using Array call for efficiency
+    return Array(qr!(compressed_mat).Q) 
 end
 
 
@@ -65,14 +65,16 @@ function rand_ortho_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
         for i in 1:approx.power_its
             # Perform the power iterations based on the recusion Q_{i'} = qr(A'Q_{i-1}).Q 
             # Q_i = qr(A*Q_{i'}).Q this helps limit rounding errors
-            mul!(buff_mat, A', view(Q, :, 1:s_cols))
-            Q = qr!(buff_mat).Q
-            mul!(compressed_mat, A, view(Q, :, 1:s_cols))
-            Q = qr!(compressed_mat).Q
+            @elapsed mul!(buff_mat, A', Q)
+            # taking the array is way faster and leads to way fewer memory allocations
+            Q = Array(qr!(buff_mat).Q)
+            # taking the array is way faster and leads to way fewer memory allocations
+            @elapsed mul!(compressed_mat, A, Q)
+            Q = Array(qr!(compressed_mat).Q)
         end
     
     end
     
-    # Return the economical qr of the matrix Q
-    return view(Q, :, 1:s_cols)    
+    # Return the economical qr of the matrix Q using Array call for efficiency
+    return Array(Q)    
 end
