@@ -4,7 +4,7 @@ import Base: transpose, adjoint
 import LinearAlgebra: Adjoint, axpby!, dot, ldiv!, lmul!, lq!, lq, LQ, mul!, norm, qr!, I
 import StatsBase: sample!, ProbabilityWeights, wsample!
 import Random: bitrand, rand!, randn!
-import SparseArrays: SparseMatrixCSC, sprandn
+import SparseArrays: SparseMatrixCSC, sprandn, sparse
 
 # Include the files correspoding to the top-level techniques
 include("Compressors.jl")
@@ -21,10 +21,11 @@ export RangeFinder, RangeFinderRecipe
 export Compressor, CompressorRecipe, CompressorAdjoint
 export Cardinality, Left, Right, Undef
 export complete_compressor, update_compressor!
+export CountSketch, CountSketchRecipe
 export FJLT, FJLTRecipe
 export Gaussian, GaussianRecipe
-export SparseSign, SparseSignRecipe
 export Sampling, SamplingRecipe
+export SparseSign, SparseSignRecipe
 
 # Export Distribution types and functions
 export Distribution, DistributionRecipe

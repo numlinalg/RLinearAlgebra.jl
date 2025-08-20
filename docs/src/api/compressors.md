@@ -22,15 +22,22 @@ Undef
 
 ## Compressor Structures
 ```@docs
+CountSketch
+
+CountSketchRecipe
+
 FJLT
 
 FJLTRecipe
+
 Gaussian
 
 GaussianRecipe
+
 Sampling
 
 SamplingRecipe
+
 SparseSign
 
 SparseSignRecipe
