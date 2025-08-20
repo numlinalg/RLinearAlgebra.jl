@@ -44,30 +44,34 @@ Random.seed!(2131)
         end
 
         # Specific cardinality
-        let card_val = Right()
-            dist_instance = Uniform(cardinality=card_val) 
+        let card_val = Right(),
+            dist_instance = Uniform(cardinality=card_val), 
             compressor = Sampling(; cardinality=card_val, distribution=dist_instance)
+
             @test compressor.cardinality == card_val
             @test compressor.distribution.cardinality == card_val
         end
 
-        let card_val = Left()
-            dist_instance = Uniform(cardinality=card_val)
+        let card_val = Left(),
+            dist_instance = Uniform(cardinality=card_val),
             compressor = Sampling(; cardinality=card_val, distribution=dist_instance)
+
             typeof(compressor.cardinality) == Cardinality
             @test compressor.cardinality == card_val
             @test compressor.distribution.cardinality == card_val
         end
 
         # Test with specific compression_dim
-        let comp_dim_val = 15
+        let comp_dim_val = 15,
             compressor = Sampling(; compression_dim=comp_dim_val)
+            
             @test compressor.compression_dim == comp_dim_val
         end
 
         # Test with specific distribution instance
-        let my_dist = Uniform(cardinality=Right(), replace=true)
+        let my_dist = Uniform(cardinality=Right(), replace=true),
             compressor = Sampling(; distribution=my_dist)
+
             @test compressor.distribution === my_dist
             @test compressor.distribution.cardinality == Right()
             @test compressor.distribution.replace == true
@@ -77,9 +81,10 @@ Random.seed!(2131)
         end
 
         # Test combination of specific arguments
-        let final_card = Right(), final_cdim = 22
-            final_dist = Uniform(cardinality=final_card, replace=false)
+        let final_card = Right(), final_cdim = 22,
+            final_dist = Uniform(cardinality=final_card, replace=false),
             compressor = Sampling(; cardinality=final_card, compression_dim=final_cdim, distribution=final_dist)
+
             @test compressor.cardinality == final_card
             @test compressor.compression_dim == final_cdim
             @test compressor.distribution === final_dist
