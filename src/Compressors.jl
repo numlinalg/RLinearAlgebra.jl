@@ -325,7 +325,7 @@ $(comp_method_description[:mul_check] * " from the left.")
 """
 function left_mul_dimcheck(
     C::AbstractArray, 
-    S::CompressorRecipe, 
+    S::Union{CompressorRecipe, ApproximatorRecipe},
     A::AbstractArray
 )
     s_rows, s_cols = size(S, 1), size(S, 2)
@@ -366,7 +366,7 @@ $(comp_method_description[:mul_check] * " from the left.")
 """
 function left_mul_dimcheck(
     C::AbstractArray, 
-    S::CompressorAdjoint,
+    S::Union{CompressorAdjoint, ApproximatorAdjoint},
     A::AbstractArray
 )
     # Checks S' * A -> C via A * S' -> C' 
@@ -394,7 +394,7 @@ $(comp_method_description[:mul_check] * " from the right.")
 function right_mul_dimcheck(
     C::AbstractArray, 
     A::AbstractArray, 
-    S::CompressorRecipe
+    S::Union{CompressorRecipe, ApproximatorRecipe}
 )
     s_rows, s_cols = size(S, 1), size(S, 2)
     a_rows, a_cols = size(A, 1), size(A, 2)
@@ -435,7 +435,7 @@ $(comp_method_description[:mul_check] * " from the right.")
 function right_mul_dimcheck(
     C::AbstractArray,
     A::AbstractArray,
-    S::CompressorAdjoint
+    S::Union{CompressorAdjoint, ApproximatorAdjoint}
 )
     left_mul_dimcheck(transpose(C), S.parent, transpose(A))
     return nothing 

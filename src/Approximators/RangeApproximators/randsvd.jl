@@ -152,18 +152,18 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    left_mul_dimcheck!(C, A, R)
+    left_mul_dimcheck(C, R, A)
     buff_size = size(R.buffer, 2)
     a_cols = size(A, 2)
     n_its = div(a_cols, buff_size)
     remaining_vals = rem(a_cols, buff_size)
     start_idx = 1
     for i in 1:n_its
-        last_idx = start_idx + buff_size
+        last_idx = start_idx + buff_size - 1
         # define views at current blocks of A and C
         Av = view(A, :, start_idx:last_idx)
         Cv = view(C, :, start_idx:last_idx)
-        # apply the V matrix to the current block of A, use zero to ensure buffer is zerod
+        # apply the V matrix to the current block of A, use zero to ensure buffer is zeroed
         mul!(R.buffer, R.V', Av, alpha, 0.0)
         # apply diagonal matrix
         R.buffer .*= R.S
@@ -172,14 +172,14 @@ function mul!(
         start_idx = last_idx + 1
     end
 
-    if rem != 0
-        last_idx = start_idx + 1
+    if remaining_vals != 0
+        last_idx = start_idx + remaining_vals - 1
         # define views at current blocks of A and C
         Av = view(A, :, start_idx:last_idx)
         Cv = view(C, :, start_idx:last_idx)
         # define view at only necessary portion of buffer
-        buffer_v = view(R.buffer, :, 1:rem)
-        # apply the V matrix to the current block of A, use zero to ensure buffer is zerod
+        buffer_v = view(R.buffer, :, 1:remaining_vals)
+        # apply the V matrix to the current block of A, use zero to ensure buffer is zeroed
         mul!(buffer_v, R.V', Av, alpha, 0.0)
         # apply diagonal matrix
         buffer_v .*= R.S
@@ -200,19 +200,19 @@ function mul!(
     alpha::Number, 
     beta::Number
 )
-    right_mul_dimcheck!(C, A, R)
+    right_mul_dimcheck(C, A, R)
     buff_size = size(R.buffer, 2)
     a_rows = size(A, 1)
     n_its = div(a_rows, buff_size)
     remaining_vals = rem(a_rows, buff_size)
     start_idx = 1
     for i in 1:n_its
-        last_idx = start_idx + buff_size
+        last_idx = start_idx + buff_size - 1
         # define views at current blocks of A and C
         Av = view(A, start_idx:last_idx, :)
         Cv = view(C, start_idx:last_idx, :)
-        # apply the V matrix to the current block of A, use zero to ensure buffer is zerod
-        mul!(R.buffer', Av, U, alpha, 0.0)
+        # apply the V matrix to the current block of A, use zero to ensure buffer is zeroed
+        mul!(R.buffer', Av, R.U, alpha, 0.0)
         # apply diagonal matrix (DA')' = AD
         R.buffer .*= R.S
         # apply U and store in current block of C indices and scale C with beta
@@ -220,8 +220,8 @@ function mul!(
         start_idx = last_idx + 1
     end
 
-    if rem != 0
-        last_idx = start_idx + 1
+    if remaining_vals != 0
+        last_idx = start_idx + remaining_vals - 1
         # define views at current blocks of A and C
         Av = view(A, start_idx:last_idx, :)
         Cv = view(C, start_idx:last_idx, :)
@@ -229,9 +229,9 @@ function mul!(
         # fashion where the number of rows is k and the number of columns is block_size
         # we still want this view to be over the columns even though the views for A and C
         # are on the rows
-        buffer_v = view(R.buffer, :, 1:rem)
-        # apply the V matrix to the current block of A, use zero to ensure buffer is zerod
-        mul!(buffer_v', Av, U, alpha, 0.0)
+        buffer_v = view(R.buffer, :, 1:remaining_vals)
+        # apply the V matrix to the current block of A, use zero to ensure buffer is zeroed
+        mul!(buffer_v', Av, R.U, alpha, 0.0)
         # apply diagonal matrix (DA')' = AD
         buffer_v .*= R.S
         # apply U and store in current block of C indices and scale C with beta
