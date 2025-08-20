@@ -64,9 +64,7 @@ affect convergence.
 
 ## Returns 
 - A `col_projection` object.
-
 """
-#------------------------------------------------------------------
 mutable struct col_projection <: Solver 
     alpha::Float64
     compressor::Compressor
