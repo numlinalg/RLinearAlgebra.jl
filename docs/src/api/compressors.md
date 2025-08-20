@@ -41,6 +41,10 @@ SamplingRecipe
 SparseSign
 
 SparseSignRecipe
+
+SRHT 
+
+SRHTRecipe
 ```
 
 ## Exported  Functions

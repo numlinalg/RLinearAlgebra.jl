@@ -576,4 +576,4 @@ include("Compressors/fjlt.jl")
 include("Compressors/gaussian.jl") 
 include("Compressors/sampling.jl")
 include("Compressors/sparse_sign.jl")
-
+include("Compressors/srht.jl")
