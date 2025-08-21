@@ -20,6 +20,7 @@ sub_solver_arg_list = Dict{Symbol,String}(
     :sub_solver_recipe => "`solver::SubSolverRecipe`, a fully initialized realization for a
     linear sub-solver.",
     :A => "`A::AbstractArray`, a coefficient matrix or vector.",
+    :b => "`b::AbstractArray`, a constant matrix or vector.",
 )
 
 sub_solver_output_list = Dict{Symbol,String}(
@@ -51,6 +52,23 @@ function complete_sub_solver(solver::SubSolver, A::AbstractArray)
             $(typeof(solver)) and $(typeof(A))."
         )
     )
+end
+
+"""
+    complete_sub_solver(solver::SubSolver, A::AbstractArray, b::AbstractArray)
+
+$(sub_solver_method_description[:complete_sub_solver])
+
+# Arguments
+- $(sub_solver_arg_list[:sub_solver])
+- $(sub_solver_arg_list[:A]) 
+- $(sub_solver_arg_list[:b]) 
+
+# Returns 
+- $(sub_solver_output_list[:sub_solver_recipe])
+"""
+function complete_sub_solver(solver::SubSolver, A::AbstractArray, b::AbstractArray)
+    complete_sub_solver(solver, A)
 end
 
 """
