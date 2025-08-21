@@ -26,9 +26,22 @@ When the singular values decay slowly, we can apply ``A`` and ``A^\\top``, ``q``
     Using these power iterations increases the relative gap between the singular values, 
     which leads to  better RandomizedSVD performance. 
 
-Power iterations can be unstable. Luckily, their stability  can be improved by 
-    orthogonalizing ``AS`` after each application of ``A`` and ``A^\\top`` in what is known 
-    as the orthogonalized power iteration. After computing ``Q`` the RandomizedSVD 
+Performing power iterations in floating points can destroy all information 
+    related to the smallest singular values of ``A`` 
+    (see Remark 4.3 in [halko2011finding](@cite)). We can preserve this information by 
+    orthogonalizing in between products of ``AS`` with ``A`` or ``A^\\top`` 
+    in the power iteration. For one power iteration this would involve the following steps.
+        1. ``\\tilde{A}_1 = AS``  
+        2. ``Q_1,R_1 = \\textbf{qr}(\\tilde{A}_1)``  
+        3. ``\\tilde{A}_2 = A^\\top Q_1``  
+        4. ``Q_2,R_2 = \\textbf{qr}(\\tilde{A}_2)``  
+        5. ``\\tilde{A}_1 = A Q_2``  
+        6. ``Q_1, R_1 = \\textbf{qr}(\\tilde{A}_1)``  
+        7. Repeat Steps 3 through 6 for the desired number of power iterations 
+        set ``Q = Q_1``. These steps are known as the orthogonalized power 
+        iteration (see Algorithm 4.4 of [halko2011finding](@cite)).  
+    
+After computing ``Q`` the RandomizedSVD 
     concludes by computing ``W,S,V = \\text{SVD}(Q^\\top A)`` and  setting ``U = QW``.
 
 # Fields
@@ -36,9 +49,35 @@ Power iterations can be unstable. Luckily, their stability  can be improved by
 - `power_its::Int64`, the number of power iterations that should be performed.
 - `orthogonalize::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
--`block_size::Int64`, the size of the tile when performing matrix multiplication. By 
+- `block_size::Int64`, the size of the tile when performing matrix multiplication. By 
     default, `block_size = 0`, this will be set to be the number of columns in 
     the original matrix.
+
+# Constructor
+    
+    RandSVD(;
+        compressor::Compressor = SparseSign(), 
+        orthogonalize::Bool  = false, 
+        power_its::Int64 = 0,
+        block_size::Int64 = 0,
+    )
+
+## Keywords    
+- `compressor::Compressor`, the technique for compressing the matrix from the right. By 
+    default this is `SparseSign`.
+- `power_its::Int64`, the number of power iterations that should be performed. By default 
+    this is zero.
+- `orthogonalize::Bool`, a boolean indicating whether the `power_its` should be performed 
+    with orthogonalization. By default is false.
+-`block_size::Int64`, the size of the tile when performing matrix multiplication. By 
+    default, `block_size = 0`, this will be set to be the number of columns in 
+    the original matrix. By default this is zero.
+
+## Returns
+- A `RandSVD` object.
+
+# Throws
+- `ArgumentError` if `power_its` or `block_size` are negative.
 """
 mutable struct RandSVD <: RangeApproximator
     compressor::Compressor
@@ -60,10 +99,10 @@ mutable struct RandSVD <: RangeApproximator
 end
 
 RandSVD(;
-    compressor = SparseSign(), 
-    orthogonalize = false, 
-    power_its = 0,
-    block_size = 0,
+    compressor::Compressor = SparseSign(), 
+    orthogonalize::Bool  = false, 
+    power_its::Int64 = 0,
+    block_size::Int64 = 0,
 ) = RandSVD(compressor, power_its, orthogonalize, block_size)
 
 """
