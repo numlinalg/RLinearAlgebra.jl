@@ -10,24 +10,63 @@ Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish t
     rank approximation that approximately captures the range of ``A``. Specifically, we wish
     to find an Orthogonal matrix ``Q`` such that ``QQ^\\top A \\approx A``. 
 
-    A simple way to find such a matrix is to choose a ``k`` representing the number of 
+A simple way to find such a matrix is to choose a ``k`` representing the number of 
     vectors we wish to have in the subspace. Then we can generate a compression matrix 
     ``S\\in\\mathbb{R}^{n \\times k}`` and compute ``Q = \\text{qr}(AS)``. 
     With high probability we will have ``\\|A - QQ^\\top A\\|_2 \\leq
-    (k+1) \\sigma_{k+1}``, where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
-    of A. This bound is often conservative when the singular values of ``A`` decay quickly. 
-    In the case where the singular values decay slowly, by computing the qr factorization of
-    ``(AA^\\top)^q AS``, this is known as taking ``q`` power iterations. Power iterations 
-    drive the ``k+1`` constant in front of ``\\sigma_{k+1}`` in the bound closer to 1, 
-    leading to more accurate approximations. One can also improve the stability of these 
-    power iterations be orthogonalizing each matrix in what is known as the orthogonalized 
-    random power iteration.
+    \\sqrt{k+1} (\\sum_{i=k+1}^{\\min{(m,n)}}\\sigma_{i})^{1/2}``, 
+    where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
+    of A (see Theorem 10.5 of [halko2011finding](@cite)). This bound is often conservative 
+    as long as the singular values of ``A`` decay quickly.  
+    
+When the singular values decay slowly, we can improve the quality of the approximation using the 
+    power iteration, which applies ``A`` and ``A^\\top``, ``q`` times 
+    and take the qr factorization of ``(AA^\\top)^q AS``. Using these power iterations increases the 
+    relative gap between the singular values leading to  better Rangefinder performance. 
+
+Performing power iterations in floating points can destroy all information 
+    related to the smallest singular values of ``A`` 
+    (see Remark 4.3 in [halko2011finding](@cite)). We can preserve this information by 
+    orthogonalizing inbetween the products of ``AS`` with ``A`` or ``A^\\top`` 
+    in the power iteration. These steps are known as the orthogonalized power 
+    iteration (see Algorithm 4.4 of [halko2011finding](@cite)).  
+    Orthogonalized power iterations progress according to the following steps:
+
+1. ``\\tilde{A}_1 = AS``  
+2. ``Q_1,R_1 = \\textbf{qr}(\\tilde{A}_1)``  
+3. ``\\tilde{A}_2 = A^\\top Q_1``  
+4. ``Q_2,R_2 = \\textbf{qr}(\\tilde{A}_2)``  
+5. ``\\tilde{A}_1 = A Q_2``  
+6. ``Q_1, R_1 = \\textbf{qr}(\\tilde{A}_1)``  
+7. Repeat Steps 3 through 6 for the desired number of power iterations 
+   set ``Q = Q_1``. 
 
 # Fields
 - `compressor::Compressor`, the technique that will compress the matrix from the right.
 - `power_its::Int64`, the number of power iterations that should be performed.
 - `orthogonalize::Bool`, a boolean indicating whether the `power_its` should be performed 
     with orthogonalization.
+
+# Constructor
+    
+    RangeFinder(;
+        compressor = SparseSign(), 
+        orthogonalize = false, 
+        power_its = 0
+    )
+
+## Keywords    
+- `compressor::Compressor`, the technique that will compress the matrix from the right.
+- `power_its::Int64`, the number of power iterations that should be performed. Default is
+    zero.
+- `orthogonalize::Bool`, a boolean indicating whether the `power_its` should be performed 
+    with orthogonalization. Default is false.
+
+## Returns
+- A `RangeFinder` object.
+
+# Throws
+- `ArgumentError` if `power_its` is negative.
 """
 mutable struct RangeFinder <: RangeApproximator
     compressor::Compressor
@@ -44,7 +83,7 @@ mutable struct RangeFinder <: RangeApproximator
 end
 
 RangeFinder(;
-    compressor = SparseSign(), 
+    compressor = SparseSign(cardinality = Right()), 
     orthogonalize = false, 
     power_its = 0
 ) = RangeFinder(compressor, orthogonalize, power_its)
