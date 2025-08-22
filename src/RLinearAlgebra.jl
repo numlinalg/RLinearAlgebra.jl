@@ -1,7 +1,8 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
-import LinearAlgebra: Adjoint, axpby!, dot, ldiv!, lmul!, lq!, lq, LQ, mul!, norm, qr!, I
+import LinearAlgebra: Adjoint, axpby!, dot, I, ldiv!, lmul!, lq!, lq, LQ, mul!, norm, qr!, svd
+import StatsBase: sample!, ProbabilityWeights, wsample!
 import Random: bitrand, rand!, randn!
 import SparseArrays: SparseMatrixCSC, sprandn, sparse
 import StatsBase: sample, sample!, ProbabilityWeights, wsample!
@@ -10,12 +11,14 @@ import StatsBase: sample, sample!, ProbabilityWeights, wsample!
 include("Compressors.jl")
 include("Solvers.jl")
 include("Approximators.jl")
+include("helpers/mul_dim_checks.jl")
 
 # Export Approximator types and functions
 export Approximator, ApproximatorRecipe, ApproximatorAdjoint
 export rapproximate, rapproximate!, complete_approximator
 export RangeApproximator, RangeApproximatorRecipe
 export RangeFinder, RangeFinderRecipe
+export RandSVD, RandSVDRecipe
 
 # Export Compressor types and functions
 export Compressor, CompressorRecipe, CompressorAdjoint

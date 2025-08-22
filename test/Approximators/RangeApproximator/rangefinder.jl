@@ -43,28 +43,28 @@ end
         supertype(RangeFinder) == Approximator
 
         # test the fieldnames and types
-        fieldnames(RangeFinder) == (:compressor, :power_its, :rand_subspace)
+        fieldnames(RangeFinder) == (:compressor, :power_its, :orthogonalize)
         fieldtypes(RangeFinder) == (Compressor, Int64, Bool)
         
         # test errors
         let compressor = TestCompressor(),
             power_its = -1,
-            rand_subspace = false
+            orthogonalize = false
 
             @test_throws ArgumentError(
                 "Field `power_its` must be non-negative."
-            ) RangeFinder(compressor, power_its, rand_subspace)
+            ) RangeFinder(compressor, power_its, orthogonalize)
         end
 
         # Test constructor
         let compressor = TestCompressor(),
             power_its = 2,
-            rand_subspace = false,
-            rf = RangeFinder(compressor, power_its, rand_subspace) 
+            orthogonalize = false,
+            rf = RangeFinder(compressor, power_its, orthogonalize) 
 
             @test typeof(rf.compressor) == TestCompressor
             @test rf.power_its == 2
-            @test rf.rand_subspace == false
+            @test rf.orthogonalize == false
         end
     
     end
@@ -75,7 +75,7 @@ end
 
         # test the fieldnames and types
         @test fieldnames(RangeFinderRecipe) == (
-            :n_rows, :n_cols, :compressor, :power_its, :rand_subspace, :range
+            :n_rows, :n_cols, :compressor, :power_its, :orthogonalize, :range
         )
         @test fieldtypes(RangeFinderRecipe) == (
             Int64, Int64, CompressorRecipe, Int64, Bool, AbstractMatrix
@@ -96,7 +96,7 @@ end
             approx_rec.compressor.cardinality == Right()
 
             @test approx_rec.power_its == 2
-            @test approx_rec.rand_subspace == true
+            @test approx_rec.orthogonalize == true
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 5
         end
@@ -117,7 +117,7 @@ end
             approx_rec.compressor.cardinality == Left()
             
             @test approx_rec.power_its == 2
-            @test approx_rec.rand_subspace == false 
+            @test approx_rec.orthogonalize == false 
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 5
         end
@@ -165,7 +165,7 @@ end
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             approx_rec.compressor.cardinality == Right()
             @test approx_rec.power_its == 2
-            @test approx_rec.rand_subspace == false
+            @test approx_rec.orthogonalize == false
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal
@@ -183,7 +183,7 @@ end
         end
 
         # By testing the rapproximate function we also test rapproximate!
-        # with subspace iterations
+        # with orthogonalized power iterations
         let n_rows = 10,
             n_cols = 10,
             compression_dim = 5,
@@ -208,7 +208,7 @@ end
         end
 
         # Test that compression_dim == n_rows gives a matrix that spans the range of A 
-        # with subspace iterations, so that the approximation is exact
+        # with orthogonalized power iterations, so that the approximation is exact
         let n_rows = 10,
             n_cols = 10,
             compression_dim = 10,
@@ -222,7 +222,7 @@ end
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             approx_rec.compressor.cardinality == Right()
             @test approx_rec.power_its == 2
-            @test approx_rec.rand_subspace == true
+            @test approx_rec.orthogonalize == true
             @test approx_rec.n_rows == 10
             @test approx_rec.n_cols == 10 
             # Check that the matrix is orthogonal

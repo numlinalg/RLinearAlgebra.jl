@@ -79,7 +79,7 @@ end
     
     end
     
-    @testset "Subspace Iteration Test" begin 
+    @testset "Orthogonalzed Power Iteration Test" begin 
         let A = deepcopy(A),
             power_it = 0,
             C = deepcopy(C)
@@ -87,7 +87,7 @@ end
             # Start by testing the case with zero power iterations
             approx = TestRangeApproximatorRecipe(C, power_it)
             # Produce the Q from the function call
-            Q_func = RLinearAlgebra.rand_subspace_it(A, approx)
+            Q_func = RLinearAlgebra.rand_ortho_it(A, approx)
             Q_test = Array(qr(A*C.op).Q)
             Q_func ≈ Q_test
             # test the matrix is orthogonal
@@ -107,9 +107,9 @@ end
             C = deepcopy(C)
 
             approx = TestRangeApproximatorRecipe(C, power_it)
-            Q_func = RLinearAlgebra.rand_subspace_it(A, approx)
-            # Perform the 3 subspace iterations which involves orthogonalzing everytime
-            # we apply A or A' to the Q matrix
+            Q_func = RLinearAlgebra.rand_ortho_it(A, approx)
+            # Perform the 3 orthogonalized power iterations which involves 
+            # orthogonalzing everytime we apply A or A' to the Q matrix
             Q1 = Array(qr(A * C.op).Q)
             Q2 = Array(qr(A' * Q1).Q)
             Q1 = Array(qr(A * Q2).Q)
