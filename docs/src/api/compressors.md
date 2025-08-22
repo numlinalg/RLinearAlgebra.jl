@@ -22,16 +22,29 @@ Undef
 
 ## Compressor Structures
 ```@docs
-Gaussian
+CountSketch
 
-GaussianRecipe
-SparseSign
-
-SparseSignRecipe
+CountSketchRecipe
 
 FJLT
 
 FJLTRecipe
+
+Gaussian
+
+GaussianRecipe
+
+Sampling
+
+SamplingRecipe
+
+SparseSign
+
+SparseSignRecipe
+
+SRHT 
+
+SRHTRecipe
 ```
 
 ## Exported  Functions
