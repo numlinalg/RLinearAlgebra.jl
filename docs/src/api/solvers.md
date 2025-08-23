@@ -15,6 +15,10 @@ SolverRecipe
 col_projection
 
 col_projectionRecipe
+
+Kaczmarz
+
+KaczmarzRecipe
 ```
 
 ## Exported Functions
@@ -29,4 +33,10 @@ rsolve!
 RLinearAlgebra.col_proj_update!
 
 RLinearAlgebra.col_proj_update_block!
+
+RLinearAlgebra.kaczmarz_update!
+
+RLinearAlgebra.kaczmarz_update_block!
+
+RLinearAlgebra.dotu
 ```
