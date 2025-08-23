@@ -37,6 +37,7 @@ export Uniform, UniformRecipe
 export Solver, SolverRecipe
 export Kaczmarz, KaczmarzRecipe
 export complete_solver, update_solver!, rsolve!
+export col_projection, col_projectionRecipe
 
 # Export Logger types and functions
 export Logger, LoggerRecipe
