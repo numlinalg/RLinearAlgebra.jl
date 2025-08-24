@@ -70,21 +70,6 @@ user you only need to define the techniques and the library will do all the work
 the recipes for you. If you wish to convert a technique into a technique recipe you can use
 the `complete_[technique type]` function.
 
-### Key Functions for using the library
-RLinearAlgebra.jl can be used for two key linear algebra tasks: 1. solving linear systems 
-and 2. forming low-rank approximations to matrices. All linear systems can be solved by 
-calling the function, `rsolve(solver, x, A, b)`. Where `solver` is a technique structure 
-that defines the technique you wish to use to solve the linear system, `x` is an initial 
-guess of a possible solution to the linear system, `A` is the matrix for the linear system,
-and `b` is a constant vector. To form matrix approximations, one must call the function 
-`rapproximate(approximator, A)`. Here `approximator` is a structure that defines the 
-low-rank approximation technique that you wish to use and `A` is the matrix that you 
-wish to approximate. 
-
-Each `solver` and `approximator` technique contains fields requiring other sub-techniques
-that can impact the performance of the `solver`/`approximator`. The description of these 
-technique types can be found in the following section. 
-
 ### The Technique Types
 With an understanding of the basic structures in the library, one may wonder, what 
 types of techniques are there? First, there are the techniques for solving the linear 
