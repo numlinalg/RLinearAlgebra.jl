@@ -190,6 +190,39 @@ norm(Sx)
 norm(x)
 ```
 
+### Keep Markdown
+For this example let's assume that we have a vector that we wish to compress
+using one the RLinearAlgebra.jl `SparseSign` compressor. To do this: 
+
+1. Load RLinearAlgebra.jl and generate your vector
+
+        using RLinearAlgebra
+        using LinearAlgebra
+        # Specify the size of the vector
+        n = 10000
+        x = rand(n)  
+
+2. Define the `SparseSign` technique. This requires us to specify a `cardinality`,
+    the direction we intend to apply the compressor from, and a `compression_dim`, 
+    the number of entries we want in the compressed vector. In this instance we 
+    want the cardinality to be `Left()` and the `compression_dim = 20`.
+
+        comp = SparseSign(compression_dim = 20, Cardinality = Left())
+
+3. Use the `complete_compressor` function to generate the `SparseSignRecipe`.
+
+        S = complete_compressor(comp, A)
+
+1. Apply the compressor to the vector using the multiplication function
+
+        Sx = S * x
+
+        norm(Sx)
+
+        norm(x)
+
+
+### Use HTML
 ```@raw html
 <ol>
   <li>
