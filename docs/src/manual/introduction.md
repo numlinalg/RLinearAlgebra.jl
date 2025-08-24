@@ -4,14 +4,14 @@ scientific computing. You also probably know Linear Algebra routines dominate th
 computational cost of many of the algorithms in these fields. Thus, improving the 
 scalability of these algorithms requires more scalable Linear Algebra techniques.
 
-An exciting recent set of techniques that offer such improved scalability of 
-Linear Algebra techniques are known as Randomized Linear Algebra. 
+An exciting new set of techniques that offers such improved scalability of 
+Linear Algebra techniques are Randomized Linear Algebra techniques. 
 In general, Randomized Linear Algebra techniques aim to achieve this improved
 scalability by forming a representative sample of a matrix and performing 
 operations on that sample. In some circumstances operating on this sample
 can offer profound speed-ups as can see in the following example 
 where a technique known as the RandomizedSVD (see [halko2011finding](@cite)) 
-is used to compute a rank-20 approximation to ``3000 \\times 3000`` matrix 
+is used to compute a rank-20 approximation to ``3000 \times 3000`` matrix 
 ``A`` in place of a truncated SVD. Compared to computing the SVD and 
 truncating it, the RandomizedSVD is 100 times faster and just as accurate 
 as the truncated SVD.
@@ -46,34 +46,47 @@ Over the years, numerous Randomized Linear Algebra approaches have been proposed
 for basic linear tasks such as computing a low-rank approximation to a matrix, solving 
 a linear system, or solving a least squares problem, but also for how obtain a 
 representative sample of the matrix itself. To this point, a single easy to prototype 
-library has not been developed to bring these techniques to the masses. RLinearAlgebra.jl
-is designed to do exactly that.
+library has not been developed to bring these techniques to the masses. RLinearAlgebra.jl is designed to be exactly such an easy-to-use library.
 
 In particular, RLinearAlgebra.jl leverages a modular design to allow you 
-to easily test Randomized Linear Algebra routines under a wide-range of parameter choices.  
-RLinearAlgebra.jl provides routines for two core Linear Algebra tasks: finding a solution to 
-a linear system via ``Ax=b`` or ``\\min_x \\|Ax - b\\|`` and forming a low rank 
-approximation to a matrix, ``\\hat A`` where ``\\hat A \\approx A``. The solution to a linear
+to easily test Randomized Linear Algebra routines under a wide-range of parameter choices.  RLinearAlgebra.jl provides routines for two core Linear Algebra tasks: finding a solution to
+a linear system via ``Ax=b`` or ``\min_x \|Ax - b\|`` and forming a low rank 
+approximation to a matrix, ``\hat A`` where ``\hat A \approx A``. The solution to a linear
 system appears everywhere: Optimization, Tomography, Statistics, Scientific Computing, Machine
 Learning, etc. The low-rank approximation problem has only become more relevant in recent years
 owing to the drastic increase in matrix sizes. It has been widely used in Statistics via PCA, but 
 also has become increasingly more relevant in all the fields where solving a linear system is 
 relevant. 
 
-This manual will walk you through the use of the RLinearAlgebra library. The remainder of this
+This manual will walk you through the use of the RLinearAlgebra.jl library. The remainder of this
 section will be focused on providing an overview of the common design elements in the library, 
 and information about how to get started using the library.
 
 ## Overview of the Library
 The library is based on two data structure types: **techniques** that contain the parameters 
 that define a particular method and **technique recipes** that contain these parameters and 
-the necessary preallocations for the desired technique to be executed effectively. As the 
+the necessary preallocations for the desired technique to be executed efficiently. As the 
 user you only need to define the techniques and the library will do all the work to form
 the recipes for you. If you wish to convert a technique into a technique recipe you can use
 the `complete_[technique type]` function.
 
+### Key Functions for using the library
+RLinearAlgebra.jl can be used for two key linear algebra tasks: 1. solving linear systems 
+and 2. forming low-rank approximations to matrices. All linear systems can be solved by 
+calling the function, `rsolve(solver, x, A, b)`. Where `solver` is a technique structure 
+that defines the technique you wish to use to solve the linear system, `x` is an initial 
+guess of a possible solution to the linear system, `A` is the matrix for the linear system,
+and `b` is a constant vector. To form matrix approximations, one must call the function 
+`rapproximate(approximator, A)`. Here `approximator` is a structure that defines the 
+low-rank approximation technique that you wish to use and `A` is the matrix that you 
+wish to approximate. 
+
+Each `solver` and `approximator` technique contains fields requiring other sub-techniques
+that can impact the performance of the `solver`/`approximator`. The description of these 
+technique types can be found in the following section. 
+
 ### The Technique Types
-With an understanding of the basic structures in the library, one may wonder, "What 
+With an understanding of the basic structures in the library, one may wonder, what 
 types of techniques are there? First, there are the techniques for solving the linear 
 system, `Solvers` and techniques for forming a low-rank approximation to a matrix, 
 `Approximators`. Both `Solvers` and `Approximators` achieve speedups by working on 
@@ -90,24 +103,26 @@ Similarly, `Approximators` have their own specific techniques, which include:
 
 1. `ApproximorError`, a technique that computes the error of an `Approximator`.
 
-With all these technique structures, you may be wondering, what can I do with these 
-structures? Well, the answer is not much. As is summarized in the following table.
-| Technique | Parent Technique | Function Calls|  
-|----------|------------------| --|
-|`Approximator`| None | `complete_approximator`</br> `rapproximate`|
-|`Compressor` | None| `complete_compressor`|
-|`Solver`| None| `complete_solver` </br> `rsolve`|
-|`ApproximatorError`| `Approximator` | `complete_approximator_error`|
-|`Logger`| `Solver`| `complete_logger`|
-|`SolverError` | `Solver`| `complete_solver_error`|
-|`SubSolver`| `Solver`| `complete_sub_solver`|
+With all these technique structures, you may be wondering, what functions
+can I call on these structures? Well, the answer is not many. As is 
+summarized in the following table.  
+
+| Technique         | Parent Technique   | Function Calls                        |  
+| ----------        | ------------------ | -----------------------------------   |  
+|`Approximator`     | None               | `complete_approximator`,`rapproximate`|
+|`Compressor`       | None               | `complete_compressor`                 |  
+|`Solver`           | None               | `complete_solver`, `rsolve`           |
+|`ApproximatorError`| `Approximator`     | `complete_approximator_error`         |
+|`Logger`           | `Solver`           | `complete_logger`                     |
+|`SolverError`      | `Solver`           | `complete_solver_error`               |
+|`SubSolver`        | `Solver`           | `complete_sub_solver`                 |
 
 
 From the above table we can see that essentially all you are able to do unless you are using 
 an `Approximator` or a `Solver` is complete the technique. The reason being that all the 
 technique structures contain only information about algorithmic parameters that require no 
 information about the linear system. The recipes on the other hand have all the information 
-required to use a technique without having to allocate new memory. We determine the 
+required to use a technique including the required pre-allocated memory. We determine the 
 preallocations for the Recipes by merging the parameter information of the technique 
 structures with the matrix and linear system information via the `complete_[technique]` 
 functions, which is the only function that you can call when you have a technique structure. 
@@ -117,19 +132,20 @@ anything useful you will need a recipe.
 
 ### The Recipe Types
 Every technique can be transformed into a recipe. As has been stated before, what makes the 
-recipes different is that they contain all the required memory allocations and 
-parameterizations that can only be determined from linear system information. For users, 
+recipes different is that they contain all the required memory allocations. These allocations can
+only be determined from once the matrix is known. As a user, 
 all you have to know is that as soon as you have a recipe you can do a lot. As can be seen 
 in the following table.
-| Technique Recipe| Parent Recipe | Function Calls|  
-|----------|------------------| --|
-|`Approximator`| None | `mul!`</br> `rapproximate!`|
-|`Compressor` | None| `mul!`</br>`update_compressor!`|
-|`Solver`| None| `rsolve!`|
-|`ApproximatorError`| `Approximator` | `compute_approximator_error`|
-|`Logger`| `Solver`| `reset_logger!` </br> `update_logger!`|
-|`SolverError` | `Solver`| `compute_error`|
-|`SubSolver`| `Solver`| `update_sub_solver!` </br> `ldiv!` |
+
+| Technique Recipe  | Parent Recipe | Function Calls                      |  
+|-----------------  |------------------| ---------------------------------|
+|`Approximator`     | None             | `mul!`, `rapproximate!`          |
+|`Compressor`       | None             | `mul!`,`update_compressor!`      |
+|`Solver`           | None             | `rsolve!`                        |
+|`ApproximatorError`| `Approximator`   | `compute_approximator_error`     |
+|`Logger`           | `Solver`         | `reset_logger!`, `update_logger!`|
+|`SolverError`      | `Solver`         | `compute_error`                  |
+|`SubSolver`        | `Solver`         | `update_sub_solver!`,`ldiv!`     |
 
 Instead of providing 
 a different function for each method associated with these tasks, RLinearAlgebra.jl 
@@ -142,3 +158,49 @@ the routine for solving your linear system or approximate your matrix is as
 simple as changing the`solver` or `approximator` arguments. 
 
 ## Installing RLinearAlgebra
+Currently, RLinearAlgebra.jl is not registered in Julia's official package registry. 
+It can be installed by writing in the REPL:
+```julia
+] add https://github.com/numlinalg/RLinearAlgebra.jl.git
+```
+It can also be cloned into a local directory and installed by:
+1. `cd` into the local project directory 
+2. Call `git clone https://github.com/numlinalg/RLinearAlgebra.jl.git`
+3. Run Julia
+4. Call `using Pkg`
+5. Call `Pkg.activate(RLinearAlgebra.jl)`
+6. Call `Pkg.instantiate()`
+
+For more information see [Using someone else's project](https://pkgdocs.julialang.org/v1/environments/#Using-someone-else's-project).
+
+## Using RLinearAlgebra.jl
+For this example let's assume that we have a vector that we wish to compress
+using one the RLinearAlgebra.jl `SparseSign` compressor. To do this: 
+
+1. Load RLinearAlgebra.jl and generate your vector
+```julia
+using RLinearAlgebra
+using LinearAlgebra
+# Specify the size of the vector
+n = 10000
+x = rand(n)
+```
+2. Define the `SparseSign` technique. This requires us to specify a `cardinality`,
+    the direction we intend to apply the compressor from, and a `compression_dim`, 
+    the number of entries we want in the compressed vector. In this instance we 
+    want the cardinality to be `Left()` and the `compression_dim = 20`.
+```julia
+comp = SparseSign(compression_dim = 20, Cardinality = Left())
+```
+3. Use the `complete_compressor` function to generate the `SparseSignRecipe`.
+```julia
+S = complete_compressor(comp, A)
+```
+4. Apply the compressor to the vector using the multiplication function
+```julia
+Sx = S * x
+
+norm(Sx)
+
+norm(x)
+```
