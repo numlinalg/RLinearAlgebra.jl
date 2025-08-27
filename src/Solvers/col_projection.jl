@@ -297,7 +297,7 @@ function rsolve!(
 
     for i in 1:solver.log.max_it
         err = compute_error(solver.error, solver, A, b)
-        println(err)
+        #println(err)
         # Update log adds value of err to log and checks stopping
         update_logger!(solver.log, err, i)
         if solver.log.converged
