@@ -157,6 +157,51 @@ It can also be cloned into a local directory and installed by:
 6. Call `Pkg.instantiate()`
 
 For more information see [Using someone else's project](https://pkgdocs.julialang.org/v1/environments/#Using-someone-else's-project).
+ 
+
+ 
+## Using RLinearAlgebra.jl
+For this example let's assume that we have a vector that we wish to compress
+using one the RLinearAlgebra.jl `SparseSign` compressor. To do this: 
+
+```@raw html
+<ol>
+  <li>
+    Load <code>RLinearAlgebra.jl</code> and generate your vector
+<pre><code class="language-julia">using RLinearAlgebra
+using LinearAlgebra
+# Specify the size of the vector
+n = 10000
+x = rand(n)</code></pre>
+  </li>
+  <li>
+    Define the <code>SparseSign</code> technique. This requires us to specify a <code>cardinality</code>,
+    the direction we intend to apply the compressor from, and a <code>compression_dim</code>, 
+    the number of entries we want in the compressed vector. In this instance we 
+    want the cardinality to be <code>Left()</code> and the <code>compression_dim = 20</code>.
+    <pre><code class="language-julia">comp = SparseSign(compression_dim = 20, Cardinality = Left())</code></pre>
+  </li>
+  <li>
+    Use the <code>complete_compressor</code> function to generate the <code>SparseSignRecipe</code>.
+    <pre><code class="language-julia">S = complete_compressor(comp, A)</code></pre>
+  </li>
+  <li>
+    Apply the compressor to the vector using the multiplication function
+    <pre><code class="language-julia">Sx = S * x
+    
+norm(Sx)
+
+norm(x)</code></pre>
+  </li>
+</ol>
+```
+
+
+
+
+```@raw html
+<!--- !!!please add contents before this line!!!
+Do not know why the comment will just comment all the codes followed after them.
 
 ## Using RLinearAlgebra.jl
 For this example let's assume that we have a vector that we wish to compress
@@ -220,37 +265,5 @@ using one the RLinearAlgebra.jl `SparseSign` compressor. To do this:
         norm(Sx)
 
         norm(x)
-
-
-### Use HTML
-```@raw html
-<ol>
-  <li>
-    Load <code>RLinearAlgebra.jl</code> and generate your vector
-<pre><code class="language-julia">using RLinearAlgebra
-using LinearAlgebra
-# Specify the size of the vector
-n = 10000
-x = rand(n)</code></pre>
-  </li>
-  <li>
-    Define the <code>SparseSign</code> technique. This requires us to specify a <code>cardinality</code>,
-    the direction we intend to apply the compressor from, and a <code>compression_dim</code>, 
-    the number of entries we want in the compressed vector. In this instance we 
-    want the cardinality to be <code>Left()</code> and the <code>compression_dim = 20</code>.
-    <pre><code class="language-julia">comp = SparseSign(compression_dim = 20, Cardinality = Left())</code></pre>
-  </li>
-  <li>
-    Use the <code>complete_compressor</code> function to generate the <code>SparseSignRecipe</code>.
-    <pre><code class="language-julia">S = complete_compressor(comp, A)</code></pre>
-  </li>
-  <li>
-    Apply the compressor to the vector using the multiplication function
-    <pre><code class="language-julia">Sx = S * x
-    
-norm(Sx)
-
-norm(x)</code></pre>
-  </li>
-</ol>
+-->
 ```

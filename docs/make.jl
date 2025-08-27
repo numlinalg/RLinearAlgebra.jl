@@ -10,6 +10,7 @@ makedocs(
     sitename = "RLinearAlgebra",
     format = Documenter.HTML(
     collapselevel=1,
+    assets = String["custom_html.css"],
     ),
     plugins=[bib],
     modules = [RLinearAlgebra],
