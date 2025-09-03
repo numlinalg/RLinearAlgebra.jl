@@ -31,13 +31,13 @@ function rand_power_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
     
     end
     
-    # Return the economical qr of the matrix Q
-    return view(qr!(compressed_mat).Q, :, 1:s_cols) 
+    # Return the economical qr of the matrix Q using Array call for efficiency
+    return Array(qr!(compressed_mat).Q) 
 end
 
 
 """
-    rand_subspace_it(approx::RangeFinderRecipe, A::AbstractMatrix)
+    rand_ortho_it(approx::RangeFinderRecipe, A::AbstractMatrix)
 
 Function that performs the randomized rangefinder procedure presented in Algortihm 4.4 of 
 [halko2011finding](@cite).
@@ -50,7 +50,7 @@ recipe.
 # Returns 
 - `Q::AbstractMatrix`, an economical `Q` approximating the range of A.
 """
-function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
+function rand_ortho_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
     comp_mat = approx.compressor
     a_rows, a_cols = size(A)
     s_rows, s_cols = size(comp_mat)
@@ -65,14 +65,16 @@ function rand_subspace_it(A::AbstractMatrix, approx::RangeApproximatorRecipe)
         for i in 1:approx.power_its
             # Perform the power iterations based on the recusion Q_{i'} = qr(A'Q_{i-1}).Q 
             # Q_i = qr(A*Q_{i'}).Q this helps limit rounding errors
-            mul!(buff_mat, A', view(Q, :, 1:s_cols))
-            Q = qr!(buff_mat).Q
-            mul!(compressed_mat, A, view(Q, :, 1:s_cols))
-            Q = qr!(compressed_mat).Q
+            mul!(buff_mat, A', Q)
+            # taking the array is way faster and leads to way fewer memory allocations
+            Q = Array(qr!(buff_mat).Q)
+            # taking the array is way faster and leads to way fewer memory allocations
+            mul!(compressed_mat, A, Q)
+            Q = Array(qr!(compressed_mat).Q)
         end
     
     end
     
-    # Return the economical qr of the matrix Q
-    return view(Q, :, 1:s_cols)    
+    # Return the economical qr of the matrix Q using Array call for efficiency
+    return Array(Q)    
 end
