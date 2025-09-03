@@ -392,8 +392,9 @@ end
             compressor = TestCompressor(cardinality, compression_dim)
 
             approx = RandSVD(compressor, power_its, ortho, block_size)
+            @test_logs (:warn, "Compressor with cardinality `Left` \
+                being applied from `Right`.") approx_rec = rapproximate(approx, A)
             approx_rec = rapproximate(approx, A)
-            
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
             @test approx_rec.compressor.cardinality == Left()
             @test approx_rec.power_its == power_its 
@@ -428,6 +429,8 @@ end
             compressor = TestCompressor(cardinality, compression_dim)
 
             approx = RandSVD(compressor, power_its, ortho, block_size)
+            @test_logs (:warn, "Compressor with cardinality `Left` \
+                being applied from `Right`.") approx_rec = rapproximate(approx, A)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
@@ -462,6 +465,8 @@ end
             compressor = TestCompressor(cardinality, compression_dim)
 
             approx = RandSVD(compressor, power_its, ortho, block_size)
+            @test_logs (:warn, "Compressor with cardinality `Left` \
+                being applied from `Right`.") approx_rec = rapproximate(approx, A)
             approx_rec = rapproximate(approx, A)
             
             @test typeof(approx_rec.compressor) == TestCompressorRecipe  
