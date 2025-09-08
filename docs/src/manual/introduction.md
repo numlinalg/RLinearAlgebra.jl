@@ -181,7 +181,7 @@ x = rand(n)
 comp = SparseSign(compression_dim = 20, Cardinality = Left())
 
 # Step 4: Define Sparse Sign Compressor Recipe
-S = complete_compressor(comp, A)
+S = complete_compressor(comp, x)
 
 # Step 4: Apply the compressor to the vector using the multiplication function
 Sx = S * x
