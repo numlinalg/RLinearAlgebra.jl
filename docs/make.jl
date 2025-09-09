@@ -21,22 +21,19 @@ makedocs(
         ],
         "Manual" => [
             "Introduction" => "manual/introduction.md", 
+            "Compressors" => "manual/compressors.md",
         ],
         "API Reference" => [
             "Compressors" => "api/compressors.md",
             "Solvers" => [
                 "Solvers Overview" => "api/solvers.md",
-                "Solver Sub-routines" => [
-                    "SubSolvers" => "api/sub_solvers.md",
-                    "SolverErrors" => "api/solver_errors.md",
-                    "Loggers" => "api/loggers.md"
-                ],
+                "SubSolvers" => "api/sub_solvers.md",
+                "SolverErrors" => "api/solver_errors.md",
+                "Loggers" => "api/loggers.md",
             ],
             "Approximators" => [
                 "Approximators Overview" => "api/approximators.md",
-                "Approximator Sub-routines" => [
-                    "ApproximatorErrors" => "api/approximator_errors.md"
-                                           ],
+                "ApproximatorErrors" => "api/approximator_errors.md",
             ],
         ],
         "Contributing" => [
