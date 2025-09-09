@@ -56,6 +56,7 @@ export QRSolver, QRSolverRecipe
 export SolverError, SolverErrorRecipe
 export complete_error, compute_error
 export FullResidual, FullResidualRecipe
+export LSgradient, LSgradientRecipe
 
 # Export ApproximatorError types and functions
 export ApproximatorError, ApproximatorErrorRecipe
