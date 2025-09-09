@@ -2,11 +2,11 @@
 Most Randomized Linear Algebra routines work by forming a low-dimensional representation of 
 a matrix or vector. These representations are typically formed by multiplying some form of 
 random matrix with the matrix or vector we want to represent in a low-dimensional space. 
-For instance, if we have ``x \\in \\mathbb{R}^{10,000}`` we can apply a matrix, 
-``S \\in \\mathbb{R}^{20 \\times 10,000}`` made up of 
-independent and identically distributed ``\\textbf{Normal}(0, 1/\\sqrt{20})`` to obtain
-``y = Sx \\in \\mathbb{R}^{20}`` where
-``(1-\\epsilon)\|x\| \\leq \|y\| \\leq (1+\epsilon) \|x\|`` with high probability. 
+For instance, if we have ``x \in \mathbb{R}^{10,000}`` we can apply a matrix, 
+``S \in \mathbb{R}^{20 \times 10,000}`` made up of 
+independent and identically distributed ``\textbf{Normal}(0, 1/\sqrt{20})`` to obtain
+``y = Sx \in \mathbb{R}^{20}`` where
+``(1-\epsilon)\|x\| \leq \|y\| \leq (1+\epsilon) \|x\|`` with high probability. 
 
 Of course, many other techniques beyond the one described above can be used to generate 
 `S` and they vary both in terms of their approximation capabilities and the speed they can 
@@ -26,15 +26,15 @@ use the `update_compressor!` function to update the random entries in your
 In its simplest form, `complete_compressor` has two arguments, the first is `compressor`
 which is where you specify the compressor technique that you wish to use. All compressors
 have two fields that the user can specify, some have more which are specific to each 
-technique (see [Compressors](@ref) for more details). The first field is `compression_dim`,
-where you specify the dimension that your `CompressorRecipe` will map a matrix/vector into 
-after being applied to the matrix/vector. The second field is `Cardinality`, which can 
-either be `Left()` or `Right()`. `Cardinality` allows you to specify how you
-intend to multiply your compressor to a matrix/vector. In the matrix case, if `S` is your
-`CompressorRecipe` and `A` is your matrix a `Left()` cardinality would correspond to
-multiplying `SA` and a `Right()` would correspond to multiplying `AS`. Once you have specified
-these two fields in your `Compressor` object, the second input in to the `complete_compressor` 
-function will be the matrix/vector you wish to apply the compressor to. 
+technique (see [Compressors Reference](@ref) for more details). The first field 
+is `compression_dim`, where you specify the dimension that your `CompressorRecipe` will map 
+a matrix/vector into after being applied to the matrix/vector. The second field is 
+`Cardinality`, which can either be `Left()` or `Right()`. `Cardinality` allows you to 
+specify how you intend to multiply your compressor to a matrix/vector. In the matrix case, 
+if `S` is your `CompressorRecipe` and `A` is your matrix a `Left()` cardinality would 
+correspond to multiplying `SA` and a `Right()` would correspond to multiplying `AS`. Once 
+you have specified these two fields in your `Compressor` object, the second input in to the 
+`complete_compressor` function will be the matrix/vector you wish to apply the compressor to. 
 
 ## Multiplying your CompressorRecipe
 Once you have your `CompressorRecipe` you can multiply it to any matrix or vector 
@@ -48,7 +48,7 @@ Because most compression techniques are randomized, it is likely that once you h
 realization of `CompressorRecipe` that you would want another realization of that same 
 recipe. This can be done using the `update_compressor!` function. This function in 
 its simplest form has only one argument although for some compressors it could have more
-arguments (see [Compressors](@ref) for more details). The one argument is the 
+arguments (see [Compressors]() for more details). The one argument is the 
 `CompressorRecipe`.
 
 ## Compressing a Matrix Example
@@ -112,7 +112,7 @@ S = complete_compressor(
 It is important to notice that different from other `Compressors` the sampling compressor
 requires an additional keyword argument `distribution`. If `distribution` is not specified, 
 then it will be set to uniform by default. Other distributions can be found by looking in
-[Distribution](@ref).
+[Distributions](@ref).
 
 ## Summary of Compressors
 We now know that anytime we want to reduce one of the dimensions of a matrix or vector,
@@ -121,4 +121,4 @@ we need to form a `CompressorRecipe`. To form the `CompressorRecipe`, we need to
 we want to use to compress a matrix, and at least a matrix/vector that we wish to compress.
 Once we have this recipe, we can generate a new realization of it by calling 
 `update_compressor!` and can apply it to a matrix or vector using `mul!` or `*`. For more
-information on specific compressors see [Compressors](@ref).
+information on specific compressors see [Compressors]().

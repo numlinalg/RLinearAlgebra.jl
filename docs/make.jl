@@ -15,25 +15,28 @@ makedocs(
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
-        "Tutorials" => [
-            "Introduction" => "tutorials/introduction.md",
-            "Getting started" => "tutorials/getting_started.md"
-        ],
+#        "Tutorials" => [
+#            "Introduction" => "tutorials/introduction.md",
+#            "Getting started" => "tutorials/getting_started.md"
+#        ],
         "Manual" => [
             "Introduction" => "manual/introduction.md", 
-            "Compressors" => "manual/compressors.md",
+            "Compression" => "manual/compression.md",
         ],
         "API Reference" => [
-            "Compressors" => "api/compressors.md",
+            "Compressors" => [
+                "Compressors API" => "api/compressors.md",
+                "Distributions API" => "api/distributions.md",
+            ],
             "Solvers" => [
-                "Solvers Overview" => "api/solvers.md",
-                "SubSolvers" => "api/sub_solvers.md",
-                "SolverErrors" => "api/solver_errors.md",
-                "Loggers" => "api/loggers.md",
+                "Solvers API" => "api/solvers.md",
+                "SubSolvers API" => "api/sub_solvers.md",
+                "SolverErrors API" => "api/solver_errors.md",
+                "Loggers API" => "api/loggers.md",
             ],
             "Approximators" => [
-                "Approximators Overview" => "api/approximators.md",
-                "ApproximatorErrors" => "api/approximator_errors.md",
+                "Approximators API" => "api/approximators.md",
+                "ApproximatorErrors API" => "api/approximator_errors.md",
             ],
         ],
         "Contributing" => [
@@ -41,8 +44,8 @@ makedocs(
             "Design of Library" => "dev/design.md",
             "Checklists" => [
                 "dev/checklists.md", 
-                "Compressors" => "dev/checklists/compressors.md",
-                "Loggers" => "dev/checklists/loggers.md"
+                "Compressors Checklist" => "dev/checklists/compressors.md",
+                "Loggers Checklist" => "dev/checklists/loggers.md"
             ],
             "Style Guide" => "dev/style_guide.md",
         ],
