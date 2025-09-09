@@ -89,3 +89,36 @@ C = zeros(size(S, 1), size(A, 2))
 mul!(C, S, A)
 ```
 
+## Sampling Compressors and Distributions
+A special sub-type of compressors are known as `Sampling` compressors. These compressors
+are unique that they compress the matrix by selecting rows or columns according to a 
+specific distribution. For example, if we compress a matrix by sampling rows 10 rows from
+10 draws from a uniform distribution without replacement. In RLinearAlgebra.jl we would
+form a recipe for this technique by calling.
+```julia
+using RLinearAlgebra
+A = rand(100, 100)
+
+# Generate Compression recipe using uniform sampling distribution
+S = complete_compressor(
+    Sampling(
+        compression_dim = 10,
+        cardinality = Left(),
+        distribution = Uniform()
+    ),
+    A
+)
+```
+It is important to notice that different from other `Compressors` the sampling compressor
+requires an additional keyword argument `distribution`. If `distribution` is not specified, 
+then it will be set to uniform by default. Other distributions can be found by looking in
+[Distribution](@ref).
+
+## Summary of Compressors
+We now know that anytime we want to reduce one of the dimensions of a matrix or vector,
+we need to form a `CompressorRecipe`. To form the `CompressorRecipe`, we need to call
+`complete_compressor` with a `Compressor` data structure, which specifies the technique
+we want to use to compress a matrix, and at least a matrix/vector that we wish to compress.
+Once we have this recipe, we can generate a new realization of it by calling 
+`update_compressor!` and can apply it to a matrix or vector using `mul!` or `*`. For more
+information on specific compressors see [Compressors](@ref).
