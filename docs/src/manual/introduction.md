@@ -27,7 +27,7 @@ A = randn(3000, 20) * randn(20, 3000);
 #    4.566639 seconds (13 allocations: 412.354 MiB, 0.92% gc time)
 
 # Form the RandomizedSVD data structure
-technique = RandomizedSVD(
+technique = RandSVD(
     compressor = Gaussian(compression_dim= 22,  cardinality=Right()), 
     orthogonalize=false, 
     power_its = 0
@@ -46,21 +46,23 @@ Over the years, numerous Randomized Linear Algebra approaches have been proposed
 for basic linear tasks such as computing a low-rank approximation to a matrix, solving 
 a linear system, or solving a least squares problem, but also for how obtain a 
 representative sample of the matrix itself. To this point, a single easy to prototype 
-library has not been developed to bring these techniques to the masses. RLinearAlgebra.jl is designed to be exactly such an easy-to-use library.
+library has not been developed to bring these techniques to the masses. RLinearAlgebra.jl is
+ designed to be exactly such an easy-to-use library.
 
 In particular, RLinearAlgebra.jl leverages a modular design to allow you 
-to easily test Randomized Linear Algebra routines under a wide-range of parameter choices.  RLinearAlgebra.jl provides routines for two core Linear Algebra tasks: finding a solution to
+to easily test Randomized Linear Algebra routines under a wide-range of parameter choices.  
+RLinearAlgebra.jl provides routines for two core Linear Algebra tasks: finding a solution to
 a linear system via ``Ax=b`` or ``\min_x \|Ax - b\|`` and forming a low rank 
 approximation to a matrix, ``\hat A`` where ``\hat A \approx A``. The solution to a linear
-system appears everywhere: Optimization, Tomography, Statistics, Scientific Computing, Machine
-Learning, etc. The low-rank approximation problem has only become more relevant in recent years
-owing to the drastic increase in matrix sizes. It has been widely used in Statistics via PCA, but 
-also has become increasingly more relevant in all the fields where solving a linear system is 
-relevant. 
+system appears everywhere: Optimization, Tomography, Statistics, Scientific Computing, 
+Machine Learning, etc. The low-rank approximation problem has only become more relevant in 
+recent years owing to the drastic increase in matrix sizes. It has been widely used in 
+Statistics via PCA, but also has become increasingly more relevant in all the fields where 
+solving a linear system is relevant. 
 
-This manual will walk you through the use of the RLinearAlgebra.jl library. The remainder of this
-section will be focused on providing an overview of the common design elements in the library, 
-and information about how to get started using the library.
+This manual will walk you through the use of the RLinearAlgebra.jl library. The remainder 
+of this section will be focused on providing an overview of the common design elements in 
+the library, and information about how to get started using the library.
 
 ## Overview of the Library
 The library is based on two data structure types: **techniques** that contain the parameters 
@@ -117,8 +119,8 @@ anything useful you will need a recipe.
 
 ### The Recipe Types
 Every technique can be transformed into a recipe. As has been stated before, what makes the 
-recipes different is that they contain all the required memory allocations. These allocations can
-only be determined from once the matrix is known. As a user, 
+recipes different is that they contain all the required memory allocations. These 
+allocations can only be determined from once the matrix is known. As a user, 
 all you have to know is that as soon as you have a recipe you can do a lot. As can be seen 
 in the following table.
 
@@ -156,7 +158,8 @@ It can also be cloned into a local directory and installed by:
 5. Call `Pkg.activate(RLinearAlgebra.jl)`
 6. Call `Pkg.instantiate()`
 
-For more information see [Using someone else's project](https://pkgdocs.julialang.org/v1/environments/#Using-someone-else's-project).
+For more information see 
+[Using someone else's project](https://pkgdocs.julialang.org/v1/environments/#Using-someone-else's-project).
 
 ## Using RLinearAlgebra.jl
 For this example let's assume that we have a vector that we wish to compress
@@ -178,7 +181,7 @@ n = 10000
 x = rand(n)
 
 # Step 2: Define Sparse Sign Compressor
-comp = SparseSign(compression_dim = 20, Cardinality = Left())
+comp = SparseSign(compression_dim = 20, cardinality = Left())
 
 # Step 4: Define Sparse Sign Compressor Recipe
 S = complete_compressor(comp, x)

@@ -39,16 +39,6 @@ makedocs(
                 "ApproximatorErrors API" => "api/approximator_errors.md",
             ],
         ],
-        "Contributing" => [
-            "Contributing Overview" => "dev/contributing.md",
-            "Design of Library" => "dev/design.md",
-            "Checklists" => [
-                "dev/checklists.md", 
-                "Compressors Checklist" => "dev/checklists/compressors.md",
-                "Loggers Checklist" => "dev/checklists/loggers.md"
-            ],
-            "Style Guide" => "dev/style_guide.md",
-        ],
         "References" => "references.md",
     ]
 )
