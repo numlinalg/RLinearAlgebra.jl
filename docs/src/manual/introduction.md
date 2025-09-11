@@ -28,9 +28,7 @@ A = randn(3000, 20) * randn(20, 3000);
 
 # Form the RandomizedSVD data structure
 technique = RandSVD(
-    compressor = Gaussian(compression_dim= 22,  cardinality=Right()), 
-    orthogonalize=false, 
-    power_its = 0
+    compressor = Gaussian(compression_dim = 22,  cardinality = Right()) 
 )
 
 # Take the RandomizedSVD of A
@@ -42,12 +40,13 @@ norm(rec.U * Diagonal(rec.S) * rec.V' - U[:,1:22] * Diagonal(S[1:22]) * (V[:, 1:
 # 6.914995919005829e-11
 ```
 
-Over the years, numerous Randomized Linear Algebra approaches have been proposed not only
-for basic linear tasks such as computing a low-rank approximation to a matrix, solving 
-a linear system, or solving a least squares problem, but also for how obtain a 
-representative sample of the matrix itself. To this point, a single easy to prototype 
-library has not been developed to bring these techniques to the masses. RLinearAlgebra.jl is
- designed to be exactly such an easy-to-use library.
+Randomized Linear Algebra is a fast growing field with a myriad of new methods being 
+proposed every year. Because randomized linear algebra methods are based around similar 
+sub-routines many of the innovations could offer improvements to established techniques.
+Unfortunately, most implementations of these techniques are static making testing the 
+effectiveness of innovations on previous techniques challenging. RLinearAlgebra.jl aims to 
+make incorporating new innovations into established randomized linear algebra techniques
+easy.
 
 In particular, RLinearAlgebra.jl leverages a modular design to allow you 
 to easily test Randomized Linear Algebra routines under a wide-range of parameter choices.  
@@ -65,6 +64,21 @@ of this section will be focused on providing an overview of the common design el
 the library, and information about how to get started using the library.
 
 ## Overview of the Library
+You can think of using RLinearAlgebra.jl as being a producer on *Chopped*, the long running
+Food Network cooking competition. For those unfamiliar, the show takes place in three 
+rounds, where one of four contestants get eliminated at the end each round. In each round,
+the producers provide the contestants with a fix set of ingredients 
+[(often rather unconventional ones at that)](https://www.mashed.com/1244321/most-bizarre-mystery-basket-ingredients-ever-seen-chopped/)
+and a general category of food (e.g. appetizer, entree, or dessert) that the contestants
+then have to come up with a recipe for and actually make.
+
+In a similar way as a user of RLinearAlgebra.jl you are responsible for providing some 
+ingredients like the type of technique you want to use to solve a linear system and the 
+linear system, then when you call `rsolve`, RLinearAlgebra.jl as one of the *Chopped* chefs
+will come up with a recipe with this information and actually solve the system. 
+One can think about RLinearAlgebra.jl as having a in home chef you provide ingredients
+that you want the chef to use and the type of food you want eat. Then the chef takes this 
+information, comes up with recipes and then actually makes the food. 
 The library is based on two data structure types: **techniques** that contain the parameters 
 that define a particular method and **technique recipes** that contain these parameters and 
 the necessary preallocations for the desired technique to be executed efficiently. As the 
@@ -145,8 +159,14 @@ the routine for solving your linear system or approximate your matrix is as
 simple as changing the`solver` or `approximator` arguments. 
 
 ## Installing RLinearAlgebra
-Currently, RLinearAlgebra.jl is not registered in Julia's official package registry. 
-It can be installed by writing in the REPL:
+Currently, RLinearAlgebra.jl is not registered in Julia's official package registry. There 
+are two main ways of installing RLinearAlgebra.jl. The preferred way of doing it is through
+the local registry. You can install this approach by writing in the REPL:
+```julia
+] registry add https://github.com/numlinalg/NumLingAlg/RLinearAlgebra.jl
+```
+
+It can also be installed by writing in the REPL:
 ```julia
 ] add https://github.com/numlinalg/RLinearAlgebra.jl.git
 ```
