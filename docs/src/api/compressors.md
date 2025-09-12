@@ -1,4 +1,4 @@
-# Compressors 
+# Compressors Reference
 ```@contents
 Pages = ["compressors.md"]
 ```
