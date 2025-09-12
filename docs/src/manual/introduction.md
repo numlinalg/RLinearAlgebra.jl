@@ -1,6 +1,6 @@
 # A library for exploring Randomized Linear Algebra
-If you are here, you probably know that Linear Algebra is foundational to data science and 
-scientific computing. You also probably know Linear Algebra routines dominate the 
+If you are here, you probably know that Linear Algebra is foundational to data science,
+scientific computing, and ai. You also probably know Linear Algebra routines dominate the 
 computational cost of many of the algorithms in these fields. Thus, improving the 
 scalability of these algorithms requires more scalable Linear Algebra techniques.
 
@@ -70,23 +70,24 @@ rounds, where one of four contestants get eliminated at the end each round. In e
 the producers provide the contestants with a fix set of ingredients 
 [(often rather unconventional ones at that)](https://www.mashed.com/1244321/most-bizarre-mystery-basket-ingredients-ever-seen-chopped/)
 and a general category of food (e.g. appetizer, entree, or dessert) that the contestants
-then have to come up with a recipe for and actually make.
+then have to come up with a recipe for and cook.
 
-In a similar way as a user of RLinearAlgebra.jl you are responsible for providing some 
-ingredients like the type of technique you want to use to solve a linear system and the 
-linear system, then when you call `rsolve`, RLinearAlgebra.jl as one of the *Chopped* chefs
-will come up with a recipe with this information and actually solve the system. 
-One can think about RLinearAlgebra.jl as having a in home chef you provide ingredients
-that you want the chef to use and the type of food you want eat. Then the chef takes this 
-information, comes up with recipes and then actually makes the food. 
-The library is based on two data structure types: **techniques** that contain the parameters 
-that define a particular method and **technique recipes** that contain these parameters and 
-the necessary preallocations for the desired technique to be executed efficiently. As the 
-user you only need to define the techniques and the library will do all the work to form
-the recipes for you. If you wish to convert a technique into a technique recipe you can use
-the `complete_[technique type]` function.
+RLinearAlgebra.jl gives you as the user the fun job of deciding which ingredients 
+(techniques) you want to use to solve your linear system, compress your matrix/vector, 
+or form an approximation of your matrix. Then once you specified that information you 
+can start the clock by calling `rsolve` or `rapproximate`, with information about your 
+matrix/linear system and watch RLinearAlgebra.jl do the rest. Specifically, it will behind
+the scenes call all the  `complete_[technique]` functions that will generate recipes data 
+structures that have all the necessary preparations (preallocations) for handling your 
+proposed task. Then once the preparations are done, it handles your problem according to 
+its designed recipes.
 
-### The Technique Types
+With this analogy of how RLinearAlgebra.jl works, the next two sections provide an overview
+over the two key data structures in RLinearAlgebra.jl, the **technique** structures, your 
+ingredients, and the **recipe** structures, what RLinearAlgebra.jl creates to perform your
+task.
+
+### The Technique Types (The Ingredients)
 With an understanding of the basic structures in the library, one may wonder, what 
 types of techniques are there? First, there are the techniques for solving the linear 
 system, `Solvers` and techniques for forming a low-rank approximation to a matrix, 
@@ -131,7 +132,7 @@ There is a special exception for `rsolve` and `rapproximate` because they implic
 all the necessary completes to form the appropriate recipe. The bottom line is that do 
 anything useful you will need a recipe.
 
-### The Recipe Types
+### The Recipe Types 
 Every technique can be transformed into a recipe. As has been stated before, what makes the 
 recipes different is that they contain all the required memory allocations. These 
 allocations can only be determined from once the matrix is known. As a user, 
