@@ -212,7 +212,7 @@ end
             @test typeof(solver.compressor) == SparseSign 
             @test typeof(solver.compressor.cardinality) == Right 
             @test typeof(solver.log) == BasicLogger
-            @test typeof(solver.error) == FullResidual
+            @test typeof(solver.error) == LSgradient
             @test typeof(solver.sub_solver) == QRSolver 
         end
 

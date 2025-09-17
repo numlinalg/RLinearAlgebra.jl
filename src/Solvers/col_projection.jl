@@ -86,7 +86,7 @@ function col_projection(;
     alpha::Float64 = 1.0,
     compressor::Compressor = SparseSign(cardinality=Right()), 
     log::Logger = BasicLogger(),
-    error::SolverError = FullResidual(),
+    error::SolverError = LSgradient(),
     sub_solver::SubSolver = QRSolver(), 
 )
     return  col_projection(
