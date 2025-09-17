@@ -3,7 +3,7 @@
 
 ## Description
 <!--- Describe your changes in detail and include references -->
-<!--- Please indicate any issues resolved -->
+Fixes # <!--- If there is an issue being resolved, please indicate it here. Otherwise delete this line. -->
 
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
@@ -14,11 +14,17 @@
 <!--- This is critical for ensuring the change works as expected. -->
 
 ## Types of changes
+<!--- The types are adapted from https://kapeli.com/cheat_sheets/Conventional_Commits.docset/Contents/Resources/Documents/index -->
 <!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
+- [ ] CI <!--- Changes to the continuous integration configuration -->
+- [ ] Docs <!--- Documentation only changes -->
+- [ ] Feature <!--- Non-breaking changes that adds a new feature -->
+- [ ] Fix <!--- Non-breaking change which addresses an issue -->
+- [ ] Performance <!--- A code change that improves performance -->
+- [ ] Refactor <!--- Non-breaking change that neither fixes a bug nor adds a feature -->
+- [ ] Style <!--- A change that corrects the style of the code presentation -->
+- [ ] Test <!--- Adding missing tests or correcting existing tests -->
+- [ ] Other (**use sparingly**): <!--- Use this sparingly. Please describe the type of change. -->
 
 ## Checklists:
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
