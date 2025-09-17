@@ -64,13 +64,15 @@ of this section will be focused on providing an overview of the common design el
 the library, and information about how to get started using the library.
 
 ## Overview of the Library
-You can think of using RLinearAlgebra.jl as being a producer on *Chopped*, the long running
-Food Network cooking competition. For those unfamiliar, the show takes place in three 
-rounds, where one of four contestants get eliminated at the end each round. In each round,
+You can think of using RLinearAlgebra.jl as being a producer on 
+[*Chopped*](https://www.youtube.com/watch?v=7sm8VrnuOFc&list=PLpfv1AIjenVOxDKUfPuOtjsoF7OWIZVK-&index=9), 
+the long running Food Network cooking competition. 
+For those unfamiliar, the show takes place in three rounds, where one of four contestants 
+get eliminated at the end each round. In each round,
 the producers provide the contestants with a fix set of ingredients 
 [(often rather unconventional ones at that)](https://www.mashed.com/1244321/most-bizarre-mystery-basket-ingredients-ever-seen-chopped/)
 and a general category of food (e.g. appetizer, entree, or dessert) that the contestants
-then have to come up with a recipe for and cook.
+then have to use in a recipe that the cook for a panel of judges.
 
 RLinearAlgebra.jl gives you as the user the fun job of deciding which ingredients 
 (techniques) you want to use to solve your linear system, compress your matrix/vector, 
@@ -79,8 +81,8 @@ can start the clock by calling `rsolve` or `rapproximate`, with information abou
 matrix/linear system and watch RLinearAlgebra.jl do the rest. Specifically, it will behind
 the scenes call all the  `complete_[technique]` functions that will generate recipes data 
 structures that have all the necessary preparations (preallocations) for handling your 
-proposed task. Then once the preparations are done, it handles your problem according to 
-its designed recipes.
+proposed task. Then once the preparations are done, RLinearAlgebra resolves your problem 
+according to its designed recipes.
 
 With this analogy of how RLinearAlgebra.jl works, the next two sections provide an overview
 over the two key data structures in RLinearAlgebra.jl, the **technique** structures, your 
