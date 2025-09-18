@@ -166,7 +166,8 @@ Currently, RLinearAlgebra.jl is not registered in Julia's official package regis
 are two main ways of installing RLinearAlgebra.jl. The preferred way of doing it is through
 the local registry. You can install this approach by writing in the REPL:
 ```julia
-] registry add https://github.com/numlinalg/NumLingAlg/RLinearAlgebra.jl
+] registry add https://github.com/numlinalg/NumLingAlg
+add RLinearAlgebra
 ```
 
 It can also be installed by writing in the REPL:
