@@ -1,0 +1,7 @@
+/* This file is aim to customize html format */
+
+/* Add margin at the beginning and the end of code blocks */
+li pre {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Design of Library · RLinearAlgebra</title><meta name="title" content="Design of Library · RLinearAlgebra"/><meta property="og:title" content="Design of Library · RLinearAlgebra"/><meta property="twitter:title" content="Design of Library · RLinearAlgebra"/><meta name="description" content="Documentation for RLinearAlgebra."/><meta property="og:description" content="Documentation for RLinearAlgebra."/><meta property="twitter:description" content="Documentation for RLinearAlgebra."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script><link href="../../custom_html.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">RLinearAlgebra</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../tutorials/introduction/">Introduction</a></li><li><a class="tocitem" href="../../tutorials/getting_started/">Getting started</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Manual</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../manual/introduction/">Introduction</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">API Reference</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><input class="collapse-toggle" id="menuitem-4-1" type="checkbox"/><label class="tocitem" for="menuitem-4-1"><span class="docs-label">Compressors</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../api/compressors/">Compressors Overview</a></li><li><input class="collapse-toggle" id="menuitem-4-1-2" type="checkbox"/><label class="tocitem" for="menuitem-4-1-2"><span class="docs-label">Compressor Sub-routines</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../api/distributions/">Distributions</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">Solvers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../api/solvers/">Solvers Overview</a></li><li><input class="collapse-toggle" id="menuitem-4-2-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2-2"><span class="docs-label">Solver Sub-routines</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../api/sub_solvers/">SubSolvers</a></li><li><a class="tocitem" href="../../api/solver_errors/">SolverErrors</a></li><li><a class="tocitem" href="../../api/loggers/">Loggers</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Approximators</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../api/approximators/">Approximators Overview</a></li><li><input class="collapse-toggle" id="menuitem-4-3-2" type="checkbox"/><label class="tocitem" for="menuitem-4-3-2"><span class="docs-label">Approximator Sub-routines</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../api/approximator_errors/">ApproximatorErrors</a></li></ul></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox" checked/><label class="tocitem" for="menuitem-5"><span class="docs-label">Contributing</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../contributing/">Contributing Overview</a></li><li class="is-active"><a class="tocitem" href>Design of Library</a><ul class="internal"><li><a class="tocitem" href="#Overview-Library-Goals"><span>Overview Library Goals</span></a></li><li><a class="tocitem" href="#Technique-Types"><span>Technique Types</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5-3" type="checkbox"/><label class="tocitem" for="menuitem-5-3"><span class="docs-label">Checklists</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../checklists/">Overview</a></li><li><a class="tocitem" href="../checklists/compressors/">Compressors</a></li><li><a class="tocitem" href="../checklists/loggers/">Loggers</a></li></ul></li><li><a class="tocitem" href="../style_guide/">Style Guide</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Contributing</a></li><li class="is-active"><a href>Design of Library</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Design of Library</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/numlinalg/RLinearAlgebra.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/numlinalg/RLinearAlgebra.jl/blob/main/docs/src/dev/design.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Design"><a class="docs-heading-anchor" href="#Design">Design</a><a id="Design-1"></a><a class="docs-heading-anchor-permalink" href="#Design" title="Permalink"></a></h1><h2 id="Overview-Library-Goals"><a class="docs-heading-anchor" href="#Overview-Library-Goals">Overview Library Goals</a><a id="Overview-Library-Goals-1"></a><a class="docs-heading-anchor-permalink" href="#Overview-Library-Goals" title="Permalink"></a></h2><p>RLinearAlgebra.jl implements randomized numerical linear algebra (RNLA) routines for two tasks: (1) solving a matrix equations and (2) forming a low-rank approximation  to matrices.  The primary tool Randomized Linear Algebra uses to accomplish these tasks is multiplying the large matrix system by a smaller randomized matrix to compress the  large matrix. In the literature this process if often referred to as sampling or sketching, RLinearAlgebra.jl refers to this process as compression. </p><p>The library is organized with main techniques falling into one of three types:  Approximators, Compressors, and Solvers. Solvers feature their own set of  sub-techniques: Loggers, SolverErrors, and SubSolvers that facilitate solving. Approximators have only one set of sub-techniques known as ApproximatorErrors.</p><p>RLinearAlgebra.jl is designed so that the codebase has a good balance between efficiency  and modularity. RLinearAlgebra.jl tries to achieve these goals by introducing two  structures, one that contains user-controlled parameters which takes the form of  <code>[Technique]</code> and a second that is used by the technique to execute the techniques because it contains the necessary preallocated memory and is known as a <code>[Technique]Recipe</code>.</p><p>We can see an example of the difference between the two structures when considering an  implementation of compression with Gaussian matrices. In this implementation we wish to  have the user specify a compression dimension and size without having to know the dimension of the matrix the sketch is applied to. The <code>Gaussian</code> structure facilitates this by having  two fields <code>n_rows</code>  and <code>n_cols</code> with the default for both being zero. When the user then  constructs this structure the can specify the dimension and direction of the compression  by specifying the number of rows or columns they wish for the compression matrix to have. If the user wanted a Gaussian matrix with 3 rows they would call  <code>Gaussian(n_rows = 3)</code>. We then turn this dimensional information into an usable compression matrix by using the <code>complete_compressor</code> function to form a <code>GaussianRecipe</code>. This  <code>GaussianRecipe</code> contains Fields <code>n_rows = 3</code>, <code>n_cols</code> set to be the number of rows in the compressor, and a Gaussian matrix of the size specified by <code>n_rows</code> and <code>n_cols</code>.</p><p>Once a <code>[Technique]Recipe</code> has been created, this data structure can then be used to  execute a particular technique. The command to execute each technique varies by the class  of techniques, as such we lay out the specifics for each type of techniques in the following  section.</p><h2 id="Technique-Types"><a class="docs-heading-anchor" href="#Technique-Types">Technique Types</a><a id="Technique-Types-1"></a><a class="docs-heading-anchor-permalink" href="#Technique-Types" title="Permalink"></a></h2><p>Overall, there are three top-level technique types: (1) Compressors, (2) Solvers, and  (3) Approximators, with the latter two also having additional sets of technique types used in the execution of the top-level techniques. We group the discussions of the technique  classes by top-level technique.</p><h3 id="Compressors"><a class="docs-heading-anchor" href="#Compressors">Compressors</a><a id="Compressors-1"></a><a class="docs-heading-anchor-permalink" href="#Compressors" title="Permalink"></a></h3><p>When implementing a Compressor, RLinearAlgebra requires an mutable <code>Compressor</code>  structure, a mutable <code>CompressorRecipe</code> structure, a <code>complete_compressor</code> function, a  <code>update_compressor!</code> function, and for five input mul! functions (one for applying the  compressor to vectors, one for applying the adjoint of a compressor to a vector,  and two for applying the compressor to matrices). </p><h4 id="Compressor-Structure"><a class="docs-heading-anchor" href="#Compressor-Structure">Compressor Structure</a><a id="Compressor-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#Compressor-Structure" title="Permalink"></a></h4><p>Every compression technique needs a place to store user-controlled parameters.  This will be accomplished by the immutable Compressor structure.  We present an example structure used for the Sparse Sign technique.</p><pre><code class="nohighlight hljs">struct SparseSign &lt;: Compressor
+    n_rows::Int64
+    n_cols::Int64
+    nnz::Int64
+end</code></pre><p>You will first notice that <code>n_rows</code> and <code>n_cols</code> are fields present in the Compressor,  these fields allow for the user to specify either the number of rows or the number of  columns they wish the compressor to have. <strong>Both <code>n_rows</code> and <code>n_cols</code> are required for  every Compressor structure.</strong> Beyond those fields the technique will dictate the other  parameters that should be made available to the user. In addition to the structure, there  should be a <strong>constructor for the structure that accepts keyword inputs for each  field of the Compressor structure.</strong> For example in the <code>SparseSign</code> case we define,</p><pre><code class="nohighlight hljs">function SparseSign(;n_rows::Int64 = 0, n_cols::Int64 = 0, nnz::Int64 = 8)
+    # Partially construct the sparse sign datatype
+    return SparseSign(n_rows, n_cols, nnz)
+end</code></pre><h4 id="CompressorRecipe-Structure"><a class="docs-heading-anchor" href="#CompressorRecipe-Structure">CompressorRecipe Structure</a><a id="CompressorRecipe-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#CompressorRecipe-Structure" title="Permalink"></a></h4><p>To form the compressor from the user-inputted information, we need information about the  linear system. Once this information is attained preallocations of the necessary memory can  be done. These preallocations are then stored in the <code>CompressorRecipe</code> structure. Because this structure has all of the preallocated memory for applying the compression technique it is this structure that can be applied to matrices and vectors. </p><p>As example, we have included the CompressorRecipe for the sparse sign compressor. This structure importantly includes the size of the compressor in the <code>n_rows</code> and <code>n_cols</code>  fields</p><pre><code class="nohighlight hljs">mutable struct SparseSignRecipe &lt;: CompressorRecipe
+    n_rows::Int64
+    n_cols::Int64
+    max_idx::Int64
+    nnz::Int64
+    scale::Float64
+    idxs::Vector{Int64}
+    signs::Vector{Bool}
+end</code></pre><p>Here we have the <strong>required <code>n_rows</code> and <code>n_cols</code></strong> fields for all compressors. The  remaining fields are specific to the sparse sign compression technique. </p><h4 id="complete_compressor"><a class="docs-heading-anchor" href="#complete_compressor">complete_compressor</a><a id="complete_compressor-1"></a><a class="docs-heading-anchor-permalink" href="#complete_compressor" title="Permalink"></a></h4><p>To create the CompressorRecipe from linear system information and the user-controlled  parameters, we use the function <code>complete_compressor(::Compressor, ::AbsractMatrix)</code>,  if vector information is required we can also define  <code>complete_compressor(::Compressor, ::AbsractMatrix, ::AbstractVector)</code>.  An example of how this is done for the sparse sign case can be seen below.</p><pre><code class="nohighlight hljs">function complete_compressor(sparse_info::SparseSign, A::AbstractMatrix)
+    n_rows = sparse_info.n_rows
+    n_cols = sparse_info.n_cols
+    # FInd the zero dimension and set it to be the dimension of A
+    if n_rows == 0 &amp;&amp; n_cols == 0
+        # by default we will compress the row dimension to size 2
+        n_cols = size(A, 1)
+        n_rows = 2
+        # correct these sizes
+        initial_size = max(n_rows, n_cols)
+        sample_size = min(n_rows, n_cols)
+    elseif n_rows == 0 &amp;&amp; n_cols &gt; 0
+        # Assuming that if n_rows is not specified we compress column dimension
+         n_rows = size(A, 2)
+         # If the user specifies one size as nonzero that is the sample size
+         sample_size = n_cols
+         initial_size = n_rows
+    elseif n_rows &gt; 0 &amp;&amp; n_cols == 0
+        n_cols = size(A, 1)
+        sample_size = n_rows
+        initial_size = n_cols
+    else
+        if n_rows == size(A, 2)
+            initial_size = n_rows
+            sample_size = n_cols
+        elseif n_cols == size(A, 2)
+            initial_size = n_cols
+            sample_size == n_rows
+        else
+            @assert false &quot;Either you inputted row or column dimension must match \\
+            the column or row dimension of the matrix.&quot;
+        end
+    end
+
+    nnz = (sparse_info.nnz == 8) ? min(8, sample_size) : sparse_info.nnz
+    @assert nnz &lt;= sample_size &quot;Number of non-zero indices, $nnz, must be less than \\ 
+        compression dimension, $sample_size.&quot;
+    idxs = Vector{Int64}(undef, nnz * initial_size)
+    start = 1
+    for i in 1:initial_size
+        # every grouping of nnz entries corresponds to each row/column in sample
+        stop = start + nnz - 1
+        # Sample indices from the intial_size
+        @views sample!(
+            1:sample_size, 
+            idxs[start:stop], 
+            replace = false, 
+            ordered = true
+        )
+        start = stop + 1
+    end
+    
+    # Store signs as a boolean to save memory
+    signs = bitrand(nnz * initial_size)
+    scale = 1 / sqrt(nnz)
+    
+    return SparseSignRecipe(n_rows, n_cols, sample_size, nnz, scale, idxs, signs)
+end</code></pre><p>The <code>complete_compressor</code> function assumes that if the user inputs only <code>n_rows</code> or <code>n_cols</code>  in the Compressor structure this is the desired compression dimension. If they input  neither, it creates a compressor with a compression dimension of two and  if the input both and neither is consistent with  a dimension of the inputted linear system it returns an error. Otherwise, it assumes the  inconsistent dimension is the compression dimension. Once the sizes of the compressor have  been determined it next allocates the memory necessary for storing the initial compressor and packages these allocations with the size information into the <code>CompressorRecipe</code>.</p><h4 id="update_compressor!"><a class="docs-heading-anchor" href="#update_compressor!">update_compressor!</a><a id="update_compressor!-1"></a><a class="docs-heading-anchor-permalink" href="#update_compressor!" title="Permalink"></a></h4><p>To generate a new version of the compressor we can call the function <code>update_compressor!</code>,  this function simply changes the random components of the CompressorRecipe. In the sparse  sign case this means updating the nonzero indices and the signs as can be seen in the  following example code.</p><pre><code class="nohighlight hljs">function update_compressor!(
+                            S::SparseSignRecipe, 
+                            A::AbstractMatrix, 
+                            b::AbstractVector, 
+                            x::AbstractVector
+                           )
+    # Sample_size will be the minimum of the two size dimensions of `S`
+    sample_size = min(S.n_rows, S.n_cols)
+    initial_size = max(S.n_rows, S.n_cols)
+    start = 1
+    for i in 1:sample_size
+        # every grouping of nnz entries corresponds to each row/column in sample
+        stop = start + S.nnz - 1
+        # Sample indices from the intial_size
+        @views sample!(
+            1:sample_size, 
+            S.idxs[start:stop], 
+            replace = false, 
+            ordered = true
+        )
+        start = stop + 1
+    end
+    # There is no inplace update of bitrand and using sample is slower
+    S.signs .= bitrand(S.nnz * initial_size) 
+    return
+end</code></pre><h4 id="mul!"><a class="docs-heading-anchor" href="#mul!">mul!</a><a id="mul!-1"></a><a class="docs-heading-anchor-permalink" href="#mul!" title="Permalink"></a></h4><p>The last pieces of code that every compression technique requires are the <code>mul!</code> functions.  For these functions we follow the conventions laid out in the LinearAlgebra library where  there are five inputs (C, A, S, alpha, beta) and it outputs <code>C = beta * C + alpha * A * S</code>. The <code>mul!</code> functions that should be implemented are two for applying the compression matrix to vectors, one in standard orientation and one for when the adjoint of the compressor is  applied to the vector. Additionally, two <code>mul!</code> functions should be implemented for when  the compression matrix is applied to a matrix, one for when the compression matrix, S, is  applied from the left, i.e. AS, and one for when the compression matrix is applied from the  right, i.e. SA. </p><h3 id="Solvers"><a class="docs-heading-anchor" href="#Solvers">Solvers</a><a id="Solvers-1"></a><a class="docs-heading-anchor-permalink" href="#Solvers" title="Permalink"></a></h3><p>A Solver technique is any technique that aims to find a vector <span>$x$</span> such that either  <span>$Ax = b$</span> or <span>$x = \\min_u \\|A u - b\\|_2^2$</span>. Solvers rely on compression techniques,  logging techniques, error techniques, and sub-solver techniques. We first discuss  implementation requirements for the sub-techniques and then discuss how we can use these  when creating a solver structure.</p><h4 id="Loggers"><a class="docs-heading-anchor" href="#Loggers">Loggers</a><a id="Loggers-1"></a><a class="docs-heading-anchor-permalink" href="#Loggers" title="Permalink"></a></h4><p>Loggers are structures with two goals (1) log a progress value produced by an error metric and (2) evaluate whether that error is sufficient for stopping. The user controlled inputs for a logging technique are contained in the Logger structure.</p><h5 id="Logger"><a class="docs-heading-anchor" href="#Logger">Logger</a><a id="Logger-1"></a><a class="docs-heading-anchor-permalink" href="#Logger" title="Permalink"></a></h5><p>The <code>Logger</code> structure is where the user inputs any information required  to logging progress and stopping the method. <strong>The Logger is required to have a field for  <code>max_it</code>, <code>threshold_info</code>, and <code>stopping_criterion</code>.</strong> The <code>max_it</code> field is a field for the maximum number of iterations of the method. The <code>stopping_criterion</code> is a field that contains a function that returns a stopping decision based on the information in the  <code>LoggerRecipe</code> and the <code>Tuple</code> of information supplied by the user in the <code>threshold_info</code>  field. It is important to note that constructors for these techniques should have keyword  inputs with predefined defaults. We present an example of the Logger structure for a  <code>BasicLogger</code> below</p><pre><code class="nohighlight hljs">struct BasicLogger &lt;: Logger
+    max_it::Int64
+    collection_rate::Int64
+    threshold_info::Union{Float64, Tuple}
+    stopping_criterion::Function
+end</code></pre><p>Aside from the required parameters the <code>BasicLogger</code> also features a <code>collection rate</code>  parameter to allow the user to specify how often they wish for the <code>LoggerRecipe</code> to log  progress.</p><h5 id="LoggerRecipe"><a class="docs-heading-anchor" href="#LoggerRecipe">LoggerRecipe</a><a id="LoggerRecipe-1"></a><a class="docs-heading-anchor-permalink" href="#LoggerRecipe" title="Permalink"></a></h5><p>The <code>LoggerRecipe</code> will contain the user-controlled parameters from the <code>Logger</code> as well as  memory for storing the logged information. All <code>LoggerRecipes</code>  <strong>must contain a <code>max_it</code> field and a <code>converged</code> field,</strong> where the <code>converged</code> field is a  boolean indicating if the method has converged. An example of a <code>LoggerRecipe</code> is presented  below for the <code>BasicLoggerRecipe</code>.  This Logger has a vector for the history of the progress  metric, a field whose inclusion is strongly suggested. It also has <code>record_location</code> field  to keep track of where the next observed progress estimate should be placed depending  on the <code>collection_rate</code>.</p><pre><code class="nohighlight hljs">mutable struct BasicLoggerRecipe{F} &lt;: LoggerRecipe where F&lt;:Function
+    max_it::Int64
+    err::Float64
+    threshold_info::Union{Float64, Tuple}
+    iteration::Int64
+    record_location::Int64
+    collection_rate::Int64
+    converged::Bool
+    stopping_criterion::F
+    hist::Vector{Float64}
+end</code></pre><h5 id="complete_logger"><a class="docs-heading-anchor" href="#complete_logger">complete_logger</a><a id="complete_logger-1"></a><a class="docs-heading-anchor-permalink" href="#complete_logger" title="Permalink"></a></h5><p>As with the other techniques, <code>complete_logger</code>  takes a <code>Logger</code> data structure and  performs the appropriate allocations to generate a <code>LoggerRecipe</code>. An example of this  function for BasicLogger is presented below.</p><pre><code class="nohighlight hljs">function complete_logger(logger::BasicLogger, A::AbstractMatrix)
+    # We will run for a number of iterations equal to 3 itmes the number of rows if maxit is
+    # not set
+    max_it = logger.max_it == 0 ? 3 * size(A, 1) : logger.max_it
+
+    max_collection = Int(ceil(max_it / logger.collection_rate))
+    # use one more than max it form collection
+    hist = zeros(max_collection + 1)
+    return BasicLoggerRecipe{typeof(logger.stopping_criterion)}(max_it,
+                                                                0.0,
+                                                                logger.threshold_info,
+                                                                1,
+                                                                1,
+                                                                logger.collection_rate,
+                                                                false,
+                                                                logger.stopping_criterion,
+                                                                hist
+                                                               )
+end</code></pre><h5 id="update_logger!"><a class="docs-heading-anchor" href="#update_logger!">update_logger!</a><a id="update_logger!-1"></a><a class="docs-heading-anchor-permalink" href="#update_logger!" title="Permalink"></a></h5><p>As with the compressors <code>update_logger!</code> performs an in-place update of the  LoggerRecipe using the inputted progress metric and iteration of the method. An example of  the <code>update_logger!</code> function for the BasicLoggerRecipe is included below.</p><pre><code class="nohighlight hljs">function update_logger!(logger::BasicLoggerRecipe, err::Float64, iteration::Int64)
+    logger.iteration = iteration
+    logger.err = err
+    if rem(iteration, logger.collection_rate) == 0
+        logger.hist[logger.record_location] = err
+        logger.record_location += 1
+    end
+    # Always check max_it stopping criterion
+    # Compute in this way to avoid bounds error from searching in the max_it + 1 location
+    logger.converged = iteration &lt;= logger.max_it ? logger.stopping_criterion(logger) : 
+        false
+    return
+
+end</code></pre><h5 id="Stopping-Functions"><a class="docs-heading-anchor" href="#Stopping-Functions">Stopping Functions</a><a id="Stopping-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#Stopping-Functions" title="Permalink"></a></h5><p>As was noted in the description of the required fields for the <code>Logger</code> the user should  have the opportunity to input a stopping function that should take the input of a  LoggerRecipe to which it updates the value of the <code>converged</code> field if stopping should  occur. An example implementation of function for threshold stopping, stop when progress  the metric falls below a particular threshold is presented below.</p><pre><code class="nohighlight hljs">function threshold_stop(log::LoggerRecipe)
+    return log.err &lt; log.threshold_info
+end</code></pre><h4 id="SolverErrors"><a class="docs-heading-anchor" href="#SolverErrors">SolverErrors</a><a id="SolverErrors-1"></a><a class="docs-heading-anchor-permalink" href="#SolverErrors" title="Permalink"></a></h4><p>For computing the progress of a solver it is important to include implementations of  particular error techniques. These typically will be techniques like the residual or  compressed residual, but could be more complicated techniques like an estimate of backwards stability. </p><h5 id="SolverError"><a class="docs-heading-anchor" href="#SolverError">SolverError</a><a id="SolverError-1"></a><a class="docs-heading-anchor-permalink" href="#SolverError" title="Permalink"></a></h5><p>This is a structure that holds user-controlled parameters for a progress estimation  technique. For basic techniques like the residual where no user-controlled parameters are  required this will simply be an empty structure. We have included an example of a  <code>SolverError</code> structure for the residual computations. It is important to note that  constructors for these techniques should have keyword inputs with predefined defaults.</p><pre><code class="nohighlight hljs">struct FullResidual &lt;: SolverError
+
+end</code></pre><h5 id="SolverErrorRecipe"><a class="docs-heading-anchor" href="#SolverErrorRecipe">SolverErrorRecipe</a><a id="SolverErrorRecipe-1"></a><a class="docs-heading-anchor-permalink" href="#SolverErrorRecipe" title="Permalink"></a></h5><p>This structure contains the user-controlled parameters from the <code>SolverError</code> as well  memory allocations of a size determined based on the linear system. An example for a  residual technique has been included below.</p><pre><code class="nohighlight hljs">mutable struct FullResidualRecipe{V&lt;:AbstractVector} &lt;: SolverErrorRecipe
+    residual::V
+end</code></pre><h5 id="complete_error"><a class="docs-heading-anchor" href="#complete_error">complete_error</a><a id="complete_error-1"></a><a class="docs-heading-anchor-permalink" href="#complete_error" title="Permalink"></a></h5><p>To generate the <code>SolverErrorRecipe</code> from the information in the linear system and  <code>SolverError</code> we use the function <code>complete_error</code>. This function should be implemented to take the inputs of the SolverError<code>, a matrix</code>A<code>representing the linear system, and a  vector</code>b` representing the constant vector of the linear system. An example of this  function for the residual error technique has been included below.</p><pre><code class="nohighlight hljs">function complete_error(error::FullResidual, A::AbstractMatrix, b::AbstractVector)
+    return FullResidualRecipe{typeof(b)}(zeros(size(b,1)))
+end</code></pre><h5 id="compute_error"><a class="docs-heading-anchor" href="#compute_error">compute_error</a><a id="compute_error-1"></a><a class="docs-heading-anchor-permalink" href="#compute_error" title="Permalink"></a></h5><p>To excute the technique we call the function <code>compute_error</code> with the inputs of the  <code>SolverErrorRecipe</code>, <code>Solver</code>, coefficient matrix <code>A</code>, and constant vector <code>b</code>. This  function then performs the necessary computations to return a single value indication of the progress of the solver. An example of this for the residual technique that returns the norm- squared of the residual is included below.  </p><pre><code class="nohighlight hljs">function compute_error(
+        error::FullResidualRecipe, 
+        solver::KaczmarzRecipe, 
+        A::AbstractMatrix, 
+        b::AbstractVector
+    )::Float64
+    copyto!(error.residual, b)
+    mul!(error.residual, A, solver.solution_vec, -1.0, 1.0)
+    return dot(error.residual, error.residual)
+end</code></pre><h4 id="SubSolvers"><a class="docs-heading-anchor" href="#SubSolvers">SubSolvers</a><a id="SubSolvers-1"></a><a class="docs-heading-anchor-permalink" href="#SubSolvers" title="Permalink"></a></h4><p>Although, randomized solvers are used to solve a larger linear system. They typically rely on using compressors to generate a compressed linear system that can be easily solved  using standard techniques. The specifics of the &#39;standard&#39; techniques is typically not  specified. For instance, if the compressed system is a least squares problem one could solve this system with a QR algorithm or LSQR and potentially get vastly different performance results. To allow the user to experiment with different techniques for solving the  compressed linear system, we introduce the SubSolver data structures.</p><h5 id="SubSolver"><a class="docs-heading-anchor" href="#SubSolver">SubSolver</a><a id="SubSolver-1"></a><a class="docs-heading-anchor-permalink" href="#SubSolver" title="Permalink"></a></h5><p>This is a data structure that allows the user to specify how they wish to solve the compressed linear systems generated in the solving process. When the solver type is a direct method it is possible for there to be no user inputs in this data structure. For iterative methods there could be extensive user-controlled parameters included in this structure. For  example, for a LSQR SubSolver the user could input the maximum of iterations, a  preconditioner type, or stopping thresholds. We have included an example of the <code>SubSolver</code> structure for the <code>LQSolver</code>, which is an approach for solving undetermined linear systems  and does not have any user-controlled parameters associated with it. It is important to note  that constructors for these techniques should have keyword inputs with predefined defaults.</p><pre><code class="nohighlight hljs">struct LQSolver &lt;: SubSolver
+
+end</code></pre><h5 id="SubSolverRecipe"><a class="docs-heading-anchor" href="#SubSolverRecipe">SubSolverRecipe</a><a id="SubSolverRecipe-1"></a><a class="docs-heading-anchor-permalink" href="#SubSolverRecipe" title="Permalink"></a></h5><p>This is a data structure that contains the preallocated memory necessary for solving the  linear system. </p><h5 id="complete_solver"><a class="docs-heading-anchor" href="#complete_solver">complete_solver</a><a id="complete_solver-1"></a><a class="docs-heading-anchor-permalink" href="#complete_solver" title="Permalink"></a></h5><p>This is a function that takes a <code>SubSolver</code> and the linear system as input and uses these  inputs to output a SubSolverRecipe.</p><h5 id="update*sub*solver"><a class="docs-heading-anchor" href="#update*sub*solver">update<em>sub</em>solver</a><a id="update*sub*solver-1"></a><a class="docs-heading-anchor-permalink" href="#update*sub*solver" title="Permalink"></a></h5><p>This is a function that updates the preallocated memory in the SubSolverRecipe with  the relevant information for the new compressed linear system. </p><h5 id="ldiv!"><a class="docs-heading-anchor" href="#ldiv!">ldiv!</a><a id="ldiv!-1"></a><a class="docs-heading-anchor-permalink" href="#ldiv!" title="Permalink"></a></h5><p>A function that uses the SubSolverRecipe to solve the compressed linear system.</p><h4 id="Solvers-2"><a class="docs-heading-anchor" href="#Solvers-2">Solvers</a><a class="docs-heading-anchor-permalink" href="#Solvers-2" title="Permalink"></a></h4><p>With an understanding of all of these sub techniques, we can discuss how to use these  methods to implement a Solver technique. The first data structure required for a solver is  the <code>Solver</code> structure.</p><h5 id="Solver"><a class="docs-heading-anchor" href="#Solver">Solver</a><a id="Solver-1"></a><a class="docs-heading-anchor-permalink" href="#Solver" title="Permalink"></a></h5><p>The Solver data structure is a structure where the user can input values of user-controlled  parameters specific to a particular type of solver. This typically involves the user inputting the structures associated with their desired Compressor, Logger, Error, and  SubSolver, as well as any parameters like step-sizes associated with the particular  randomized solver they are using. As an example, we have included the Solver structure  associated with the Kaczmarz solver. It is important to note that constructors for these techniques should have keyword inputs with predefined defaults.</p><pre><code class="nohighlight hljs">mutable struct Kaczmarz &lt;: Solver 
+    alpha::Float64
+    S::Compressor
+    log::Logger
+    error::SolverError
+    sub_solver::SubSolver
+end</code></pre><h5 id="SolverRecipe"><a class="docs-heading-anchor" href="#SolverRecipe">SolverRecipe</a><a id="SolverRecipe-1"></a><a class="docs-heading-anchor-permalink" href="#SolverRecipe" title="Permalink"></a></h5><p>The SolverRecipe will contain all the preallocated memory associate with the solver, the  solver specific user-controlled parameters, and all recipes associated with the  sub-techniques included in the <code>Solver</code> structure. We have included an example for the  <code>KaczmarzRecipe</code> below.</p><pre><code class="nohighlight hljs">mutable struct KaczmarzRecipe{T&lt;:Number, 
+                              V&lt;:AbstractVector,
+                              M&lt;:AbstractMatrix, 
+                              VV&lt;:SubArray,
+                              MV&lt;:SubArray,
+                              C&lt;:CompressorRecipe, 
+                              L&lt;:LoggerRecipe,
+                              E&lt;:SolverErrorRecipe, 
+                              B&lt;:SubSolverRecipe
+                             } &lt;: SolverRecipe
+    S::C
+    log::L
+    error::E
+    sub_solver::B
+    alpha::Float64
+    compressed_mat::M
+    compressed_vec::V
+    solution_vec::V
+    update_vec::V
+    mat_view::MV
+    vec_view::VV
+end</code></pre><p>The first four fields are associated with the sub-techniques for the solver. The alpha  field is a user defined value and the remaining fields are preallocated space for storing the result of the compression and the solution vector.</p><h5 id="complete_solver-2"><a class="docs-heading-anchor" href="#complete_solver-2">complete_solver</a><a class="docs-heading-anchor-permalink" href="#complete_solver-2" title="Permalink"></a></h5><p>The <code>complete_solver</code> function performs the necessary computations and allocations to change a <code>Solver</code> structure into a <code>SolverRecipe</code>. In the example code below for a Kaczmarz solver these computations include running <code>complete_[technique]</code> for the compression, logging,  error, and sub solver techniques, as well as allocating memory for storing the compressed  matrix and compressed vector, the solution vector, and update vector. <strong>The <code>views</code>  allocated by this function should be replicated in other multi-compression solver structures  to allow for varying sizes of the compression matrix.</strong></p><pre><code class="nohighlight hljs">function complete_solver(
+        solver::Kaczmarz, 
+        x::AbstractVector, 
+        A::AbstractMatrix, 
+        b::AbstractVector
+    )
+    # Dimension checking will be performed in the complete_compressor
+    compressor = complete_compressor(solver.S, A, b)
+    logger = complete_logger(solver.log, A, b)
+    error = complete_error(solver.error, A, b) 
+    # Check that required fields are in the types
+    @assert isdefined(error, :residual) &quot;ErrorRecipe $(typeof(error)) does not contain the\ 
+field &#39;residual&#39; and is not valid for a kaczmarz solver.&quot;
+    @assert isdefined(logger, :converged) &quot;LoggerRecipe $(typeof(logger)) does not contain\
+ the field &#39;converged&#39; and is not valid for a kaczmarz solver.&quot;
+    # Assuming that max_it is defined in the logger
+    alpha::Float64 = solver.alpha 
+    # We assume the user is using compressors to only decrease dimension
+    n_rows::Int64 = compressor.n_rows
+    n_cols::Int64 = compressor.n_cols
+    sample_size = n_rows
+    initial_size = n_cols
+    rows_a, cols_a = size(A)
+    # Allocate the information in the buffer using the types of A and b
+    compressed_mat = typeof(A)(undef, sample_size, cols_a)
+    compressed_vec = typeof(b)(undef, sample_size) 
+    # Since sub_solver is applied to compressed matrices use here
+    sub_solver = complete_sub_solver(solver.sub_solver, compressed_mat, compressed_vec)
+    mat_view = view(compressed_mat, 1:sample_size, :)
+    vec_view = view(compressed_vec, 1:sample_size)
+    solution_vec = x
+    update_vec = typeof(x)(undef, cols_a)
+    return KaczmarzRecipe{eltype(A), 
+                          typeof(b), 
+                          typeof(A), 
+                          typeof(vec_view),
+                          typeof(mat_view),
+                          typeof(compressor),
+                          typeof(logger),
+                          typeof(error),
+                          typeof(sub_solver)
+                         }(compressor, 
+                           logger, 
+                           error,
+                           sub_solver,
+                           alpha,
+                           compressed_mat,
+                           compressed_vec,
+                           solution_vec,
+                           update_vec,
+                           mat_view,
+                           vec_view
+                          )
+end</code></pre><h5 id="rsolve!"><a class="docs-heading-anchor" href="#rsolve!">rsolve!</a><a id="rsolve!-1"></a><a class="docs-heading-anchor-permalink" href="#rsolve!" title="Permalink"></a></h5><p>Every implementation of a Solver technique should include a <code>rsolve!</code> function that performs in-place updates to a solution vector and <code>SolverRecipe</code>. An example of such an  implementation for a Kaczmarz solver is included below. To the greatest extent possible the implementation should be written in a way that avoids new memory allocations. This means making use in-place update functions like <code>mul!</code> or <code>ldiv!</code> rather than <code>*</code> or <code>\</code>.</p><pre><code class="nohighlight hljs">function rsolve!(
+        solver::KaczmarzRecipe, 
+        x::AbstractVector, 
+        A::AbstractMatrix, 
+        b::AbstractVector
+    )
+    solver.solution_vec = x
+    err = 0.0
+    for i in 1:solver.log.max_it
+        err = compute_error(solver.error, solver, A, b)
+        # Update log adds value of err to log and checks stopping
+        update_logger!(solver.log, err, i)
+        if solver.log.converged
+            return solver.solution_vec, solver.log
+        end
+
+        # generate a new version of the compression matrix
+        update_compressor!(solver.S, A, b, x)
+        # based on size of new compressor update views of matrix
+        # this should not result in new allocations
+        rows_s, cols_s =  size(solver.S)
+        solver.mat_view = view(solver.compressed_mat, 1:rows_s, :)
+        solver.vec_view = view(solver.compressed_vec, 1:rows_s)
+        # compress the matrix and constant vector
+        mul!(solver.mat_view, solver.S, A)
+        mul!(solver.vec_view, solver.S, b)
+        # Compute the block residual
+        mul!(solver.vec_view, solver.mat_view, solver.solution_vec, -1.0, 1.0)
+        # sub-solver needs to designed for new compressed matrix
+        update_sub_solver!(solver.sub_solver, solver.mat_view)
+        # use sub-solver to find update the solution
+        sub_solve!(solver.update_vec, solver.sub_solver, solver.vec_view)
+        # Using over-relaxation parameter, alpha, to update solution
+        solver.solution_vec .+= solver.alpha .* solver.update_vec 
+    end
+
+    return solver.solution_vec, solver.log
+end</code></pre><h3 id="Approximators"><a class="docs-heading-anchor" href="#Approximators">Approximators</a><a id="Approximators-1"></a><a class="docs-heading-anchor-permalink" href="#Approximators" title="Permalink"></a></h3><p>Aside from solving linear systems, Randomized Linear Algebra has also been proven to be extremely useful for generating low rank approximations to linear systems. These low-rank  approximations can then be used to solve linear systems or perform more efficient matrix-matrix multiplications. The main types of low rank approximation methods implemented in this version of the library are random range finder techniques like random SVD, CUR  type methods, and Nystrom Methods. Low rank approximations can be formed simply by calling  the <code>rapproximate</code> function. Once a Low-rank approximation has been formed it can then be  applied either as a preconditioner by calling the <code>ldiv!</code> function or multiplied by calling  the <code>mul!</code> function. Each of the low rank approximation technique requires the implementation of the following data structures and functions.</p><h4 id="Approximator"><a class="docs-heading-anchor" href="#Approximator">Approximator</a><a id="Approximator-1"></a><a class="docs-heading-anchor-permalink" href="#Approximator" title="Permalink"></a></h4><p>This is a data structure that contains the user defined parameters for an approximator. An  example of this structure for the RangeFinder decomposition is included below. In the case  of the randomized range finder the only real user controlled parameter is the sketch size, which is controlled by the <code>Compressor</code>. It should be noted that constructors for these  structures should be based around keyword inputs with preset defaults. </p><pre><code class="nohighlight hljs">mutable struct RangeFinder &lt;: Approximator
+    S::Compressor
+    error::ErrorMethod
+end</code></pre><h4 id="ApproximatorRecipe"><a class="docs-heading-anchor" href="#ApproximatorRecipe">ApproximatorRecipe</a><a id="ApproximatorRecipe-1"></a><a class="docs-heading-anchor-permalink" href="#ApproximatorRecipe" title="Permalink"></a></h4><p>This a data structure that contains preallocated memory and the user-controlled parameters  for a specific approximation method. An example of this data structure for a RangeFinder  decomposition is included below.</p><pre><code class="nohighlight hljs">mutable struct RangeFinderRecipe &lt;: ApproximatorRecipe
+    S::CompressorRecipe
+    error::ErrorMethodRecipe
+    compressed_mat::AbstractMatrix
+    approx_range::AbstractMatrix
+end</code></pre><h4 id="complete_approximator"><a class="docs-heading-anchor" href="#complete_approximator">complete_approximator</a><a id="complete_approximator-1"></a><a class="docs-heading-anchor-permalink" href="#complete_approximator" title="Permalink"></a></h4><p>The <code>complete_approximator</code> function takes the matrix <code>A</code> and the  <code>Approximator</code> data structure to output an <code>ApproximatorRecipe</code> with properly allocated  storage for the low-rank approximation. An example of this function for the  <code>RangeFinderRecipe</code> is included below.</p><pre><code class="nohighlight hljs">function complete_approximator(approx::RangeFinder, A::AbstractMatrix)
+    S = complete_compressor(approx.S, A)
+    err = complete_error(approx.error, A)
+    s_rows, s_cols = size(S)
+    a_rows, a_cols = size(A)
+    compressed_mat = Matrix{eltype(A)}(undef, a_rows, s_cols)
+    approx_range = Matrix{eltype(A)}(undef, a_rows, s_cols) 
+    return RangeFinderRecipe(S, err, compressed_mat, approx_range)
+end</code></pre><h4 id="rapproximate!"><a class="docs-heading-anchor" href="#rapproximate!">rapproximate!</a><a id="rapproximate!-1"></a><a class="docs-heading-anchor-permalink" href="#rapproximate!" title="Permalink"></a></h4><p>A function that returns an <code>ApproximatorRecipe</code> and approximation error value for a particular approximation method. The returned <code>ApproximatorRecipe</code> can then be used for  matrix multiplication or preconditioning through the use of the <code>mul!</code> and <code>ldiv!</code> functions respectively. An example of this function for the <code>RangeFinderRecipe</code> is included below.</p><pre><code class="nohighlight hljs">function r_approximate!(
+    approximator::RangeFinderRecipe
+    A::AbstractMatrix
+)
+    m, n = size(A)
+    update_compressor!(aproximator.S)
+    # compuress the matrix
+    mul!(compressed_mat, A, aproximator.S)
+    # Array is required to compute the skinny qr
+    approximator.approx_range .= Array(qr(compressed_mat).Q)
+    err = compute_error(aproximator.error, A)
+    return approximator, error
+end</code></pre><h4 id="ldiv!-2"><a class="docs-heading-anchor" href="#ldiv!-2">ldiv!</a><a class="docs-heading-anchor-permalink" href="#ldiv!-2" title="Permalink"></a></h4><p>A function that solves the system <code>Mx = b</code> for <code>x</code> where M is a low rank approximation  matrix. This is useful for preconditioning linear systems. When there is no obvious way to use the low rank approximation to solve this system the implementation will be the same as the implementation for <code>mul!</code>.</p><h4 id="mul!-2"><a class="docs-heading-anchor" href="#mul!-2">mul!</a><a class="docs-heading-anchor-permalink" href="#mul!-2" title="Permalink"></a></h4><p>A function that multiplies a low rank approximation with a matrix. This should be  implemented as the five input <code>mul!</code> function. For these functions we follow the conventions  laid out in the LinearAlgebra library where there are five inputs (C, A, S, alpha, beta) and  it outputs <code>C = beta * C + alpha * A * S</code>.</p><h3 id="Approximation-Error"><a class="docs-heading-anchor" href="#Approximation-Error">Approximation Error</a><a id="Approximation-Error-1"></a><a class="docs-heading-anchor-permalink" href="#Approximation-Error" title="Permalink"></a></h3><p>For the <code>Approximator</code>s an important sub-techniques are those that verify the accuracy of a particular approximation. These methods can be exact, as in the case of computing <span>$\|A - QQ&#39;A\|_F$</span>, where <span>$Q$</span> is a row-space approximator or approximate such as the  <span>$\|AS - QQ&#39;AS\|_F$</span> where <span>$S$</span> is a Gaussian matrix with 10 column vectors.</p><h4 id="ApproximatorError"><a class="docs-heading-anchor" href="#ApproximatorError">ApproximatorError</a><a id="ApproximatorError-1"></a><a class="docs-heading-anchor-permalink" href="#ApproximatorError" title="Permalink"></a></h4><p>The <code>ApproximatorError</code> data structure is a data structure that takes the user controlled  parameters for a method that computes the approximation error, e.g <span>$A - QQ&#39;A$</span> for a  particular approximation method. In cases where this error is an exact approximation no  user-controlled parameters may be needed and the <code>ApproximatorError</code> can be implemented as  an empty data structure. If user-controlled parameters are necessary then constructors should be implemented that take in keyword arguments with defaults. We have included an  example data structure for a method that computes the projected error, <span>$A - QQ&#39;A$</span>, below.</p><pre><code class="nohighlight hljs">mutable struct ProjectedError &lt;: ApproximatorError
+
+end
+</code></pre><h4 id="ApproximatorErrorRecipe"><a class="docs-heading-anchor" href="#ApproximatorErrorRecipe">ApproximatorErrorRecipe</a><a id="ApproximatorErrorRecipe-1"></a><a class="docs-heading-anchor-permalink" href="#ApproximatorErrorRecipe" title="Permalink"></a></h4><p>An <code>ApproximatorErrorRecipe</code> contains the user-controlled parameters and preallocated memory  for a method that computes the approximation error, e.g <code>A - QQ&#39;A</code> for a particular  approximation method.  </p><pre><code class="nohighlight hljs">mutable struct ProjectedErrorRecipe{T, M{T}} &lt;: ApproximatorErrorRecipe 
+    where M &lt;: AbstractMatrix
+    error::Float64
+    large_buff_mat::M
+    small_buffer_mat::M
+end</code></pre><h4 id="complete_error-2"><a class="docs-heading-anchor" href="#complete_error-2">complete_error</a><a class="docs-heading-anchor-permalink" href="#complete_error-2" title="Permalink"></a></h4><p>The <code>complete_error</code> function takes the information from a <code>ApproximatorError</code> and an <code>AbstractMatrix</code> to create an <code>ApproximatorErrorRecipe</code>. An example for the  <code>ProjectedError</code> structure is included below.</p><pre><code class="nohighlight hljs">function complete_error(error::ProjectedError, S::CompressorRecipe, A::AbstractMatrix)
+    row_s, col_s = size(S)
+    row_a, col_a = size(A)
+    T = eltype(A)
+    M = Matrix{T}
+    small_buffer_mat = M(undef, col_s, col_a) 
+    large_buffer_mat = M(undef, row, col_a) 
+    return ProjectedErrorRecipe{T, M}(0.0, large_buffer_mat, small_buffer_mat)
+end</code></pre><h4 id="compute_error-2"><a class="docs-heading-anchor" href="#compute_error-2">compute_error</a><a class="docs-heading-anchor-permalink" href="#compute_error-2" title="Permalink"></a></h4><p>A function that computes the error of a particular approximation method with respect to the  matrix <code>A</code> for a particular approximation technique. An example for <code>ProjectedError</code> is  included below.</p><pre><code class="nohighlight hljs">function compute_error(
+        error::ProjectedErrorRecipe,
+        approximator::RandRangeFinderRecipe,
+        A::AbstractMatrix
+    )
+    mul!(error.small_buffer_mat, approximator.row_space&#39;, A)
+    mul!(error.large_buffer_mat, approximator.row_space, error.small_buffer_mat)
+    error.large_buffer_mat .-= A
+    error.error = norm(error.large_buffer_mat)
+    return error.error
+end</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../contributing/">« Contributing Overview</a><a class="docs-footer-nextpage" href="../checklists/">Overview »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Wednesday 24 September 2025 16:10">Wednesday 24 September 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
