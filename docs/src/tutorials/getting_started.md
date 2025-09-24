@@ -72,3 +72,6 @@ sparse_compressor = SparseSign(
     type=Float64
 )
 ```
+
+
+<!-- TODO: change parameters to show users we can change e.g. block size -->
