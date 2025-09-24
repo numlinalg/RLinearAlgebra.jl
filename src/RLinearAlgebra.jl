@@ -1,45 +1,64 @@
 module RLinearAlgebra
-    import Base.:* 
-    import Base: transpose, adjoint 
-    import LinearAlgebra: ldiv!, mul!, lmul!, dot, lq, LQ
-    import StatsBase: sample!
-    import Random: bitrand, seed!
-   
-    # Include the files correspoding to the top-level techniques
-    include("Compressors.jl")
-    include("Solvers.jl")
-    include("Approximators.jl")
+import Base.:*
+import Base: transpose, adjoint
+import LinearAlgebra: Adjoint, axpby!, dot, I, ldiv!, lmul!, lq!, lq, LQ, mul!, norm, qr!, svd
+import StatsBase: sample, sample!, ProbabilityWeights, wsample!
+import Random: bitrand, rand!, randn!
+import SparseArrays: SparseMatrixCSC, sprandn, sparse
 
-    # Export the complete_ functions 
-    export complete_compressor, complete_solver, complete_approximator
-    export complete_sub_solver, complete_approximator_error
-    export complete_solver_error, complete_logger
+# Include the files correspoding to the top-level techniques
+include("Compressors.jl")
+include("Solvers.jl")
+include("Approximators.jl")
+include("helpers/mul_dim_checks.jl")
 
-    # Export the update_ functions
-    export update_compressor!, update_logger!, update_sub_solver!
+# Export Approximator types and functions
+export Approximator, ApproximatorRecipe, ApproximatorAdjoint
+export rapproximate, rapproximate!, complete_approximator
+export RangeApproximator, RangeApproximatorRecipe
+export RangeFinder, RangeFinderRecipe
+export RandSVD, RandSVDRecipe
 
-    # Export the compute error functions
-    export compute_solver_error, compute_approximator_error
+# Export Compressor types and functions
+export Compressor, CompressorRecipe, CompressorAdjoint
+export Cardinality, Left, Right, Undef
+export complete_compressor, update_compressor!
+export CountSketch, CountSketchRecipe
+export FJLT, FJLTRecipe
+export Gaussian, GaussianRecipe
+export Sampling, SamplingRecipe
+export SparseSign, SparseSignRecipe
+export SRHT, SRHTRecipe
 
-    # Export the Solve and Approximate functions
-    export rsolve, rsolve!, rapproximate, rapproximate!
+# Export Distribution types and functions
+export Distribution, DistributionRecipe
+export complete_distribution, update_distribution!, sample_distribution!
+export Uniform, UniformRecipe
 
-    # Export Approximator types
-    export Approximator, ApproximatorRecipe, ApproximatorAdjoint
-    export ApproximatorError, ApproximatorErrorRecipe
+# Export Solver types and functions
+export Solver, SolverRecipe
+export Kaczmarz, KaczmarzRecipe
+export complete_solver, update_solver!, rsolve!
 
-    # Export Compressor types
-    export Compressor, CompressorRecipe, CompressorAdjoint
+# Export Logger types and functions
+export Logger, LoggerRecipe
+export BasicLogger, BasicLoggerRecipe
+export complete_logger, update_logger!, reset_logger!
+export threshold_stop
 
-    # Export Solver types
-    export Solver, SolverRecipe 
+# Export SubSolver types and functions
+export SubSolver, SubSolverRecipe, ldiv!
+export complete_sub_solver, update_sub_solver!
+export LQSolver, LQSolverRecipe
+export QRSolver, QRSolverRecipe
 
-    # Export Logger types
-    export  Logger, LoggerRecipe
+# Export SolverError types and functions
+export SolverError, SolverErrorRecipe
+export complete_error, compute_error
+export FullResidual, FullResidualRecipe
 
-    # Export SubSolver types
-    export SubSolver, SubSolverRecipe
+# Export ApproximatorError types and functions
+export ApproximatorError, ApproximatorErrorRecipe
+export complete_approximator_error, compute_approximator_error, compute_approximator_error!
 
-    # Export SolverError types
-    export SolverError, SolverErrorRecipe
 end #module

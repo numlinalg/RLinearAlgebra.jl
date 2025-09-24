@@ -1,17 +1,38 @@
 using Test
 using RLinearAlgebra
-# List all directories that have files to be tested 
-directs = joinpath.(@__DIR__,["./", "Approximators/", "Solvers/", "Solvers/Loggers/", 
-                              "Solvers/SubSolvers/", "Compressors/"])
 
-@testset verbose=true "RLinearAlbera.jl" begin
-    for direct in directs 
+# Include the test for recipes
+include("./test_helpers/field_test_macros.jl")
+include("./test_helpers/approx_tol.jl")
+
+# List all directories that have files to be tested 
+directs =
+    joinpath.(
+        @__DIR__,
+        [
+            "./",
+            "Compressors/helpers/",
+            "Compressors/Distributions/",
+            "Compressors/",
+            "Approximators/",
+            "Approximators/RangeApproximator/",
+            "Solvers/helpers/",
+            "Solvers/ErrorMethods/",
+            "Solvers/Loggers/",
+            "Solvers/SubSolvers/",
+            "Solvers/",
+        ],
+    )
+
+@testset verbose = true "RLinearAlgera.jl" begin
+    for direct in directs
         # Obtain all files in the directory
         files_in_direct = readdir(direct)
         # Only test files that end in .jl
         files_to_test = files_in_direct[occursin.(r".jl$", files_in_direct)]
-        for file in files_to_test  
-            # Make sure you do not call the runtest file otherwise you have infinite recursion
+        for file in files_to_test
+            # Make sure you do not call the runtest file otherwise you have infinite 
+            # recursion
             if file != "runtests.jl"
                 include(direct * file)
             end

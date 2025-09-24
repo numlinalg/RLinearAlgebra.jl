@@ -6,6 +6,10 @@ on:
     tags: 
       - 'v*'
   pull_request:
+    branches:
+      - master
+      - main
+      - v0.2-main
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
         with:
-          version: '1.6'
+          version: 'lts'
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build and deploy

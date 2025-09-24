@@ -1,5 +1,22 @@
-name: Runtests
-on: [pull_request]
+name: Tests
+on:
+  push:
+    branches:
+      - master
+      - main
+      - v0.2-main
+    tags: '*'
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    branches:
+      - master
+      - main
+      - v0.2-main
+
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -9,9 +26,18 @@ jobs:
         julia-arch: [x64]
         os: [ubuntu-latest, windows-latest, macOS-latest]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.julia-version }}
+          arch: ${{ matrix.julia-arch }}
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v5
+        with:
+          files: lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: numlinalg/RLinearAlgebra.jl
+          fail_ci_if_error: false

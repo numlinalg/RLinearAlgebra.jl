@@ -1,6 +1,7 @@
 # RLinearAlgebra
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://numlinalg.github.io/RLinearAlgebra.jl/dev)
 [![Runtests](https://github.com/numlinalg/RLinearAlgebra.jl/actions/workflows/Runtests.yml/badge.svg)](https://github.com/numlinalg/RLinearAlgebra.jl/actions/workflows/Runtests.yml)
+[![codecov](https://codecov.io/github/numlinalg/RLinearAlgebra.jl/branch/v0.2-main/graph/badge.svg?token=GI7YUNM4YO)](https://codecov.io/github/numlinalg/RLinearAlgebra.jl)
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 <!-- [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl) -->
 
