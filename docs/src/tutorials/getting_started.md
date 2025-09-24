@@ -74,4 +74,4 @@ sparse_compressor = SparseSign(
 ```
 
 
-<!-- TODO: change parameters to show users we can change e.g. block size -->
+
