@@ -4,29 +4,25 @@
 ## Use Case: Solving a Least-Squares Problem with the Sparse Sign Method
 
 This guide demonstrates how to use the `SparseSign` compression method from the `RLinearAlgebra.jl` package to solve an overdetermined linear system (i.e., a least-squares problem) of the form:
-$$
-\min_{x} \|Ax - b\|_2^2
-$$
-We will follow the design philosophy of `RLinearAlgebra.jl` by composing different modules (`Solver`, `Compressor`, `Logger`, etc.) to build and run the solver.
+
+$$\min_{x} \|Ax - b\|_2^2$$
+
+We will follow the design philosophy of `RLinearAlgebra.jl` by composing different modules (`Solver`, `Compressor`, `Logger`, etc.) to build and solve the problem.
 
 ---
 ### 1. Problem Setup
 
-First, we define a specific linear system $Ax = b$. To verify the accuracy of the final result, we will first create a known solution, $x_{\text{true}}$, and then use it to generate the vector $b$.
+Let's define a specific linear system $Ax = b$. 
+
+To verify the accuracy of the final result, suppose that we know the true solution of the system, $x_{\text{true}}$, and then use it and a random generated matrix $A$ to generate the vector $b$.
 
 * **Matrix `A`**: A random $100 \times 20$ matrix.
 * **Vector `b`**: Calculated as $b = A x_{\text{true}}$, with dimensions $100 \times 1$.
 * **Goal**: Find a solution $x$ that is as close as possible to $x_{\text{true}}$.
 
----
-### 2. Solution Steps
+To achieve this, we need to import the required libraries and create the matrix `A` and vector `b` as defined above. We will also set an initial guess, `x_init`, for the solver.
 
-We will proceed through the following steps to build and run a randomized solver.
-
-#### Step 1: Environment Setup and Problem Definition
-First, we need to import the required libraries and create the matrix `A` and vector `b` as defined above. We will also set an initial guess, `x_init`, for the solver.
-
-```julia
+```@example SparseSignExample
 # Import relevant libraries
 using RLinearAlgebra, Random, LinearAlgebra
 
@@ -35,26 +31,30 @@ using RLinearAlgebra, Random, LinearAlgebra
 num_rows, num_cols = 100, 20
 
 # Create the matrix A and a known true solution x_true
-A = randn(Float64, num_rows, num_cols)
-x_true = randn(Float64, num_cols)
+A = randn(Float64, num_rows, num_cols);
+x_true = randn(Float64, num_cols);
 
 # Calculate the right-hand side vector b from A and x_true
-b = A * x_true
+b = A * x_true;
 
 # Set an initial guess for the solution vector x (typically a zero vector)
-x_init = zeros(Float64, num_cols)
+x_init = zeros(Float64, num_cols);
 
-println("Problem setup complete:")
-println(" - Dimensions of matrix A: ", size(A))
-println(" - Dimensions of vector b: ", size(b))
+println("Dimensions:")
+println(" - Matrix A: ", size(A))
+println(" - Vector b: ", size(b))
+println(" - True solution x_true: ", size(x_true))
+println(" - Initial guess x_init: ", size(x_true))
 ```
 
-#### Step 2: Configure the `SparseSign` Compressor
-The core idea of randomized methods is to reduce the scale of the original problem using a random "sketch" or "compression" matrix, $S$. Here, we choose `SparseSign` as our `Compressor`. This compressor generates a sparse matrix whose non-zero elements are +1 or -1 (with scaling).
+---
+### 2. Configure the `SparseSign` Compressor
+
+The idea of randomized methods is to reduce the scale of the original problem when the dimention of matrix $A$ is too big, using a random "sketch" or "compression" matrix, $S$. Here, we choose `SparseSign` as our `Compressor`. This compressor generates a sparse matrix whose non-zero elements are +1 or -1 (with scaling). More information can be found [here](@ref SparseSign).
 
 We will configure a compression matrix $S$ that compresses the 100 rows of the original system down to 30 rows.
 
-```julia
+```@example SparseSignExample
 # The goal is to compress the 100 rows of A to 30 rows
 compression_dim = 30
 # We want each row of the compression matrix S to have 5 non-zero elements
@@ -72,6 +72,11 @@ sparse_compressor = SparseSign(
     type=Float64
 )
 ```
+Oops, I suddenly felt 30 rows is not a small enough size, and want to change the dim to 10. Then I can do this:
 
-
+```@example SparseSignExample
+# Change the dimension of the compressor. Similarly, you can use the idea for other configurations' changes.
+sparse_compressor.compression_dim = 10
+sparse_compressor
+```
 
