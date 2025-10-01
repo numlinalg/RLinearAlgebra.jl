@@ -109,6 +109,26 @@ transpose(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
 # Complete Compressor Interface  
 ###################################
 """
+    complete_compressor(compressor::Compressor, x::AbstractVector)
+
+$(comp_method_description[:complete_compressor])
+
+# Arguments
+- $(comp_arg_list[:compressor])
+- $(comp_arg_list[:x])
+
+# Returns 
+- $(comp_output_list[:compressor_recipe])
+
+# Throws 
+- $(comp_error_list[:complete_compressor])
+"""
+function complete_compressor(compressor::Compressor, x::AbstractVector)
+    # Handle Vector input by reshaping to column matrix
+    complete_compressor(compressor, reshape(x, :, 1))
+end
+
+"""
     complete_compressor(compressor::Compressor, A::AbstractMatrix)
 
 $(comp_method_description[:complete_compressor])
