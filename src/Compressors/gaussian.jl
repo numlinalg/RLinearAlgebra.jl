@@ -123,23 +123,13 @@ function GaussianRecipe(
     return GaussianRecipe(cardinality, compression_dim, n_rows, n_cols, scale, op)
 end
 
-function complete_compressor(ingredients::Gaussian, A::AbstractArray)
+function complete_compressor(ingredients::Gaussian, A::AbstractMatrix)
     return GaussianRecipe(
         ingredients.cardinality,
         ingredients.compression_dim,
         ingredients.type,
         A,
     )
-end
-
-# Handle Vector input by reshaping to column matrix
-function complete_compressor(ingredients::Gaussian, v::Vector{T}) where T
-    complete_compressor(ingredients, reshape(v, :, 1))
-end
-
-# Resolve ambiguity for AbstractMatrix input
-function complete_compressor(ingredients::Gaussian, A::AbstractMatrix)
-    invoke(complete_compressor, Tuple{Gaussian, AbstractArray}, ingredients, A)
 end
 
 # Allocations in this function are entirely due to bitrand call
