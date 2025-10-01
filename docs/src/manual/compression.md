@@ -8,16 +8,16 @@ independent and identically distributed ``\textbf{Normal}(0, 1/\sqrt{20})`` to o
 ``y = Sx \in \mathbb{R}^{20}`` where
 ``(1-\epsilon)\|x\| \leq \|y\| \leq (1+\epsilon) \|x\|`` with high probability. 
 
-Of course, many other techniques beyond the one described above can be used to generate 
-``S`` and they vary both in terms of their approximation complexity and computational 
+Of course, many other techniques beyond a Gaussian matrix can be used to generate 
+``S`` and they vary both in terms of their approximation accuracy and computational 
 efficiency. In papers, Randomized Linear Algebraists often refer to techniques
 for generating ``S`` as either sampling (random subset of identity) or sketching 
 (general random matrix) techniques. For simplicity RLinearAlgebra.jl refers to both types 
 of techniques under the general family of Compressors. 
 
 In RLinearAlgebra.jl, using a compression technique requires two main steps. The first,
-is using the `complete_compressor` function to generate your CompressorRecipe. The second 
-step is using the `mul!` or `*` functions to apply your `CompressorRecipe` to your matrix/
+uses the `complete_compressor` function to generate a CompressorRecipe. The second 
+step uses the `mul!` or `*` functions to apply your `CompressorRecipe` to your matrix/
 vector object. If you ever want to form a new realization of your compressor, you can 
 use the `update_compressor!` function to update the random entries in your 
 `CompressorRecipe`. 

@@ -1,15 +1,15 @@
 # A library for exploring Randomized Linear Algebra
 If you are here, you probably know that Linear Algebra is foundational to data science,
-scientific computing, and ai. You also probably know Linear Algebra routines dominate the 
+scientific computing, and AI. You also probably know Linear Algebra routines dominate the 
 computational cost of many of the algorithms in these fields. Thus, improving the 
 scalability of these algorithms requires more scalable Linear Algebra techniques.
 
 An exciting new set of techniques that offers such improved scalability of 
 Linear Algebra techniques are Randomized Linear Algebra techniques. 
 In general, Randomized Linear Algebra techniques aim to achieve this improved
-scalability by forming a representative sample of a matrix and performing 
-operations on that sample. In some circumstances operating on this sample
-can offer profound speed-ups as can see in the following example 
+scalability by forming a compressed form of a matrix and performing 
+operations on that compressed form. In some circumstances operating on this compressed form
+can offer profound speed-ups as can seen in the following example 
 where a technique known as the RandomizedSVD (see [halko2011finding](@cite)) 
 is used to compute a rank-20 approximation to ``3000 \times 3000`` matrix 
 ``A`` in place of a truncated SVD. Compared to computing the SVD and 
@@ -56,8 +56,7 @@ approximation to a matrix, ``\hat A`` where ``\hat A \approx A``. The solution t
 system appears everywhere: Optimization, Tomography, Statistics, Scientific Computing, 
 Machine Learning, etc. The low-rank approximation problem has only become more relevant in 
 recent years owing to the drastic increase in matrix sizes. It has been widely used in 
-Statistics via PCA, but also has become increasingly more relevant in all the fields where 
-solving a linear system is relevant. 
+Statistics via PCA, but also has become increasingly more relevant.
 
 This manual will walk you through the use of the RLinearAlgebra.jl library. The remainder 
 of this section will be focused on providing an overview of the common design elements in 
@@ -72,14 +71,14 @@ get eliminated at the end each round. In each round,
 the producers provide the contestants with a fix set of ingredients 
 [(often rather unconventional ones at that)](https://www.mashed.com/1244321/most-bizarre-mystery-basket-ingredients-ever-seen-chopped/)
 and a general category of food (e.g. appetizer, entree, or dessert) that the contestants
-then have to use in a recipe that the cook for a panel of judges.
+then have to use in a recipe that they prepare for a panel of judges.
 
 RLinearAlgebra.jl gives you as the user the fun job of deciding which ingredients 
 (techniques) you want to use to solve your linear system, compress your matrix/vector, 
-or form an approximation of your matrix. Then once you specified that information you 
+or form an approximation of your matrix. Then, once you specify that information, you 
 can start the clock by calling `rsolve` or `rapproximate`, with information about your 
-matrix/linear system and watch RLinearAlgebra.jl do the rest. Specifically, it will behind
-the scenes call all the  `complete_[technique]` functions that will generate recipes data 
+matrix/linear system and watch RLinearAlgebra.jl do the rest. Behind the scenes 
+it calls all the  `complete_[technique]` functions that will generate recipe data 
 structures that have all the necessary preparations (preallocations) for handling your 
 proposed task. Then once the preparations are done, RLinearAlgebra resolves your problem 
 according to its designed recipes.
@@ -126,7 +125,7 @@ From the above table we can see that essentially all you are able to do unless y
 an `Approximator` or a `Solver` is complete the technique. The reason being that all the 
 technique structures contain only information about algorithmic parameters that require no 
 information about the linear system. The recipes on the other hand have all the information 
-required to use a technique including the required pre-allocated memory. We determine the 
+required to execute a technique including the required pre-allocated memory. We determine the 
 preallocations for the Recipes by merging the parameter information of the technique 
 structures with the matrix and linear system information via the `complete_[technique]` 
 functions, which is the only function that you can call when you have a technique structure. 
@@ -194,7 +193,7 @@ using one the RLinearAlgebra.jl `SparseSign` compressor. To do this:
     the direction we intend to apply the compressor from, and a `compression_dim`, 
     the number of entries we want in the compressed vector. In this instance we 
     want the cardinality to be `Left()` and the `compression_dim = 20`.
-3. Use the `complete_compressor` function to generate the `SparseSignRecipe`.
+3. Use the `complete_compressor` function to generate the `SparseSignRecipe`
 4. Apply the compressor to the vector using the multiplication function
 ```julia
 # Step 1: load RLinearAlgebra.jl and generate vector
