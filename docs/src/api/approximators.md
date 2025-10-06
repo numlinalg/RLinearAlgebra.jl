@@ -18,6 +18,10 @@ RangeApproximatorRecipe
 
 ## Approximator Structures
 ```@docs
+RandSVD
+
+RandSVDRecipe
+
 RangeFinder
 
 RangeFinderRecipe
@@ -36,5 +40,5 @@ rapproximate!
 ```@docs
 RLinearAlgebra.rand_power_it
 
-RLinearAlgebra.rand_subspace_it
+RLinearAlgebra.rand_ortho_it
 ```
