@@ -22,7 +22,6 @@ makedocs(
         "Manual" => [
             "Introduction" => "manual/introduction.md", 
             "Compression" => "manual/compression.md",
-            "Low-Rank Approximation" => "manual/low_rank_approximators.md",
         ],
         "API Reference" => [
             "Compressors" => [
