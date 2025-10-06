@@ -56,7 +56,7 @@ function select_indices!(
     end
     
     p = qr!(A, ColumnNorm()).p
-    # store newly selected indices at inputed index storage points 
+    # store newly selected indices at inputted index storage points 
     idx[start_idx:start_idx + n_idx - 1] = p[1:n_idx]
     return nothing
 end
