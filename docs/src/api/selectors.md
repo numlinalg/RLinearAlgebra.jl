@@ -12,6 +12,9 @@ SelectorRecipe
 
 ## Selector Structures
 ```@docs
+RLinearAlgebra.LUPP
+
+LUPPRecipe
 
 ```
 

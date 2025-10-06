@@ -13,6 +13,7 @@ directs =
             "./",
             "Approximators/",
             "Approximators/RangeApproximator/",
+            "Approximators/selection_techniques/",
             "Solvers/",
             "Solvers/ErrorMethods/",
             "Solvers/Loggers/",

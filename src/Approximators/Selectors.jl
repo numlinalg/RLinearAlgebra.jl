@@ -128,9 +128,9 @@ $(select_method_description[:select_indices])
 -  Returns `nothing`
 """
 function select_indices!(
+    idx::AbstractVector,
     selector::SelectorRecipe, 
     A::AbstractMatrix,
-    idx::AbstractVector,
     n_idx::Int64, 
     start_idx::Int64
 )
@@ -142,4 +142,6 @@ function select_indices!(
         )
     )
 end
-    
+
+# Include the selector files
+include("selection_techniques/lupp.jl")

@@ -79,7 +79,7 @@ end
     n_idx = 2
     start_idx = 1
     
-    @test_throws ArgumentError select_indices!(select, A, idx, n_idx, start_idx)
+    @test_throws ArgumentError select_indices!(idx, select, A, n_idx, start_idx)
 end
 
 end
