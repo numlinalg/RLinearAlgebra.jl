@@ -10,11 +10,16 @@ makedocs(
     sitename = "RLinearAlgebra",
     format = Documenter.HTML(
     collapselevel=1,
+    assets = String["custom_html.css"],
     ),
     plugins=[bib],
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
+        "Tutorials" => [
+            "Introduction" => "tutorials/introduction.md",
+            "Least square" => "tutorials/least_square.md"
+        ],
         "API Reference" => [
             "Compressors" => [
                 "Compressors Overview" => "api/compressors.md",
@@ -37,6 +42,16 @@ makedocs(
                                            ],
             ],
         ],
+        "Contributing" => [
+            "Contributing Overview" => "dev/contributing.md",
+            "Design of Library" => "dev/design.md",
+            "Checklists" => [
+                "dev/checklists.md", 
+                "Compressors" => "dev/checklists/compressors.md",
+                "Loggers" => "dev/checklists/loggers.md"
+            ],
+            "Style Guide" => "dev/style_guide.md",
+        ],
         "References" => "references.md",
     ]
 )
@@ -45,5 +60,7 @@ makedocs(
 # See "Hosting Documentation" and deploydocs() in the Documenter manual
 # for more information.
 deploydocs(
-    repo = "github.com/numlinalg/RLinearAlgebra.jl"
+    repo = "github.com/numlinalg/RLinearAlgebra.jl",
+    devbranch = "master", # master's newest commit will become dev
+    push_preview = true # pull requests to the master will become available
 )

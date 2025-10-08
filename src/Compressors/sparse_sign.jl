@@ -26,7 +26,7 @@ with dimension ``n \\times s``, where ``s`` is the compression dimension that
 is supplied by the user.
 In this case, each row of ``S`` is generated independently by the following steps:
 
-1. Randomly choose `nnz` components fo the ``s`` components of the row. Note, `nnz`
+1. Randomly choose `nnz` components of the ``s`` components of the row. Note, `nnz`
     is supplied by the user.
 2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or
     ``1/\\sqrt{\\text{nnz}}`` with equal probability.
