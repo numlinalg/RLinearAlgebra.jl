@@ -58,7 +58,7 @@ The idea of randomized methods is to reduce the scale of the original problem wh
 We will configure a compression matrix `S` that compresses the 100 rows of the original system down to 30 rows.
 
 ```@example SparseSignExample
-# The goal is to compress the 100 rows of A to 300 rows
+# The goal is to compress the 1000 rows of A to 300 rows
 compression_dim = 300
 # We want each row of the compression matrix S to have 5 non-zero elements
 non_zeros = 5
