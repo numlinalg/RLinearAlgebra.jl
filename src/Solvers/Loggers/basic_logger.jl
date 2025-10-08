@@ -98,7 +98,7 @@ function update_logger!(logger::BasicLoggerRecipe, error::Float64, iteration::In
         true 
     
     # log according to collection rate or if we have converged 
-    if iteration == logger.max_it || logger.converged
+    if logger.converged
         logger.hist[logger.record_location] = error
     elseif rem(iteration, logger.collection_rate) == 0
         logger.hist[logger.record_location] = error
