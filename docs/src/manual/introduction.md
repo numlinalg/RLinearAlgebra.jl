@@ -179,7 +179,7 @@ x = rand(n)</code></pre>
     the direction we intend to apply the compressor from, and a <code>compression_dim</code>, 
     the number of entries we want in the compressed vector. In this instance we 
     want the cardinality to be <code>Left()</code> and the <code>compression_dim = 20</code>.
-    <pre><code class="language-julia">comp = SparseSign(compression_dim = 20, Cardinality = Left())</code></pre>
+    <pre><code class="language-julia">comp = SparseSign(compression_dim = 20, cardinality = Left())</code></pre>
   </li>
   <li>
     Use the <code>complete_compressor</code> function to generate the <code>SparseSignRecipe</code>.
