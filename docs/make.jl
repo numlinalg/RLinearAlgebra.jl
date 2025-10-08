@@ -20,9 +20,6 @@ makedocs(
             "Introduction" => "tutorials/introduction.md",
             "Getting started" => "tutorials/getting_started.md"
         ],
-        "Manual" => [
-            "Introduction" => "manual/introduction.md", 
-        ],
         "API Reference" => [
             "Compressors" => [
                 "Compressors Overview" => "api/compressors.md",
