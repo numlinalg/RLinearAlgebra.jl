@@ -18,7 +18,7 @@ makedocs(
         "Home" => "index.md",
         "Tutorials" => [
             "Introduction" => "tutorials/introduction.md",
-            "Getting started" => "tutorials/getting_started.md"
+            "Least square" => "tutorials/least_square.md"
         ],
         "API Reference" => [
             "Compressors" => [

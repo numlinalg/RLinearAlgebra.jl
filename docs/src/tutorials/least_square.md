@@ -88,6 +88,7 @@ After configuring the compressor, we need to combine it with our specific matrix
 S = complete_compressor(sparse_compressor, A)
 
 # You can closely look at the compression recipe you created.
+println("Configurations of compression matrix:")
 println(" - Compression matrix is applied to left or right: ", S.cardinality)
 println(" - Compression matrix's number of rows: ", S.n_rows)
 println(" - Compression matrix's number of columns: ",  S.n_cols)
@@ -97,7 +98,7 @@ println(" - Compression matrix: ",  S.op)
 ```
 If the compression dimension of `300` rows is considered too large, it can be changed to `10` by updating the compressor configuration and rebuilding the recipe as follows:
 ```@example SparseSignExample
-# Change the dimension of the compressor. Similarly, you can use the idea 
+# Change the dimension of the compressor. Similarly, you can use the same idea 
 # for other configurations' changes.
 sparse_compressor.compression_dim = 10
 
@@ -130,7 +131,8 @@ With the problem and compressor defined, the next step is to choose and configur
 
 To monitor the solver, we will use a `BasicLogger`. This object will serve two purposes: record the error history, and tell the solver when to stop.
 
-We will configure it to stop after a maximum of `50` iterations or if the calculated error drops below a tolerance of `1e-6`.
+We will configure it to stop after a maximum of `50` iterations or if the calculated error drops below a tolerance of `1e-6`. And we use `collection_rate = 5` 
+to configure the frequence of error recording to be every $5$ steps.
 
 ```@example SparseSignExample
 # Configure the logger to control the solver's execution

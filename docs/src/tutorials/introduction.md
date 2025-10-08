@@ -1,7 +1,7 @@
 # Introduction
 
 The purpose of these tutorials is to use examples help
- new users quickly get hands on the usage of RLinearAlgebra.
+ new users quickly get hands on the usage of `RLinearAlgebra.jl`.
 
 ## How these tutorials are structured
 
