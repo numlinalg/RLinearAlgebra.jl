@@ -1,6 +1,6 @@
 # Style Guide
 ```@contents
-Pages=["styleguide.md"]
+Pages=["style_guide.md"]
 ```
 When writing code for `RLinearAlgebra.jl` we expect the code to be written in accordance 
 with the [BLUE](https://github.com/JuliaDiff/BlueStyle) style.

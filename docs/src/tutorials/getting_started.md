@@ -58,7 +58,7 @@ The idea of randomized methods is to reduce the scale of the original problem wh
 We will configure a compression matrix `S` that compresses the 100 rows of the original system down to 30 rows.
 
 ```@example SparseSignExample
-# The goal is to compress the 100 rows of A to 300 rows
+# The goal is to compress the 1000 rows of A to 300 rows
 compression_dim = 300
 # We want each row of the compression matrix S to have 5 non-zero elements
 non_zeros = 5
@@ -95,9 +95,7 @@ println(" - The number of nonzeros in each column (left)/row (right) of compress
 println(" - Compression matrix's nonzero entry values: ",  S.scale)
 println(" - Compression matrix: ",  S.op)
 ```
-Oops, I suddenly felt `300` rows is not a small enough size, and want to change the dimension to `10`. Then I need to 
-respecify the `SparseSign` compressor and build the recipe again:
-
+If the compression dimension of `300` rows is considered too large, it can be changed to `10` by updating the compressor configuration and rebuilding the recipe as follows:
 ```@example SparseSignExample
 # Change the dimension of the compressor. Similarly, you can use the idea 
 # for other configurations' changes.
