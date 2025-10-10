@@ -42,7 +42,7 @@ mutable struct QRCPRecipe <: SelectorRecipe
     SA::AbstractMatrix
 end
 
-function complete_selector(ingredients::QRCP)
+function complete_selector(ingredients::QRCP, A::AbstractMatrix)
     compressor = complete_compressor(ingredients.compressor, A)
     n_rows, n_cols = size(compressor)
     SA = Matrix{eltype(A)}(undef, n_rows, n_cols)
