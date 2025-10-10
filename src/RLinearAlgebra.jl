@@ -27,6 +27,7 @@ export complete_compressor, update_compressor!
 export CountSketch, CountSketchRecipe
 export FJLT, FJLTRecipe
 export Gaussian, GaussianRecipe
+export Identity, IdentityRecipe
 export Sampling, SamplingRecipe
 export SparseSign, SparseSignRecipe
 export SRHT, SRHTRecipe
