@@ -46,7 +46,9 @@ Just like in `LinearAlgebra`, the `mul!` function should be used when you have p
 an output array and the `*` function should be used when you have not. 
 !!! note "Effect of Cardinality on Multiplication"
     Provided the dimensions align you can provide a compressor to the left or 
-    right of a matrix or vector regardless of the `Cardinality`.
+    right of a matrix or vector regardless of the `Cardinality`. However, if the 
+    direction applied does not align with the `Cardinality`, this could be a slower 
+    operation.
 
 ## Updating update_compressor!
 Because most compression techniques are randomized, it is likely that once you have a 
