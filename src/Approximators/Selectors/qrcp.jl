@@ -5,10 +5,25 @@ A `Selector` that implements QR with column norm pivoting for selecting column i
 a matrix.
 
 # Fields
-- None
+- `compressor::Compressor`, the compression technique that will applied to the matrix, 
+    before selecting indices.
+
+# Constructor
+    QRCP(;compressor = Identity())
+
+## Keywords
+- `compressor::Compressor`, the compression technique that will applied to the matrix, 
+    before selecting indices. Defaults the `Identity` compressor.
+
+## Returns
+- Will return a `QRCP` object.
 """
 mutable struct QRCP <: Selector
+    compressor::Compressor
+end
 
+function QRCP(;compressor = Identity()) 
+    QRCP(compressor)
 end
 
 """
@@ -18,17 +33,24 @@ A `SelectorRecipe` that contains all the necessary preallocations for selecting 
 indices from a matrix using QR with column norm pivoting.
 
 # Fields
-- None
+- `compressor::Compressor`, the compression technique that will applied to the matrix, 
+    before selecting indices.
+- `SA::AbstractMatrix`, a buffer matrix for storing the sketched matrix.
 """
 mutable struct QRCPRecipe <: SelectorRecipe
-
+    compressor::CompressorRecipe
+    SA::AbstractMatrix
 end
 
 function complete_selector(ingredients::QRCP)
-    return QRCPRecipe()
+    compressor = complete_compressor(ingredients.compressor, A)
+    n_rows, n_cols = size(compressor)
+    SA = Matrix{eltype(A)}(undef, n_rows, n_cols)
+    return QRCPRecipe(compressor, SA)
 end
 
 function update_selector!(selector::QRCPRecipe)
+    update_compressor!(selector.compressor)
     return nothing
 end
 
@@ -54,7 +76,17 @@ function select_indices!(
             )   
         )
     end
+
+    if n_idx > selector.compressor.n_rows
+        throw(
+            DimensionMismatch( 
+                "Must select fewer indices then the `compression_dim`."
+            )   
+        )
+
+    end
     
+    mul!(selector.SA, selector.compressor, A)
     p = qr!(A, ColumnNorm()).p
     # store newly selected indices at inputted index storage points 
     idx[start_idx:start_idx + n_idx - 1] = p[1:n_idx]
