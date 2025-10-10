@@ -4,16 +4,27 @@
 An implementation of a compressor that returns the original matrix.
 
 # Fields
-- None
+- `cardinality::Cardinality`, the direction the compression matrix is intended to
+    be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
 
 # Constructor
     
-    Identity()
+    Identity(;cardinality=Left())
 
-# Returns
+## Keywords
+- `cardinality::Cardinality`, the direction the compression matrix is intended to
+    be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
+
+## Returns
 - A `Identity` object.
 """
-mutable struct Identity <: Compressor end
+mutable struct Identity <: Compressor 
+    cardinality::Cardinality 
+end
+
+function Identity(;cardinality = Left())
+    Identity(cardinality)
+end
 
 """
     IdentityRecipe <: CompressorRecipe
@@ -23,11 +34,10 @@ The recipe containing all allocations and information for the `Identity` compres
 # Fields
 - `cardinality::Cardinality`, the direction the compression matrix is intended to
     be applied to a target matrix or operator. Values allowed are `Left()` or `Right()`.
-    By default this will be `Left()`.
 - `n_rows::Int64`, the number of rows of the compression matrix.
 - `n_cols::Int64`, the number of columns of the compression matrix.
 """
-mutable struct IdentityRecipe <: CompressorRecipe
+mutable struct IdentityRecipe{C} <: CompressorRecipe where C<:Cardinality
     cardinality::Cardinality
     n_rows::Int64
     n_cols::Int64
@@ -35,10 +45,24 @@ end
 
 function complete_compressor(ingredients::Identity, A::AbstractMatrix)
     n_rows, n_cols = size(A)
-    return IdentityRecipe(Left(), n_rows, n_cols)
+    card = ingredients.cardinality
+    if ingredients.cardinality == Left()
+        return IdentityRecipe{typeof(card)}(Left(), n_rows, n_rows)
+    elseif ingredients.cardinality == Right()
+        return IdentityRecipe{typeof(card)}(Right(), n_cols, n_cols)
+    end
+
 end
 
-function update_compressor!(S::IdentityRecipe)
+function update_compressor!(S::IdentityRecipe{<:Left}, A::AbstractMatrix)
+    S.n_rows = size(A,1)
+    S.n_cols = size(A,1)
+    return nothing
+end
+
+function update_compressor!(S::IdentityRecipe{<:Right}, A::AbstractMatrix)
+    S.n_rows = size(A,2)
+    S.n_cols = size(A,2)
     return nothing
 end
 

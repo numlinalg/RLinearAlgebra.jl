@@ -12,6 +12,10 @@ seed!(21321)
         # Verify supertype
         @test supertype(Identity) == Compressor
 
+        # Verify Field names
+        @test fieldnames(Identity) == (:cardinality,)
+        @test fieldtypes(Identity) == (Cardinality,)
+
         # Verify that the constructor works
         @test typeof(Identity()) == Identity 
     end
@@ -24,8 +28,9 @@ seed!(21321)
     end
 
     @testset "Identity: Complete Compressor" begin
+        # test with left cardinality
         let n_rows = 10,
-            n_cols = 10,
+            n_cols = 3,
             A = ones(n_rows, n_cols)
 
             compressor_recipe = complete_compressor(Identity(), A)
@@ -33,24 +38,53 @@ seed!(21321)
             # test values and types
             @test compressor_recipe.cardinality == Left()
             @test compressor_recipe.n_rows == n_rows
-            @test compressor_recipe.n_cols == n_cols
+            @test compressor_recipe.n_cols == n_rows
+        end
+
+        # test with right cardinality
+        let n_rows = 10,
+            n_cols = 3,
+            A = ones(n_rows, n_cols)
+
+            compressor_recipe = complete_compressor(Identity(cardinality = Right()), A)
+
+            # test values and types
+            @test compressor_recipe.cardinality == Right()
+            @test compressor_recipe.n_rows == n_cols 
+            @test compressor_recipe.n_cols == n_cols 
         end
 
     end
     
     @testset "Identity: Update Compressor" begin
+        # try updating a left compressor
         let n_rows = 10,
             n_cols = 10,
-            A = ones(n_rows, n_cols)
+            A = ones(n_rows, n_cols),
+            B = ones(n_rows - 1, n_cols)
 
             compressor_recipe = complete_compressor(Identity(), A)
-            update_compressor!(compressor_recipe)
+            update_compressor!(compressor_recipe, B)
             # test values and types
             @test compressor_recipe.cardinality == Left()
-            @test compressor_recipe.n_rows == n_rows
-            @test compressor_recipe.n_cols == n_cols
+            @test compressor_recipe.n_rows == n_rows - 1
+            @test compressor_recipe.n_cols == n_rows - 1
         end
         
+        # try updating a right compressor
+        let n_rows = 10,
+            n_cols = 10,
+            A = ones(n_rows, n_cols),
+            B = ones(n_rows, n_cols - 1)
+
+            compressor_recipe = complete_compressor(Identity(cardinality = Right()), A)
+            update_compressor!(compressor_recipe, B)
+            # test values and types
+            @test compressor_recipe.cardinality == Right()
+            @test compressor_recipe.n_rows == n_cols - 1
+            @test compressor_recipe.n_cols == n_cols - 1
+        end
+
     end
 
     @testset "Identity: Left multiplication" begin
