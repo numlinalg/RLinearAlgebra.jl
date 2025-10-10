@@ -22,6 +22,10 @@ Undef
 
 ## Compressor Structures
 ```@docs
+CountSketch
+
+CountSketchRecipe
+
 FJLT
 
 FJLTRecipe
@@ -34,9 +38,17 @@ Identity
 
 IdentityRecipe
 
+Sampling
+
+SamplingRecipe
+
 SparseSign
 
 SparseSignRecipe
+
+SRHT 
+
+SRHTRecipe
 ```
 
 ## Exported  Functions

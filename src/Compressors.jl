@@ -109,6 +109,26 @@ transpose(A::CompressorAdjoint{<:CompressorRecipe}) = A.parent
 # Complete Compressor Interface  
 ###################################
 """
+    complete_compressor(compressor::Compressor, x::AbstractVector)
+
+$(comp_method_description[:complete_compressor])
+
+# Arguments
+- $(comp_arg_list[:compressor])
+- $(comp_arg_list[:x])
+
+# Returns 
+- $(comp_output_list[:compressor_recipe])
+
+# Throws 
+- $(comp_error_list[:complete_compressor])
+"""
+function complete_compressor(compressor::Compressor, x::AbstractVector)
+    # Handle Vector input by reshaping to column matrix
+    complete_compressor(compressor, reshape(x, :, 1))
+end
+
+"""
     complete_compressor(compressor::Compressor, A::AbstractMatrix)
 
 $(comp_method_description[:complete_compressor])
@@ -302,144 +322,6 @@ function Base.size(S::CompressorAdjoint, dim::Int64)
     return dim == 1 ? S.parent.n_cols : S.parent.n_rows
 end
 
-############################################
-# Compressor-Array Multiplication Dim Checks 
-############################################
-
-"""
-    left_mul_dimcheck(C::AbstractMatrix, S::CompressorRecipe, A::AbstractMatrix)
-
-$(comp_method_description[:mul_check] * " from the left.")
-
-# Arguments
-- $(comp_arg_list[:C])
-- $(comp_arg_list[:compressor_recipe])
-- $(comp_arg_list[:A])
-
-# Returns 
-- `nothing`
-
-# Throws 
-- `DimensionMismatch` if dimensions of arguments are not compatible for
-    multiplication.
-"""
-function left_mul_dimcheck(
-    C::AbstractArray, 
-    S::CompressorRecipe, 
-    A::AbstractArray
-)
-    s_rows, s_cols = size(S, 1), size(S, 2)
-    a_rows, a_cols = size(A, 1), size(A, 2)
-    c_rows, c_cols = size(C, 1), size(C, 2)
-    if a_rows != s_cols
-        throw(
-            DimensionMismatch("Matrix A has $a_rows rows while S has $s_cols columns.")
-        )
-    elseif a_cols != c_cols
-        throw(
-            DimensionMismatch("Matrix A has $a_cols columns while C has $c_cols columns.")
-        )
-    elseif c_rows != s_rows
-        throw(
-            DimensionMismatch("Matrix C has $c_rows rows while S has $s_rows rows.")
-        )
-    end
-
-    return nothing
-end
-"""
-    left_mul_dimcheck(C::AbstractMatrix, S::CompressorAdjoint, A::AbstractMatrix)
-
-$(comp_method_description[:mul_check] * " from the left.")
-
-# Arguments
-- $(comp_arg_list[:C])
-- $(comp_arg_list[:compressor_recipe_adjoint])
-- $(comp_arg_list[:A])
-
-# Returns 
-- `nothing`
-
-# Throws 
-- `DimensionMismatch` if dimensions of arguments are not compatible for
-    multiplication.
-"""
-function left_mul_dimcheck(
-    C::AbstractArray, 
-    S::CompressorAdjoint,
-    A::AbstractArray
-)
-    # Checks S' * A -> C via A * S' -> C' 
-    right_mul_dimcheck(transpose(C), transpose(A), S.parent)
-    return nothing 
-end
-
-"""
-    right_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorRecipe)
-
-$(comp_method_description[:mul_check] * " from the right.")
-
-# Arguments
-- $(comp_arg_list[:C])
-- $(comp_arg_list[:A])
-- $(comp_arg_list[:compressor_recipe])
-
-# Returns 
-- `nothing`
-
-# Throws 
-- `DimensionMismatch` if dimensions of arguments are not compatible for
-    multiplication.
-"""
-function right_mul_dimcheck(
-    C::AbstractArray, 
-    A::AbstractArray, 
-    S::CompressorRecipe
-)
-    s_rows, s_cols = size(S, 1), size(S, 2)
-    a_rows, a_cols = size(A, 1), size(A, 2)
-    c_rows, c_cols = size(C, 1), size(C, 2)
-    if a_cols != s_rows
-        throw(
-            DimensionMismatch("Matrix A has $a_cols columns while S has $s_rows rows.")
-        )
-    elseif c_cols != s_cols
-        throw(
-            DimensionMismatch("Matrix C has $c_cols columns while S has $s_cols columns.")
-        )
-    elseif c_rows != a_rows
-        throw(
-            DimensionMismatch("Matrix C has $c_rows rows while A has $a_rows rows.")
-        )
-    end
-
-    return nothing
-end
-"""
-    right_mul_dimcheck(C::AbstractMatrix, A::AbstractMatrix, S::CompressorAdjoint)
-
-$(comp_method_description[:mul_check] * " from the right.")
-
-# Arguments
-- $(comp_arg_list[:C])
-- $(comp_arg_list[:A])
-- $(comp_arg_list[:compressor_recipe_adjoint])
-
-# Returns 
-- `nothing`
-
-# Throws 
-- `DimensionMismatch` if dimensions of arguments are not compatible for
-    multiplication.
-"""
-function right_mul_dimcheck(
-    C::AbstractArray,
-    A::AbstractArray,
-    S::CompressorAdjoint
-)
-    left_mul_dimcheck(transpose(C), S.parent, transpose(A))
-    return nothing 
-end 
 
 ########################################
 # 5 Arg Compressor-Array Multiplications
@@ -570,8 +452,11 @@ end
 # Include Compressor Files
 ###################################
 include("Compressors/Distributions.jl")
-include("Compressors/gaussian.jl")
-include("Compressors/sparse_sign.jl")
-include("Compressors/fjlt.jl")
 include("Compressors/helpers/fwht.jl")
+include("Compressors/count_sketch.jl")
+include("Compressors/fjlt.jl")
+include("Compressors/gaussian.jl") 
 include("Compressors/identity.jl")
+include("Compressors/sampling.jl")
+include("Compressors/sparse_sign.jl")
+include("Compressors/srht.jl")
