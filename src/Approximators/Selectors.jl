@@ -144,4 +144,4 @@ function select_indices!(
 end
 
 # Include the selector files
-include("selection_techniques/lupp.jl")
+include("Selectors/lupp.jl")
