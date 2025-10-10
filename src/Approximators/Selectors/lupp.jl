@@ -16,7 +16,7 @@ matrix.
     before selecting indices. Defaults the `Identity` compressor.
 
 ## Returns
-- Will return a `Selector` object.
+- Will return a `LUPP` object.
 """
 mutable struct LUPP <: Selector
     compressor::Compressor
