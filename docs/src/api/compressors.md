@@ -34,6 +34,10 @@ Gaussian
 
 GaussianRecipe
 
+Identity
+
+IdentityRecipe
+
 Sampling
 
 SamplingRecipe
