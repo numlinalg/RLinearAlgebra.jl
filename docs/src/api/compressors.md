@@ -22,16 +22,21 @@ Undef
 
 ## Compressor Structures
 ```@docs
-Gaussian
-
-GaussianRecipe
-SparseSign
-
-SparseSignRecipe
-
 FJLT
 
 FJLTRecipe
+
+Gaussian
+
+GaussianRecipe
+
+Identity
+
+IdentityRecipe
+
+SparseSign
+
+SparseSignRecipe
 ```
 
 ## Exported  Functions

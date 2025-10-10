@@ -1,7 +1,7 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
-import LinearAlgebra: Adjoint, axpby!, dot, ldiv!, lmul!, lq!, lq, LQ, mul!, norm, qr!
+import LinearAlgebra: Adjoint, axpby!, dot, I, ldiv!, lmul!, lq!, lq, LQ, mul!, norm, qr!
 import StatsBase: sample!, ProbabilityWeights, wsample!
 import Random: bitrand, rand!, randn!
 import SparseArrays: SparseMatrixCSC, sprandn
@@ -23,6 +23,7 @@ export Cardinality, Left, Right, Undef
 export complete_compressor, update_compressor!
 export FJLT, FJLTRecipe
 export Gaussian, GaussianRecipe
+export Identity, IdentityRecipe
 export SparseSign, SparseSignRecipe
 
 # Export Distribution types and functions
