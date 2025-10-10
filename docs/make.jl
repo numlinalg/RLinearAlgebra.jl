@@ -33,7 +33,8 @@ makedocs(
             "Approximators" => [
                 "Approximators Overview" => "api/approximators.md",
                 "Approximator Sub-routines" => [
-                    "ApproximatorErrors" => "api/approximator_errors.md"
+                    "ApproximatorErrors" => "api/approximator_errors.md",
+                    "Selectors" => "api/selectors.md"
                                            ],
             ],
         ],
