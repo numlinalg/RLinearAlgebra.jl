@@ -15,26 +15,28 @@ makedocs(
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
+#        "Tutorials" => [
+#            "Introduction" => "tutorials/introduction.md",
+#            "Getting started" => "tutorials/getting_started.md"
+#        ],
+        "Manual" => [
+            "Introduction" => "manual/introduction.md", 
+            "Compression" => "manual/compression.md",
+        ],
         "API Reference" => [
             "Compressors" => [
-                "Compressors Overview" => "api/compressors.md",
-                "Compressor Sub-routines" => [
-                    "Distributions" => "api/distributions.md",
-                ],
+                "Compressors API" => "api/compressors.md",
+                "Distributions API" => "api/distributions.md",
             ],
             "Solvers" => [
-                "Solvers Overview" => "api/solvers.md",
-                "Solver Sub-routines" => [
-                    "SubSolvers" => "api/sub_solvers.md",
-                    "SolverErrors" => "api/solver_errors.md",
-                    "Loggers" => "api/loggers.md"
-                ],
+                "Solvers API" => "api/solvers.md",
+                "SubSolvers API" => "api/sub_solvers.md",
+                "SolverErrors API" => "api/solver_errors.md",
+                "Loggers API" => "api/loggers.md",
             ],
             "Approximators" => [
-                "Approximators Overview" => "api/approximators.md",
-                "Approximator Sub-routines" => [
-                    "ApproximatorErrors" => "api/approximator_errors.md"
-                                           ],
+                "Approximators API" => "api/approximators.md",
+                "ApproximatorErrors API" => "api/approximator_errors.md",
             ],
         ],
         "References" => "references.md",
@@ -45,5 +47,7 @@ makedocs(
 # See "Hosting Documentation" and deploydocs() in the Documenter manual
 # for more information.
 deploydocs(
-    repo = "github.com/numlinalg/RLinearAlgebra.jl"
+    repo = "github.com/numlinalg/RLinearAlgebra.jl",
+    devbranch = "main", # master's newest commit will become dev
+    push_preview = true # pull requests to the master will become available
 )
