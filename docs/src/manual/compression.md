@@ -13,7 +13,9 @@ Of course, many other techniques beyond a Gaussian matrix can be used to generat
 efficiency. In papers, Randomized Linear Algebraists often refer to techniques
 for generating ``S`` as either sampling (random subset of identity) or sketching 
 (general random matrix) techniques. For simplicity RLinearAlgebra.jl refers to both types 
-of techniques under the general family of Compressors. 
+of techniques under the general family of Compressors. The choice of the terminology 
+`Compressors` also allows us to incorporate deterministic approaches to compressing 
+matrices/vectors. 
 
 In RLinearAlgebra.jl, using a compression technique requires two main steps. The first,
 uses the `complete_compressor` function to generate a CompressorRecipe. The second 
@@ -39,9 +41,12 @@ you have specified these two fields in your `Compressor` object, the second inpu
 ## Multiplying your CompressorRecipe
 Once you have your `CompressorRecipe` you can multiply it to any matrix/vector 
 just as you would any matrix object, using either the `mul!` or `*` functions. You can also 
-take transposes of the `CompressorRecipe` just as you would any other matrix object.
+take transposes of the `CompressorRecipe` just as you would any other matrix object. 
 Just like in `LinearAlgebra`, the `mul!` function should be used when you have preallocated 
 an output array and the `*` function should be used when you have not. 
+!!! note "Effect of Cardinality on Multiplication"
+    Provided the dimensions align you can provide a compressor to the left or 
+    right of a matrix or vector regardless of the `Cardinality`.
 
 ## Updating update_compressor!
 Because most compression techniques are randomized, it is likely that once you have a 
@@ -55,8 +60,8 @@ arguments (see [Compressors Reference](@ref) for more details). The one argument
 Knowing that compressors allow us to reduce one of the dimensions of a matrix, the next 
 important question is how do we do this in RLinearAlgebra.jl? In the following example 
 we show how to do exactly this using a [Gaussian](@ref) compressor. In this 
-example we will generate a `GaussianRecipe`, `S` with `compression_dim` 10 and `cardinality`
-`Left()`, then we will apply `S` and its transpose, `S'`, to a matrix, `A`, 
+example we will generate a `GaussianRecipe`, `S`, with `compression_dim` 10 and 
+`cardinality` `Left()`, then we will apply `S` and its transpose, `S'`, to a matrix, `A`, 
 with a 100 rows and 100 columns using `*`. 
 Then we will generate a new realization of the recipe using 
 `update_compressor!` and use the `mul!` to apply this new compressor to `A` from 

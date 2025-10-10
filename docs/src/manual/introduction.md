@@ -4,11 +4,11 @@ scientific computing, and AI. You also probably know Linear Algebra routines dom
 computational cost of many of the algorithms in these fields. Thus, improving the 
 scalability of these algorithms requires more scalable Linear Algebra techniques.
 
-An exciting new set of techniques that offers such improved scalability of 
-Linear Algebra techniques are Randomized Linear Algebra techniques. 
-In general, Randomized Linear Algebra techniques aim to achieve this improved
-scalability by forming a compressed form of a matrix and performing 
-operations on that compressed form. In some circumstances operating on this compressed form
+Randomized Linear Algebra is an exciting new approach to classical linear algebra problems 
+that offers strong improvements in scalability. In general, Randomized Linear Algebra 
+techniques achieve this improved scalability by forming a compressed representation of a 
+matrix and performing operations on that compressed form.
+In some circumstances operating on this compressed form
 can offer profound speed-ups as can seen in the following example 
 where a technique known as the RandomizedSVD (see [halko2011finding](@cite)) 
 is used to compute a rank-20 approximation to ``3000 \times 3000`` matrix 
@@ -80,22 +80,23 @@ can start the clock by calling `rsolve` or `rapproximate`, with information abou
 matrix/linear system and watch RLinearAlgebra.jl do the rest. Behind the scenes 
 it calls all the  `complete_[technique]` functions that will generate recipe data 
 structures that have all the necessary preparations (preallocations) for handling your 
-proposed task. Then once the preparations are done, RLinearAlgebra resolves your problem 
-according to its designed recipes.
+proposed task. Then once the preparations are done, RLinearAlgebra follows its designed 
+recipes to cook-up a solution to your problem. 
 
 With this analogy of how RLinearAlgebra.jl works, the next two sections provide an overview
-over the two key data structures in RLinearAlgebra.jl, the **technique** structures, your 
-ingredients, and the **recipe** structures, what RLinearAlgebra.jl creates to perform your
-task.
+over the two key data structures in RLinearAlgebra.jl, the **technique** structures (your 
+ingredients) and the **recipe** structures (what RLinearAlgebra.jl creates to perform your
+task).
 
 ### The Technique Types (The Ingredients)
 With an understanding of the basic structures in the library, one may wonder, what 
 types of techniques are there? First, there are the techniques for solving the linear 
-system, `Solvers` and techniques for forming a low-rank approximation to a matrix, 
+system, `Solvers`, and techniques for forming a low-rank approximation to a matrix, 
 `Approximators`. Both `Solvers` and `Approximators` achieve speedups by working on 
-compressed forms (often known as sketched or sampled) of the linear system, techniques that 
-compress the linear system are known as `Compressors`. Aside from these global techniques, 
-there are also techniques that are specific to `Solvers`, which include: 
+compressed forms (often known as sketched or sampled) of the linear system or matrix, 
+techniques that compress the linear system are known as `Compressors`. 
+Aside from these global techniques, there are also techniques that are specific to 
+`Solvers`, which include: 
 
 1. `SubSolvers`, techniques that solve the inner (compressed) linear system.
 2. `Loggers`, techniques that log information and determine whether a stopping criterion has
@@ -104,14 +105,14 @@ there are also techniques that are specific to `Solvers`, which include:
 
 Similarly, `Approximators` have their own specific techniques, which include:
 
-1. `ApproximorError`, a technique that computes the error of an `Approximator`.
+1. `ApproximatorError`, a technique that computes the error of an `Approximator`.
 
 With all these technique structures, you may be wondering, what functions
 can I call on these structures? Well, the answer is not many. As is 
 summarized in the following table.  
 
 | Technique         | Parent Technique   | Function Calls                        |  
-| ----------        | ------------------ | -----------------------------------   |  
+| :----------       | :----------------- | :----------------------------------   |  
 |`Approximator`     | None               | `complete_approximator`,`rapproximate`|
 |`Compressor`       | None               | `complete_compressor`                 |  
 |`Solver`           | None               | `complete_solver`, `rsolve`           |
@@ -121,8 +122,8 @@ summarized in the following table.
 |`SubSolver`        | `Solver`           | `complete_sub_solver`                 |
 
 
-From the above table we can see that essentially all you are able to do unless you are using 
-an `Approximator` or a `Solver` is complete the technique. The reason being that all the 
+From the above table we can see that all you are able to do (unless you are using 
+an `Approximator` or a `Solver`) is complete the technique. The reason being that all the 
 technique structures contain only information about algorithmic parameters that require no 
 information about the linear system. The recipes on the other hand have all the information 
 required to execute a technique including the required pre-allocated memory. We determine the 
@@ -140,15 +141,15 @@ allocations can only be determined from once the matrix is known. As a user,
 all you have to know is that as soon as you have a recipe you can do a lot. As can be seen 
 in the following table.
 
-| Technique Recipe  | Parent Recipe | Function Calls                      |  
-|-----------------  |------------------| ---------------------------------|
-|`Approximator`     | None             | `mul!`, `rapproximate!`          |
-|`Compressor`       | None             | `mul!`,`update_compressor!`      |
-|`Solver`           | None             | `rsolve!`                        |
-|`ApproximatorError`| `Approximator`   | `compute_approximator_error`     |
-|`Logger`           | `Solver`         | `reset_logger!`, `update_logger!`|
-|`SolverError`      | `Solver`         | `compute_error`                  |
-|`SubSolver`        | `Solver`         | `update_sub_solver!`,`ldiv!`     |
+| Technique Recipe        | Parent Recipe    | Function Calls                   |  
+|:----------------------  |:-----------------| :--------------------------------|
+|`ApproximatorRecipe`     | None             | `mul!`, `rapproximate!`          |
+|`CompressorRecipe`       | None             | `mul!`,`update_compressor!`      |
+|`SolverRecipe`           | None             | `rsolve!`                        |
+|`ApproximatorErrorRecipe`| `Approximator`   | `compute_approximator_error`     |
+|`LoggerRecipe`           | `Solver`         | `reset_logger!`, `update_logger!`|
+|`SolverErrorRecipe`      | `Solver`         | `compute_error`                  |
+|`SubSolverRecipe`        | `Solver`         | `update_sub_solver!`,`ldiv!`     |
 
 Instead of providing 
 a different function for each method associated with these tasks, RLinearAlgebra.jl 
