@@ -28,7 +28,36 @@ for a visualization).
 
 We also can consider low-rank approximations for symmetric matrices and general matrices.
 For symmetric and general matrices, the RandomizedSVD can be used as the orthogonal 
-projection method [halko2011finding](@cite). 
+projection method [halko2011finding](@cite).   
+
+As far as oblique methods go, the difference between symmetric and asymmetric decompositions
+becomes more complicated. For symmetric matrices, the go to approximation is the Nystr\"om
+approximation. For the non-symmetric matrices, we can have a generalization of Nystr\"om 
+known as Generalized Nystr\"om or we can interpolative approaches, which select subsets of 
+the rows and/or columns to a matrix. If it these interpolative decompositions are performed 
+to select only columns or only rows then they are known as one sided IDs, if they are used 
+to select both columns and rows then they are known as a CUR decomposition. Below, we 
+present a summary of the decompositions in a table. 
+|Approximation Name| General Matrices| Interpolative| Type| Form of Approximation|
+|:-----------------|:----------------|:-------------|:----|:---------------------|
+|RandRangeFinder| Yes| No| Orthogonal| ``A \\approx QQ^\top A``|
+|RandSVD|Yes|No|Orthogonal|``A \\approx U\\SigmaV^\\top``|
+|Nystr\"om| Symmetric| Can be| Oblique| ``(AS)((SA)^\\top AS)^\\dagger(AS)^\\top``|
+|Generalizedd Nystr\"om| Yes| Can be| Oblique| ``(AS_1)(S_2A AS_1)^\\dagger S_2 A``|
+|CUR| Yes| Yes| Oblique| ``(A[:,J])U(A[I,:])``|
+|One-Sided-ID| Yes| Yes| Oblique| ``A[:,J]U_c`` or ``U_r A[I,:]``|
+
+Once you have obtained a low-rank approximation you can then use it to perform 
+multiplications in all cases or in some specific areas use it to precondition a linear 
+system through the ldiv! function. Below we have the table of decompositions and indicate
+how they can be used.
+|Approximation Name| `mul!`| `ldiv!`|
+|:-----------------|:------|:-------|
+|RandRangeFinder| Yes| No|
+|RandSVD|Yes| No|
+|Nystr\"om|Yes| No|
+|CUR|Yes| No|
+|One-Sided-ID|Yes|No|
 # A RangeFinder Example
 Lets say that we wish to obtain a rank-5 RandomizedSVD to matrix with 1000 rows and columns.
 In RLinearAlgebra.jl we can do this by first generating the `RandomizedSVD` `Approximator`.
