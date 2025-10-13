@@ -5,7 +5,14 @@ An abstract type for the computation of the core linking matrix in a CUR decompo
 """
 abstract type Core end
 
-struct CrossApproximation <: Core end
+"""
+    CoreRecipe
+
+An abstract type for the recipes containg the preallocated information needed for 
+the computation of the core linking matrix in a CUR decomposition.
+"""
+abstract type Core end
+
 
 struct Optimal <: Core end
 
@@ -72,3 +79,12 @@ end
 A struct that contains the preallocated memory, completed compressor, and selector to form
     a CUR approximation.
 """
+mutable struct CURRecipe
+    n_rows::Int64
+    n_cols::Int64
+    row_idx::Vector{Int64}
+    col_idx::Vector{Int64}
+    C::AbstractMatrix
+    U::CoreRecipe
+    R::AbstractMatrix
+end
