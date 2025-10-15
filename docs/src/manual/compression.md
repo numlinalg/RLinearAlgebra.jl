@@ -28,7 +28,7 @@ use the `update_compressor!` function to update the random entries in your
 In its simplest form, `complete_compressor` has two arguments, the first is `compressor`,
 where you specify the compressor technique that you wish to use. All compressors
 have two fields that the user can specify; although some have some additional technique  
-specific fields (see [Compressors Reference](@ref) for more details). The first field 
+specific fields (see [Compressors API](@ref) for more details). The first field 
 is `compression_dim`, where you specify the dimension that your `CompressorRecipe` will map 
 a matrix/vector into after being applied to the matrix/vector. The second field is 
 `Cardinality`, which can either be `Left()` or `Right()`. `Cardinality` allows you to 
@@ -55,7 +55,7 @@ Because most compression techniques are randomized, it is likely that once you h
 realization of `CompressorRecipe` that you would want another realization of that same 
 recipe. This can be done using the `update_compressor!` function. This function in 
 its simplest form has only one argument although for some compressors it could have more
-arguments (see [Compressors Reference](@ref) for more details). The one argument is the 
+arguments (see [Compressors API](@ref) for more details). The one argument is the 
 `CompressorRecipe`.
 
 ## Compressing a Matrix Example
@@ -128,4 +128,4 @@ we need to form a `CompressorRecipe`. To form the `CompressorRecipe`, we need to
 we want to use to compress a matrix/vector, and a matrix/vector that we wish to compress.
 Once we have this recipe, we can generate a new realization of it by calling 
 `update_compressor!` and can apply it to a matrix or vector using `mul!` or `*`. For more
-information on specific compressors see [Compressors Reference](@ref).
+information on specific compressors see [Compressors API](@ref).
