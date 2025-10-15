@@ -1,6 +1,7 @@
 # Solving a Consistent Linear System
 
-This guide demonstrates how to use `RLinearAlgebra.jl` package to find the solution to a **consistent linear system** of the form:
+This guide demonstrates how to use `RLinearAlgebra.jl` package to find the solution to 
+a **consistent linear system** of the form:
 
 $$Ax = b$$
 
@@ -9,7 +10,9 @@ $$Ax = b$$
 
 Let's define a specific linear system $Ax = b$. 
 
-To verify the accuracy of the final result, suppose that we know the true solution of the system, $x_{\text{true}}$, and then use it and a random generated matrix $A$ to generate the vector $b$.
+To verify the accuracy of the final result, suppose that we know the true solution 
+to the system, $x_{\text{true}}$, and then use it and a random generated 
+matrix $A$ to generate the vector $b$.
 
 To achieve this, we need to import the required libraries and create the matrix `A` 
 and vector `b` as defined above. 
@@ -46,9 +49,7 @@ As simple as you can imagine, `RLinearAlgebra.jl` can solve the problem in just 
 few lines of codes:
 
 ```@example ConsistentExample
-logger = BasicLogger(
-    max_it = 500
-)
+logger = BasicLogger(max_it = 500)
 kaczmarz_solver = Kaczmarz(log = logger)
 solver_recipe = complete_solver(kaczmarz_solver, x_init, A, b)
 rsolve!(solver_recipe, x_init, A, b)
@@ -88,14 +89,14 @@ We can configure it by passing in "ingredient" objects for each of its main func
 ### Configure the logger
 
 Start with only the simplest component, let's configure just the maximum iteration that 
-our algorithm can go. The configuration is located in the `logger` structure, which 
-is responsible to record the error history, and tell the solver when to stop. Here, we will use the `BasicLogger`.
+our algorithm can go. The configuration is located in the [`logger`](@ref Logger)
+structure, which is responsible to record the error history, and tell the 
+solver when to stop. 
+Here, we will use the [`BasicLogger`](@ref BasicLogger).
 
-```@example ConsistentExample
+```julia
 # Configure the maximum iteration to be 500
-logger = BasicLogger(
-    max_it = 500
-)
+logger = BasicLogger(max_it = 500)
 ```
 
 ### Create the solver
@@ -104,55 +105,35 @@ Now, we assemble our configured components (`logger`) into the main
 Kaczmarz solver object. 
 We will use the default compressor, logger and sub-solver.
 
-```@example ConsistentExample
+```julia
 # Create the Kaczmarz solver object by passing in the ingredients
-kaczmarz_solver = Kaczmarz()
+kaczmarz_solver = Kaczmarz(log = logger)
 ```
 
-Before we can run the solver, we must call `complete_solver`. 
+Before we can run the solver, we must call [`complete_solver`](@ref complete_solver). 
 This function takes the solver configurations and the specific problem data `A, b, x_init` 
-and creates a `KaczmarzRecipe`. 
+and creates a [`KaczmarzRecipe`](@ref KaczmarzRecipe). 
 The recipe pre-allocates all the necessary memory buffers for efficient computation.
 
-```@example ConsistentExample
+```julia
 # Create the solver recipe by combining the solver and the problem data
 solver_recipe = complete_solver(kaczmarz_solver, x_init, A, b)
 ```
 
-With the recipe fully prepared, we can now call `rsolve!` to run the Kaczmarz algorithm.
-The function will iterate until the `stopping criterion` in the `logger` is met.
+With the recipe fully prepared, we can now call [`rsolve!`](@ref rsolve!) to run the Kaczmarz algorithm.
+The function will iterate until the stopping criterion in the `logger` is met.
 
-The `rsolve!` function will modify `x_init` in-place, updating it with the 
+### Solve the system using the solver
+
+The [`rsolve!`](@ref rsolve!) function will modify `x_init` in-place, updating it with the 
 calculated solution.
 
-```@example ConsistentExample
+```julia
 # Run the solver!
 rsolve!(solver_recipe, x_init, A, b)
 
 # The solution is now stored in the updated x_init vector
 solution = x_init;
 ```
-
-
----
-## 3. Verify the result
-
-Finally, let's check how close our calculated solution is to the known `x_true`. 
-We can do this by calculating the Euclidean norm of the difference between 
-the two vectors. A small error norm indicates a successful approximation.
-
-```@example ConsistentExample
-# We can inspect the logger's history to see the convergence
-error_history = solver_recipe.log.hist;
-println(" - Solver stopped at iteration: ", solver_recipe.log.iteration)
-println(" - Final error: ", error_history[solver_recipe.log.record_location])
-
-# Calculate the norm of the error
-error_norm = norm(solution - x_true)
-println(" - Norm of the error between the solution and x_true: ", error_norm)
-```
-As you can see, by using the modular Kaczmarz solver, we were able to configure a 
-randomized block-based method and find a solution vector that is very close to 
-the true solution. 
 
 
