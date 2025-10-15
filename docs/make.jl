@@ -18,7 +18,7 @@ makedocs(
         "Home" => "index.md",
         "Tutorials" => [
             "Introduction" => "tutorials/introduction.md",
-            "Least square" => "tutorials/least_square.md"
+            "Least squares" => "tutorials/least_squares.md"
         ],
         "API Reference" => [
             "Compressors" => [
@@ -61,6 +61,6 @@ makedocs(
 # for more information.
 deploydocs(
     repo = "github.com/numlinalg/RLinearAlgebra.jl",
-    devbranch = "master", # master's newest commit will become dev
+    devbranch = "main", # master's newest commit will become dev
     push_preview = true # pull requests to the master will become available
 )
