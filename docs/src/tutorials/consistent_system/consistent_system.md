@@ -78,10 +78,14 @@ the true solution.
 Let's go line by line to see what are the codes doing.
 
 ---
-## Create solver
-Here, we choose to use the [Kaczmarz solver](@ref Kaczmarz). 
+## Steps to solve the problem
+
+Here, we choose to use the [Kaczmarz solver](@ref Kaczmarz) to solve the problem. 
 We can configure it by passing in "ingredient" objects for each of its main functions:
  compressing the system, logging progress, and checking for errors.
+
+
+### Configure the logger
 
 Start with only the simplest component, let's configure just the maximum iteration that 
 our algorithm can go. The configuration is located in the `logger` structure, which 
@@ -94,11 +98,11 @@ logger = BasicLogger(
 )
 ```
 
+### Create the solver
 
-Now, we assemble our configured components (compressor `S`, logger `L`) into the main 
+Now, we assemble our configured components (`logger`) into the main 
 Kaczmarz solver object. 
-We will use the default methods for error checking and the sub-solver to be 
-LQ factorization ([LQSolver](@ref LQSolver)).
+We will use the default compressor, logger and sub-solver.
 
 ```@example ConsistentExample
 # Create the Kaczmarz solver object by passing in the ingredients
