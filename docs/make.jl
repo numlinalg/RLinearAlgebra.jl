@@ -35,6 +35,7 @@ makedocs(
                 "Loggers API" => "api/loggers.md",
             ],
             "Approximators" => [
+                "Approximators Overview" => "api/approximators.md",
                 "Approximators API" => "api/approximators.md",
                 "ApproximatorErrors API" => "api/approximator_errors.md",
             ],
