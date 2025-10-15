@@ -1,4 +1,4 @@
-# Use Case: Solving a Least-Squares Problem with the Sparse Sign Method
+# Solving a Consistent Linear System
 
 This guide demonstrates how to use the `SparseSign` compression method from the `RLinearAlgebra.jl` package to solve an overdetermined linear system (i.e., a least-squares problem) of the form:
 
@@ -6,6 +6,20 @@ $$\min_{x} \|Ax - b\|_2^2$$
 
 We will follow the design philosophy of `RLinearAlgebra.jl` by composing different modules (`Solver`, `Compressor`, `Logger`, etc.) to build and solve the problem.
 
+This guide demonstrates how to use the `SparseSign` compression method from the `RLinearAlgebra.jl` package to solve a **consistent linear system**. Because the problem is constructed to have a known, exact solution, it serves as a perfect test case.
+
+We will use an iterative solver that is broadly applicable to any least-squares problem, which finds a solution by minimizing the squared norm of the residual:
+
+$$\min_{x} \|Ax - b\|_2^2$$
+
+We will follow the design philosophy of `RLinearAlgebra.jl` by composing different modules (`Solver`, `Compressor`, `Logger`, etc.) to build and solve the problem.
+
+
+This guide demonstrates how to use the `SparseSign` compression method from the `RLinearAlgebra.jl` package to find the exact solution to a **consistent linear system** of the form:
+
+$$Ax = b$$
+
+We will follow the design philosophy of `RLinearAlgebra.jl` by composing different modules (`Solver`, `Compressor`, `Logger`, etc.) to build and solve for the vector $x$.
 ---
 ## 1. Problem Setup
 
@@ -19,7 +33,7 @@ To verify the accuracy of the final result, suppose that we know the true soluti
 
 To achieve this, we need to import the required libraries and create the matrix `A` and vector `b` as defined above. We will also set an initial guess, `x_init`, for the solver.
 
-```@example SparseSignExample
+```@example ConsistentExample
 # Import relevant libraries
 using RLinearAlgebra, Random, LinearAlgebra
 
@@ -57,7 +71,7 @@ The idea of randomized methods is to reduce the scale of the original problem wh
 
 We will configure a compression matrix `S` that compresses the 100 rows of the original system down to 30 rows.
 
-```@example SparseSignExample
+```@example ConsistentExample
 # The goal is to compress the 1000 rows of A to 300 rows
 compression_dim = 300
 # We want each row of the compression matrix S to have 5 non-zero elements
@@ -82,7 +96,7 @@ sparse_compressor = SparseSign(
 
 After configuring the compressor, we need to combine it with our specific matrix `A` to create a `SparseSignRecipe`. This recipe contains the generated sparse matrix and all necessary information to perform the compression efficiently.
 
-```@example SparseSignExample
+```@example ConsistentExample
 # Pass the compressor configuration and the original matrix A to
 # create the final compression recipe.
 S = complete_compressor(sparse_compressor, A)
@@ -97,7 +111,7 @@ println(" - Compression matrix's nonzero entry values: ",  S.scale)
 println(" - Compression matrix: ",  S.op)
 ```
 If the compression dimension of `300` rows is considered too large, it can be changed to `10` by updating the compressor configuration and rebuilding the recipe as follows:
-```@example SparseSignExample
+```@example ConsistentExample
 # Change the dimension of the compressor. Similarly, you can use the same idea 
 # for other configurations' changes.
 sparse_compressor.compression_dim = 10
@@ -111,7 +125,7 @@ println("Compression matrix's number of rows: ", S.n_rows)
 
 While the solver can use the `S` recipe to perform multiplications on-the-fly, it can sometimes be useful to form the compressed system explicitly. We can use `*` for this.
 
-```@example SparseSignExample
+```@example ConsistentExample
 # Form the compressed system SAx = Sb
 SA = S * A
 Sb = S * b
@@ -134,7 +148,7 @@ To monitor the solver, we will use a `BasicLogger`. This object will serve two p
 We will configure it to stop after a maximum of `50` iterations or if the calculated error drops below a tolerance of `1e-6`. And we use `collection_rate = 5` 
 to configure the frequence of error recording to be every $5$ steps.
 
-```@example SparseSignExample
+```@example ConsistentExample
 # Configure the logger to control the solver's execution
 logger = BasicLogger(
     max_it = 50,
@@ -147,7 +161,7 @@ logger = BasicLogger(
 ### (b) Build the Kaczmarz Solver
 Now, we assemble our configured components (compressor `S`, logger `L`) into the main Kaczmarz solver object. We will use the default methods for error checking and the sub-solver to be LQ factorization ([LQSolver](@ref LQSolver)).
 
-```@example SparseSignExample
+```@example ConsistentExample
 # Create the Kaczmarz solver object by passing in the ingredients
 kaczmarz_solver = Kaczmarz(
     compressor = sparse_compressor,
@@ -157,7 +171,7 @@ kaczmarz_solver = Kaczmarz(
 ```
 Before we can run the solver, we must call `complete_solver`. This function takes the solver configurations and the specific problem data `A, b, x_init` and creates a `KaczmarzRecipe`. The recipe pre-allocates all the necessary memory buffers for efficient computation.
 
-```@example SparseSignExample
+```@example ConsistentExample
 # Create the solver recipe by combining the solver and the problem data
 solver_recipe = complete_solver(kaczmarz_solver, x_init, A, b)
 ```
@@ -169,7 +183,7 @@ With the recipe fully prepared, we can now call `rsolve!` to run the Kaczmarz al
 
 The `rsolve!` function will modify `x_init` in-place, updating it with the calculated solution.
 
-```@example SparseSignExample
+```@example ConsistentExample
 # Run the solver!
 rsolve!(solver_recipe, x_init, A, b)
 
@@ -182,11 +196,11 @@ solution = x_init;
 
 Finally, let's check how close our calculated solution is to the known `x_true`. We can do this by calculating the Euclidean norm of the difference between the two vectors. A small error norm indicates a successful approximation.
 
-```@example SparseSignExample
+```@example ConsistentExample
 # We can inspect the logger's history to see the convergence
 error_history = solver_recipe.log.hist;
 println(" - Solver stopped at iteration: ", solver_recipe.log.iteration)
-println(" - Final error: ", error_history[solver_recipe.log.record_location - 1])
+println(" - Final error: ", error_history[solver_recipe.log.record_location])
 
 # Calculate the norm of the error
 error_norm = norm(solution - x_true)

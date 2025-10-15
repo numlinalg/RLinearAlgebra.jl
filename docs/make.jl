@@ -18,7 +18,10 @@ makedocs(
         "Home" => "index.md",
         "Tutorials" => [
             "Introduction" => "tutorials/introduction.md",
-            "Least squares" => "tutorials/least_squares.md"
+            "Consistent Linear System" => [
+                "tutorials/consistent_system/consistent_system.md",
+                "tutorials/consistent_system/consistent_system_compressor.md",
+            ],
         ],
         "API Reference" => [
             "Compressors" => [
@@ -41,16 +44,6 @@ makedocs(
                     "ApproximatorErrors" => "api/approximator_errors.md"
                                            ],
             ],
-        ],
-        "Contributing" => [
-            "Contributing Overview" => "dev/contributing.md",
-            "Design of Library" => "dev/design.md",
-            "Checklists" => [
-                "dev/checklists.md", 
-                "Compressors" => "dev/checklists/compressors.md",
-                "Loggers" => "dev/checklists/loggers.md"
-            ],
-            "Style Guide" => "dev/style_guide.md",
         ],
         "References" => "references.md",
     ]
