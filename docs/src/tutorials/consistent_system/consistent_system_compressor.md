@@ -1,4 +1,4 @@
-# Solving a Consistent Linear System
+# Compressor configurations
 
 This guide demonstrates how to use the `SparseSign` compression method from the `RLinearAlgebra.jl` package to solve an overdetermined linear system (i.e., a least-squares problem) of the form:
 
@@ -20,6 +20,7 @@ This guide demonstrates how to use the `SparseSign` compression method from the 
 $$Ax = b$$
 
 We will follow the design philosophy of `RLinearAlgebra.jl` by composing different modules (`Solver`, `Compressor`, `Logger`, etc.) to build and solve for the vector $x$.
+
 ---
 ## 1. Problem Setup
 

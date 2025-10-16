@@ -6,7 +6,7 @@ a **consistent linear system** of the form:
 $$Ax = b$$
 
 ---
-## Problem Setup
+## Problem Setup and solve the system
 
 Let's define a specific linear system $Ax = b$. 
 
@@ -18,41 +18,33 @@ To achieve this, we need to import the required libraries and create the matrix 
 and vector `b` as defined above. 
 We will also set an initial guess, `x_init`, for the solver.
 
-```@example ConsistentExample
-# Import relevant libraries
+```julia
 using RLinearAlgebra, LinearAlgebra
-
-# Define the dimensions of the linear system
-num_rows, num_cols = 1000, 20
-
-# Create the matrix A and a known true solution x_true
+num_rows, num_cols = 1000, 20;
 A = randn(Float64, num_rows, num_cols);
 x_true = randn(Float64, num_cols);
-
-# Calculate the right-hand side vector b from A and x_true
-b = A * x_true;
-
-# Set an initial guess for the solution vector x (typically a zero vector)
 x_init = zeros(Float64, num_cols);
-
-println("Dimensions:")
-println(" - Matrix A: ", size(A))
-println(" - Vector b: ", size(b))
-println(" - True solution x_true: ", size(x_true))
-println(" - Initial guess x_init: ", size(x_true))
+b = A * x_true;
 ```
 
----
-## Solve the system
+```@setup ConsistentExample
+using RLinearAlgebra, LinearAlgebra
+num_rows, num_cols = 1000, 20;
+A = randn(Float64, num_rows, num_cols);
+x_true = randn(Float64, num_cols);
+x_init = zeros(Float64, num_cols);
+b = A * x_true;
+```
 
-As simple as you can imagine, `RLinearAlgebra.jl` can solve the problem in just a 
-few lines of codes:
+As simple as you can imagine, `RLinearAlgebra.jl` can solve this system in just a 
+few lines of codes and high efficiency:
 
 ```@example ConsistentExample
-logger = BasicLogger(max_it = 500)
+logger = BasicLogger(max_it = 10)
 kaczmarz_solver = Kaczmarz(log = logger)
 solver_recipe = complete_solver(kaczmarz_solver, x_init, A, b)
 rsolve!(solver_recipe, x_init, A, b)
+
 solution = x_init;
 println("Solution to the system: \n", solution)
 ```
@@ -72,6 +64,9 @@ println(" - Final error: ", error_history[solver_recipe.log.record_location])
 error_norm = norm(solution - x_true)
 println(" - Norm of the error between the solution and x_true: ", error_norm)
 ```
+
+<!-- TODO: Why the err_history is different from error norm -->
+
 As you can see, by using the modular Kaczmarz solver, we were able to configure a 
 randomized block-based method and find a solution vector that is very close to 
 the true solution. 
@@ -120,13 +115,14 @@ The recipe pre-allocates all the necessary memory buffers for efficient computat
 solver_recipe = complete_solver(kaczmarz_solver, x_init, A, b)
 ```
 
-With the recipe fully prepared, we can now call [`rsolve!`](@ref rsolve!) to run the Kaczmarz algorithm.
+With the recipe fully prepared, we can now call [`rsolve!`](@ref rsolve!) 
+to run the Kaczmarz algorithm.
 The function will iterate until the stopping criterion in the `logger` is met.
 
 ### Solve the system using the solver
 
-The [`rsolve!`](@ref rsolve!) function will modify `x_init` in-place, updating it with the 
-calculated solution.
+The [`rsolve!`](@ref rsolve!) function will modify `x_init` in-place, updating 
+it with the calculated solution.
 
 ```julia
 # Run the solver!
