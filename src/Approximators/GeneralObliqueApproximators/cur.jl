@@ -11,10 +11,7 @@ abstract type Core end
 An abstract type for the recipes containg the preallocated information needed for 
 the computation of the core linking matrix in a CUR decomposition.
 """
-abstract type Core end
-
-
-struct Optimal <: Core end
+abstract type CoreRecipe end
 
 """
     CUR
@@ -51,16 +48,15 @@ In practice numerous randomized methods match the performance of this best possi
 - `oversample::Int64`, the amount of extra indices we wish to select with the row selection
     procedure. By default this is zero, although it can improve the stability of the cross
     approximation core.
-- `compressor::Compressor`, when a selector needs to compress a matrix, this is the 
-    compressor to be used.
-- `selector::Selector`, the technique used for selecting indices from a matrix.
+- `col_selector::Selector`, the technique used for selecting column indices from a matrix.
+- `row_selector::Selector`, the technique used for selecting row indices from a matrix.
 - `core::Core`, the method for computing the core linking matrix, `U`, in the CUR.
 
 # Constructor
     CUR(rank;
         oversample = 0,
-        compressor = SparseSign(),
-        selector = LUPP(),
+        selector_cols = LUPP(),
+        selector_rows = selector_cols,
         core = CrossApproximation(),
     )
 """
@@ -68,9 +64,19 @@ In practice numerous randomized methods match the performance of this best possi
 mutable struct CUR
     rank::Int64
     oversample::Int64
-    compressor::Compressor
-    selector::Selector
+    col_selector::Selector
+    row_selector::Selector
     core::Core
+end
+
+
+function CUR(rank;
+        oversample = 0,
+        selector_cols = LUPP(),
+        selector_rows = selector_cols,
+        core = CrossApproximation(),
+    )
+    return CUR(rank, oversample, selector_cols, selector_rows, core)
 end
 
 """
@@ -88,3 +94,28 @@ mutable struct CURRecipe
     U::CoreRecipe
     R::AbstractMatrix
 end
+
+function complete_approximator(ingredients::CUR, A::AbstractMatrix)
+    n_col_vecs = ingredients.rank
+    n_row_vecs = ingredients.rank + ingredients.oversample
+    col_idx = zeros(Int64, n_col_vecs)
+    row_idx = zeros(Int64, n_row_vecs)
+    col_selector = complete_selector(ingredients.col_selector, A)
+    row_selector = complete_selector(ingredients.row_selector, A)
+    C = Matrix{eltype(A)}(undef, size(A, 1), n_col_vecs)
+    R = Matrix{eltype(A)}(undef, n_row_vecs, size(A, 2))
+    U = complete_core(CUR, CUR.core, A)
+    return CURRecipe(n_row_vecs, n_col_vecs, row_idx, col_idx, C, U, R)
+end
+
+function rapproximate!(appprox::CURRecipe, A::AbstractMatrix)
+    return nothing
+end
+
+function rapproximate(approx::CUR, A::AbstractMatrix)
+    approx_recipe = complete_approximator(approx, A)
+    rapproximate!(approx_recipe, A)
+    return  approx_recipe
+end
+
+# Implement the muls

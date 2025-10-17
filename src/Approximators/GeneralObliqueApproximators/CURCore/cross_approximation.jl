@@ -33,12 +33,12 @@ mutable struct CrossApproximation <: CoreRecipe
     qr_decomp::QR
 end
 
-function complete_core(decomp::CURRecipe, core::CrossApproximation,  A::AbstractMatrix)
+function complete_core(decomp::CUR, core::CrossApproximation,  A::AbstractMatrix)
     # preallocate the core matrix with and Idenity of the same type. We use identy because
     # this form preallocates all dense entries and works for sparse arrays.
     core = typeof(A)(I, decomp.n_rows, decomp.n_cols)
-    qr_decomp = qr!(core)
-    return CrossApproximation(decomp.n_rows, decomp.n_cols, core, Q, R)
+    qr_decomp = qr!(view(core, 1:2, 1:2))
+    return CrossApproximation(decomp.n_rows, decomp.n_cols, core, qr_decomp)
 end
  
 function update_core!(core::CrossApproximationRecipe, decomp::CURRecipe, A::AbstractMatrix)
