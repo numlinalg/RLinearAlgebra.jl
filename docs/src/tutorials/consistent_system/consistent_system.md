@@ -1,25 +1,29 @@
 # Solving a Consistent Linear System
 
-This guide demonstrates how to use `RLinearAlgebra.jl` package to find the solution to 
-a **consistent linear system** of the form:
+This guide demonstrates how to use `RLinearAlgebra.jl` package to solve a 
+**consistent linear system**—a system where at least one solution 
+exists—expressed in the form:
 
 $$Ax = b$$
 
+We'll walk through setting up the problem, using a solver, and verifying the result.
+
 ---
-## Problem Setup and solve the system
+## Problem setup and solve the system
 
-Let's define a specific linear system $Ax = b$. 
+First, let's define our linear system $Ax = b$.
 
-To verify the accuracy of the final result, suppose that we know the true solution 
-to the system, $x_{\text{true}}$, and then use it and a random generated 
-matrix $A$ to generate the vector $b$.
+To easily verify the accuracy of our solver, we'll construct a problem where the true 
+solution, $x_{\text{true}}$, is known beforehand. We'll start by creating a random 
+matrix $A$ and a known solution vector $x_{\text{true}}$. Then, we can generate the 
+right-hand side vector $b$ by computing $b = Ax_{\text{true}}$.
 
-To achieve this, we need to import the required libraries and create the matrix `A` 
-and vector `b` as defined above. 
-We will also set an initial guess, `x_init`, for the solver.
+The following Julia code imports the necessary libraries, sets up the dimensions, and 
+creates $A$, $x_{\text{true}}$, and $b$. We also initialize a starting guess, `x_init`, 
+for our iterative solver.
 
 ```julia
-using RLinearAlgebra, LinearAlgebra
+using LinearAlgebra
 num_rows, num_cols = 1000, 20;
 A = randn(Float64, num_rows, num_cols);
 x_true = randn(Float64, num_cols);
@@ -28,7 +32,7 @@ b = A * x_true;
 ```
 
 ```@setup ConsistentExample
-using RLinearAlgebra, LinearAlgebra
+using LinearAlgebra
 num_rows, num_cols = 1000, 20;
 A = randn(Float64, num_rows, num_cols);
 x_true = randn(Float64, num_cols);
@@ -40,7 +44,8 @@ As simple as you can imagine, `RLinearAlgebra.jl` can solve this system in just 
 few lines of codes and high efficiency:
 
 ```@example ConsistentExample
-logger = BasicLogger(max_it = 10)
+using RLinearAlgebra
+logger = BasicLogger(max_it = 300)
 kaczmarz_solver = Kaczmarz(log = logger)
 solver_recipe = complete_solver(kaczmarz_solver, x_init, A, b)
 rsolve!(solver_recipe, x_init, A, b)
@@ -48,88 +53,91 @@ rsolve!(solver_recipe, x_init, A, b)
 solution = x_init;
 println("Solution to the system: \n", solution)
 ```
-Done! How simple it is!
+**Done! How simple it is!**
 
-let's check how close our calculated solution is to the known `x_true`. 
-We can do this by calculating the Euclidean norm of the difference between the two vectors. 
-A small error norm indicates a successful approximation.
+
+Let's check how close our calculated `solution` is to the known `x_true`. 
+We can measure the accuracy by calculating the Euclidean norm of the difference 
+between the two vectors. A small norm indicates that our solver found a good approximation.
 
 ```@example ConsistentExample
-# We can inspect the logger's history to see the convergence
-error_history = solver_recipe.log.hist;
-println(" - Solver stopped at iteration: ", solver_recipe.log.iteration)
-println(" - Final error: ", error_history[solver_recipe.log.record_location])
-
 # Calculate the norm of the error
 error_norm = norm(solution - x_true)
 println(" - Norm of the error between the solution and x_true: ", error_norm)
 ```
-
-<!-- TODO: Why the err_history is different from error norm -->
-
 As you can see, by using the modular Kaczmarz solver, we were able to configure a 
 randomized block-based method and find a solution vector that is very close to 
 the true solution. 
 
-Let's go line by line to see what are the codes doing.
+
+Let's break down the solver code line by line to understand what each part does.
 
 ---
-## Steps to solve the problem
+## Codes breakdown
 
-Here, we choose to use the [Kaczmarz solver](@ref Kaczmarz) to solve the problem. 
-We can configure it by passing in "ingredient" objects for each of its main functions:
- compressing the system, logging progress, and checking for errors.
+As shown in the code, we used the [`Kaczmarz` solver](@ref Kaczmarz). A key feature of 
+**RLinearAlgebra.jl** is its modularity; you can customize the solver's behavior by passing
+in different "component" objects for tasks, such as system compression, progress logging, 
+and termination checks.
+
+For this example, we kept it simple by only customizing the maximum iteration located 
+in [`Logger`](@ref Logger) component. Let's break down each step.
 
 
 ### Configure the logger
 
-Start with only the simplest component, let's configure just the maximum iteration that 
-our algorithm can go. The configuration is located in the [`logger`](@ref Logger)
-structure, which is responsible to record the error history, and tell the 
-solver when to stop. 
-Here, we will use the [`BasicLogger`](@ref BasicLogger).
+We start with the simplest component: the [`Logger`](@ref Logger). The 
+[`Logger`](@ref Logger) is 
+responsible for tracking metrics (such as the error history) and telling the solver 
+when to stop. For this guide, we use the default [`BasicLogger`](@ref BasicLogger) 
+and configure 
+it with a single stopping criterion: a maximum number of iterations.
 
 ```julia
-# Configure the maximum iteration to be 500
-logger = BasicLogger(max_it = 500)
+# Configure the maximum iteration to be 300
+logger = BasicLogger(max_it = 300)
 ```
 
 ### Create the solver
 
-Now, we assemble our configured components (`logger`) into the main 
-Kaczmarz solver object. 
-We will use the default compressor, logger and sub-solver.
+Before running the solver on our specific problem (`A, b, x_init`), we must prepare it 
+using the  [`complete_solver`](@ref complete_solver) function. This function creates 
+a [`KaczmarzRecipe`](@ref KaczmarzRecipe), which combines the solver 
+configuration with the problem data.
+
+Crucially, this "recipe" pre-allocates all necessary memory buffers, which is a 
+key step for ensuring efficient and high-performance computation.
 
 ```julia
 # Create the Kaczmarz solver object by passing in the ingredients
 kaczmarz_solver = Kaczmarz(log = logger)
-```
-
-Before we can run the solver, we must call [`complete_solver`](@ref complete_solver). 
-This function takes the solver configurations and the specific problem data `A, b, x_init` 
-and creates a [`KaczmarzRecipe`](@ref KaczmarzRecipe). 
-The recipe pre-allocates all the necessary memory buffers for efficient computation.
-
-```julia
 # Create the solver recipe by combining the solver and the problem data
 solver_recipe = complete_solver(kaczmarz_solver, x_init, A, b)
 ```
 
-With the recipe fully prepared, we can now call [`rsolve!`](@ref rsolve!) 
-to run the Kaczmarz algorithm.
-The function will iterate until the stopping criterion in the `logger` is met.
-
 ### Solve the system using the solver
 
-The [`rsolve!`](@ref rsolve!) function will modify `x_init` in-place, updating 
-it with the calculated solution.
+Finally, we call [`rsolve!`](@ref rsolve!) to execute the algorithm. The `!` at the end 
+of the function name is a Julia convention indicating that the function will inplace 
+update part of its arguments. In this case, `rsolve!` modifies `x_init` in-place, 
+filling it with the final solution vector. The solver will iterate until a stopping 
+criterion in the `logger` is met, i.e. iteration goes up to $300$.
 
 ```julia
-# Run the solver!
+# Run the inplace solver!
 rsolve!(solver_recipe, x_init, A, b)
 
 # The solution is now stored in the updated x_init vector
 solution = x_init;
 ```
+
+
+
+
+
+
+
+
+
 
 

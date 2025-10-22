@@ -1,40 +1,25 @@
-# Compressor configurations
+# Deeper Dive: Modular Components
 
-This guide demonstrates how to use the `SparseSign` compression method from the `RLinearAlgebra.jl` package to solve an overdetermined linear system (i.e., a least-squares problem) of the form:
+In the previous guide, we showed how to solve a consistent linear system in just a few 
+lines of codes. That example used the default configurations of the 
+[`Kaczmarz` solver](@ref Kaczmarz) solver, which is highly effective for many standard 
+problems.
 
-$$\min_{x} \|Ax - b\|_2^2$$
-
-We will follow the design philosophy of `RLinearAlgebra.jl` by composing different modules (`Solver`, `Compressor`, `Logger`, etc.) to build and solve the problem.
-
-This guide demonstrates how to use the `SparseSign` compression method from the `RLinearAlgebra.jl` package to solve a **consistent linear system**. Because the problem is constructed to have a known, exact solution, it serves as a perfect test case.
-
-We will use an iterative solver that is broadly applicable to any least-squares problem, which finds a solution by minimizing the squared norm of the residual:
-
-$$\min_{x} \|Ax - b\|_2^2$$
-
-We will follow the design philosophy of `RLinearAlgebra.jl` by composing different modules (`Solver`, `Compressor`, `Logger`, etc.) to build and solve the problem.
+However, the true power of **RLinearAlgebra.jl** lies in its high degree of modularity 
+and flexibility. You can fine-tune the solver's behavior by combining different 
+ingradients, like cooking a fine dish, to tackle specific challenges, improve 
+performance, or implement more complex algorithms.
 
 
-This guide demonstrates how to use the `SparseSign` compression method from the `RLinearAlgebra.jl` package to find the exact solution to a **consistent linear system** of the form:
 
-$$Ax = b$$
+We will follow the design philosophy of **RLinearAlgebra.jl** by composing different 
+modules ([`Compressor`](@ref Compressor), [`Logger`](@ref Logger), [`Solver`](@ref Solver), 
+etc.) to customize a solver and solve the same consistent linear system, 
 
-We will follow the design philosophy of `RLinearAlgebra.jl` by composing different modules (`Solver`, `Compressor`, `Logger`, etc.) to build and solve for the vector $x$.
+$$Ax = b.$$
 
----
-## 1. Problem Setup
 
-Let's define a specific linear system $Ax = b$. 
-
-To verify the accuracy of the final result, suppose that we know the true solution of the system, $x_{\text{true}}$, and then use it and a random generated matrix $A$ to generate the vector $b$.
-
-* **Matrix `A`**: A random $1000 \times 20$ matrix.
-* **Vector `b`**: Calculated as $b = A x_{\text{true}}$, with dimensions $1000 \times 1$.
-* **Goal**: Find a solution $x$ that is as close as possible to $x_{\text{true}}$.
-
-To achieve this, we need to import the required libraries and create the matrix `A` and vector `b` as defined above. We will also set an initial guess, `x_init`, for the solver.
-
-```@example ConsistentExample
+```@setup ConsistentExample
 # Import relevant libraries
 using RLinearAlgebra, Random, LinearAlgebra
 
@@ -51,26 +36,25 @@ b = A * x_true;
 
 # Set an initial guess for the solution vector x (typically a zero vector)
 x_init = zeros(Float64, num_cols);
-
-println("Dimensions:")
-println(" - Matrix A: ", size(A))
-println(" - Vector b: ", size(b))
-println(" - True solution x_true: ", size(x_true))
-println(" - Initial guess x_init: ", size(x_true))
 ```
 
+
 ---
-## 2. Create compressors
+## 1. Configure [`Compressor`](@ref Compressor)
 
-In practice, we may encounter a much larger $A$ matrix than what we have here. Solving the problem with such a large matrix can slow down the performance of iterative algorithms that we will use to solve the least square problem. Therefore, we will use a randomized sketching technique to compress the matrix A and the corresponding vector b to a lower dimension, while preserving the essential geometric information of the system.
+For large-scale problems, the matrix $A$ can be massive, slowing down iterative algorithms. 
+We can use a randomized sketching technique to "compress" $A$ and $b$ to a lower dimension 
+while preserving the essential information of the system, s.t. we can solve the system 
+fast without the loss of accuracy.
 
-Here, we will use the sparse sign method.
+Here, we'll configure a [`SparseSign`](@ref SparseSign) compressor as an example. 
+This compressor generates a sparse matrix $S$, whose non-zero elements are +1 or -1 
+(with scaling). 
 
-### (a) Configure the `SparseSign` Compressor
+### (a) Configure the [`SparseSign`](@ref SparseSign) Compressor
 
-The idea of randomized methods is to reduce the scale of the original problem when the dimention of matrix $A$ is too big, using a random "sketch" or "compression" matrix, $S$. Here, we choose `SparseSign` as our `Compressor`. This compressor generates a sparse matrix whose non-zero elements are +1 or -1 (with scaling). More information can be found [here](@ref SparseSign).
-
-We will configure a compression matrix `S` that compresses the 100 rows of the original system down to 30 rows.
+We will configure a compression matrix that reduces the 1000 rows of our original 
+system down to a more manageable 300 rows.
 
 ```@example ConsistentExample
 # The goal is to compress the 1000 rows of A to 300 rows
@@ -79,23 +63,38 @@ compression_dim = 300
 non_zeros = 5
 
 # Configure the SparseSign compressor
-# - cardinality=Left(): Indicates the compression matrix S will be 
-#    left-multiplied with A (SAx = Sb).
-# - compression_dim: The compressed dimension (number of rows).
-# - nnz: The number of non-zero elements per column (left)/row (right) in S. 
-# - type: The element type for the compression matrix.
 sparse_compressor = SparseSign(
-    cardinality=Left(),
-    compression_dim=compression_dim,
-    nnz=non_zeros,
-    type=Float64
+    cardinality=Left(),                 # S will be left-multiplied: SAx = Sb
+    compression_dim=compression_dim,    # The compressed dimension (number of rows)
+    nnz=non_zeros,                      # The number of non-zero elements per row in S
+    type=Float64                        # The element type for the compression matrix
 )
 ```
 
----
-### (b) Build the `SparseSign` recipe
+If the compression dimension of `300` rows is considered too large, it can be changed to `10` by updating the compressor configuration and rebuilding the recipe as follows:
 
-After configuring the compressor, we need to combine it with our specific matrix `A` to create a `SparseSignRecipe`. This recipe contains the generated sparse matrix and all necessary information to perform the compression efficiently.
+```@example ConsistentExample
+# Change the dimension of the compressor. Similarly, you can use the same idea 
+# for other configurations' changes.
+sparse_compressor.compression_dim = 10
+```
+
+The `sparse_compressor` is containing all the [`SparseSign`](@ref SparseSign) 
+configurations that we need. 
+
+While the solver can use the `sparse_compressor` to perform the compression method 
+on-the-fly, we can stop here to configure other "ingradients". However, 
+it can sometimes be useful to form the compression matrix and the compressed 
+system explicitly to get an idea of your compression matrix. Therefore, we will 
+continue playing with it.
+
+---
+### (b) Build the [`SparseSignRecipe`](@ref SparseSignRecipe)
+
+After defining the compressor's parameters, we combine it with our matrix $A$ to 
+create a [`SparseSignRecipe`](@ref SparseSignRecipe). This "recipe" 
+pre-calculates the sparse matrix `S` and prepares everything needed for 
+efficient compression.
 
 ```@example ConsistentExample
 # Pass the compressor configuration and the original matrix A to
@@ -111,20 +110,10 @@ println(" - The number of nonzeros in each column (left)/row (right) of compress
 println(" - Compression matrix's nonzero entry values: ",  S.scale)
 println(" - Compression matrix: ",  S.op)
 ```
-If the compression dimension of `300` rows is considered too large, it can be changed to `10` by updating the compressor configuration and rebuilding the recipe as follows:
-```@example ConsistentExample
-# Change the dimension of the compressor. Similarly, you can use the same idea 
-# for other configurations' changes.
-sparse_compressor.compression_dim = 10
-
-# Rebuild the compressor recipe
-S = complete_compressor(sparse_compressor, A)
-println("Compression matrix's number of rows: ", S.n_rows)
-```
 
 ### (c) Apply the sparse sign matrix to the system
 
-While the solver can use the `S` recipe to perform multiplications on-the-fly, it can sometimes be useful to form the compressed system explicitly. We can use `*` for this.
+We can use `*` to apply this sparse matrix `S` to the system.
 
 ```@example ConsistentExample
 # Form the compressed system SAx = Sb
@@ -137,17 +126,16 @@ println(" - Vector Sb: ", size(Sb))
 ```
 
 ---
-## 3. Create solver
+## 2. Configure [`Logger`](@ref Logger)
 
-With the problem and compressor defined, the next step is to choose and configure a solver. Here, we choose to use the 
-[Kaczmarz solver](@ref Kaczmarz). We configure it by passing in "ingredient" objects for each of its main functions: compressing the system (already done), logging progress, and checking for errors.
+To monitor the solver and control its execution, we will configure a 
+[`BasicLogger`](@ref BasicLogger) . 
+This object serves two purposes: tracking metrics (like the error history) and 
+defining stopping rules.
 
-### (a)  Configure the logger and stopping rules
-
-To monitor the solver, we will use a `BasicLogger`. This object will serve two purposes: record the error history, and tell the solver when to stop.
-
-We will configure it to stop after a maximum of `50` iterations or if the calculated error drops below a tolerance of `1e-6`. And we use `collection_rate = 5` 
-to configure the frequence of error recording to be every $5$ steps.
+We'll configure it to stop after a maximum of `50` iterations or if the residual 
+error drops below `1e-6`. We will also set `collection_rate = 5` to record the 
+error every $5$ iterations.
 
 ```@example ConsistentExample
 # Configure the logger to control the solver's execution
@@ -159,9 +147,14 @@ logger = BasicLogger(
 ```
 
 ---
-### (b) Build the Kaczmarz Solver
-Now, we assemble our configured components (compressor `S`, logger `L`) into the main Kaczmarz solver object. We will use the default methods for error checking and the sub-solver to be LQ factorization ([LQSolver](@ref LQSolver)).
+## 3. Configure [`Solver`](@ref Solver)
 
+Now we assemble our configured ingradients—the `sparse_compressor` and the `logger`—into 
+the main [`Kaczmarz` solver](@ref Kaczmarz) object. For any component we don't specify, 
+a default will be used. Here, we'll explicitly specify the [LQSolver](@ref LQSolver) 
+as our sub-solver.
+
+### (a) Configure the [`Kaczmarz` solver](@ref Kaczmarz)
 ```@example ConsistentExample
 # Create the Kaczmarz solver object by passing in the ingredients
 kaczmarz_solver = Kaczmarz(
@@ -170,19 +163,31 @@ kaczmarz_solver = Kaczmarz(
     sub_solver = LQSolver()
 )
 ```
-Before we can run the solver, we must call `complete_solver`. This function takes the solver configurations and the specific problem data `A, b, x_init` and creates a `KaczmarzRecipe`. The recipe pre-allocates all the necessary memory buffers for efficient computation.
+
+### (b) Create the solver recipe
+
+Just as with the compressor, we must call [`complete_solver`](@ref complete_solver) to 
+create a final "recipe". This function takes the solver configuration and 
+the specific problem data (`A, b, x_init`) and pre-allocates all memory needed 
+for an efficient run.
 
 ```@example ConsistentExample
 # Create the solver recipe by combining the solver and the problem data
 solver_recipe = complete_solver(kaczmarz_solver, x_init, A, b)
 ```
 
+
+
 ---
-## 4. Solve the Compressed System
+## 4. Solve and Verify the Result
 
-With the recipe fully prepared, we can now call `rsolve!` to run the Kaczmarz algorithm. The function will iterate until the `stopping criterion` in the `logger` is met.
+### (a) Solve the System
 
-The `rsolve!` function will modify `x_init` in-place, updating it with the calculated solution.
+We call [`rsolve!`](@ref rsolve!) to run the [`Kaczmarz` solver](@ref Kaczmarz). 
+The `!` in the name indicates that the function modifies its arguments in-place. 
+Here, `x_init` will be updated with the solution vector. 
+The algorithm will run until a stopping criterion from our 
+`logger` is met.
 
 ```@example ConsistentExample
 # Run the solver!
@@ -192,19 +197,21 @@ rsolve!(solver_recipe, x_init, A, b)
 solution = x_init;
 ```
 
----
-## 5. Verify the result
+### (b). Verify the result
 
-Finally, let's check how close our calculated solution is to the known `x_true`. We can do this by calculating the Euclidean norm of the difference between the two vectors. A small error norm indicates a successful approximation.
+Finally, let's check how close our calculated solution is to the known 
+`x_true` and inspect the `logger` to see how the solver performed.
 
 ```@example ConsistentExample
 # We can inspect the logger's history to see the convergence
 error_history = solver_recipe.log.hist;
 println(" - Solver stopped at iteration: ", solver_recipe.log.iteration)
-println(" - Final error: ", error_history[solver_recipe.log.record_location])
+println(" - Final residual error, ||Ax-b||_2: ", error_history[solver_recipe.log.record_location])
 
 # Calculate the norm of the error
 error_norm = norm(solution - x_true)
 println(" - Norm of the error between the solution and x_true: ", error_norm)
 ```
-As you can see, by using the modular Kaczmarz solver, we were able to configure a randomized block-based method and find a solution vector that is very close to the true solution. 
+
+As you can see, by composing different modules, we configured a randomized 
+solver that found a solution vector very close to the true solution.
