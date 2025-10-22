@@ -8,17 +8,16 @@ bib = CitationBibliography(
 )
 makedocs(
     sitename = "RLinearAlgebra",
-    format = Documenter.HTML(
-    collapselevel=1,
-    ),
     plugins=[bib],
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
-#        "Tutorials" => [
-#            "Introduction" => "tutorials/introduction.md",
-#            "Getting started" => "tutorials/getting_started.md"
-#        ],
+        "Tutorials" => [
+            "Introduction" => "tutorials/introduction.md",
+            "Consistent Linear System" => [
+                "tutorials/consistent_system/consistent_system.md",
+                "tutorials/consistent_system/consistent_system_compressor.md",
+            ],
         "Manual" => [
             "Introduction" => "manual/introduction.md", 
             "Compression" => "manual/compression.md",
@@ -40,6 +39,7 @@ makedocs(
             ],
         ],
         "References" => "references.md",
+    ],
     ]
 )
 
