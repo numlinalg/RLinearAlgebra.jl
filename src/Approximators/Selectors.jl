@@ -4,7 +4,7 @@
 """
     Selector
 
-An abstract type containing user controlled parameters for a technique that select indices
+An abstract type containing user controlled parameters for a technique that selects indices
 from a matrix.
 """
 abstract type Selector end
@@ -13,7 +13,7 @@ abstract type Selector end
     SelectorRecipe
 
 An abstract type containing user controlled parameters and preallocated memory for a
-technique that selects indices from matrix.
+technique that selects indices from a matrix.
 """
 abstract type SelectorRecipe end
 
@@ -118,9 +118,9 @@ end
 $(select_method_description[:select_indices])
 
 # Arguments
+- $(select_arg_list[:idx])
 - $(select_arg_list[:selector_recipe])
 - $(select_arg_list[:A]) 
-- $(select_arg_list[:idx])
 - $(select_arg_list[:n_idx])
 - $(select_arg_list[:start_idx])
 

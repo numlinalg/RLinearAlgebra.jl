@@ -54,7 +54,7 @@ import LinearAlgebra: mul!
             n_cols = 3,
             A = zeros(n_rows, n_cols),
             comp_dim = 2,
-            sel = LUPP(compressor=Gaussian(compression_dim = comp_dim))
+            sel = LUPP(compressor = Gaussian(compression_dim = comp_dim))
 
             sel_rec = complete_selector(sel, A)
             @test typeof(sel_rec) == LUPPRecipe
@@ -70,8 +70,11 @@ import LinearAlgebra: mul!
             n_cols = 2,
             A = zeros(n_rows, n_cols),
             sel_rec = complete_selector(LUPP(compressor = Gaussian()), A)
+            G_old = deepcopy(sel_rec.compressor.op)
             update_selector!(sel_rec)
             @test typeof(sel_rec) == LUPPRecipe 
+            # check that Gaussian Matrix actually changes
+            @test sel_rec.compressor.op != G_old
         end
 
     end
