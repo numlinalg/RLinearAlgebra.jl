@@ -2,15 +2,12 @@ name: Documenter
 on:
   push:
     branches:
-      - master
       - main
-      - v0.2-main
-    tags: '*'
+    tags: 
+      - 'v*'
   pull_request:
     branches:
-      - master
       - main
-      - v0.2-main
 jobs:
   build:
     runs-on: ubuntu-latest

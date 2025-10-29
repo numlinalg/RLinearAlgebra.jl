@@ -93,7 +93,7 @@ function update_logger!(logger::BasicLoggerRecipe, error::Float64, iteration::In
     logger.error = error
     # Always check max_it stopping criterion
     # Compute in this way to avoid bounds error from searching in the max_it + 1 location
-    logger.converged = iteration <= logger.max_it ? 
+    logger.converged = iteration < logger.max_it ? 
         logger.stopping_criterion(logger) : 
         true 
     
