@@ -21,11 +21,11 @@ $$Ax = b.$$
 
 ```@setup ConsistentExample
 # Import relevant libraries
-using RLinearAlgebra, Random, LinearAlgebra
+using RLinearAlgebra, LinearAlgebra
 
 
 # Define the dimensions of the linear system
-num_rows, num_cols = 1000, 20
+num_rows, num_cols = 1000, 50
 
 # Create the matrix A and a known true solution x_true
 A = randn(Float64, num_rows, num_cols);
@@ -33,14 +33,11 @@ x_true = randn(Float64, num_cols);
 
 # Calculate the right-hand side vector b from A and x_true
 b = A * x_true;
-
-# Set an initial guess for the solution vector x (typically a zero vector)
-x_init = zeros(Float64, num_cols);
 ```
 
 
 ---
-## 1. Configure [`Compressor`](@ref Compressor)
+## Configure [`Compressor`](@ref Compressor)
 
 For large-scale problems, the matrix $A$ can be massive, slowing down iterative algorithms. 
 We can use a randomized sketching technique to "compress" $A$ and $b$ to a lower dimension 
@@ -51,14 +48,14 @@ Here, we'll configure a [`SparseSign`](@ref SparseSign) compressor as an example
 This compressor generates a sparse matrix $S$, whose non-zero elements are +1 or -1 
 (with scaling). 
 
-### (a) Configure the [`SparseSign`](@ref SparseSign) Compressor
+### Configure the [`SparseSign`](@ref SparseSign) Compressor
 
 We will configure a compression matrix that reduces the 1000 rows of our original 
-system down to a more manageable 300 rows.
+system down to a more manageable $30$ rows.
 
 ```@example ConsistentExample
-# The goal is to compress the 1000 rows of A to 300 rows
-compression_dim = 300
+# The goal is to compress the 1000 rows of A to 30 rows
+compression_dim = 30
 # We want each row of the compression matrix S to have 5 non-zero elements
 non_zeros = 5
 
@@ -71,25 +68,29 @@ sparse_compressor = SparseSign(
 )
 ```
 
-If the compression dimension of `300` rows is considered too large, it can be changed to `10` by updating the compressor configuration and rebuilding the recipe as follows:
+If the compression dimension of `30` rows is considered too large, it can be changed to `10` by updating the compressor configuration and rebuilding the recipe as follows:
 
-```@example ConsistentExample
+```julia
 # Change the dimension of the compressor. Similarly, you can use the same idea 
 # for other configurations' changes.
-sparse_compressor.compression_dim = 10
+sparse_compressor.compression_dim = 10;
+```
+
+```@setup ConsistentExample
+sparse_compressor.compression_dim = 10;
 ```
 
 The `sparse_compressor` is containing all the [`SparseSign`](@ref SparseSign) 
 configurations that we need. 
+
+---
+### (Optional) Build [SparseSignRecipe](@ref SparseSignRecipe) and apply it to the system
 
 While the solver can use the `sparse_compressor` to perform the compression method 
 on-the-fly, we can stop here to configure other "ingradients". However, 
 it can sometimes be useful to form the compression matrix and the compressed 
 system explicitly to get an idea of your compression matrix. Therefore, we will 
 continue playing with it.
-
----
-### (b) Build the [`SparseSignRecipe`](@ref SparseSignRecipe)
 
 After defining the compressor's parameters, we combine it with our matrix $A$ to 
 create a [`SparseSignRecipe`](@ref SparseSignRecipe). This "recipe" 
@@ -108,11 +109,8 @@ println(" - Compression matrix's number of rows: ", S.n_rows)
 println(" - Compression matrix's number of columns: ",  S.n_cols)
 println(" - The number of nonzeros in each column (left)/row (right) of compression matrix: ",  S.nnz)
 println(" - Compression matrix's nonzero entry values: ",  S.scale)
-println(" - Compression matrix: ",  S.op)
+println(" - Compression matrix: ",  typeof(S.op), size(S.op))
 ```
-
-### (c) Apply the sparse sign matrix to the system
-
 We can use `*` to apply this sparse matrix `S` to the system.
 
 ```@example ConsistentExample
@@ -125,36 +123,61 @@ println(" - Matrix SA: ", size(SA))
 println(" - Vector Sb: ", size(Sb))
 ```
 
+
 ---
-## 2. Configure [`Logger`](@ref Logger)
+## Configure [`Logger`](@ref Logger)
 
 To monitor the solver and control its execution, we will configure a 
 [`BasicLogger`](@ref BasicLogger) . 
 This object serves two purposes: tracking metrics (like the error history) and 
 defining stopping rules.
 
-We'll configure it to stop after a maximum of `50` iterations or if the residual 
+We'll configure it to stop after a maximum of `500` iterations or if the residual 
 error drops below `1e-6`. We will also set `collection_rate = 5` to record the 
 error every $5$ iterations.
 
 ```@example ConsistentExample
 # Configure the logger to control the solver's execution
 logger = BasicLogger(
-    max_it = 50,
+    max_it = 500,
     threshold = 1e-6,
     collection_rate = 5
 )
 ```
 
+### (Optional) Build the [BasicLoggerRecipe](@ref BasicLoggerRecipe)
+
+Just like the compressor, this `logger` is just a set of instructions. 
+To make it "ready" to store data, we could call [complete_logger](@ref complete_logger) on it:
+
+
+```@example ConsistentExample
+# We can create the recipe manually, though this is rarely needed
+logger_recipe = complete_logger(logger)
+```
+This `logger_recipe` is the object that actually contains the hist vector for storing the error history, the current iteration, and the converged status.
+
+Again, you almost never need to call `complete_logger` yourself. 
+Because the solver (which we will configure next) or the [`rsolve!`](@ref rsolve!)
+(the function that solves the system) 
+handles it for us. When we call [`complete_solver`](@ref complete_solver) or the 
+[`rsolve!`](@ref rsolve!), it will automatically find the 
+`logger` inside the solver, call `complete_logger` on it, 
+and store the resulting `logger_recipe` inside the final `solver_recipe`.
+
 ---
-## 3. Configure [`Solver`](@ref Solver)
+
+
+
+
+## Configure [`Solver`](@ref Solver)
 
 Now we assemble our configured ingradients—the `sparse_compressor` and the `logger`—into 
 the main [`Kaczmarz` solver](@ref Kaczmarz) object. For any component we don't specify, 
 a default will be used. Here, we'll explicitly specify the [LQSolver](@ref LQSolver) 
 as our sub-solver.
 
-### (a) Configure the [`Kaczmarz` solver](@ref Kaczmarz)
+### Configure the [`Kaczmarz` solver](@ref Kaczmarz)
 ```@example ConsistentExample
 # Create the Kaczmarz solver object by passing in the ingredients
 kaczmarz_solver = Kaczmarz(
@@ -164,49 +187,64 @@ kaczmarz_solver = Kaczmarz(
 )
 ```
 
-### (b) Create the solver recipe
+### (Optional) create the [SolverRecipe](@ref SolverRecipe)
 
-Just as with the compressor, we must call [`complete_solver`](@ref complete_solver) to 
-create a final "recipe". This function takes the solver configuration and 
-the specific problem data (`A, b, x_init`) and pre-allocates all memory needed 
-for an efficient run.
+This is the step where everything comes together. 
+Just as with the compressor, when we call 
+[`complete_solver`](@ref complete_solver), it takes the
+`kaczmarz_solver` configurations and the problem data, and then:
+
+1. Pre-allocates memory for everything needed in the algorithm.
+
+2. Finds the `sparse_compressor` config inside `kaczmarz_solver` and calls `complete_compressor` to create the `SparseSignRecipe`.
+
+3. Finds the `logger` inside `kaczmarz_solver` and calls `complete_logger` to create the `BasicLoggerRecipe`.
+
+4. Bundles all these "recipes" into a single, ready-to-use solver_recipe object.
 
 ```@example ConsistentExample
+# Set the solution vector x (typically a zero vector)
+solution = zeros(Float64, num_cols);
 # Create the solver recipe by combining the solver and the problem data
-solver_recipe = complete_solver(kaczmarz_solver, x_init, A, b)
+solver_recipe = complete_solver(kaczmarz_solver, solution, A, b);
 ```
+However, again, this step can also be skipped and directly pass the 
+solver config `kaczmarz_solver` into the function that can solve the system.
 
 
 
 ---
-## 4. Solve and Verify the Result
+## Solve and Verify the Result
 
-### (a) Solve the System
+### Solve the System
 
 We call [`rsolve!`](@ref rsolve!) to run the [`Kaczmarz` solver](@ref Kaczmarz). 
 The `!` in the name indicates that the function modifies its arguments in-place. 
-Here, `x_init` will be updated with the solution vector. 
+Here, `solution` will be updated with the solution vector. 
 The algorithm will run until a stopping criterion from our 
 `logger` is met.
 
 ```@example ConsistentExample
-# Run the solver!
-rsolve!(solver_recipe, x_init, A, b)
+# Set the solution vector x (typically a zero vector)
+solution = zeros(Float64, num_cols);
 
-# The solution is now stored in the updated x_init vector
-solution = x_init;
+# Run the solver!
+_, solver_history = rsolve!(kaczmarz_solver, solution, A, b);
+
+# The solution is now stored in the updated solution vector
+solution
 ```
 
-### (b). Verify the result
+### Verify the result
 
 Finally, let's check how close our calculated solution is to the known 
 `x_true` and inspect the `logger` to see how the solver performed.
 
 ```@example ConsistentExample
 # We can inspect the logger's history to see the convergence
-error_history = solver_recipe.log.hist;
-println(" - Solver stopped at iteration: ", solver_recipe.log.iteration)
-println(" - Final residual error, ||Ax-b||_2: ", error_history[solver_recipe.log.record_location])
+error_history = solver_history.log.hist;
+println(" - Solver stopped at iteration: ", solver_history.log.iteration)
+println(" - Final residual error, ||Ax-b||_2: ", error_history[solver_history.log.record_location])
 
 # Calculate the norm of the error
 error_norm = norm(solution - x_true)

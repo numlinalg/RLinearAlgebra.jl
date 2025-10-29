@@ -18,6 +18,7 @@ makedocs(
                 "tutorials/consistent_system/consistent_system.md",
                 "tutorials/consistent_system/consistent_system_compressor.md",
             ],
+        ],
         "Manual" => [
             "Introduction" => "manual/introduction.md", 
             "Compression" => "manual/compression.md",
@@ -39,7 +40,6 @@ makedocs(
             ],
         ],
         "References" => "references.md",
-    ],
     ]
 )
 
