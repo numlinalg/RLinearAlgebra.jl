@@ -1,7 +1,7 @@
 """
     BasicLogger <: Logger
 
-This is a mutable struct that contains the `max_it` parameter and stores the error metric 
+This is a struct that contains the `max_it` parameter and stores the error metric 
     in a vector. Checks convergence of the solver based on the log information.
 
 # Fields
