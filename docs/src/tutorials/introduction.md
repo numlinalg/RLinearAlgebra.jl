@@ -7,6 +7,7 @@ experience using `RLinearAlgebra.jl`.
 
 Problem sets:
 - Consistent system problem, solving $x$ s.t. $$Ax = b$$.
+- Least squares problem, solving $x = \arg\displaystyle\min_{x}\|Ax - b\|_2^2$.
 
 
 
