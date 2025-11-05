@@ -1,13 +1,13 @@
 # Deeper Dive: Modular Components
 
 In the previous guide, we showed how to solve a consistent linear system in just a few 
-lines of codes. That example used the default configurations of the 
+lines of code. That example used the default configurations of the 
 [`Kaczmarz` solver](@ref Kaczmarz) solver, which is highly effective for many standard 
 problems.
 
 However, the true power of **RLinearAlgebra.jl** lies in its high degree of modularity 
 and flexibility. You can fine-tune the solver's behavior by combining different 
-ingradients, like cooking a fine dish, to tackle specific challenges, improve 
+ingredients, like cooking a fine dish, to tackle specific challenges, improve 
 performance, or implement more complex algorithms.
 
 
@@ -87,7 +87,7 @@ configurations that we need.
 ### (Optional) Build [SparseSignRecipe](@ref SparseSignRecipe) and apply it to the system
 
 While the solver can use the `sparse_compressor` to perform the compression method 
-on-the-fly, we can stop here to configure other "ingradients". However, 
+on-the-fly, we can stop here to configure other "ingredients". However, 
 it can sometimes be useful to form the compression matrix and the compressed 
 system explicitly to get an idea of your compression matrix. Therefore, we will 
 continue playing with it.
@@ -172,7 +172,7 @@ and store the resulting `logger_recipe` inside the final `solver_recipe`.
 
 ## Configure [`Solver`](@ref Solver)
 
-Now we assemble our configured ingradients—the `sparse_compressor` and the `logger`—into 
+Now we assemble our configured ingredients—the `sparse_compressor` and the `logger`—into 
 the main [`Kaczmarz` solver](@ref Kaczmarz) object. For any component we don't specify, 
 a default will be used. Here, we'll explicitly specify the [LQSolver](@ref LQSolver) 
 as our sub-solver.

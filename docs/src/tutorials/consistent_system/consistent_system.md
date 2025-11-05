@@ -27,7 +27,7 @@ A = randn(Float64, num_rows, num_cols);
 x_true = randn(Float64, num_cols);
 b = A * x_true;
 ```
-`RLinearAlgebra.jl` can solve this system in just a few lines of codes:
+`RLinearAlgebra.jl` can solve this system in just a few lines of code:
 
 ```@example ConsistentExample
 using RLinearAlgebra

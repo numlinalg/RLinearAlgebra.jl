@@ -1,6 +1,6 @@
 # Introduction
 
-The purpose of these tutorials is to use examples help new users quickly get hands 
+The purpose of these tutorials is to use examples to help new users quickly get hands-on 
 experience using `RLinearAlgebra.jl`.
 
 ## How tutorials are structured
