@@ -68,7 +68,8 @@ sparse_compressor = SparseSign(
 )
 ```
 
-If the compression dimension of `30` rows is considered too large, it can be changed to `10` by updating the compressor configuration and rebuilding the recipe as follows:
+If the compression dimension of `30` rows is considered too large, it can be changed to 
+`10` by updating the compressor configuration as follows:
 
 ```julia
 # Change the dimension of the compressor. Similarly, you can use the same idea 
