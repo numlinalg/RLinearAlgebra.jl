@@ -8,6 +8,9 @@ bib = CitationBibliography(
 )
 makedocs(
     sitename = "RLinearAlgebra",
+    format = Documenter.HTML(
+    collapselevel=1,
+    ),
     plugins=[bib],
     modules = [RLinearAlgebra],
     pages = [
