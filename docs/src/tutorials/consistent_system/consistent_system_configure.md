@@ -1,4 +1,4 @@
-# Deeper Dive: Modular Components
+# Modular Customization: Beyond Defaults
 
 In the previous guide, we showed how to solve a consistent linear system in just a few 
 lines of code. That example used the default configurations of the 
@@ -148,14 +148,16 @@ logger = BasicLogger(
 ### (Optional) Build the [BasicLoggerRecipe](@ref BasicLoggerRecipe)
 
 Just like the compressor, this `logger` is just a set of instructions. 
-To make it "ready" to store data, we could call [complete_logger](@ref complete_logger) on it:
+To make it "ready" to store data, we could call [complete_logger](@ref complete_logger) 
+on it:
 
 
 ```@example ConsistentExample
 # We can create the recipe manually, though this is rarely needed
 logger_recipe = complete_logger(logger)
 ```
-This `logger_recipe` is the object that actually contains the hist vector for storing the error history, the current iteration, and the converged status.
+This `logger_recipe` is the object that actually contains the hist vector for 
+storing the error history, the current iteration, and the converged status.
 
 Again, you almost never need to call `complete_logger` yourself. 
 Because the solver (which we will configure next) or the [`rsolve!`](@ref rsolve!)
