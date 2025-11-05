@@ -21,6 +21,10 @@ makedocs(
                 "tutorials/consistent_system/consistent_system.md",
                 "tutorials/consistent_system/consistent_system_compressor.md",
             ],
+            "Least Squares" => [
+                "tutorials/least_squares/least_squares.md",
+                "tutorials/least_squares/least_squares_configure.md",
+            ],
         ],
         "Manual" => [
             "Introduction" => "manual/introduction.md", 
