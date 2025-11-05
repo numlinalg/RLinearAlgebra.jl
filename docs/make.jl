@@ -19,7 +19,7 @@ makedocs(
             "Introduction" => "tutorials/introduction.md",
             "Consistent Linear System" => [
                 "tutorials/consistent_system/consistent_system.md",
-                "tutorials/consistent_system/consistent_system_compressor.md",
+                "tutorials/consistent_system/consistent_system_configure.md",
             ],
         ],
         "Manual" => [
