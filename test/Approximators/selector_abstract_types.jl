@@ -32,7 +32,7 @@ complete_selector(selector::TestSelector, A::AbstractMatrix) =
     TestSelectorRecipe(1)
 
 @testset "Selector Completion" begin
-    A =ones(2, 2)
+    A = ones(2, 2)
 
     select = complete_selector(TestSelector(), A) 
     @test select isa TestSelectorRecipe

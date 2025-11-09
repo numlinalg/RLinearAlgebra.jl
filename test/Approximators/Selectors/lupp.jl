@@ -91,12 +91,12 @@ import LinearAlgebra: mul!
             n_idx = 4
 
             @test_throws DimensionMismatch select_indices!(
-                            idx, 
-                            complete_selector(LUPP(), A), 
-                            A, 
-                            n_idx, 
-                            start_idx
-                ) 
+                idx, 
+                complete_selector(LUPP(), A), 
+                A, 
+                n_idx, 
+                start_idx
+            ) 
         end
         
         # check that n_idx will not go over index vector 
@@ -106,12 +106,12 @@ import LinearAlgebra: mul!
             n_idx = 2
 
             @test_throws DimensionMismatch select_indices!(
-                            idx, 
-                            complete_selector(LUPP(), A), 
-                            A, 
-                            n_idx, 
-                            start_idx
-                ) 
+                idx, 
+                complete_selector(LUPP(), A), 
+                A, 
+                n_idx, 
+                start_idx
+            ) 
         end
 
         # check that n_idx is not larger than the compression_dim
@@ -121,15 +121,15 @@ import LinearAlgebra: mul!
             n_idx = 3
 
             @test_throws DimensionMismatch select_indices!(
-                            idx, 
-                            complete_selector(
-                                LUPP(compressor = Gaussian(compression_dim = 2)), 
-                                A
-                            ),
-                            A, 
-                            n_idx, 
-                            start_idx
-                ) 
+                idx, 
+                complete_selector(
+                    LUPP(compressor = Gaussian(compression_dim = 2)), 
+                    A
+                ),
+                A, 
+                n_idx, 
+                start_idx
+            ) 
         end
 
         # Test with identity compressor

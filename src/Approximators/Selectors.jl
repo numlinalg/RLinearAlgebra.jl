@@ -20,7 +20,7 @@ abstract type SelectorRecipe end
 select_arg_list = Dict{Symbol,String}(
     :selector => "`selector::Selector`, a data structure containing the user-defined
     parameters associated with a particular selection method.",
-    :selector_recipe => "`selector_recipe::SelectorRecipe`, a fully initialized realization
+    :selector_recipe => "`selector::SelectorRecipe`, a fully initialized realization
     for a selector method for a particular matrix.",
     :idx => "`idx::vector`, a vector where selected indices will be placed.",
     :n_idx => "`n_idx::Int64`, the number of indices to be selected.",
@@ -108,9 +108,9 @@ end
 ####################################
 """
     select_indices!(
+        idx::AbstractVector,
         selector::SelectorRecipe, 
         A::AbstractMatrix,
-        idx::AbstractVector,
         n_idx::Int64, 
         start_idx::Int64
     )
