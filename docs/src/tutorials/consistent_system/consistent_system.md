@@ -1,8 +1,8 @@
 # Solving a Consistent Linear System
 
 This guide demonstrates how to use `RLinearAlgebra.jl` package to solve a 
-**consistent linear system**---a system where at least one solution 
-exists---expressed in the form:
+**consistent linear system**--a system where at least one solution 
+exists--expressed in the form:
 
 $$Ax = b.$$
 

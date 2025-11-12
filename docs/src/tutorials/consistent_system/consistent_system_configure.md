@@ -1,4 +1,4 @@
-# Modular Customization: Beyond Defaults
+# Configuring Linear System Solvers
 
 In the previous guide, we showed how to solve a consistent linear system in just a few 
 lines of code. That example used the default configurations of the 
@@ -42,7 +42,7 @@ b = A * x_true;
 For large-scale problems, the matrix $A$ can be massive, slowing down iterative algorithms. 
 We can use a randomized sketching technique to "compress" $A$ and $b$ to a lower dimension 
 while preserving the essential information of the system, so that we can solve the system 
-fast without the loss of accuracy.
+quickly (perhaps with some loss of accuracy).
 
 Here, we'll configure a [`SparseSign`](@ref SparseSign) compressor as an example. 
 This compressor generates a sparse matrix $S$, whose non-zero elements are +1 or -1 
@@ -77,17 +77,15 @@ sparse_compressor.compression_dim = 10;
 sparse_compressor.compression_dim = 10;
 ```
 
-The `sparse_compressor` is containing all the [`SparseSign`](@ref SparseSign) 
-configurations that we need. 
+The `sparse_compressor` contains all of the [`SparseSign`](@ref SparseSign) 
+ingredients needed to build a [`SparseSignRecipe`](@ref SparseSignRecipe). 
 
 ---
-### (Optional) Build [SparseSignRecipe](@ref SparseSignRecipe) and apply it to the system
+### (Optional) Build [SparseSignRecipe](@ref SparseSignRecipe) and apply it
 
-While the solver can use the `sparse_compressor` to perform the compression method 
-on-the-fly, we can stop here to configure other "ingredients". However, 
-it can sometimes be useful to form the compression matrix and the compressed 
-system explicitly to get an idea of your compression matrix. Therefore, we will 
-continue playing with it.
+While the solver uses the `sparse_compressor` to construct the corresponding 
+recipe,
+it is useful to construct the recipe at least once to see how it is used. 
 
 After defining the compressor's parameters, we combine it with our matrix $A$ to 
 create a [`SparseSignRecipe`](@ref SparseSignRecipe). This "recipe" 
@@ -97,27 +95,16 @@ efficient compression.
 ```@example ConsistentExample
 # Pass the compressor configuration and the original matrix A to
 # create the final compression recipe.
-S = complete_compressor(sparse_compressor, A)
-
-# You can closely look at the compression recipe you created.
-println("Configurations of compression matrix:")
-println(" - Compression matrix is applied to left or right: ", S.cardinality)
-println(" - Compression matrix's number of rows: ", S.n_rows)
-println(" - Compression matrix's number of columns: ",  S.n_cols)
-println(" - The number of nonzeros in each column (left)/row (right) of compression matrix: ",  S.nnz)
-println(" - Compression matrix's nonzero entry values: ",  S.scale)
-println(" - Compression matrix: ",  typeof(S.op), size(S.op))
+S = complete_compressor(sparse_compressor, A);
 ```
-We can use `*` to apply this sparse matrix `S` to the system.
+
+We can then apply `S` to matrices and vectors through multiplication.
+Other multiplication functionality is available as well (i.e., `mul!`).
 
 ```@example ConsistentExample
 # Form the compressed system SAx = Sb
-SA = S * A
-Sb = S * b
-
-println("Dimensions of the compressed system:")
-println(" - Matrix SA: ", size(SA))
-println(" - Vector Sb: ", size(Sb))
+SA = S * A;
+Sb = S * b;
 ```
 
 
@@ -153,7 +140,7 @@ on it:
 # We can create the recipe manually, though this is rarely needed
 logger_recipe = complete_logger(logger)
 ```
-This `logger_recipe` is the object that actually contains the hist vector for 
+The `logger_recipe`'s has fields for 
 storing the error history, the current iteration, and the converged status.
 
 Again, you almost never need to call `complete_logger` yourself. 
@@ -198,7 +185,7 @@ Just as with the compressor, when we call
 
 3. Finds the `logger` inside `kaczmarz_solver` and calls `complete_logger` to create the `BasicLoggerRecipe`.
 
-4. Bundles all these "recipes" into a single, ready-to-use solver_recipe object.
+4. Bundles all these "recipes" into a single, ready-to-use `solver_recipe`.
 
 ```@example ConsistentExample
 # Set the solution vector x (typically a zero vector)
@@ -206,7 +193,7 @@ solution = zeros(Float64, num_cols);
 # Create the solver recipe by combining the solver and the problem data
 solver_recipe = complete_solver(kaczmarz_solver, solution, A, b);
 ```
-However, again, this step can also be skipped and directly pass the 
+Again, this step can also be skipped and directly pass the 
 solver config `kaczmarz_solver` into the function that can solve the system.
 
 
@@ -249,5 +236,5 @@ error_norm = norm(solution - x_true)
 println(" - Norm of the error between the solution and x_true: ", error_norm)
 ```
 
-As you can see, by composing different modules, we configured a randomized 
+As you can see, by composing different kernels, we configured a randomized 
 solver that found a solution vector very close to the true solution.
