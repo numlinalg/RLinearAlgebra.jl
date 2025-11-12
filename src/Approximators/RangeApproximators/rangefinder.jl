@@ -86,7 +86,7 @@ RangeFinder(;
     compressor = SparseSign(cardinality = Right()), 
     orthogonalize = false, 
     power_its = 0
-) = RangeFinder(compressor, orthogonalize, power_its)
+) = RangeFinder(compressor, power_its, orthogonalize)
 
 """
     RangeFinderRecipe
