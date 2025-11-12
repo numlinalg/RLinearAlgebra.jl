@@ -50,6 +50,39 @@ Random.seed!(2131)
 
     end
 
+    @testset "Verify field modification" begin
+        compressor = SparseSign(cardinality=Left(), compression_dim=5, nnz=3, type=Float64)
+        
+        @test_throws ArgumentError compressor.compression_dim = 0  
+        @test_throws ArgumentError compressor.compression_dim = -1 
+        @test_throws ArgumentError compressor.compression_dim = 2  
+
+        @test_throws ArgumentError compressor.nnz = 0  
+        @test_throws ArgumentError compressor.nnz = -1  
+        @test_throws ArgumentError compressor.nnz = 6  
+        
+        compressor.compression_dim = 10 
+        @test compressor.compression_dim == 10
+
+        compressor.nnz = 8 
+        @test compressor.nnz == 8
+        
+        compressor.cardinality = Right()
+        @test typeof(compressor.cardinality) == Right
+
+        compressor.type = Float32 
+        @test compressor.type == Float32
+
+        trap_compressor = SparseSign(cardinality=Left(), compression_dim=5, nnz=5)
+        
+        @test_throws ArgumentError trap_compressor.compression_dim = 3
+
+        trap_compressor.nnz = 3 
+        trap_compressor.compression_dim = 3
+
+        @test trap_compressor.compression_dim == 3 && trap_compressor.nnz == 3
+    end
+
     @testset "Sparse Sign: CompressorRecipe" begin
         @test_compressor SparseSignRecipe
         @test fieldnames(SparseSignRecipe) ==
