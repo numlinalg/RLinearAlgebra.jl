@@ -41,16 +41,12 @@ b = A * x_true;
 
 For large-scale problems, the matrix $A$ can be massive, slowing down iterative algorithms. 
 We can use a randomized sketching technique to "compress" $A$ and $b$ to a lower dimension 
-while preserving the essential information of the system, s.t. we can solve the system 
+while preserving the essential information of the system, so that we can solve the system 
 fast without the loss of accuracy.
 
 Here, we'll configure a [`SparseSign`](@ref SparseSign) compressor as an example. 
 This compressor generates a sparse matrix $S$, whose non-zero elements are +1 or -1 
-(with scaling). 
-
-### Configure the [`SparseSign`](@ref SparseSign) Compressor
-
-We will configure a compression matrix that reduces the 1000 rows of our original 
+(with scaling). The sparse matrix reduces the 1000 rows of our original 
 system down to a more manageable $30$ rows.
 
 ```@example ConsistentExample
@@ -180,7 +176,6 @@ the main [`Kaczmarz` solver](@ref Kaczmarz) object. For any component we don't s
 a default will be used. Here, we'll explicitly specify the [LQSolver](@ref LQSolver) 
 as our sub-solver.
 
-### Configure the [`Kaczmarz` solver](@ref Kaczmarz)
 ```@example ConsistentExample
 # Create the Kaczmarz solver object by passing in the ingredients
 kaczmarz_solver = Kaczmarz(
