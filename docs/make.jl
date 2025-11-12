@@ -15,10 +15,13 @@ makedocs(
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
-#        "Tutorials" => [
-#            "Introduction" => "tutorials/introduction.md",
-#            "Getting started" => "tutorials/getting_started.md"
-#        ],
+        "Tutorials" => [
+            "Introduction" => "tutorials/introduction.md",
+            "Consistent Linear System" => [
+                "tutorials/consistent_system/consistent_system.md",
+                "tutorials/consistent_system/consistent_system_configure.md",
+            ],
+        ],
         "Manual" => [
             "Introduction" => "manual/introduction.md", 
             "Compression" => "manual/compression.md",
