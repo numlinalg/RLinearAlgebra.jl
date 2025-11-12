@@ -1,6 +1,6 @@
 module RLinearAlgebra
 import Base.:*
-import Base: transpose, adjoint
+import Base: transpose, adjoint, setproperty!
 import LinearAlgebra: Adjoint, axpby!, dot, I, ldiv!, lmul!, lq!, lq, LQ, mul!, norm, qr!, svd
 import StatsBase: sample, sample!, ProbabilityWeights, wsample!
 import Random: bitrand, rand!, randn!
