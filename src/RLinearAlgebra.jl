@@ -44,8 +44,9 @@ export complete_solver, update_solver!, rsolve!
 
 # Export Logger types and functions
 export Logger, LoggerRecipe
-export BasicLogger, BasicLoggerRecipe
-export complete_logger, update_logger!, reset_logger!
+export MAInfo
+export BasicLogger, BasicLoggerRecipe, MALogger, MALoggerRecipe
+export complete_logger, update_logger!, reset_logger!, update_ma!
 export threshold_stop
 
 # Export SubSolver types and functions
