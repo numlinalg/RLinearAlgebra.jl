@@ -16,6 +16,9 @@ RLinearAlgebra.LUPP
 
 LUPPRecipe
 
+QRCP
+
+QRCPRecipe
 ```
 
 ## Exported Functions
