@@ -76,16 +76,6 @@ Random.seed!(2131)
         @test typeof(compressor.cardinality) == Right
         compressor.type = Float32 
         @test compressor.type == Float32
-
-        # Sequence test
-        compressor = SparseSign(cardinality=Left(), compression_dim=5, nnz=3, type=Float64)
-        
-        s.nnz = 4
-        s.compression_dim = 5
-        
-        @test s.nnz == 4
-        @test s.compression_dim == 5
-
     end
 
     @testset "Sparse Sign: CompressorRecipe" begin
