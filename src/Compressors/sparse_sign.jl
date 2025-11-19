@@ -126,6 +126,50 @@ function setproperty!(obj::SparseSign, sym::Symbol, val)
     return setfield!(obj, sym, val)
 end
 
+# # Getters (examples for compression dimension and number of non-zeros, 
+# # the same with type and cardinality)
+# compression_dim(s::SparseSign) = s.compression_dim
+# nnz(s::SparseSign) = s.nnz
+
+# # Setters 
+# """
+#     compression_dim!(s::SparseSign, new_dim::Int64)
+
+# Updates the compression dimension. 
+# Throws an ArgumentError if `new_dim` is invalid or smaller than the current `nnz`.
+# """
+# function compression_dim!(s::SparseSign, new_dim::Int64)
+#     if new_dim <= 0
+#         throw(ArgumentError("New `compression_dim` must be positive."))
+#     end
+    
+#     if s.nnz > new_dim
+#         throw(ArgumentError("New `compression_dim`, $new_dim, must be greater than or equal to current `nnz`, $(s.nnz)."))
+#     end
+    
+#     s.compression_dim = new_dim
+#     return s #
+# end
+
+# """
+#     nnz!(s::SparseSign, new_nnz::Int64)
+
+# Updates the number of non-zeros.
+# Throws an ArgumentError if `new_nnz` is invalid or larger than the current `compression_dim`.
+# """
+# function nnz!(s::SparseSign, new_nnz::Int64)
+#     if new_nnz <= 0
+#         throw(ArgumentError("New `nnz` must be positive."))
+#     end
+    
+#     if new_nnz > s.compression_dim
+#         throw(ArgumentError("New `nnz`, $new_nnz, must be less than or equal to current `compression_dim`, $(s.compression_dim)."))
+#     end
+    
+#     s.nnz = new_nnz
+#     return s
+# end
+
 """
     sparse_idx_update!(
         values::Vector{Int64}, 
