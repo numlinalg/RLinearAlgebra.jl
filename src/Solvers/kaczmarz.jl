@@ -158,8 +158,8 @@ mutable struct KaczmarzRecipe{
     alpha::Float64
     compressed_mat::M
     compressed_vec::V
-    solution_vec::V
-    update_vec::V
+    solution_vec::Vector{T}
+    update_vec::Vector{T}
     mat_view::MV
     vec_view::VV
 end
@@ -198,9 +198,22 @@ function complete_solver(
     # We assume the user is using compressors to only decrease dimension
     sample_size::Int64 = compressor.n_rows
     cols_a = size(A, 2)
-    # Allocate the information in the buffer using the types of A and b
-    compressed_mat = zeros(eltype(A), sample_size, cols_a)
-    compressed_vec = zeros(eltype(b), sample_size) 
+    # because sampling recipe use subsets sparse matrices will be problematic
+    if typeof(compressor) <: SamplingRecipe && typeof(A) <: SparseMatrixCSC
+        compressed_mat = spzeros(eltype(A), sample_size, cols_a)
+    else
+        # Allocate the information in the buffer using the types of A
+        compressed_mat = zeros(eltype(A), sample_size, cols_a)
+    end
+   
+    # because sampling recipe use subsets sparse vectors will be problematic
+    if typeof(compressor) <: SamplingRecipe && typeof(b) <: SparseVector
+        compressed_vec = spzeros(eltype(b), sample_size)
+    else
+        # Allocate the information in the buffer using the type of b
+        compressed_vec = zeros(eltype(b), sample_size)
+    end
+
     # Since sub_solver is applied to compressed matrices use here
     sub_solver = complete_sub_solver(ingredients.sub_solver, compressed_mat, compressed_vec)
     mat_view = view(compressed_mat, 1:sample_size, :)
@@ -250,12 +263,15 @@ function kaczmarz_update!(solver::KaczmarzRecipe)
     # when the constant vector is a zero dimensional subArray we know that we should perform
     # the one dimension kaczmarz update
 
-    # Compute the projection scaling (bi - dot(ai,x)) / ||ai||^2
-    scaling = solver.alpha * (dotu(solver.mat_view, solver.solution_vec) 
-        - solver.vec_view[1]) 
-    scaling /= dot(solver.mat_view, solver.mat_view)
-    # udpate the solution computes solution_vec = solution_vec - scaling * mat_view'
-    axpby!(-scaling, solver.mat_view', 1.0, solver.solution_vec)
+    # check that the row is non-zero
+    if !iszero(solver.mat_view)
+        # Compute the projection scaling (bi - dot(ai,x)) / ||ai||^2
+        scaling = solver.alpha * (dotu(solver.mat_view, solver.solution_vec) 
+            - solver.vec_view[1]) 
+        scaling /= dot(solver.mat_view, solver.mat_view)
+        # udpate the solution computes solution_vec = solution_vec - scaling * mat_view'
+        axpby!(-scaling, solver.mat_view', 1.0, solver.solution_vec)
+    end
     return nothing
 end
 
@@ -278,16 +294,19 @@ A function that performs the kaczmarz update when the compression dim is greater
 function kaczmarz_update_block!(solver::KaczmarzRecipe)
     # when the constant vector is a one dimensional subArray we know that we should perform
     # the one dimension kaczmarz update
-    # sub-solver needs to designed for new compressed matrix
-    update_sub_solver!(solver.sub_solver, solver.mat_view)
-    # Compute the block residual 
-    # (computes solver.vec_view - solver.mat_view * solver.solution_vec)
-    mul!(solver.vec_view, solver.mat_view, solver.solution_vec, -1.0, 1.0)
-    # use sub-solver to find update the solution (solves min ||tilde A - tilde b|| and 
-    # stores in update_vec)
-    ldiv!(solver.update_vec, solver.sub_solver, solver.vec_view)
-    # computes solver.solution_vec = solver.solution_vec + alpha * solver.update_vec
-    axpby!(solver.alpha, solver.update_vec, 1.0, solver.solution_vec)
+    if !iszero(solver.mat_view)
+        # sub-solver needs to designed for new compressed matrix
+        update_sub_solver!(solver.sub_solver, solver.mat_view)
+        # Compute the block residual 
+        # (computes solver.vec_view - solver.mat_view * solver.solution_vec)
+        mul!(solver.vec_view, solver.mat_view, solver.solution_vec, -1.0, 1.0)
+        # use sub-solver to find update the solution (solves min ||tilde A - tilde b|| and 
+        # stores in update_vec)
+        ldiv!(solver.update_vec, solver.sub_solver, solver.vec_view)
+        # computes solver.solution_vec = solver.solution_vec + alpha * solver.update_vec
+        axpby!(solver.alpha, solver.update_vec, 1.0, solver.solution_vec)
+    end
+
     return nothing
 end
 
