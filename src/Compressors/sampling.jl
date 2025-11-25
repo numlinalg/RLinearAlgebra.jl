@@ -216,3 +216,43 @@ function mul!(
 
     return nothing
 end
+
+###############################################################################
+# Binary Operator Compressor-Array Multiplications for sparse matrices/vectors
+###############################################################################
+# S * A 
+function (*)(S::SamplingRecipe, A::Union{SparseMatrixCSC, SparseVector})
+    s_rows = size(S, 1)
+    a_cols = size(A, 2)
+    C = a_cols == 1 ? spzeros(eltype(A), s_rows) : spzeros(eltype(A), s_rows, a_cols)
+    mul!(C, S, A)
+    return C
+end
+
+# A * S 
+function (*)(A::Union{SparseMatrixCSC, SparseVector}, S::SamplingRecipe)
+    s_cols = size(S, 2)
+    a_rows = size(A, 1)
+    C = a_rows == 1 ? spzeros(eltype(A), s_cols)' : spzeros(eltype(A), a_rows, s_cols)
+    mul!(C, A, S)
+    return C
+end
+
+# S' * A
+function (*)(S::CompressorAdjoint{<:SamplingRecipe}, A::Union{SparseMatrixCSC, SparseVector})
+    s_rows = size(S, 1)
+    a_cols = size(A, 2)
+    C = a_cols == 1 ? spzeros(eltype(A), s_rows) : spzeros(eltype(A), s_rows, a_cols)
+    mul!(C, S, A)
+    return C
+end
+
+# A * S'
+function (*)(A::Union{SparseMatrixCSC, SparseVector}, S::CompressorAdjoint{<:SamplingRecipe})
+    s_cols = size(S, 2)
+    a_rows = size(A, 1)
+    C = a_rows == 1 ? spzeros(eltype(A), s_cols)' : spzeros(eltype(A), a_rows, s_cols)
+    mul!(C, A, S)
+    return C
+end
+
