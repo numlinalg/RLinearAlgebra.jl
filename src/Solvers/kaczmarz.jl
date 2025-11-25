@@ -15,9 +15,9 @@ Let ``A`` be an ``m \\times n`` matrix and consider the consistent linear system
     this interesection is to iteratively project some abritrary point, ``x`` from one 
     hyperplane to the next, through 
     ``
-    x_{+} = x + \\alpha \\frac{b_i - \\lange A_{i\\cdot}, x\\rangle}{\\| A_{i\\cdot}.
+    x_{+} = x + \\alpha \\frac{b_i -  A_{i\\cdot}^\\top x}{\\| A_{i\\cdot} \\|_2^2}
     ``
-    Doing this with random permutation of ``i`` can lead to a geometric convergence 
+     Doing this with random permutation of ``i`` can lead to a geometric convergence 
     [strohmer2009randomized](@cite).
     Here ``\\alpha`` is viewed as an over-relaxation parameter and can improve convergence. 
     One can also generalize this procedure to blocks by considering the ``S`` being a 
