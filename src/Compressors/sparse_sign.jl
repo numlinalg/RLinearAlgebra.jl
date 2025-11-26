@@ -97,6 +97,35 @@ function SparseSign(;
     return SparseSign(cardinality, compression_dim, nnz, type)
 end
 
+# Reload property
+function setproperty!(obj::SparseSign, sym::Symbol, val)
+    if sym === :compression_dim
+        new_dim = val
+        if new_dim <= 0
+            throw(ArgumentError("Field `compression_dim` must be positive."))
+        elseif obj.nnz > new_dim
+            throw(
+                ArgumentError("New `compression_dim`, $new_dim, must be greater than \
+                or equal to current `nnz`, $(obj.nnz)."
+                )
+            )
+        end
+    elseif sym === :nnz
+        new_nnz = val
+        if new_nnz <= 0
+            throw(ArgumentError("Field `nnz` must be positive."))
+        elseif new_nnz > obj.compression_dim 
+            throw(
+                ArgumentError("New `nnz`, $new_nnz, must be less than or equal to \
+                current `compression_dim`, $(obj.compression_dim)."
+                )
+            )
+        end
+    end
+
+    return setfield!(obj, sym, val)
+end
+
 """
     sparse_idx_update!(
         values::Vector{Int64}, 
