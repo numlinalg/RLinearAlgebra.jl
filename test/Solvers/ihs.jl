@@ -117,6 +117,7 @@ mutable struct ITestLogRecipe <: LoggerRecipe
     hist::Vector{Real}
     thresh::Float64
     converged::Bool
+    iteration::Int64
 end
 
 function RLinearAlgebra.complete_logger(logger::ITestLog)
@@ -124,11 +125,13 @@ function RLinearAlgebra.complete_logger(logger::ITestLog)
         logger.max_it, 
         zeros(typeof(logger.g), logger.max_it), 
         logger.g, 
-        false
+        false, 
+        0
     )
 end
 
 function RLinearAlgebra.update_logger!(logger::ITestLogRecipe, err::Real, i::Int64)
+    logger.iteration = i
     logger.hist[i] = err
     logger.converged = err < logger.thresh ? true : false
 end
@@ -188,12 +191,21 @@ end
             @test typeof(solver.error) == ITestError
         end 
         
-        # Test that error gets returned with right compressor
+        # Test that warning gets returned with right compressor
         @test_logs (:warn,
             "Compressor has cardinality `Right` but IHS compresses from the `Left`."
         ) IHS(
             alpha = 2.0,
             compressor = ITestCompressor(Right(), 5),
+            log = ITestLog(),
+            error = ITestError(),
+        )
+        # Test that warning gets returned with  negative 
+        @test_logs (:warn,
+            "Negative step size could lead to divergent iterates."
+        ) IHS(
+            alpha = -2.0,
+            compressor = ITestCompressor(Left(), 5),
             log = ITestLog(),
             error = ITestError(),
         )
@@ -307,6 +319,56 @@ end
             @test_throws ArgumentError(
                 "Compression dimension not larger than column dimension this will lead to \
                 singular QR decompositions, which cannot be inverted."
+            ) complete_solver(solver, x, A, b)
+        end
+
+        # Test the error message about too large compression_dim 
+        let A = A,
+            xsol = xsol,
+            b = b,
+            comp_dim = size(A, 1) + 1,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = zeros(n_cols)
+            
+            comp = ITestCompressor(Left(), comp_dim)
+            log = ITestLog()
+            err = ITestError()
+            solver = IHS(
+                compressor = comp,
+                log = log,
+                error = err,
+                alpha = alpha
+            )
+            
+            @test_throws ArgumentError(
+                "Compression dimension larger row dimension."
+            ) complete_solver(solver, x, A, b)
+        end
+
+        # Test the error message about too large column dimension 
+        let A = zeros(10, 10),
+            xsol = xsol,
+            b = b,
+            comp_dim = 10,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = zeros(n_cols)
+            
+            comp = ITestCompressor(Left(), comp_dim)
+            log = ITestLog()
+            err = ITestError()
+            solver = IHS(
+                compressor = comp,
+                log = log,
+                error = err,
+                alpha = alpha
+            )
+            
+            @test_throws ArgumentError(
+                "Matrix must have more rows than columns."
             ) complete_solver(solver, x, A, b)
         end
 
@@ -437,6 +499,7 @@ end
                 #test that the error decreases
                 @test norm(A * x_st - b) > norm(A * x - b)
                 @test solver_rec.log.converged
+                @test solver_rec.log.iteration < 40
             end
 
         end

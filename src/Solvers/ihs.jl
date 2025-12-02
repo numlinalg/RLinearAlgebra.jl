@@ -2,10 +2,10 @@
     IHS <: Solver
 
 An implementation of the Iterative Hessian Sketch solver for solving over determined 
-least squares problems (@cite)[pilanci2014iterative].
+least squares problems [pilanci2014iterative](@cite).
  
 # Mathematical Description
-Let ``A  \\in \\mathbb{R}^{m \\times n}, m \\gg n`` and consider the least square problem 
+Let ``A  \\in \\mathbb{R}^{m \\times n}, m \\gg n,`` and consider the least square problem 
 ``\\min_x \\|Ax - b \\|_2^2``. If we let ``S \\in \\mathbb{R}^{s \\times m}`` be a 
 compression matrix, then Iterative Hessian Sketch iteratively finds a solution to this 
 problem by repeatedly updating ``x_{k+1} = x_k + \\alpha u_k``where ``u_k`` is the solution 
@@ -161,6 +161,14 @@ function complete_solver(
             ArgumentError(
                 "Compression dimension not larger than column dimension this will lead to \
                 singular QR decompositions, which cannot be inverted."
+            )
+        )
+    end
+
+    if rows_a < sample_size
+        throw(
+            ArgumentError(
+                "Compression dimension larger row dimension."
             )
         )
     end
