@@ -11,7 +11,7 @@ struct CompressedResidual <: SolverError end
 """
     CompressedResidualRecipe <: ErrorRecipe
 
-A structure for the compressed residual, `Sb-SAx`.
+A structure containing the preallocated structures for the compressed residual, `Sb-SAx`.
 
 # Fields
 - `residual::AbstractVector`, a container for the compressed residual, `Sb-SAx`.
@@ -43,7 +43,7 @@ function compute_error(
         solver::SolverRecipe, 
         A::AbstractMatrix, 
         b::AbstractVector
-    )::Float64
+    )
     rows_s = size(solver.compressor, 1)
     error.residual_view = view(error.residual, 1:rows_s)
     copyto!(error.residual_view, solver.vec_view)
