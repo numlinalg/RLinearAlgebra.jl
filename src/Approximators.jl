@@ -428,4 +428,5 @@ end
 # Include the Approximator files
 ############################################
 include("Approximators/RangeApproximators/rangefinder.jl")
+include("Approximators/RangeApproximators/randsvd.jl")
 include("Approximators/RangeApproximators/helpers/power_its.jl")

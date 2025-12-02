@@ -1,4 +1,4 @@
-# Compressors 
+# Compressors API 
 ```@contents
 Pages = ["compressors.md"]
 ```
@@ -22,16 +22,33 @@ Undef
 
 ## Compressor Structures
 ```@docs
-Gaussian
+CountSketch
 
-GaussianRecipe
-SparseSign
-
-SparseSignRecipe
+CountSketchRecipe
 
 FJLT
 
 FJLTRecipe
+
+Gaussian
+
+GaussianRecipe
+
+Identity
+
+IdentityRecipe
+
+Sampling
+
+SamplingRecipe
+
+SparseSign
+
+SparseSignRecipe
+
+SRHT 
+
+SRHTRecipe
 ```
 
 ## Exported  Functions

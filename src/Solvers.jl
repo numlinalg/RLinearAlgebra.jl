@@ -151,3 +151,8 @@ include("Solvers/ErrorMethods.jl")
 # The Solver Routine Files
 ############################
 include("Solvers/ihs.jl")
+include("Solvers/kaczmarz.jl")
+############################
+# Helper functions
+###########################
+include("Solvers/helpers/dotu.jl")
