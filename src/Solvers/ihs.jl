@@ -5,13 +5,13 @@ An implementation of the Iterative Hessian Sketch solver for solving over determ
 least squares problems (@cite)[pilanci2014iterative].
  
 # Mathematical Description
-Let ``A  \\in \\mathbb{R}^{m \\times n}`` and consider the least square problem ``\\min_x 
-\\|Ax - b \\|_2^2``. If we let ``S \\in \\mathbb{R}^{s \\times m}`` be a compression matrix, then 
-Iterative Hessian Sketch iteratively finds a solution to this problem
-by repeatedly updating ``x_{k+1} = x_k + \\alpha u_k``where ``u_k`` is the solution to the 
-convex optimization problem, 
-``u_k = \\min_u \\{\\|S_k Au\\|_2^2 - \\langle A, b - Ax_k \\rangle \\}.`` This method 
-has been to shown to converge geometrically at a rate ``\\rho \\in (0, 1/2]``, typically the 
+Let ``A  \\in \\mathbb{R}^{m \\times n}, m \\gg n`` and consider the least square problem 
+``\\min_x \\|Ax - b \\|_2^2``. If we let ``S \\in \\mathbb{R}^{s \\times m}`` be a 
+compression matrix, then Iterative Hessian Sketch iteratively finds a solution to this 
+problem by repeatedly updating ``x_{k+1} = x_k + \\alpha u_k``where ``u_k`` is the solution 
+to the convex optimization problem, 
+``u_k \\in \\argmin_u \\{\\|S_k Au\\|_2^2 - \\langle A, b - Ax_k \\rangle \\}.`` This method 
+has been to shown to converge geometrically at a rate ``\\rho \\in (0, 1/2]``. Typically the 
 required compression dimension needs to be 4-8 times the size of n for the algorithm to 
 perform successfully.
 
@@ -31,7 +31,7 @@ perform successfully.
 ## Keywords
 - `compressor::Compressor`, a technique for forming the compressed linear system.
 - `log::Logger`, a technique for logging the progress of the solver.
-- `error::SolverError', a method for estimating the progress of the solver.
+- `error::SolverError`, a method for estimating the progress of the solver.
 - `alpha::Float64`, a step size parameter.
 
 # Returns
@@ -46,6 +46,10 @@ mutable struct IHS <: Solver
         if typeof(compressor.cardinality) != Left
             @warn "Compressor has cardinality `Right` but IHS compresses from the `Left`."
         end 
+
+        if alpha < 0
+            @warn "Negative step size could lead to divergent iterates."
+        end
 
         new(alpha, log, compressor, error)
     end
@@ -75,7 +79,7 @@ end
         M<:AbstractArray, 
         MV<:SubArray, 
         V<:AbstractVector
-    } <: SolverRecip
+    } <: SolverRecipe
 
 A mutable structure containing all information relevant to the Iterative Hessian Sketch 
 solver. It is formed by calling the function `complete_solver` on a `IHS` solver, which 
@@ -83,9 +87,10 @@ includes all the user controlled parameters, the linear system `A`, and the cons
 vector `b`.
 
 # Fields
+- `log::LoggerRecipe`, a technique for logging the progress of the solver.
 - `compressor::CompressorRecipe`, a technique for compressing the matrix ``A``.
-- `logger::LoggerRecipe`, a technique for logging the progress of the solver.
 - `error::SolverErrorRecipe`, a technique for estimating the progress of the solver.
+- `alpha::Float64`, a step size parameter, by default is set to 1.
 - `compressed_mat::AbstractMatrix`, a buffer for storing the compressed matrix.
 - `mat_view::SubArray`, a container for storing a view of the compressed matrix buffer.
 - `residual_vec::AbstractVector`, a vector that contains the residual of the linear system 
@@ -160,6 +165,13 @@ function complete_solver(
         )
     end
 
+    if cols_a >= rows_a
+        throw(
+            ArgumentError(
+                "Matrix must have more rows than columns."
+            )
+        )
+    end
     compressed_mat = zeros(eltype(A), sample_size, cols_a)
     res = zeros(eltype(A), rows_a) 
     grad = zeros(eltype(A), cols_a) 
