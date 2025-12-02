@@ -25,7 +25,7 @@ core matrix to a CUR decomposition.
     without additional memory allocations.
 - `qr_decomp::QR`, storage for the inplace QR decomposition of the core.
 """
-mutable struct CrossApproximation <: CoreRecipe
+mutable struct CrossApproximationRecipe <: CoreRecipe
     n_rows::Int64
     n_cols::Int64
     core::AbstractMatrix

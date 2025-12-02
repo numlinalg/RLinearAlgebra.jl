@@ -85,13 +85,13 @@ end
 A struct that contains the preallocated memory, completed compressor, and selector to form
     a CUR approximation.
 """
-mutable struct CURRecipe
+mutable struct CURRecipe{CR<:CoreRecipe}
     n_rows::Int64
     n_cols::Int64
     row_idx::Vector{Int64}
     col_idx::Vector{Int64}
     C::AbstractMatrix
-    U::CoreRecipe
+    U::CR
     R::AbstractMatrix
 end
 
@@ -108,7 +108,61 @@ function complete_approximator(ingredients::CUR, A::AbstractMatrix)
     return CURRecipe(n_row_vecs, n_col_vecs, row_idx, col_idx, C, U, R)
 end
 
-function rapproximate!(appprox::CURRecipe, A::AbstractMatrix)
+function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::AbstractMatrix)
+    # select column indices
+    select_indices!(
+        approx.col_idx,
+        approx.col_selector,
+        A,
+        approx.n_cols,
+        1
+    )
+    
+    # gather the columns to select rows dependently 
+    copyto!(approx.C, A[:, approx.col_idx])
+
+    # select row indices
+    select_indices!(
+        approx.row_idx,
+        approx.row_selector,
+        approx.C',
+        approx.n_rows,
+        1
+    )
+
+    # gather the rows entries 
+    copyto!(approx.R, A[:, approx.row_idx])
+    # Compute the core matrix
+    update_core!(approx.U, approx, A)
+    return nothing
+end
+
+function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::AbstractMatrix)
+    # select column indices
+    select_indices!(
+        approx.col_idx,
+        approx.col_selector,
+        A,
+        approx.n_cols,
+        1
+    )
+    
+
+    # select row indices
+    select_indices!(
+        approx.row_idx,
+        approx.row_selector,
+        A',
+        approx.n_rows,
+        1
+    )
+
+    # gather the rows entries 
+    copyto!(approx.R, A[:, approx.row_idx])
+    # gather column entries
+    copyto!(approx.C, A[:, approx.col_idx])
+    # Compute the core matrix
+    update_core!(approx.U, approx, A)
     return nothing
 end
 
