@@ -6,9 +6,7 @@ A structure for the compressed residual, `Sb-SAx`.
 # Fields
 - None
 """
-struct CompressedResidual <: SolverError
-
-end
+struct CompressedResidual <: SolverError end
 
 """
     CompressedResidualRecipe <: ErrorRecipe
