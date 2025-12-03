@@ -1,9 +1,9 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint, setproperty!
-import LinearAlgebra: Adjoint, axpby!, dot, I, ldiv!, lmul!, lq!, lq, LQ, lu!
-import LinearAlgebra: mul!, norm, qr!, svd
-import StatsBase: sample, sample!, ProbabilityWeights, wsample!
+import LinearAlgebra: Adjoint, axpby!, axpy!, dot, I, ldiv!, lmul!, lq! 
+import LinearAlgebra: lq, LQ, lu!, mul!, norm, qr!, UpperTriangular, svd
+import StatsBase: ProbabilityWeights, sample, sample!, wsample!
 import Random: bitrand, rand!, randn!
 import SparseArrays: SparseMatrixCSC, sprandn, sparse
 
@@ -41,6 +41,7 @@ export Uniform, UniformRecipe
 export Solver, SolverRecipe
 export Kaczmarz, KaczmarzRecipe
 export complete_solver, update_solver!, rsolve!
+export IHS, IHSRecipe
 
 # Export Logger types and functions
 export Logger, LoggerRecipe

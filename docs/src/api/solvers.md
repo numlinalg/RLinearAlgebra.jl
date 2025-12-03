@@ -12,6 +12,10 @@ SolverRecipe
 
 ## Solver Structures
 ```@docs
+IHS
+
+IHSRecipe
+
 Kaczmarz
 
 KaczmarzRecipe
