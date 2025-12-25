@@ -152,11 +152,11 @@ using Test, RLinearAlgebra
         b = randn(5),
         x = randn(10)
 
-        struct TestLogger <: Logger end 
-        struct TestLoggerRecipe <: LoggerRecipe end 
-        RLinearAlgebra.complete_logger(TL::TestLogger) = TestLoggerRecipe()
+        struct TestLoggerI <: Logger end 
+        struct TestLoggerRecipeI <: LoggerRecipe end 
+        RLinearAlgebra.complete_logger(TL::TestLoggerI) = TestLoggerRecipeI()
 
-        solver = ColumnProjection(log=TestLogger()) # End of test parameters 
+        solver = ColumnProjection(log=TestLoggerI()) # End of test parameters 
 
         @test_throws ArgumentError complete_solver(solver, x, A, b)
         @test_throws "max_it" complete_solver(solver, x, A, b)
@@ -167,13 +167,13 @@ using Test, RLinearAlgebra
         b = randn(5),
         x = randn(10)
 
-        struct TestLogger <: Logger end 
-        struct TestLoggerRecipe <: LoggerRecipe
+        struct TestLoggerII <: Logger end 
+        struct TestLoggerRecipeII <: LoggerRecipe
             max_it::Int64
         end 
-        RLinearAlgebra.complete_logger(TL::TestLogger) = TestLoggerRecipe(100)
+        RLinearAlgebra.complete_logger(TL::TestLoggerII) = TestLoggerRecipeII(100)
 
-        solver = ColumnProjection(log=TestLogger()) # End of test parameters
+        solver = ColumnProjection(log=TestLoggerII()) # End of test parameters
 
         @test_throws ArgumentError complete_solver(solver, x, A, b)
         @test_throws "converged" complete_solver(solver, x, A, b)
@@ -220,7 +220,7 @@ module column_projection_update
 
 using Test, RLinearAlgebra, LinearAlgebra
 
-@testset "Column Projection Update" begin
+@testset "ColumnProjection Update" begin
 
     # 1 Dimensional Case 
     let compression_dim = 1,
@@ -273,7 +273,7 @@ module column_projection_solver
 
 using Test, RLinearAlgebra, LinearAlgebra 
 
-@testset "Column Projection Solver: rsolve!" begin 
+@testset "ColumnProjection Solver: rsolve!" begin 
     
     # Base Case 
     let ingredients = ColumnProjection(log=BasicLogger(max_it=1)),
