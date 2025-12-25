@@ -12,9 +12,9 @@ SolverRecipe
 
 ## Solver Structures
 ```@docs
-col_projection
+ColumnProjection
 
-col_projectionRecipe
+ColumnProjectionRecipe
 
 Kaczmarz
 
@@ -30,9 +30,9 @@ rsolve!
 
 ## Internal Functions
 ```@docs
-RLinearAlgebra.col_proj_update!
+RLinearAlgebra.colproj_update!
 
-RLinearAlgebra.col_proj_update_block!
+RLinearAlgebra.colproj_update_block!
 
 RLinearAlgebra.kaczmarz_update!
 
