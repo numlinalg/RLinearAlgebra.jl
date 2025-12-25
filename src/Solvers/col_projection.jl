@@ -1,106 +1,128 @@
 """
-    col_projection <: Solver
+    ColumnProjection <: Solver
 
-An implementation of a column projection solver. Specifically, it is a solver that iteratively
-    updates a solution by projection the solution onto a compressed rowspace of the linear 
-    system.
+A specification of a column projection solver, which is a generalization of 
+    (block) coordinate descent for least squares problems. 
+    These solvers iteratively update a solution by projecting the solution 
+    onto a compressed column space of the coefficient matrix. 
 
-# Mathmatical Description 
+# Mathematical Description 
 
-Let `A` be an `m \\times n` matrix and consider the consistent linear system `Ax = b`. 
-When `n > m`, this system has infinitely many solutions, forming an affine subspace:
+Let ``A`` be an ``m \\times n``` matrix and consider solving the linear least squares
+    problem
+    ``
+    \\min_{x} \\Vert b - Ax \\Vert_2.
+    ``
 
-``x \\in {x \\in \\mathbb{R}^n : Ax = b}``.
+    Column projection methods refine a current iterate `x` by the update 
+    ``
+    x_{+} = x + Sv,
+    ``
+    where ``S`` is a compression and ``v`` is the minimum two-norm solution 
+    to 
+    ``
+    \\min_{w} \\Vert b - A(x + Sw) \\Vert_2.
+    ``
 
-Column projection methods iteratively refine the estimate `x` by solving compressed normal 
-equations via a sketching matrix `S`. Letting ``\\tilde{A} = A S``, and the initial residual 
-being ``Ax - b`.
+    Explicitly, the solution is 
+    ``
+        v = (S^\\top A^\\top A S)^\\dagger (AS)^\\top (b - Ax)
+        = (S^\\top A^\\top)^\\dagger (b - A x),
+    ``
+    which yields 
+    ``
+    x_{+} = x + S (S^\\top A^\\top)^\\dagger (b - Ax).
+    ``
 
-Then the update is:
+    Here, we allow for an additional relaxation parameter, ``\\alpha``, which 
+    results in the update 
+    ``
+    x_{+} = x + \\alpha S (S^\\top A^\\top)^\\dagger (b - Ax).
+    ``
+    
+    When the compression ``S`` is a vector, the update simplifies to 
+    ``
+    x_{+} = x + \\alpha S \\frac{ (AS)^\\top (b - Ax) }{\\Vert AS \\Vert^2}.
+    ``
 
-``\\Delta x = (\\tilde{A}^\\top \\tilde{A})^{-1} \\tilde{A}^\\top r``
-
-``x_{+} = x - \\alpha S \\Delta x``
-
-In the scalar sketch case (i.e., one column), the update simplifies to:
-
-``x_{+} = x - \\alpha S \\cdot \\frac{\\langle A S, r \\rangle}{\\| A S \\|^2}``
-
-where `\\alpha` is an over-relaxation parameter. The sketching matrix `S` can be random (e.g. 
-SparseSign, Sampling) or deterministic. 
-
-The residual is updated by:
-
-``r_{+} = r - \\tilde{A} \\Delta x``
+    Letting ``r = b - Ax``, the residual ``r_{+} = b - Ax_{+}`` can be computed 
+    by
+    ``r_{+} = r + \\alpha (AS) v.``
 
 # Fields
-- `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
-affect convergence.
-- `compressor::Compressor`, a technique for forming the compressed column space of the linear system.
+- `alpha::Float64`, the over-relaxation parameter. 
+- `compressor::Compressor`, a technique for forming the compressed column space of the 
+    linear system.
 - `log::Logger`, a technique for logging the progress of the solver.
 - `error::SolverError`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
     compressed column space.
 
 # Constructor
-    col_projection(;
+    ColumnProjection(;
         alpha::Float64 = 1.0,
         compressor::Compressor = SparseSign(cardinality=Right()), 
+        error::SolverError = LSGradient(),
         log::Logger = BasicLogger(),
-        error::SolverError = FullResidual(),
         sub_solver::SubSolver = QRSolver(), 
     )
 ## Keywords
-- `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
-    affect convergence. By default this value is 1.
+- `alpha::Float64`, the over-relaxation parameter. By default this value is 1.
 - `compressor::Compressor`, a technique for forming the compressed column space of the 
-    linear system. By default it's SparseSign compressor.
-- `log::Logger`, a technique for logging the progress of the solver. By default it's the 
-    basic logger.
-- `error::SolverError`, a method for estimating the progress of the solver. By default it's 
-    the FullResidual error.
+    linear system. By default it is a [`SparseSign`](@ref) compressor.
+- `log::Logger`, a technique for logging the progress of the solver. By default it is
+    [`BasicLogger`](@ref).
+- `error::SolverError`, a method for estimating the progress of the solver. By default it is 
+    the [`LSGradient`](@ref) error method.
 - `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
-    compressed rowspace. When the `compression_dim = 1` this is not used.
+    compressed rowspace. When the `compression_dim = 1` this is not used. For all other 
+    cases, the default is [`QRSolver`](@ref).
 
 ## Returns 
-- A `col_projection` object.
+- A `ColumnProjection` object.
+
+!!! info
+        The `alpha` parameter should be in ``(0,2)`` for convergence to be guaranteed. 
+        This condition is not enforced in the constructor. There are instances where 
+        setting `alpha=2` can lead to non-convergent cycles [motzkin1954relaxation](@cite).
 """
-mutable struct col_projection <: Solver 
+mutable struct ColumnProjection <: Solver 
     alpha::Float64
     compressor::Compressor
-    log::Logger
     error::SolverError
+    log::Logger
     sub_solver::SubSolver
-    function col_projection(alpha, compressor, log, error, sub_solver) 
+    function ColumnProjection(alpha, compressor, error, log, sub_solver) 
         if typeof(compressor.cardinality) != Right
-            @warn "Compressor has cardinality `Left` but col_projection\
-            compresses from the `Right`."
+            @warn "Compressor has cardinality `Left` but ColumnProjection\
+            compresses from the `Right`. This may cause an inefficiency."
         end
 
-        new(alpha, compressor, log, error, sub_solver)
+        new(alpha, compressor, error, log, sub_solver)
     end
 
 end
 
-function col_projection(;
+
+function ColumnProjection(;
     alpha::Float64 = 1.0,
     compressor::Compressor = SparseSign(cardinality=Right()), 
-    log::Logger = BasicLogger(),
     error::SolverError = LSgradient(),
+    log::Logger = BasicLogger(),
     sub_solver::SubSolver = QRSolver(), 
 )
-    return  col_projection(
+    return  ColumnProjection(
         alpha, 
         compressor, 
-        log, 
         error, 
+        log, 
         sub_solver
     )
 end
 
 #------------------------------------------------------------------
 """
-    col_projectionRecipe{
+    ColumnProjectionRecipe{
         T<:Number, 
         V<:AbstractVector,
         M<:AbstractArray, 
@@ -111,31 +133,31 @@ end
         B<:SubSolverRecipe
     } <: SolverRecipe
 
-A mutable structure containing all information relevant to the col_projection solver. It 
-    is formed by calling the function `complete_solver` on `col_projection` solver, which 
-    includes all the user controlled parameters, and the linear system matrix `A` and constant 
-    vector `b`.
+A mutable structure containing all information relevant to the `ColumnProjection` solver. It 
+    is formed by calling the function `complete_solver` on a `ColumnProjection` object, 
+    which includes all the user controlled parameters, the coefficient matrix `A`, and 
+    constant vector `b`.
 
 # Fields
 - `S::CompressorRecipe`, a technique for forming the compressed column space of the 
-  linear system.
+    linear system.
 - `log::LoggerRecipe`, a technique for logging the progress of the solver.
 - `error::SolverErrorRecipe`, a method for estimating the progress of the solver.
 - `sub_solver::SubSolverRecipe`, a technique to perform the projection of the solution 
-  onto the compressed column space.
+    onto the compressed column space.
 - `alpha::Float64`, the over-relaxation parameter. It is multiplied by the update and can 
-  affect convergence.
+    affect convergence.
 - `compressed_mat::AbstractMatrix`, a matrix container for storing the compressed matrix. 
-  Will be set to be the largest possible block size.
+    Will be set to be the largest possible block size.
 - `solution_vec::AbstractVector`, a vector container for storing the current solution 
-  to the linear system.
+    to the linear system.
 - `update_vec::AbstractVector`, a vector container for storing the update to the solution.
 - `mat_view::SubArray`, a container for storing a view of the compressed matrix container. 
-  Using views here allows for variable block sizes.
+    Using views here allows for variable block sizes.
 - `residual_vec::AbstractVector`, a vector container for storing the residual at each 
-  iteration.
+    iteration.
 """
-mutable struct col_projectionRecipe{
+mutable struct ColumnProjectionRecipe{
     T<:Number, 
     V<:AbstractVector,
     M<:AbstractArray, 
@@ -159,7 +181,7 @@ end
 
 #------------------------------------------------------------------
 function complete_solver(
-    solver::col_projection, 
+    solver::ColumnProjection, 
     x::AbstractVector, 
     A::AbstractMatrix, 
     b::AbstractVector
@@ -169,121 +191,136 @@ function complete_solver(
     compressor = complete_compressor(solver.compressor, A, b)
     logger = complete_logger(solver.log)
     error = complete_error(solver.error, solver, A, b) 
+    
     # Check that required fields are in the types
-    if !isdefined(error, :residual)
-        throw(
-            ArgumentError(
-                "ErrorRecipe $(typeof(error)) does not contain the \
-                field 'residual' and is not valid for a col_projection solver."
-            )
+    !isdefined(error, :gradient) && throw(
+        ArgumentError(
+            "ErrorRecipe $(typeof(error)) does not contain the \
+            field 'gradient' and is not valid for a `ColumnProjection` solver."
         )
-    end
+    )
 
-    if !isdefined(logger, :converged)
-        throw(
-            ArgumentError(
-                "LoggerRecipe $(typeof(logger)) does not contain \
-                the field 'converged' and is not valid for a col_projection solver."
-            )
+    !isdefined(logger, :converged) && throw(
+        ArgumentError(
+            "LoggerRecipe $(typeof(logger)) does not contain \
+            the field 'converged' and is not valid for a `ColumnProjection` solver."
         )
-    end
-    # Assuming that max_it is defined in the logger
-    alpha::Float64 = solver.alpha 
-    # We assume the user is using compressors to only decrease dimension
-    n_rows::Int64 = compressor.n_rows
-    n_cols::Int64 = compressor.n_cols
-    initial_size = n_rows 
-    sample_size = n_cols  
-    rows_a, cols_a = size(A)
+    )
+
+    # Compute compression matrix dimension = rows of matrix A by compression_dim 
+    rows_a = size(A, 1)
+    sample_size = compressor.n_cols
+
+
     # Allocate the information in the buffer using the types of A and b
-    compressed_mat = typeof(A)(undef, rows_a, sample_size) 
-    residual_vec = typeof(b)(undef, rows_a)
+    compressed_mat = typeof(A)(undef, rows_a, sample_size) #Stores A*compressor
+    residual_vec = typeof(b)(undef, rows_a) #Stores b - Ax 
+
     # Since sub_solver is applied to compressed matrices use here
     sub_solver = complete_sub_solver(solver.sub_solver, compressed_mat, residual_vec)
+
+    # View of the compressed matrix 
     mat_view = view(compressed_mat, :, 1:sample_size) 
-    solution_vec = x  
-    update_vec = typeof(x)(undef, n_cols)  
-    return col_projectionRecipe{eltype(A), 
-                        typeof(b), 
-                        typeof(A), 
-                        typeof(mat_view),
-                        typeof(compressor),
-                        typeof(logger),
-                        typeof(error),
-                        typeof(sub_solver)
-                        }(compressor, 
-                        logger, 
-                        error,
-                        sub_solver,
-                        alpha,
-                        compressed_mat,
-                        solution_vec,
-                        update_vec,
-                        mat_view,
-                        residual_vec
-                        )
+
+    # update_vec is the solution to the subproblem and is used as
+    # x_+ = x + S * update_vec 
+    update_vec = typeof(x)(undef, sample_size)
+    
+    return ColumnProjectionReceipt{
+        eltype(A), 
+        typeof(b), 
+        typeof(A), 
+        typeof(mat_view),
+        typeof(compressor),
+        typeof(logger),
+        typeof(error),
+        typeof(sub_solver)
+    }(
+        compressor, 
+        logger, 
+        error,
+        sub_solver,
+        solver.alpha,
+        compressed_mat,
+        x,
+        update_vec,
+        mat_view,
+        residual_vec
+    )
 end
 
 """
-    col_proj_update!(solver::col_projectionRecipe)
+    colproj_update!(solver::ColumnProjectionRecipe)
 
 A function that performs the column projection update when the compression dimension 
-    is one. If ``a`` is the resulting compression of the transpose of the coefficient matrix,
-    and ``r`` is the current residual, then we perform the update:
+    is one. 
+    If ``a = AS`` is the resulting compression of the transpose of the coefficient matrix,
+    and ``r = b - Ax`` is the current residual,
+    this function computes
 
-``x = x - \\alpha S \\frac{\\langle a, r \\rangle}{\\|a\\|_2^2}``,
+    ``x_{+} = x + \\alpha S \\frac{ a^\\top (b-Ax) }{\\Vert a \\Vert_2^2},``
 
-    where `S` is the compression operator and `a = A S`.
+    and 
+
+    ``r_{+} = r_{-} - \\alpha a \\frac{ a^\\top r}{\\Vert a \\Vert_2^2}.``
 
 # Arguments
-- `solver::col_projectionRecipe`, the solver information required for performing the update.
+- `solver::ColumnProjectionRecipe`, the solver information required for performing the update.
 
 # Outputs
 - returns `nothing`
 """
-function col_proj_update!(solver::col_projectionRecipe)
+function colproj_update!(solver::ColumnProjectionRecipe)
     # one-dimensional subarray
-    scaling = solver.alpha * dot(solver.mat_view, solver.residual_vec) 
-    scaling /= dot(solver.mat_view, solver.mat_view)
-    scaling_vec = fill(scaling, 1)
-    # x_new = x_old - alpha * S * update_vec
-    mul!(solver.solution_vec, solver.S, scaling_vec, -1.0, 1.0)
-    # recompute the residual
-    mul!(solver.residual_vec, solver.mat_view, scaling_vec, -1.0, 1.0)
+    solver.update_vec[1] = dot(solver.mat_view, solver.residual_vec) / 
+        dot(solver.mat_view, solver.mat_view)
+
+    # x_+ = x + alpha * S * update_vec
+    mul!(solver.solution_vec, solver.S, solver.update_vec, solver.alpha, 1.0)
+
+    # r_+ = r_- - alpha * mat_view * update_vec 
+    mul!(solver.residual_vec, solver.mat_view, solver.update_vec, -solver.alpha, 1.0)
     return nothing
 end
 
 """
-    col_proj_update_block!(solver::col_projectionRecipe)
+    colproj_update_block!(solver::ColumnProjectionRecipe)
 
 A function that performs the column projection update when the compression dimension 
-    is greater than 1. In the block case, where the compressed matrix is 
-    ``\\tilde A = A S`` and the residual is ``r = b - A x``, we perform the update:
+    is greater than 1. If ``S`` is the compression matrix,  
+    the compressed matrix is ``\\tilde A = A S``, and the residual is ``r = b - A x``, 
+    this function computes 
 
-``x = x - \\alpha S (\\tilde A^\\top \\tilde A)^\\dagger \\tilde A^\\top r``,
+    ``v =  (\\tilde A^\\top \\tilde A)^\\dagger \\tilde A^\\top r``
+    and stores it in `solver.update_vec`;
 
-    where `S` is the compression operator and the update projects the solution onto the 
-    column space of the matrix `A`.
+    ``x_+ = x + \\alpha S v;``
+    and stores it in `solver.solution_vec`; and
+
+    ``r_+ = r - \\alpha \\tilde A v``
+    and stores it in `solver.residual_vec`.
 
 # Arguments
-- `solver::col_projectionRecipe`, the solver information required for performing the update.
+- `solver::ColumnProjectionRecipe`, the solver information required for performing the update.
 
 # Outputs
 - returns `nothing`
 """
-function col_proj_update_block!(solver::col_projectionRecipe)
+function colproj_update_block!(solver::ColumnProjectionRecipe)
     # update the subsolver and solve for update vector
     update_sub_solver!(solver.sub_solver, solver.mat_view)
     ldiv!(solver.update_vec, solver.sub_solver, solver.residual_vec)
-    # x_new = x_old - alpha * S * update_vec
-    mul!(solver.solution_vec, solver.S, solver.update_vec, -solver.alpha, 1.0)
-    # recomputet the residual
+
+    # x_+ = x + alpha * S * update_vec
+    mul!(solver.solution_vec, solver.S, solver.update_vec, solver.alpha, 1.0)
+
+    # r_+ = r - alpha * (AS) * update_vec 
     mul!(solver.residual_vec, solver.mat_view, solver.update_vec, -solver.alpha, 1.0)
     return nothing
 end
 
 function rsolve!(
-    solver::col_projectionRecipe, 
+    solver::ColumnProjectionRecipe, 
     x::AbstractVector, 
     A::AbstractMatrix, 
     b::AbstractVector
@@ -291,13 +328,15 @@ function rsolve!(
     # initialization
     reset_logger!(solver.log)
     solver.solution_vec = x
+    copyto!(solver.residual_vec, b)
+
     # compute the residual b-Ax
-    mul!(solver.residual_vec, A, solver.solution_vec)
-    solver.residual_vec .-= b
+    mul!(solver.residual_vec, A, solver.solution_vec, -1.0, 0.0)
 
     for i in 1:solver.log.max_it
+
         err = compute_error(solver.error, solver, A, b)
-        #println(err)
+
         # Update log adds value of err to log and checks stopping
         update_logger!(solver.log, err, i)
         if solver.log.converged
@@ -306,18 +345,20 @@ function rsolve!(
 
         # generate a new version of the compression matrix
         update_compressor!(solver.S, x, A, b)
+
         # based on size of new compressor update views of matrix
         # this should not result in new allocations
         rows_s, cols_s =  size(solver.S)  
         solver.mat_view = view(solver.compressed_mat, :, 1:cols_s)
+
         # compress the matrix
         mul!(solver.mat_view, A, solver.S) 
         
         # Solve the undetermined sketched linear system and update the solution
-        if size(solver.mat_view, 2) == 1
-            col_proj_update!(solver)
+        if cols_s == 1
+            colproj_update!(solver)
         else
-            col_proj_update_block!(solver)
+            colproj_update_block!(solver)
         end
 
     end
