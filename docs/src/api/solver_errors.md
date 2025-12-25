@@ -16,9 +16,9 @@ FullResidual
 
 FullResidualRecipe
 
-LSgradient
+LSGradient
 
-LSgradientRecipe
+LSGradientRecipe
 ```
 
 ## Exported Functions
