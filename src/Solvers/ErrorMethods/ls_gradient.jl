@@ -25,7 +25,7 @@ mutable struct LSGradientRecipe{V<:AbstractVector} <: SolverErrorRecipe
 end
 
 function complete_error(
-    error::LSgradient, 
+    error::LSGradient, 
     solver::Solver, 
     A::AbstractMatrix, 
     b::AbstractVector
