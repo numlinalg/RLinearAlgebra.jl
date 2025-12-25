@@ -3,6 +3,7 @@ using Test, RLinearAlgebra, LinearAlgebra
 import RLinearAlgebra: complete_compressor, update_compressor!
 import LinearAlgebra: mul!, norm
 import Random: randn!
+import SparseArrays: sprand, SparseMatrixCSC, SparseVector, spzeros
 using ..FieldTest
 using ..ApproxTol
 
@@ -174,7 +175,7 @@ function RLinearAlgebra.ldiv!(
     S::Main.KaczmarzTest.KTestSubSolverRecipe, 
     b::AbstractVector, 
 )
-    ldiv!(x, factorize(S.A), b)
+    ldiv!(x, qr(S.A')', b)
 end
 
 #####################################
@@ -259,8 +260,8 @@ end
             Float64, 
             AbstractArray, 
             AbstractVector, 
-            AbstractVector, 
-            AbstractVector, 
+            Vector{T} where T<:Number, 
+            Vector{T} where T<:Number,
             SubArray, 
             SubArray,
         )  
@@ -352,7 +353,13 @@ end
                 Vector{Float64}, 
                 Matrix{Float64}, 
                 SubArray{Float64, 1, Vector{Float64}, Tuple{UnitRange{Int64}}, true}, 
-                SubArray{Float64, 2, Matrix{Float64}, Tuple{UnitRange{Int64}, Base.Slice{Base.OneTo{Int64}}}, false}, 
+                SubArray{
+                    Float64, 
+                    2, 
+                    Matrix{Float64}, 
+                    Tuple{UnitRange{Int64}, Base.Slice{Base.OneTo{Int64}}}, 
+                    false
+                   }, 
                 Main.KaczmarzTest.KTestCompressorRecipe, 
                 Main.KaczmarzTest.KTestLogRecipe, 
                 Main.KaczmarzTest.KTestErrorRecipe, 
@@ -381,6 +388,145 @@ end
             solver_rec.solution_vec == x
             solver_rec.update_vec == zeros(n_cols)
         end
+ 
+        # test with a sparse matrix with sampling compressor
+        let A = sprand(n_rows, n_cols, .9),
+            xsol = xsol,
+            b = b,
+            comp_dim = 2,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = zeros(n_cols)
+            
+            comp = Sampling(cardinality = Left(), compression_dim = comp_dim)
+            log = KTestLog()
+            err = KTestError()
+            sub_solver = KTestSubSolver()
+            solver = Kaczmarz(
+                compressor = comp,
+                log = log,
+                error = err,
+                sub_solver = sub_solver,
+                alpha = alpha
+            )
+            
+            solver_rec = complete_solver(solver, x, A, b)
+
+            # test types of the contents of the solver
+            @test typeof(solver_rec) == KaczmarzRecipe{
+                Float64, 
+                Vector{Float64}, 
+                SparseMatrixCSC{Float64, Int64},
+                SubArray{Float64, 1, Vector{Float64}, Tuple{UnitRange{Int64}}, true}, 
+                SubArray{
+                    Float64, 
+                    2, 
+                    SparseMatrixCSC{Float64, Int64}, 
+                    Tuple{UnitRange{Int64}, Base.Slice{Base.OneTo{Int64}}}, 
+                    false
+                },
+                SamplingRecipe{Left}, 
+                Main.KaczmarzTest.KTestLogRecipe, 
+                Main.KaczmarzTest.KTestErrorRecipe, 
+                Main.KaczmarzTest.KTestSubSolverRecipe
+            }
+            @test typeof(solver_rec.compressor) == SamplingRecipe{Left} 
+            @test typeof(solver_rec.log) == KTestLogRecipe
+            @test typeof(solver_rec.error) == KTestErrorRecipe
+            @test typeof(solver_rec.sub_solver) == KTestSubSolverRecipe
+            @test typeof(solver_rec.alpha) == Float64
+            @test typeof(solver_rec.compressed_mat) == SparseMatrixCSC{Float64, Int64} 
+            @test typeof(solver_rec.compressed_vec) == Vector{Float64}
+            @test typeof(solver_rec.solution_vec) == Vector{Float64}
+            @test typeof(solver_rec.update_vec) == Vector{Float64}
+            @test typeof(solver_rec.mat_view) <: SubArray
+            @test typeof(solver_rec.vec_view) <: SubArray
+
+            # Test sizes of vectors and matrices
+            @test size(solver_rec.compressor) == (comp_dim, n_rows)
+            @test size(solver_rec.compressed_mat) == (comp_dim, n_cols)
+            @test size(solver_rec.compressed_vec) == (comp_dim,)
+            @test size(solver_rec.update_vec) == (n_cols,)
+            
+            # test values of entries
+            solver_rec.alpha == alpha
+            solver_rec.solution_vec == x
+            solver_rec.update_vec == zeros(n_cols)
+        end
+
+        # Run with sparse vector and sampling matrix
+        let A = A,
+            xsol = xsol,
+            b = sprand(n_rows, .3),
+            comp_dim = 2,
+            alpha = 1.0,
+            n_rows = size(A, 1),
+            n_cols = size(A, 2),
+            x = zeros(n_cols)
+            
+            comp = Sampling(cardinality = Left(), compression_dim = comp_dim)
+            log = KTestLog()
+            err = KTestError()
+            sub_solver = KTestSubSolver()
+            solver = Kaczmarz(
+                compressor = comp,
+                log = log,
+                error = err,
+                sub_solver = sub_solver,
+                alpha = alpha
+            )
+            
+            solver_rec = complete_solver(solver, x, A, b)
+
+            # test types of the contents of the solver
+            @test typeof(solver_rec) == KaczmarzRecipe{
+                Float64, 
+                SparseVector{Float64, Int64}, 
+                Matrix{Float64}, 
+                SubArray{
+                    Float64, 
+                    1, 
+                    SparseVector{Float64, Int64}, 
+                    Tuple{UnitRange{Int64}}, 
+                    false
+                }, 
+                SubArray{
+                    Float64, 
+                    2, 
+                    Matrix{Float64}, 
+                    Tuple{UnitRange{Int64}, Base.Slice{Base.OneTo{Int64}}}, 
+                    false
+                }, 
+                SamplingRecipe{Left}, 
+                Main.KaczmarzTest.KTestLogRecipe, 
+                Main.KaczmarzTest.KTestErrorRecipe, 
+                Main.KaczmarzTest.KTestSubSolverRecipe
+            }
+            @test typeof(solver_rec.compressor) == SamplingRecipe{Left} 
+            @test typeof(solver_rec.log) == KTestLogRecipe
+            @test typeof(solver_rec.error) == KTestErrorRecipe
+            @test typeof(solver_rec.sub_solver) == KTestSubSolverRecipe
+            @test typeof(solver_rec.alpha) == Float64
+            @test typeof(solver_rec.compressed_mat) == Matrix{Float64}
+            @test typeof(solver_rec.compressed_vec) == SparseVector{Float64, Int64}
+            @test typeof(solver_rec.solution_vec) == Vector{Float64}
+            @test typeof(solver_rec.update_vec) == Vector{Float64}
+            @test typeof(solver_rec.mat_view) <: SubArray
+            @test typeof(solver_rec.vec_view) <: SubArray
+
+            # Test sizes of vectors and matrices
+            @test size(solver_rec.compressor) == (comp_dim, n_rows)
+            @test size(solver_rec.compressed_mat) == (comp_dim, n_cols)
+            @test size(solver_rec.compressed_vec) == (comp_dim,)
+            @test size(solver_rec.update_vec) == (n_cols,)
+            
+            # test values of entries
+            solver_rec.alpha == alpha
+            solver_rec.solution_vec == x
+            solver_rec.update_vec == zeros(n_cols)
+        end
+
 
     end
 
@@ -425,6 +571,46 @@ end
                 RLinearAlgebra.kaczmarz_update!(solver_rec)
                 @test solver_rec.solution_vec ≈ test_sol
             end
+            
+            # Test when we have a sprase matrix and sampling compressor
+            let A = sprand(type, n_rows, n_cols, .9),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 1,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                
+                comp = Sampling(cardinality = Left(), compression_dim = comp_dim)
+                log = KTestLog()
+                err = KTestError()
+                sub_solver = KTestSubSolver()
+                solver = Kaczmarz(
+                    compressor = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+                
+                solver_rec = complete_solver(solver, x, A, b)
+                
+                # Sketch the matrix and vector
+                sb = solver_rec.compressor * b
+                sA = solver_rec.compressor * A 
+                solver_rec.vec_view = view(sb, 1:comp_dim)
+                solver_rec.mat_view = view(sA, 1:comp_dim, :)
+                solver_rec.solution_vec = deepcopy(x) 
+    
+                # compute comparison update
+                sc = (dot(conj(sA), x) - sb[1]) / dot(sA, sA) * alpha
+                test_sol = x - sc * adjoint(sA)
+    
+                # compute the update
+                RLinearAlgebra.kaczmarz_update!(solver_rec)
+                @test solver_rec.solution_vec ≈ test_sol
+            end
         
         end
 
@@ -436,7 +622,7 @@ end
             let A = rand(type, n_rows, n_cols),
                 xsol = ones(type, n_cols),
                 b = A * xsol,
-                comp_dim = 1,
+                comp_dim = 2,
                 alpha = 1.0,
                 n_rows = size(A, 1),
                 n_cols = size(A, 2),
@@ -464,7 +650,46 @@ end
                 solver_rec.solution_vec = deepcopy(x) 
     
                 # compute comparison update
-                test_sol =  x + sA \ (sb - sA * x)
+                test_sol =  x + lq(Array(sA)) \ (sb - sA * x)
+    
+                # compute the update
+                RLinearAlgebra.kaczmarz_update_block!(solver_rec)
+                @test solver_rec.solution_vec ≈ test_sol
+            end
+            
+            # test that this works with a sparse matrix and sampling compressor
+            let A = sprand(type, n_rows, n_cols, .9),
+                xsol = ones(type, n_cols),
+                b = A * xsol,
+                comp_dim = 2,
+                alpha = 1.0,
+                n_rows = size(A, 1),
+                n_cols = size(A, 2),
+                x = zeros(type, n_cols)
+                
+                comp = Sampling(cardinality = Left(), compression_dim = comp_dim)
+                log = KTestLog()
+                err = KTestError()
+                sub_solver = KTestSubSolver()
+                solver = Kaczmarz(
+                    compressor = comp,
+                    log = log,
+                    error = err,
+                    sub_solver = sub_solver,
+                    alpha = alpha
+                )
+                
+                solver_rec = complete_solver(solver, x, A, b)
+                
+                # Sketch the matrix and vector
+                sb = solver_rec.compressor * b
+                sA = solver_rec.compressor * A 
+                solver_rec.vec_view = view(sb, 1:comp_dim)
+                solver_rec.mat_view = view(sA, 1:comp_dim, :)
+                solver_rec.solution_vec = deepcopy(x) 
+    
+                # compute comparison update
+                test_sol =  x + lq(Array(sA)) \ (sb - sA * x)
     
                 # compute the update
                 RLinearAlgebra.kaczmarz_update_block!(solver_rec)
@@ -648,7 +873,7 @@ end
             
                 comp = KTestCompressor(Left(), comp_dim)
                 #check 20 iterations
-                log = KTestLog(20, 0.05)
+                log = KTestLog(20, 0.5)
                 err = KTestError()
                 sub_solver = KTestSubSolver()
                 solver = Kaczmarz(

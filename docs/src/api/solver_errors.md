@@ -19,6 +19,10 @@ FullResidualRecipe
 LSGradient
 
 LSGradientRecipe
+
+CompressedResidual
+
+CompressedResidualRecipe
 ```
 
 ## Exported Functions

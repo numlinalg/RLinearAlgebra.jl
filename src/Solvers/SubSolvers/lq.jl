@@ -39,6 +39,8 @@ function ldiv!(
 )
     fill!(x, zero(eltype(b)))
     # this will modify B in place so you cannot use it again
-    ldiv!(x, lq!(solver.A), b)
+    # using qr here on the transpose of the matrix will work for sparse and dense matrices
+    # while the lq would have only worked for dense matrices
+    ldiv!(x, qr!(solver.A')', b)
     return nothing
 end

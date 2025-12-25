@@ -16,6 +16,8 @@ directs =
             "Compressors/",
             "Approximators/",
             "Approximators/RangeApproximator/",
+            "Approximators/Selectors/",
+            "Solvers/",
             "Solvers/helpers/",
             "Solvers/ErrorMethods/",
             "Solvers/Loggers/",

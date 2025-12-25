@@ -117,3 +117,4 @@ end
 # Include error method files 
 include("ErrorMethods/full_residual.jl")
 include("ErrorMethods/ls_gradient.jl")
+include("ErrorMethods/compressed_residual.jl")

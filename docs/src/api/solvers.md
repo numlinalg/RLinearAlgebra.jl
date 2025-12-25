@@ -16,6 +16,10 @@ ColumnProjection
 
 ColumnProjectionRecipe
 
+IHS
+
+IHSRecipe
+
 Kaczmarz
 
 KaczmarzRecipe

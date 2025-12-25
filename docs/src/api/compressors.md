@@ -1,4 +1,4 @@
-# Compressors 
+# Compressors API 
 ```@contents
 Pages = ["compressors.md"]
 ```
@@ -33,6 +33,10 @@ FJLTRecipe
 Gaussian
 
 GaussianRecipe
+
+Identity
+
+IdentityRecipe
 
 Sampling
 
