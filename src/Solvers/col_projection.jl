@@ -109,7 +109,7 @@ end
 function ColumnProjection(;
     alpha::Float64 = 1.0,
     compressor::Compressor = SparseSign(cardinality=Right()), 
-    error::SolverError = LSgradient(),
+    error::SolverError = LSGradient(),
     log::Logger = BasicLogger(),
     sub_solver::SubSolver = QRSolver(), 
 )
@@ -141,7 +141,7 @@ A mutable structure containing all information relevant to the `ColumnProjection
     constant vector `b`.
 
 # Fields
-- `S::CompressorRecipe`, a technique for forming the compressed column space of the 
+- `compressor::CompressorRecipe`, a technique for forming the compressed column space of the 
     linear system.
 - `log::LoggerRecipe`, a technique for logging the progress of the solver.
 - `error::SolverErrorRecipe`, a method for estimating the progress of the solver.
@@ -169,7 +169,7 @@ mutable struct ColumnProjectionRecipe{
     E<:SolverErrorRecipe, 
     B<:SubSolverRecipe
    } <: SolverRecipe
-    S::C
+    compressor::C
     log::L
     error::E
     sub_solver::B
@@ -202,10 +202,17 @@ function complete_solver(
         )
     )
 
+    !isdefined(logger, :max_it) && throw(
+        ArgumentError(
+            "LoggerRecipe $(typeof(logger)) does not contain \
+            the field `max_it` and is not valid for a `ColumnProjection` solver."
+        )
+    )
+
     !isdefined(logger, :converged) && throw(
         ArgumentError(
             "LoggerRecipe $(typeof(logger)) does not contain \
-            the field 'converged' and is not valid for a `ColumnProjection` solver."
+            the field `converged` and is not valid for a `ColumnProjection` solver."
         )
     )
 
@@ -228,7 +235,7 @@ function complete_solver(
     # x_+ = x + S * update_vec 
     update_vec = typeof(x)(undef, sample_size)
     
-    return ColumnProjectionReceipt{
+    return ColumnProjectionRecipe{
         eltype(A), 
         typeof(b), 
         typeof(A), 
@@ -278,7 +285,7 @@ function colproj_update!(solver::ColumnProjectionRecipe)
         dot(solver.mat_view, solver.mat_view)
 
     # x_+ = x + alpha * S * update_vec
-    mul!(solver.solution_vec, solver.S, solver.update_vec, solver.alpha, 1.0)
+    mul!(solver.solution_vec, solver.compressor, solver.update_vec, solver.alpha, 1.0)
 
     # r_+ = r_- - alpha * mat_view * update_vec 
     mul!(solver.residual_vec, solver.mat_view, solver.update_vec, -solver.alpha, 1.0)
@@ -314,7 +321,7 @@ function colproj_update_block!(solver::ColumnProjectionRecipe)
     ldiv!(solver.update_vec, solver.sub_solver, solver.residual_vec)
 
     # x_+ = x + alpha * S * update_vec
-    mul!(solver.solution_vec, solver.S, solver.update_vec, solver.alpha, 1.0)
+    mul!(solver.solution_vec, solver.compressor, solver.update_vec, solver.alpha, 1.0)
 
     # r_+ = r - alpha * (AS) * update_vec 
     mul!(solver.residual_vec, solver.mat_view, solver.update_vec, -solver.alpha, 1.0)
@@ -333,7 +340,7 @@ function rsolve!(
     copyto!(solver.residual_vec, b)
 
     # compute the residual b-Ax
-    mul!(solver.residual_vec, A, solver.solution_vec, -1.0, 0.0)
+    mul!(solver.residual_vec, A, solver.solution_vec, -1.0, 1.0)
 
     for i in 1:solver.log.max_it
 
@@ -346,15 +353,15 @@ function rsolve!(
         end
 
         # generate a new version of the compression matrix
-        update_compressor!(solver.S, x, A, b)
+        update_compressor!(solver.compressor, solver.solution_vec, A, b)
 
         # based on size of new compressor update views of matrix
         # this should not result in new allocations
-        rows_s, cols_s =  size(solver.S)  
+        cols_s =  size(solver.compressor, 2)  
         solver.mat_view = view(solver.compressed_mat, :, 1:cols_s)
 
         # compress the matrix
-        mul!(solver.mat_view, A, solver.S) 
+        mul!(solver.mat_view, A, solver.compressor) 
         
         # Solve the undetermined sketched linear system and update the solution
         if cols_s == 1
