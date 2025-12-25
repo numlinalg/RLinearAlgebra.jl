@@ -3,7 +3,7 @@
 
 A `SolverError` structure for monitoring the residual of the normal equations 
     of a linear system (equivalently, the gradient of the least squares problem),
-    ``-A^\\intercal (b - Ax)``.
+    ``-A^\\top (b - Ax)``.
 
 # Fields
 - None
@@ -18,7 +18,7 @@ A `SolverErrorRecipe` structure for storing the residual of the normal equations
     ``-A^\\intercal (b - Ax)``.
 
 # Fields
-- `gradient::AbstractVector`, ``-A^\\intercal (b - Ax)``.
+- `gradient::AbstractVector`, ``-A^\\top (b - Ax)``.
 """
 mutable struct LSGradientRecipe{V<:AbstractVector} <: SolverErrorRecipe
     gradient::V
