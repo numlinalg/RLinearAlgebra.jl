@@ -347,7 +347,8 @@ function rsolve!(
         err = compute_error(solver.error, solver, A, b)
 
         # Update log adds value of err to log and checks stopping
-        update_logger!(solver.log, err, i)
+        # We put in i-1 as this is a computation for the i-1 iteration
+        update_logger!(solver.log, err, i-1) 
         if solver.log.converged
             return nothing
         end
@@ -369,8 +370,12 @@ function rsolve!(
         else
             colproj_update_block!(solver)
         end
-
     end
+
+    # If the loop exits at the last iteration, we need to record the terminal 
+    # error 
+    err = compute_error(solver.error, solver, A, b)
+    update_logger!(solver.log, err, solver.log.max_it)
 
     return nothing 
 end
