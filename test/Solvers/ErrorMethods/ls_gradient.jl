@@ -1,4 +1,5 @@
-module gradient_error 
+module ls_gradient_error 
+
 using Test, RLinearAlgebra, Random
 import LinearAlgebra: mul!, norm
 using ..FieldTest
@@ -12,24 +13,25 @@ mutable struct TestSolverRecipe <: SolverRecipe
 end
 
 @testset "LS Gradient" begin
+
     @testset "LS Gradient: SolverError" begin
         # Verify Supertype
-        @test supertype(LSgradient) == SolverError 
+        @test supertype(LSGradient) == SolverError 
 
         # Verify fieldnames and types
-        @test fieldnames(LSgradient) == ()
-        @test fieldtypes(LSgradient) == ()
+        @test fieldnames(LSGradient) == ()
+        @test fieldtypes(LSGradient) == ()
         # Verify the internal constructor
 
     end
 
     @testset "LS Gradient: SolverErrorRecipe" begin
         # Verify Supertype
-        @test supertype(LSgradientRecipe) ==  SolverErrorRecipe
+        @test supertype(LSGradientRecipe) ==  SolverErrorRecipe
 
         # Verify fieldnames and types
-        @test fieldnames(LSgradientRecipe) == (:gradient,)
-        @test fieldtypes(LSgradientRecipe) == (AbstractVector,)
+        @test fieldnames(LSGradientRecipe) == (:gradient,)
+        @test fieldtypes(LSGradientRecipe) == (AbstractVector,)
     end
 
     @testset "Residual: Complete error" begin
@@ -37,16 +39,16 @@ end
             let n_rows = 4,
                 n_cols = 6,
                 A = rand(type, n_rows, n_cols),
-                b = rand(type, n_rows),
-                x = rand(type, n_cols),
-                r = A*x - b,
-                solver_rec = TestSolverRecipe(r),
-                error_rec = complete_error(LSgradient(), TestSolver(), A, b)
+                b = rand(type, n_rows)
+
+                error_rec = complete_error(LSGradient(), TestSolver(), A, b)
 
                 # Test the type
-                @test typeof(error_rec) == LSgradientRecipe{typeof(b)}
+                @test typeof(error_rec) == LSGradientRecipe{typeof(b)}
+                
                 # Test type of residual vector
                 @test eltype(error_rec.gradient) == type
+                
                 # Test residual vector to be all zeros
                 @test error_rec.gradient == zeros(type, n_cols)
             end
@@ -61,22 +63,22 @@ end
                 n_cols = 6,
                 A = rand(type, n_rows, n_cols),
                 b = rand(type, n_rows),
-                x = rand(type, n_cols),
-                r = A*x - b,
-                solver_rec = TestSolverRecipe(r),
                 solver = TestSolver(),
-                error_rec = complete_error(LSgradient(), TestSolver(), A, b)
+                x = rand(type, n_cols),
+                r = b-A*x,
+                solver_rec = TestSolverRecipe(r),
+                error_rec = complete_error(LSGradient(), TestSolver(), A, b)
 
                 # compute the error value
                 err_val = compute_error(error_rec, solver_rec, A, b)
-                # compute the gradient
-                res = A' * r
+
+                # Verify gradient calculation 
+                @test error_rec.gradient ≈ -A'*(b-A*x)
+
                 # compute norm squared of residual
-                @test norm(res) ≈ err_val
+                @test norm(-A'*(b-A*x)) ≈ err_val
             end
-
         end
-
     end
 
 end
