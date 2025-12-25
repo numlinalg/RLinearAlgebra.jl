@@ -8,46 +8,44 @@ A specification of a column projection solver, which is a generalization of
 
 # Mathematical Description 
 
-Let ``A`` be an ``m \\times n``` matrix and consider solving the linear least squares
-    problem
+Let ``A`` be an ``m \\times n`` matrix and consider solving the linear least squares
+problem
+``
+\\min_{x} \\Vert b - Ax \\Vert_2.
+``
+Column projection methods refine a current iterate `x` by the update 
     ``
-    \\min_{x} \\Vert b - Ax \\Vert_2.
-    ``
+x_{+} = x + Sv,
+``
+where ``S`` is a compression and ``v`` is the minimum two-norm solution 
+to 
+``
+\\min_{w} \\Vert b - A(x + Sw) \\Vert_2.
+``
 
-    Column projection methods refine a current iterate `x` by the update 
-    ``
-    x_{+} = x + Sv,
-    ``
-    where ``S`` is a compression and ``v`` is the minimum two-norm solution 
-    to 
-    ``
-    \\min_{w} \\Vert b - A(x + Sw) \\Vert_2.
-    ``
+Explicitly, the solution is 
+``
+    v = (S^\\top A^\\top A S)^\\dagger (AS)^\\top (b - Ax)
+    = (S^\\top A^\\top)^\\dagger (b - A x),
+``
+which yields     
+``
+x_{+} = x + S (S^\\top A^\\top)^\\dagger (b - Ax).
+``
 
-    Explicitly, the solution is 
-    ``
-        v = (S^\\top A^\\top A S)^\\dagger (AS)^\\top (b - Ax)
-        = (S^\\top A^\\top)^\\dagger (b - A x),
-    ``
-    which yields 
-    ``
-    x_{+} = x + S (S^\\top A^\\top)^\\dagger (b - Ax).
-    ``
-
-    Here, we allow for an additional relaxation parameter, ``\\alpha``, which 
-    results in the update 
-    ``
-    x_{+} = x + \\alpha S (S^\\top A^\\top)^\\dagger (b - Ax).
-    ``
+Here, we allow for an additional relaxation parameter, ``\\alpha``, which 
+results in the update 
+``
+x_{+} = x + \\alpha S (S^\\top A^\\top)^\\dagger (b - Ax).
+``
     
-    When the compression ``S`` is a vector, the update simplifies to 
-    ``
-    x_{+} = x + \\alpha S \\frac{ (AS)^\\top (b - Ax) }{\\Vert AS \\Vert^2}.
-    ``
-
-    Letting ``r = b - Ax``, the residual ``r_{+} = b - Ax_{+}`` can be computed 
-    by
-    ``r_{+} = r + \\alpha (AS) v.``
+When the compression ``S`` is a vector, the update simplifies to 
+``
+x_{+} = x + \\alpha S \\frac{ (AS)^\\top (b - Ax) }{\\Vert AS \\Vert^2}.
+``
+Letting ``r = b - Ax``, the residual ``r_{+} = b - Ax_{+}`` can be computed 
+by  
+``r_{+} = r - \\alpha (AS) v.``
 
 # Fields
 - `alpha::Float64`, the over-relaxation parameter. 
@@ -84,9 +82,9 @@ Let ``A`` be an ``m \\times n``` matrix and consider solving the linear least sq
 - A `ColumnProjection` object.
 
 !!! info
-        The `alpha` parameter should be in ``(0,2)`` for convergence to be guaranteed. 
-        This condition is not enforced in the constructor. There are instances where 
-        setting `alpha=2` can lead to non-convergent cycles [motzkin1954relaxation](@cite).
+    The `alpha` parameter should be in ``(0,2)`` for convergence to be guaranteed. 
+    This condition is not enforced in the constructor. There are instances where 
+    setting `alpha=2` can lead to non-convergent cycles [motzkin1954relaxation](@cite).
 """
 mutable struct ColumnProjection <: Solver 
     alpha::Float64
@@ -136,9 +134,8 @@ end
     } <: SolverRecipe
 
 A mutable structure containing all information relevant to the `ColumnProjection` solver. It 
-    is formed by calling the function `complete_solver` on a `ColumnProjection` object, 
-    which includes all the user controlled parameters, the coefficient matrix `A`, and 
-    constant vector `b`.
+    is formed by calling the function [`complete_solver`](@ref) on a `ColumnProjection` 
+    object.
 
 # Fields
 - `compressor::CompressorRecipe`, a technique for forming the compressed column space of the 
@@ -262,16 +259,13 @@ end
     colproj_update!(solver::ColumnProjectionRecipe)
 
 A function that performs the column projection update when the compression dimension 
-    is one. 
-    If ``a = AS`` is the resulting compression of the transpose of the coefficient matrix,
-    and ``r = b - Ax`` is the current residual,
-    this function computes
-
-    ``x_{+} = x + \\alpha S \\frac{ a^\\top (b-Ax) }{\\Vert a \\Vert_2^2},``
-
-    and 
-
-    ``r_{+} = r_{-} - \\alpha a \\frac{ a^\\top r}{\\Vert a \\Vert_2^2}.``
+is one. 
+If ``a = AS`` is the resulting compression of the transpose of the coefficient matrix,
+and ``r = b - Ax`` is the current residual,
+this function computes
+``x_{+} = x + \\alpha S \\frac{ a^\\top (b-Ax) }{\\Vert a \\Vert_2^2},``
+and 
+``r_{+} = r_{-} - \\alpha a \\frac{ a^\\top r}{\\Vert a \\Vert_2^2}.``
 
 # Arguments
 - `solver::ColumnProjectionRecipe`, the solver information required for performing the update.
@@ -296,18 +290,15 @@ end
     colproj_update_block!(solver::ColumnProjectionRecipe)
 
 A function that performs the column projection update when the compression dimension 
-    is greater than 1. If ``S`` is the compression matrix,  
-    the compressed matrix is ``\\tilde A = A S``, and the residual is ``r = b - A x``, 
-    this function computes 
-
-    ``v =  (\\tilde A^\\top \\tilde A)^\\dagger \\tilde A^\\top r``
-    and stores it in `solver.update_vec`;
-
-    ``x_+ = x + \\alpha S v;``
-    and stores it in `solver.solution_vec`; and
-
-    ``r_+ = r - \\alpha \\tilde A v``
-    and stores it in `solver.residual_vec`.
+is greater than 1. If ``S`` is the compression matrix,  
+the compressed matrix is ``\\tilde A = A S``, and the residual is ``r = b - A x``, 
+this function computes 
+``v =  (\\tilde A^\\top \\tilde A)^\\dagger \\tilde A^\\top r``
+and stores it in `solver.update_vec`;
+``x_+ = x + \\alpha S v;``
+and stores it in `solver.solution_vec`; and
+``r_+ = r - \\alpha \\tilde A v``
+and stores it in `solver.residual_vec`.
 
 # Arguments
 - `solver::ColumnProjectionRecipe`, the solver information required for performing the update.
