@@ -59,6 +59,7 @@ Let ``A`` be an ``m \\times n``` matrix and consider solving the linear least sq
     compressed column space.
 
 # Constructor
+
     ColumnProjection(;
         alpha::Float64 = 1.0,
         compressor::Compressor = SparseSign(cardinality=Right()), 
@@ -66,14 +67,15 @@ Let ``A`` be an ``m \\times n``` matrix and consider solving the linear least sq
         log::Logger = BasicLogger(),
         sub_solver::SubSolver = QRSolver(), 
     )
+
 ## Keywords
 - `alpha::Float64`, the over-relaxation parameter. By default this value is 1.
 - `compressor::Compressor`, a technique for forming the compressed column space of the 
     linear system. By default it is a [`SparseSign`](@ref) compressor.
-- `log::Logger`, a technique for logging the progress of the solver. By default it is
-    [`BasicLogger`](@ref).
 - `error::SolverError`, a method for estimating the progress of the solver. By default it is 
     the [`LSGradient`](@ref) error method.
+- `log::Logger`, a technique for logging the progress of the solver. By default it is
+    [`BasicLogger`](@ref).
 - `sub_solver::SubSolver`, a technique to perform the projection of the solution onto the 
     compressed rowspace. When the `compression_dim = 1` this is not used. For all other 
     cases, the default is [`QRSolver`](@ref).
