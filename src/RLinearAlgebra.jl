@@ -1,8 +1,9 @@
 module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint, setproperty!
-import LinearAlgebra: Adjoint, axpby!, axpy!, dot, I, ldiv!, lmul!, lq! 
-import LinearAlgebra: lq, LQ, lu!, mul!, norm, qr!, UpperTriangular, svd
+import LinearAlgebra: Adjoint, axpby!, axpy!, ColumnNorm, dot, I, ldiv!
+import LinearAlgebra: lmul!, lq!, lq, LQ, lu!, mul!, norm, qr!, svd
+import LinearAlgebra: UpperTriangular
 import StatsBase: ProbabilityWeights, sample, sample!, wsample!
 import Random: bitrand, rand!, randn!
 import SparseArrays: SparseMatrixCSC, SparseVector, spzeros, sprandn, sparse
@@ -68,6 +69,6 @@ export complete_approximator_error, compute_approximator_error, compute_approxim
 
 # Export Selector types and functions
 export Selector, SelectorRecipe
-export LUPP, LUPPRecipe
+export LUPP, LUPPRecipe, QRCP, QRCPRecipe
 export complete_selector, update_selector!, select_indices!
 end #module
