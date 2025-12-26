@@ -271,11 +271,46 @@ end
 ###################################
 module column_projection_solver 
 
-using Test, RLinearAlgebra, LinearAlgebra 
+using Test, RLinearAlgebra, LinearAlgebra
 
 @testset "ColumnProjection Solver: rsolve!" begin 
+
+    # 1-Dim Compression: Base Case
+    let compressor = Gaussian(cardinality=Right(), compression_dim=1),
+        log=BasicLogger(max_it=1),
+        ingredients = ColumnProjection(compressor=compressor,log=log),
+        A = randn(5, 10),
+        b = randn(5),
+        x = zeros(10),
+        solver = RLinearAlgebra.complete_solver(ingredients, x, A, b)
+
+        rsolve!(solver, x, A, b)
+
+        @test norm(b - A*x) < norm(b) # Is the residual reduced?
+    end
+
+    # 1-Dim Compression: Induction and Conclusion
+    let compressor = Gaussian(cardinality=Right(), compression_dim=1),
+        log=BasicLogger(max_it=11),
+        ingredients = ColumnProjection(compressor=compressor,log=log),
+        A = randn(5, 10),
+        b = randn(5),
+        x = zeros(10),
+        solver = RLinearAlgebra.complete_solver(ingredients, x, A, b)
+
+        # Induction 
+        rsolve!(solver, x, A, b)
+
+        # Conclusion 
+        x_previous = deepcopy(x)
+        ingredients = ColumnProjection(compressor=compressor, log=BasicLogger(max_it=1))
+        solver = RLinearAlgebra.complete_solver(ingredients, x, A, b)
+        rsolve!(solver, x, A, b)
+
+        @test norm(b - A*x) < norm(b - A*x_previous) # Is the residual reduced?
+    end
     
-    # Base Case 
+    # Multidimensional Compression: Base Case 
     let ingredients = ColumnProjection(log=BasicLogger(max_it=1)),
         A = randn(5, 10),
         b = randn(5),
@@ -287,7 +322,7 @@ using Test, RLinearAlgebra, LinearAlgebra
         @test norm(b - A*x) < norm(b) # Is the residual reduced? 
     end
 
-    # Induction and Conclusion 
+    # Multidimensional Compression: Induction and Conclusion 
     let ingredients = ColumnProjection(log=BasicLogger(max_it=11)),
         A = randn(5, 10),
         b = randn(5),
@@ -304,6 +339,39 @@ using Test, RLinearAlgebra, LinearAlgebra
         rsolve!(solver, x, A, b)
 
         @test norm(b - A*x) < norm(b - A*x_previous) # Is the residual reduced?
+    end
+
+    # Exits via solver.log.converged == true
+    let A = randn(5, 10),
+        b = randn(5),
+        x = zeros(10)
+
+        # Parameter Data Structures 
+        struct TestLoggerIII <: Logger end 
+        mutable struct TestLoggerRecipeIII <: LoggerRecipe
+            max_it::Int64 
+            converged::Bool
+        end
+        RLinearAlgebra.complete_logger(LG::TestLoggerIII) = TestLoggerRecipeIII(10, false)
+        function RLinearAlgebra.reset_logger!(LG::TestLoggerRecipeIII)
+            LG.max_it = 10
+            LG.converged = false
+            return nothing 
+        end
+        function RLinearAlgebra.update_logger!(LG::TestLoggerRecipeIII, err::Float64, i::Int64)
+            if i > 1
+                LG.converged = true
+            end
+            return nothing
+        end
+
+        ingredients = ColumnProjection(log=TestLoggerIII())
+        solver = complete_solver(ingredients, x, A, b)
+
+        rsolve!(solver, x, A, b)
+
+        @test solver.log.converged
+
     end
 end
 
