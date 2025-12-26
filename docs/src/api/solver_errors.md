@@ -16,6 +16,10 @@ FullResidual
 
 FullResidualRecipe
 
+LSGradient
+
+LSGradientRecipe
+
 CompressedResidual
 
 CompressedResidualRecipe

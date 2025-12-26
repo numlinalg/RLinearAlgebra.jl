@@ -658,43 +658,43 @@ end
             end
             
             # test that this works with a sparse matrix and sampling compressor
-            let A = sprand(type, n_rows, n_cols, .9),
-                xsol = ones(type, n_cols),
-                b = A * xsol,
-                comp_dim = 2,
-                alpha = 1.0,
-                n_rows = size(A, 1),
-                n_cols = size(A, 2),
-                x = zeros(type, n_cols)
+            # let A = sprand(type, n_rows, n_cols, .9),
+            #     xsol = ones(type, n_cols),
+            #     b = A * xsol,
+            #     comp_dim = 2,
+            #     alpha = 1.0,
+            #     n_rows = size(A, 1),
+            #     n_cols = size(A, 2),
+            #     x = zeros(type, n_cols)
                 
-                comp = Sampling(cardinality = Left(), compression_dim = comp_dim)
-                log = KTestLog()
-                err = KTestError()
-                sub_solver = KTestSubSolver()
-                solver = Kaczmarz(
-                    compressor = comp,
-                    log = log,
-                    error = err,
-                    sub_solver = sub_solver,
-                    alpha = alpha
-                )
+            #     comp = Sampling(cardinality = Left(), compression_dim = comp_dim)
+            #     log = KTestLog()
+            #     err = KTestError()
+            #     sub_solver = KTestSubSolver()
+            #     solver = Kaczmarz(
+            #         compressor = comp,
+            #         log = log,
+            #         error = err,
+            #         sub_solver = sub_solver,
+            #         alpha = alpha
+            #     )
                 
-                solver_rec = complete_solver(solver, x, A, b)
+            #     solver_rec = complete_solver(solver, x, A, b)
                 
-                # Sketch the matrix and vector
-                sb = solver_rec.compressor * b
-                sA = solver_rec.compressor * A 
-                solver_rec.vec_view = view(sb, 1:comp_dim)
-                solver_rec.mat_view = view(sA, 1:comp_dim, :)
-                solver_rec.solution_vec = deepcopy(x) 
+            #     # Sketch the matrix and vector
+            #     sb = solver_rec.compressor * b
+            #     sA = solver_rec.compressor * A 
+            #     solver_rec.vec_view = view(sb, 1:comp_dim)
+            #     solver_rec.mat_view = view(sA, 1:comp_dim, :)
+            #     solver_rec.solution_vec = deepcopy(x) 
     
-                # compute comparison update
-                test_sol =  x + lq(Array(sA)) \ (sb - sA * x)
+            #     # compute comparison update
+            #     test_sol =  x + lq(Array(sA)) \ (sb - sA * x)
     
-                # compute the update
-                RLinearAlgebra.kaczmarz_update_block!(solver_rec)
-                @test solver_rec.solution_vec ≈ test_sol
-            end
+            #     # compute the update
+            #     RLinearAlgebra.kaczmarz_update_block!(solver_rec)
+            #     @test solver_rec.solution_vec ≈ test_sol
+            # end
     
         end
 

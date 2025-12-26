@@ -40,6 +40,7 @@ export Uniform, UniformRecipe
 # Export Solver types and functions
 export Solver, SolverRecipe
 export Kaczmarz, KaczmarzRecipe
+export ColumnProjection, ColumnProjectionRecipe
 export complete_solver, update_solver!, rsolve!
 export IHS, IHSRecipe
 
@@ -59,6 +60,7 @@ export QRSolver, QRSolverRecipe
 export SolverError, SolverErrorRecipe
 export complete_error, compute_error
 export FullResidual, FullResidualRecipe, CompressedResidual, CompressedResidualRecipe
+export LSGradient, LSGradientRecipe
 
 # Export ApproximatorError types and functions
 export ApproximatorError, ApproximatorErrorRecipe
