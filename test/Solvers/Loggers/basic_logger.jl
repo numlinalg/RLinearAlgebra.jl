@@ -164,7 +164,7 @@ module basic_logger
                 # Test if the threshold is satisfied on first it a value is recorded
                 update_logger!(L_method, 1e-6, 1)
                 @test L_method.hist[1] == 1e-6 
-                @test L_method.record_location == 2
+                @test L_method.record_location == 1
                 @test L_method.iteration == 1
                 @test L_method.converged == true 
             end
@@ -189,7 +189,7 @@ module basic_logger
                 # 3 * num rows in A 
                 update_logger!(L_method, 1e-1, 13)
                 @test L_method.hist[1] == 1e-1 
-                @test L_method.record_location == 2
+                @test L_method.record_location == 1
                 @test L_method.iteration == 13 
                 @test L_method.converged == true 
                 

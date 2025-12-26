@@ -54,7 +54,7 @@ import LinearAlgebra: mul!
             n_cols = 3,
             A = zeros(n_rows, n_cols),
             comp_dim = 2,
-            sel = LUPP(compressor=Gaussian(compression_dim = comp_dim))
+            sel = LUPP(compressor = Gaussian(compression_dim = comp_dim))
 
             sel_rec = complete_selector(sel, A)
             @test typeof(sel_rec) == LUPPRecipe
@@ -70,8 +70,11 @@ import LinearAlgebra: mul!
             n_cols = 2,
             A = zeros(n_rows, n_cols),
             sel_rec = complete_selector(LUPP(compressor = Gaussian()), A)
+            G_old = deepcopy(sel_rec.compressor.op)
             update_selector!(sel_rec)
             @test typeof(sel_rec) == LUPPRecipe 
+            # check that Gaussian Matrix actually changes
+            @test sel_rec.compressor.op != G_old
         end
 
     end
@@ -88,12 +91,12 @@ import LinearAlgebra: mul!
             n_idx = 4
 
             @test_throws DimensionMismatch select_indices!(
-                            idx, 
-                            complete_selector(LUPP(), A), 
-                            A, 
-                            n_idx, 
-                            start_idx
-                ) 
+                idx, 
+                complete_selector(LUPP(), A), 
+                A, 
+                n_idx, 
+                start_idx
+            ) 
         end
         
         # check that n_idx will not go over index vector 
@@ -103,12 +106,12 @@ import LinearAlgebra: mul!
             n_idx = 2
 
             @test_throws DimensionMismatch select_indices!(
-                            idx, 
-                            complete_selector(LUPP(), A), 
-                            A, 
-                            n_idx, 
-                            start_idx
-                ) 
+                idx, 
+                complete_selector(LUPP(), A), 
+                A, 
+                n_idx, 
+                start_idx
+            ) 
         end
 
         # check that n_idx is not larger than the compression_dim
@@ -118,15 +121,15 @@ import LinearAlgebra: mul!
             n_idx = 3
 
             @test_throws DimensionMismatch select_indices!(
-                            idx, 
-                            complete_selector(
-                                LUPP(compressor = Gaussian(compression_dim = 2)), 
-                                A
-                            ),
-                            A, 
-                            n_idx, 
-                            start_idx
-                ) 
+                idx, 
+                complete_selector(
+                    LUPP(compressor = Gaussian(compression_dim = 2)), 
+                    A
+                ),
+                A, 
+                n_idx, 
+                start_idx
+            ) 
         end
 
         # Test with identity compressor

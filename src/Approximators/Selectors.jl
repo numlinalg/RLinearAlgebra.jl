@@ -4,7 +4,7 @@
 """
     Selector
 
-An abstract type containing user controlled parameters for a technique that select indices
+An abstract type containing user controlled parameters for a technique that selects indices
 from a matrix.
 """
 abstract type Selector end
@@ -13,14 +13,14 @@ abstract type Selector end
     SelectorRecipe
 
 An abstract type containing user controlled parameters and preallocated memory for a
-technique that selects indices from matrix.
+technique that selects indices from a matrix.
 """
 abstract type SelectorRecipe end
 
 select_arg_list = Dict{Symbol,String}(
     :selector => "`selector::Selector`, a data structure containing the user-defined
     parameters associated with a particular selection method.",
-    :selector_recipe => "`selector_recipe::SelectorRecipe`, a fully initialized realization
+    :selector_recipe => "`selector::SelectorRecipe`, a fully initialized realization
     for a selector method for a particular matrix.",
     :idx => "`idx::vector`, a vector where selected indices will be placed.",
     :n_idx => "`n_idx::Int64`, the number of indices to be selected.",
@@ -108,9 +108,9 @@ end
 ####################################
 """
     select_indices!(
+        idx::AbstractVector,
         selector::SelectorRecipe, 
         A::AbstractMatrix,
-        idx::AbstractVector,
         n_idx::Int64, 
         start_idx::Int64
     )
@@ -118,9 +118,9 @@ end
 $(select_method_description[:select_indices])
 
 # Arguments
+- $(select_arg_list[:idx])
 - $(select_arg_list[:selector_recipe])
 - $(select_arg_list[:A]) 
-- $(select_arg_list[:idx])
 - $(select_arg_list[:n_idx])
 - $(select_arg_list[:start_idx])
 
