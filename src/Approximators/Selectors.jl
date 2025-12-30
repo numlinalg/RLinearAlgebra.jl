@@ -145,3 +145,4 @@ end
 
 # Include the selector files
 include("Selectors/lupp.jl")
+include("Selectors/qrcp.jl")
