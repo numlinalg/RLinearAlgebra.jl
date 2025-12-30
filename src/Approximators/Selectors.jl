@@ -144,5 +144,5 @@ function select_indices!(
 end
 
 # Include the selector files
-include("Selectors/qrcp.jl")
 include("Selectors/lupp.jl")
+include("Selectors/qrcp.jl")

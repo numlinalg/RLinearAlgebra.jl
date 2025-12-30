@@ -5,7 +5,7 @@ A `Selector` that implements QR with column norm pivoting for selecting column i
 a matrix.
 
 # Fields
-- `compressor::Compressor`, the compression technique that will applied to the matrix, 
+- `compressor::Compressor`, the compression technique that will be applied to the matrix, 
     before selecting indices.
 
 # Constructor
@@ -13,10 +13,10 @@ a matrix.
 
 ## Keywords
 - `compressor::Compressor`, the compression technique that will applied to the matrix, 
-    before selecting indices. Defaults the `Identity` compressor.
+    before selecting indices. Defaults the [Identity](@ref) compressor.
 
 ## Returns
-- Will return a `QRCP` object.
+- A `QRCP` object.
 """
 mutable struct QRCP <: Selector
     compressor::Compressor
@@ -33,9 +33,9 @@ A `SelectorRecipe` that contains all the necessary preallocations for selecting 
 indices from a matrix using QR with column norm pivoting.
 
 # Fields
-- `compressor::Compressor`, the compression technique that will applied to the matrix, 
+- `compressor::Compressor`, the compression technique that will be applied to the matrix, 
     before selecting indices.
-- `SA::AbstractMatrix`, a buffer matrix for storing the sketched matrix.
+- `SA::AbstractMatrix`, a buffer matrix for storing the compressed matrix.
 """
 mutable struct QRCPRecipe <: SelectorRecipe
     compressor::CompressorRecipe
@@ -44,8 +44,7 @@ end
 
 function complete_selector(ingredients::QRCP, A::AbstractMatrix)
     compressor = complete_compressor(ingredients.compressor, A)
-    n_rows, n_cols = size(compressor)
-    SA = Matrix{eltype(A)}(undef, n_rows, n_cols)
+    SA = Matrix{eltype(A)}(undef, size(compressor, 1), size(A, 2))
     return QRCPRecipe(compressor, SA)
 end
 
@@ -87,7 +86,7 @@ function select_indices!(
     end
     
     mul!(selector.SA, selector.compressor, A)
-    p = qr!(A, ColumnNorm()).p
+    p = qr!(selector.SA, ColumnNorm()).p
     # store newly selected indices at inputted index storage points 
     idx[start_idx:start_idx + n_idx - 1] = p[1:n_idx]
     return nothing

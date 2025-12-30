@@ -1,7 +1,5 @@
 module QRCP_tests
 using Test
-using ..FieldTest
-using ..ApproxTol
 using RLinearAlgebra
 import LinearAlgebra: mul!
 
@@ -38,7 +36,7 @@ import LinearAlgebra: mul!
     @testset "QRCP: Complete Selector" begin
         # test with identity compressor
         let n_rows = 2,
-            n_cols = 2,
+            n_cols = 4,
             A = zeros(n_rows, n_cols),
             sel = QRCP()
 
@@ -51,7 +49,7 @@ import LinearAlgebra: mul!
 
         # test with gaussian compressor
         let n_rows = 3,
-            n_cols = 3,
+            n_cols = 4,
             A = zeros(n_rows, n_cols),
             comp_dim = 2,
             sel = QRCP(compressor=Gaussian(compression_dim = comp_dim))
@@ -67,7 +65,7 @@ import LinearAlgebra: mul!
 
     @testset "QRCP: Update Selector" begin
         let n_rows = 2,
-            n_cols = 2,
+            n_cols = 3,
             A = zeros(n_rows, n_cols),
             sel_rec = complete_selector(QRCP(compressor = Gaussian()), A)
             update_selector!(sel_rec)
@@ -88,12 +86,12 @@ import LinearAlgebra: mul!
             n_idx = 4
 
             @test_throws DimensionMismatch select_indices!(
-                            idx, 
-                            complete_selector(QRCP(), A), 
-                            A, 
-                            n_idx, 
-                            start_idx
-                ) 
+                idx, 
+                complete_selector(QRCP(), A), 
+                A, 
+                n_idx, 
+                start_idx
+            ) 
         end
         
         # check that n_idx will not go over index vector 
@@ -103,12 +101,12 @@ import LinearAlgebra: mul!
             n_idx = 2
 
             @test_throws DimensionMismatch select_indices!(
-                            idx, 
-                            complete_selector(QRCP(), A), 
-                            A, 
-                            n_idx, 
-                            start_idx
-                ) 
+                idx, 
+                complete_selector(QRCP(), A), 
+                A, 
+                n_idx, 
+                start_idx
+            ) 
         end
 
         # check that n_idx is not larger than the compression_dim
@@ -118,15 +116,15 @@ import LinearAlgebra: mul!
             n_idx = 3
 
             @test_throws DimensionMismatch select_indices!(
-                            idx, 
-                            complete_selector(
-                                QRCP(compressor = Gaussian(compression_dim = 2)), 
-                                A
-                            ),
-                            A, 
-                            n_idx, 
-                            start_idx
-                ) 
+                idx, 
+                complete_selector(
+                    QRCP(compressor = Gaussian(compression_dim = 2)), 
+                    A
+                ),
+                A, 
+                n_idx, 
+                start_idx
+            ) 
         end
 
         # Test with identity compressor
