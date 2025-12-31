@@ -7,8 +7,9 @@ Let $A$ be a matrix that we wish to compress for some subsequent calculation
 A = randn(1000, 500)
 ```
 
-We can generate any number of compressors simply and multiply $A$ from the 
-left or right by the compressor. We provide three examples below:
+We can generate any number of compressors (see [Compressors API](@ref)).
+We can then multiply $A$ from the left or right by the compressor. 
+We provide three examples below:
 
 - The [`SparseSign`](@ref) compressor [martinsson2020randomized; Section 9.2](@cite).
 - The [`Gaussian`](@ref) compressor.
