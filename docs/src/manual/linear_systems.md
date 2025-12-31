@@ -27,7 +27,7 @@ projects ensures that every update gets closer to the solution as can be seen in
 following figure.
 
 ```@raw html
-<img src="../images/kaczmarz.png" width =400 height = 300/> 
+<img src="../images/kaczmarz.svg" width =400 height = 300/> 
 ```
 
 In the following example, we run a Kaczmarz solver for 30 iterations. 
