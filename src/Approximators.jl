@@ -56,6 +56,7 @@ randomized rangefinder.
 """
 abstract type RangeApproximatorRecipe <: ApproximatorRecipe end
 
+
 ###################################
 # Docstring Components  
 ###################################
@@ -72,6 +73,7 @@ approx_arg_list = Dict{Symbol,String}(
     :A => "`A::AbstractMatrix`, a target matrix for approximation.",
     :compressor_recipe => "`S::CompressorRecipe`, a fully initialized realization for a 
     compression method for a specific matrix or collection of matrices and vectors.",
+
 )
 
 approx_output_list = Dict{Symbol,String}(
@@ -82,8 +84,10 @@ approx_output_list = Dict{Symbol,String}(
 approx_method_description = Dict{Symbol,String}(
     :complete_approximator => "A function that generates an `ApproximatorRecipe` given 
     arguments.",
+
     :update_approximator => "A function that updates the `ApproximatorRecipe` in place
     given the arguments.",
+
     :rapproximate => "A function that computes a low-rank approximation of the matrix `A`
     using the information in the provided `Approximator` data structure.",
     :complete_approximator_error => "A function that generates an `ApproximatorErrorRecipe`
@@ -160,6 +164,7 @@ function complete_approximator(approximator::Approximator, A::AbstractMatrix)
         )
     )
 end
+
 
 ###################################
 # rapproximate Interface 
@@ -430,3 +435,8 @@ end
 include("Approximators/RangeApproximators/rangefinder.jl")
 include("Approximators/RangeApproximators/randsvd.jl")
 include("Approximators/RangeApproximators/helpers/power_its.jl")
+
+############################################
+# Include the selector files
+############################################
+include("Approximators/Selectors.jl")
