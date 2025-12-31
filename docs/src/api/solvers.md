@@ -1,4 +1,4 @@
-# Solvers  
+# Solvers API 
 ```@contents
 Pages = ["solvers.md"]
 ```
