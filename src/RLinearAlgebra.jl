@@ -1,10 +1,12 @@
 module RLinearAlgebra
 import Base.:*
-import Base: transpose, adjoint
-import LinearAlgebra: Adjoint, axpby!, dot, I, ldiv!, lmul!, lq!, lq, LQ, mul!, norm, qr!, svd
-import StatsBase: sample, sample!, ProbabilityWeights, wsample!
+import Base: transpose, adjoint, setproperty!
+import LinearAlgebra: Adjoint, axpby!, axpy!, ColumnNorm, dot, I, ldiv!
+import LinearAlgebra: lmul!, lq!, lq, LQ, lu!, mul!, norm, qr!, svd
+import LinearAlgebra: UpperTriangular
+import StatsBase: ProbabilityWeights, sample, sample!, wsample!
 import Random: bitrand, rand!, randn!
-import SparseArrays: SparseMatrixCSC, sprandn, sparse
+import SparseArrays: SparseMatrixCSC, SparseVector, spzeros, sprandn, sparse
 
 # Include the files correspoding to the top-level techniques
 include("Compressors.jl")
@@ -39,7 +41,9 @@ export Uniform, UniformRecipe
 # Export Solver types and functions
 export Solver, SolverRecipe
 export Kaczmarz, KaczmarzRecipe
+export ColumnProjection, ColumnProjectionRecipe
 export complete_solver, update_solver!, rsolve!
+export IHS, IHSRecipe
 
 # Export Logger types and functions
 export Logger, LoggerRecipe
@@ -56,10 +60,15 @@ export QRSolver, QRSolverRecipe
 # Export SolverError types and functions
 export SolverError, SolverErrorRecipe
 export complete_error, compute_error
-export FullResidual, FullResidualRecipe
+export FullResidual, FullResidualRecipe, CompressedResidual, CompressedResidualRecipe
+export LSGradient, LSGradientRecipe
 
 # Export ApproximatorError types and functions
 export ApproximatorError, ApproximatorErrorRecipe
 export complete_approximator_error, compute_approximator_error, compute_approximator_error!
 
+# Export Selector types and functions
+export Selector, SelectorRecipe
+export LUPP, LUPPRecipe, QRCP, QRCPRecipe
+export complete_selector, update_selector!, select_indices!
 end #module

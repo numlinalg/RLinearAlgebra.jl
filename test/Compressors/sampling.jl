@@ -2,6 +2,7 @@ module Sampling_compressor
 using Test, RLinearAlgebra, Random
 using StatsBase: ProbabilityWeights, sample
 import LinearAlgebra: mul!, Adjoint
+import SparseArrays: sprandn
 using ..FieldTest
 using ..ApproxTol
 
@@ -499,8 +500,139 @@ Random.seed!(2131)
                 mul!(x, S', yc, alpha, beta)
                 @test x ≈ alpha * Sty_exact + beta * xc
             end
+
+        end
+        
+        @testset "Left Cardinality Sparse" begin
+            let a_matrix_rows = 20,
+                a_matrix_cols = 12,
+                comp_dim = 7,
+                alpha = 2.5,
+                beta = 1.5
+
+                # Setup matrices and vectors 
+                A = sprandn(a_matrix_rows, a_matrix_cols, .8)
+                B = sprandn(comp_dim, a_matrix_cols, .8)
+                C1 = sprandn(comp_dim, a_matrix_cols, .8)
+                C2 = sprandn(a_matrix_rows, a_matrix_cols, .8)
+                x = sprandn(a_matrix_rows, .8)
+                y = sprandn(comp_dim, .8)
+
+                # Keep copies for 5-argument mul! verification
+                C1c = deepcopy(C1)
+                C2c = deepcopy(C2)
+                yc = deepcopy(y)
+                xc = deepcopy(x)
+
+                # Setup the Sampling compressor recipe
+                S_info = Sampling(
+                    cardinality=Left(),
+                    compression_dim=comp_dim,
+                    distribution=Uniform(cardinality=Left(), replace=false)
+                )
+                S = complete_compressor(S_info, A)
+
+                # Calculate all ground truth results
+                SA_exact = A[S.idx, :]
+                StB_exact = zeros(a_matrix_rows, a_matrix_cols); for i in 1:comp_dim; StB_exact[S.idx[i], :] = B[i, :]; end
+                Sx_exact = x[S.idx]
+                Sty_exact = zeros(a_matrix_rows); for i in 1:comp_dim; Sty_exact[S.idx[i]] = y[i]; end
+
+                # Test '*' operations by comparing to ground truths
+                @test S * A ≈ SA_exact
+                @test S' * B ≈ StB_exact
+                @test A' * S' ≈ SA_exact'
+                @test B' * S ≈ StB_exact'
+                @test S * x ≈ Sx_exact
+                @test x' * S' ≈ Sx_exact'
+                @test S' * y ≈ Sty_exact
+                @test y' * S ≈ Sty_exact'
+
+                # Test the 5-argument mul!
+                mul!(C1, S, A, alpha, beta)
+                @test C1 ≈ alpha * SA_exact + beta * C1c
+
+                mul!(C2, S', B, alpha, beta)
+                @test C2 ≈ alpha * StB_exact + beta * C2c
+                
+                mul!(y, S, xc, alpha, beta)
+                @test y ≈ alpha * Sx_exact + beta * yc
+
+                mul!(x, S', yc, alpha, beta)
+                @test x ≈ alpha * Sty_exact + beta * xc
+            end
+        end
+
+        # Test multiplications with right compressors
+        @testset "Right Cardinality" begin
+            let n = 20,         
+                comp_dim = 10,     
+                alpha = 2.0,
+                beta = 2.0
+
+                # Setup matrices and vectors with dimensions
+                A = sprandn(n, comp_dim, .8)
+                B = sprandn(n, n, .8)
+                # C1 is for S'*A, C2 is for B*S
+                C1 = sprandn(n, n, .8)
+                C2 = sprandn(n, comp_dim, .8)
+                x = sprandn(comp_dim, .8)
+                y = sprandn(n, .8)
+
+                # Keep copies for 5-argument mul! verification
+                C1c = deepcopy(C1)
+                C2c = deepcopy(C2)
+                yc = deepcopy(y)
+                xc = deepcopy(x)
+
+                # Setup the Sampling compressor recipe. It's created from B, an n x n matrix.
+                # The operator S will have conceptual dimensions (n x comp_dim).
+                S_info = Sampling(
+                    cardinality=Right(),
+                    compression_dim=comp_dim,
+                    distribution=Uniform(cardinality=Right(), replace=false)
+                )
+                S = complete_compressor(S_info, B)
+
+                # Calculate all ground truth results based on direct indexing/operations
+                StA_exact = A[S.idx, :]
+                BS_exact = B[:, S.idx]
+                BtS_exact = B'[:, S.idx]
+                ASt_exact = zeros(n, n); for i in 1:comp_dim; ASt_exact[:, S.idx[i]] = A[:, i]; end
+                Sx_exact = zeros(n); for i in 1:comp_dim; Sx_exact[S.idx[i]] = x[i]; end
+                Sty_exact = y[S.idx]
+
+                # Test '*' operations by comparing to ground truths
+                @test S' * A ≈ StA_exact
+                @test A' * S ≈ StA_exact'
+                @test B * S ≈ BS_exact
+                @test S' * B' ≈ BS_exact'
+                @test B' * S ≈ BtS_exact
+                @test S' * B ≈ BtS_exact'
+                @test A * S' ≈ ASt_exact
+                @test S * A' ≈ ASt_exact'
+                @test S * x ≈ Sx_exact
+                @test x' * S' ≈ Sx_exact'
+                @test y' * S ≈ Sty_exact'
+                @test S' * y ≈ Sty_exact
+
+                # Test the 5-argument mul!
+                mul!(C1, A, S', alpha, beta)
+                @test C1 ≈ alpha * ASt_exact + beta * C1c
+
+                mul!(C2, B, S, alpha, beta)
+                @test C2 ≈ alpha * BS_exact + beta * C2c
+
+                mul!(y, S, xc, alpha, beta)
+                @test y ≈ alpha * Sx_exact + beta * yc
+
+                mul!(x, S', yc, alpha, beta)
+                @test x ≈ alpha * Sty_exact + beta * xc
+            end
+            
         end
     end
+
 end
 
 end
