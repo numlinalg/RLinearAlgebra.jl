@@ -17,16 +17,21 @@ A \approx MBN,
 where ``M \in \mathbb{R}^{m \times r}``, ``N \in \mathbb{R}^{s \times n}``, and 
 ``B \in \mathbb{R}^{r \times s}``. 
 
-Once one of the above representations has been obtained they can then be used to speed up a number of computations including
+Once one of the above representations has been obtained they can then be used 
+to speed up a number of computations including
 matrix multiplication, clustering, or approximate eigenvalue decompositions 
 [halko2011finding, eckart1936approximation, udell2019why, park2025curing](@cite).
  
 Low rank approximations can also be classified as being either an orthogonal 
 form where coordinates are projected perpendicularly onto a hyperplane, or 
-an oblique form where points are projected along another plane (see the below figure 
-for a visualization).
+an oblique form where points are projected along another plane. 
+This distinction can be seen in the figure below where in the left figure the point is 
+mapped to the plane ``\mathcal{M}`` so that the path taken is orthogonal to 
+``\mathcal{M}``: the plane ``\mathcal{N}`` has no image on the mapping. Alternatively, 
+in the oblique projection mapping on the right the point is mapped onto ``\mathcal{M}`` 
+along a path parallel to ``\mathcal{Z}``.  
 ```@raw html
-<img src="../images/projection.png" width =400 height = 300/> 
+<img src="../images/projection.svg" width =400 height = 300/> 
 ```
 
 We also can consider low-rank approximations for symmetric matrices and general matrices.
