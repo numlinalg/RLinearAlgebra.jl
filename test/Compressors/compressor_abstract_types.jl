@@ -22,6 +22,7 @@ end
     x = rand(2)
 
     @test_throws ArgumentError complete_compressor(TestCompressor(), A)
+    @test_throws ArgumentError complete_compressor(TestCompressor(), b)
     @test_throws ArgumentError complete_compressor(TestCompressor(), A, b)
     @test_throws ArgumentError complete_compressor(TestCompressor(), x, A, b)
     @test_throws ArgumentError update_compressor!(TestCompressorRecipe())
