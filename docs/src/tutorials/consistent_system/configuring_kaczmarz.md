@@ -1,16 +1,12 @@
-# Modular Customization: Beyond Defaults
+# Configuring a Generalized Kaczmarz Solver
 
 In the previous guide, we showed how to solve a consistent linear system in just a few 
 lines of code. That example used the default configurations of the 
-[`Kaczmarz` solver](@ref Kaczmarz) solver, which is highly effective for many standard 
-problems.
-
+[`Kaczmarz` solver](@ref Kaczmarz) solver [patel2023randomized](@cite).
 However, the true power of **RLinearAlgebra.jl** lies in its high degree of modularity 
 and flexibility. You can fine-tune the solver's behavior by combining different 
 ingredients, like cooking a fine dish, to tackle specific challenges, improve 
 performance, or implement more complex algorithms.
-
-
 
 We will follow the design philosophy of **RLinearAlgebra.jl** by composing different 
 modules ([`Compressor`](@ref Compressor), [`Logger`](@ref Logger), [`Solver`](@ref Solver), 

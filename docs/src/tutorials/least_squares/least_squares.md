@@ -1,4 +1,4 @@
-# Solving a Least-Squares Problem
+# Solving a Least Squares Problem
 
 This guide demonstrates how to use `RLinearAlgebra.jl` package to find the 
 **least-squares solution** to a linear system. This is typically used for 

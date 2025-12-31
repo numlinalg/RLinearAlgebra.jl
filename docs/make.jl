@@ -15,20 +15,23 @@ makedocs(
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
-        "Tutorials" => [
-            "Introduction" => "tutorials/introduction.md",
-            "Consistent Linear System" => [
-                "tutorials/consistent_system/consistent_system.md",
-                "tutorials/consistent_system/consistent_system_configure.md",
-            ],
-            "Least Squares" => [
-                "tutorials/least_squares/least_squares.md",
-                "tutorials/least_squares/least_squares_configure.md",
-            ],
-        ],
         "Manual" => [
             "Introduction" => "manual/introduction.md", 
             "Compression" => "manual/compression.md",
+        ],
+        "Tutorials" => [
+            "tutorials/tutorials_overview.md",
+            "Compressors" => [
+                "tutorials/compressors/compressor_example.md",
+            ],
+            "Consistent Linear System" => [
+                "tutorials/consistent_system/consistent_system.md",
+                "tutorials/consistent_system/configuring_kaczmarz.md",
+            ],
+            "Least Squares" => [
+                "tutorials/least_squares/least_squares.md",
+                #"tutorials/least_squares/least_squares_configure.md",
+            ],
         ],
         "API Reference" => [
             "Compressors" => [
