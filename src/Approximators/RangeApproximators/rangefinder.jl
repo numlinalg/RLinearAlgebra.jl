@@ -13,7 +13,7 @@ Suppose we have a matrix ``A \\in \\mathbb{R}^{m \\times n}`` of which we wish t
 A simple way to find such a matrix is to choose a ``k`` representing the number of 
     vectors we wish to have in the subspace. Then we can generate a compression matrix 
     ``S\\in\\mathbb{R}^{n \\times k}`` and compute ``Q = \\text{qr}(AS)``. 
-    With high probability we will have ``\\|A - QQ^\\top A\\|_2 \\leq
+    With high probability we will have ``\\|A - QQ^\\top A\\|_F \\leq
     \\sqrt{k+1} (\\sum_{i=k+1}^{\\min{(m,n)}}\\sigma_{i})^{1/2}``, 
     where ``\\sigma_{k+1}`` is the ``k+1^\\text{th}`` singular value 
     of A (see Theorem 10.5 of [halko2011finding](@cite)). This bound is often conservative 
@@ -86,7 +86,7 @@ RangeFinder(;
     compressor = SparseSign(cardinality = Right()), 
     orthogonalize = false, 
     power_its = 0
-) = RangeFinder(compressor, orthogonalize, power_its)
+) = RangeFinder(compressor, power_its, orthogonalize)
 
 """
     RangeFinderRecipe
