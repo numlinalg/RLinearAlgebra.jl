@@ -36,14 +36,21 @@ end
 function complete_core(decomp::CUR, core::CrossApproximation,  A::AbstractMatrix)
     # preallocate the core matrix with and Idenity of the same type. We use identy because
     # this form preallocates all dense entries and works for sparse arrays.
-    core = typeof(A)(I, decomp.n_rows, decomp.n_cols)
-    qr_decomp = qr!(view(core, 1:2, 1:2))
-    return CrossApproximation(decomp.n_rows, decomp.n_cols, core, qr_decomp)
+    core = typeof(A)(I, decomp.n_row_vecs, decomp.n_col_vecs)
+    core_view = view(core, 1:2, 1:2)
+    qr_decomp = qr!(core_view)
+    return CrossApproximation(
+        decomp.n_row_vecs, 
+        decomp.n_col_vecs, 
+        core, 
+        core_view, 
+        qr_decomp
+    )
 end
  
 function update_core!(core::CrossApproximationRecipe, decomp::CURRecipe, A::AbstractMatrix)
     # set the core to be the number of rows and columns in the matrix
-    core.core_view = view(core.core, 1:decomp.n_rows, 1:decomp.n_cols)
+    core.core_view = view(core.core, 1:decomp.n_row_vecs, 1:decomp.n_col_vecs)
     copyto!(core.core_view, A(decomp.row_idx, decomp.col_idx))
     core.qr_decomp = qr!(core.core_view)
     return nothing

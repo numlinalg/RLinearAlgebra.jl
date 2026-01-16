@@ -13,6 +13,18 @@ the computation of the core linking matrix in a CUR decomposition.
 """
 abstract type CoreRecipe end
 
+function size(approx::CoreRecipe)
+    return approx.n_rows, approx.n_cols
+end
+
+function size(approx::CoreRecipe, 1)
+    return approx.n_rows
+end
+
+function size(approx::CoreRecipe, 2)
+    return approx.n_cols
+end
+
 """
     CUR
 
@@ -51,7 +63,7 @@ In practice numerous randomized methods match the performance of this best possi
 - `col_selector::Selector`, the technique used for selecting column indices from a matrix.
 - `row_selector::Selector`, the technique used for selecting row indices from a matrix.
 - `core::Core`, the method for computing the core linking matrix, `U`, in the CUR.
-
+- `blocksize::Int64`, number of vectors stored in a buffer matrix for multiplication.
 # Constructor
     CUR(rank;
         oversample = 0,
@@ -67,6 +79,7 @@ mutable struct CUR
     col_selector::Selector
     row_selector::Selector
     core::Core
+    blocksize::Int64
 end
 
 
@@ -76,7 +89,7 @@ function CUR(rank;
         selector_rows = selector_cols,
         core = CrossApproximation(),
     )
-    return CUR(rank, oversample, selector_cols, selector_rows, core)
+    return CUR(rank, oversample, selector_cols, selector_rows, core, 0)
 end
 
 """
@@ -86,13 +99,28 @@ A struct that contains the preallocated memory, completed compressor, and select
     a CUR approximation.
 """
 mutable struct CURRecipe{CR<:CoreRecipe}
-    n_rows::Int64
-    n_cols::Int64
+    n_row_vecs::Int64
+    n_col_vecs::Int64
     row_idx::Vector{Int64}
     col_idx::Vector{Int64}
     C::AbstractMatrix
     U::CR
     R::AbstractMatrix
+    buffer_row::AbstractArray
+    buffer_core::AbstractArray
+end
+
+# write the size functions for CUR
+function size(approx::CURRecipe)
+    return (size(approx.C, 1), size(approx.R, 2))
+end
+
+function size(approx::CURRecipe, 1)
+    return size(approx.C, 1)
+end
+
+function size(approx::CURRecipe, 2)
+    return size(approx.R, 2)
 end
 
 function complete_approximator(ingredients::CUR, A::AbstractMatrix)
@@ -105,16 +133,42 @@ function complete_approximator(ingredients::CUR, A::AbstractMatrix)
     C = Matrix{eltype(A)}(undef, size(A, 1), n_col_vecs)
     R = Matrix{eltype(A)}(undef, n_row_vecs, size(A, 2))
     U = complete_core(CUR, CUR.core, A)
-    return CURRecipe(n_row_vecs, n_col_vecs, row_idx, col_idx, C, U, R)
+    return CURRecipe(
+        n_row_vecs, 
+        n_col_vecs, 
+        row_idx, 
+        col_idx, 
+        C, 
+        U, 
+        R, 
+        # because of oversampling
+        zeros(n_row_vecs, ingredients.blocksize),
+        zeros(n_col_vecs, ingredients.blocksize)
+    )
 end
 
+# add function for computing the size of the CURRecipe
+function size(A::CURRecipe)
+    return size(A.C, 1), size(A.R, 2)
+end
+
+
+function size(A::CURRecipe, 2)
+    return size(A.R, 2)
+end
+
+function size(A::CURRecipe, 1)
+    return size(A.C, 1)
+end
+
+# Implement the rapproximate function
 function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::AbstractMatrix)
     # select column indices
     select_indices!(
         approx.col_idx,
         approx.col_selector,
         A,
-        approx.n_cols,
+        approx.n_col_vecs,
         1
     )
     
@@ -126,7 +180,7 @@ function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::Abstract
         approx.row_idx,
         approx.row_selector,
         approx.C',
-        approx.n_rows,
+        approx.n_row_vecs,
         1
     )
 
@@ -143,7 +197,7 @@ function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::Abstract
         approx.col_idx,
         approx.col_selector,
         A,
-        approx.n_cols,
+        approx.n_col_vecs,
         1
     )
     
@@ -153,7 +207,7 @@ function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::Abstract
         approx.row_idx,
         approx.row_selector,
         A',
-        approx.n_rows,
+        approx.n_row_vecs,
         1
     )
 
@@ -173,3 +227,214 @@ function rapproximate(approx::CUR, A::AbstractMatrix)
 end
 
 # Implement the muls
+function mul!(
+    C::AbstractArray, 
+    approx::CURRecipe, 
+    A::AbstractArray, 
+    alpha::Number, 
+    beta::Number
+)
+    # determine size of buffer we have and how much we need
+    # okay just checking row buffer because both have the same number of columns
+    buff_r_n = size(approx.buffer_row, 2)
+    m, n = size(A)
+    n_its = div(n, buff_r_n)
+    last_block = rem(n, buff_r_n)
+    # if the buffer is bigger than necessary set blocksize to be the 
+    # number of columns in A
+    blocksize = min(buff_r_n, n)
+    # Perform first iteration to scale C by beta
+    br_v = view(approx.buffer_row, :, 1:blocksize)
+    bc_v = view(approx.buffer_core, :, 1:blocksize)
+    Cv = view(C, :, 1:blocksize)
+    mul!(br_v, approx.R, A[:, 1:blocksize])
+    mul!(bc_v, approx.U, br_v)
+    mul!(Cv, approx.C, bc_v, alpha, beta) 
+
+    start = blocksize + 1
+    # perform remaining necessary iterations
+    for i = 2:n_its
+        last = start + blocksize
+        # if in the loop using all columns of buffer
+        br_v = view(approx.buffer_row, :, :)
+        bc_v = view(approx.buffer_core, :, :)
+        Cv = view(C, :, start:last)
+        mul!(br_v, approx.R, A[:, start:last])
+        mul!(bc_v, approx.U, br)
+        mul!(Cv, approx.C, bc_v, alpha, beta)
+        start = last + 1
+    end
+
+    # complete the last block which could differ from block size
+    if n_its > 0 && last_block > 0
+        last = start + last_block 
+        # perform last block
+        br_v = view(approx.buffer_row, :, 1:last_block)
+        bc_v = view(approx.buffer_core, :, 1:last_block)
+        Cv = view(C, :, start:last)
+        mul!(br_v, approx.R, A[:, start:last])
+        mul!(bc_v, approx.U, br_v)
+        mul!(Cv, approx.C, bc_v, alpha, beta)
+    end
+
+    return
+end
+
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    approx::CURRecipe, 
+    alpha::Number, 
+    beta::Number
+)
+    # determine size of buffer we have and how much we need
+    # okay just checking row buffer because both have the same number of columns
+    buff_r_n = size(approx.buffer_row, 2)
+    m, n = size(A)
+    n_its = div(m, buff_r_n)
+    last_block = rem(m, buff_r_n)
+    # if the buffer is bigger than necessary set blocksize to be the 
+    # number of columns in A
+    blocksize = min(buff_r_n, n)
+    # Perform first iteration to scale C by beta
+    br_v = view(approx.buffer_row, :, 1:blocksize)
+    bc_v = view(approx.buffer_core, :, 1:blocksize)
+    Cv = view(C, 1:blocksize, :)
+    mul!(bc_v', A[1:blocksize, :], approx.C)
+    mul!(br_v', bc_v', approx.U)
+    mul!(Cv, br_v', approx.R, alpha, beta) 
+
+    start = blocksize + 1
+    # perform remaining necessary iterations
+    for i = 2:n_its
+        last = start + blocksize
+        # if in the loop using all columns of buffer
+        br_v = view(approx.buffer_row, :, :)
+        bc_v = view(approx.buffer_core, :, :)
+        Cv = view(C, start:last, :) 
+        mul!(bc_v', A[start:last, :], approx.C)
+        mul!(br_v', bc_v', approx.U)
+        mul!(Cv, br_v', approx.R, alpha, beta) 
+        start = last + 1
+    end
+
+    # complete the last block which could differ from block size
+    if n_its > 0 && last_block > 0
+        last = start + last_block
+        # perform last block
+        br_v = view(approx.buffer_row, :, 1:last_block)
+        bc_v = view(approx.buffer_core, :, 1:last_block)
+        Cv = view(C, start:last, :)
+        mul!(bc_v', A[start:last, :], approx.C)
+        mul!(br_v', bc_v', approx.U)
+        mul!(Cv, br_v', approx.R, alpha, beta) 
+    end
+
+    return
+end
+
+function mul!(
+    C::AbstractArray, 
+    approx::Adjoint{CURRecipe}, 
+    A::AbstractArray, 
+    alpha::Number, 
+    beta::Number
+)
+    # determine size of buffer we have and how much we need
+    # okay just checking row buffer because both have the same number of columns
+    buff_r_n = size(approx.buffer_row, 2)
+    m, n = size(A)
+    n_its = div(n, buff_r_n)
+    last_block = rem(n, buff_r_n)
+    # if the buffer is bigger than necessary set blocksize to be the 
+    # number of columns in A
+    blocksize = min(buff_r_n, n)
+    # Perform first iteration to scale C by beta
+    br_v = view(approx.buffer_row, :, 1:blocksize)
+    bc_v = view(approx.buffer_core, :, 1:blocksize)
+    Cv = view(C, :, 1:blocksize)
+    mul!(bc_v, approx.C', A[:, 1:blocksize])
+    mul!(br_v, approx.U', bc_v)
+    mul!(Cv, approx.R', br_v, alpha, beta) 
+
+    start = blocksize + 1
+    # perform remaining necessary iterations
+    for i = 2:n_its
+        last = start + blocksize
+        # if in the loop using all columns of buffer
+        br_v = view(approx.buffer_row, :, :)
+        bc_v = view(approx.buffer_core, :, :)
+        Cv = view(C, :, start:last)
+        mul!(bc_v, approx.C', A[:, start:last])
+        mul!(br_v, approx.U', bc_v)
+        mul!(Cv, approx.R', br_v, alpha, beta) 
+        start = last + 1
+    end
+
+    # complete the last block which could differ from block size
+    if n_its > 0 && last_block > 0
+        last = start + last_block 
+        # perform last block
+        br_v = view(approx.buffer_row, :, 1:last_block)
+        bc_v = view(approx.buffer_core, :, 1:last_block)
+        Cv = view(C, :, start:last)
+        mul!(bc_v, approx.C', A[:, start:last])
+        mul!(br_v, approx.U', bc_v)
+        mul!(Cv, approx.R', br_v, alpha, beta) 
+    end
+
+    return
+end
+
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    approx::Adjoint{CURRecipe}, 
+    alpha::Number, 
+    beta::Number
+)
+    # determine size of buffer we have and how much we need
+    # okay just checking row buffer because both have the same number of columns
+    buff_r_n = size(approx.buffer_row, 2)
+    m, n = size(A)
+    n_its = div(m, buff_r_n)
+    last_block = rem(m, buff_r_n)
+    # if the buffer is bigger than necessary set blocksize to be the 
+    # number of columns in A
+    blocksize = min(buff_r_n, n)
+    # Perform first iteration to scale C by beta
+    br_v = view(approx.buffer_row, :, 1:blocksize)
+    bc_v = view(approx.buffer_core, :, 1:blocksize)
+    Cv = view(C, 1:blocksize, :)
+    mul!(br_v', A[1:blocksize, :], approx.R')
+    mul!(bc_v', br_v', approx.U')
+    mul!(Cv, bc_v', approx.C', alpha, beta) 
+
+    start = blocksize + 1
+    # perform remaining necessary iterations
+    for i = 2:n_its
+        last = start + blocksize
+        # if in the loop using all columns of buffer
+        br_v = view(approx.buffer_row, :, :)
+        bc_v = view(approx.buffer_core, :, :)
+        Cv = view(C, start:last, :) 
+        mul!(br_v', A[start:last, :], approx.R')
+        mul!(bc_v', br_v', approx.U')
+        mul!(Cv, bc_v', approx.C', alpha, beta) 
+        start = last + 1
+    end
+
+    # complete the last block which could differ from block size
+    if n_its > 0 && last_block > 0
+        last = start + last_block
+        # perform last block
+        br_v = view(approx.buffer_row, :, 1:last_block)
+        bc_v = view(approx.buffer_core, :, 1:last_block)
+        Cv = view(C, start:last, :)
+        mul!(br_v', A[start:last, :], approx.R')
+        mul!(bc_v', br_v', approx.U')
+        mul!(Cv, bc_v', approx.C', alpha, beta)
+    end
+
+    return
+end
