@@ -188,15 +188,28 @@ Specifically these steps are:
 2. Compute the ``W,S,V = \text{svd}(Q^\top A)``.
 3. Obtain the left singular vectors from ``U = Q^\top W``.
 
-Since, the RandomizedSVD is built on the Randomized RangeFinder, the effects
-of all modifications, such as power iterations and orthogonalization still apply.
+Since, the RandomizedSVD is simply an extension of the Randomized RangeFinder, the effects
+of all modifications, such as power iterations and orthogonalization still apply.  The 
+difference between the two procedures is found in the Recipes. Where for the `RandSVDRecipe`
+you find a approximate truncated SVD where the singular values can be accessed by 
+calling `recipe.S`, the left singular vectors can be accessed by calling `recipe.U`,
+and the right singular vectors can be accessed by calling `recipe.V`. Additionally, 
+when you multiply with the RandomizedSVD it is as if you are multiplying with the 
+truncated SVD, meaning for a vector ``x`` the operation ``USV^\top x`` is performed. This 
+type of multiplication can be substantially faster than multiplications with the original 
+matrix.
 
-
+!!! info
+    As for the RandomizedSVD if the cardinality of the compressor is not `Right()` a warning 
+    will be returned and the approximation may be incorrect.
 
 ## A RandSVD example
-We demonstrate how to generate a rank 5 RandomziedSVD in `RLinearAlgebra` with the 
-Fast Johnson-Lindenstrauss compressor (see [`FJLT`](@ref)).
-See [`RandSVD`](@ref) for interface details.
+We now demonstrate how to use the RandSVD, by first generating the technique structure 
+with a `FJLT` compressor with `compression_dim = 5` and `cardinality = Right()`. Then we 
+will run `rapproximate` and compare the singular values of the returned recipe to the 
+5 singular values of the truncated SVD. We will then end the experiment by comparing 
+the difference between multiplying a our `RandSVDRecipe` to vector and multiplying the 
+original matrix.
 
 ```julia
 using RLinearAlgebra, LinearAlgebra
