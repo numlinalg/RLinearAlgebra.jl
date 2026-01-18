@@ -19,20 +19,8 @@ Once one of the above representations has been obtained they can then be used to
 matrix multiplication, clustering, or approximate eigenvalue decompositions 
 [halko2011finding, eckart1936approximation, udell2019why, park2025curing](@cite).
  
-Low rank approximations can take two different forms one being the orthogonal projection 
-form where coordinates are projected perpendicularly to onto a plane and the second being
-the oblique forms where points are projected along another plane (see the below figure 
-for a visualization).
-```@raw html
-<img src="../images/projection.png" width =400 height = 300/> 
-```
-
-We also can consider low-rank approximations for symmetric matrices and general matrices.
-For symmetric and general matrices, the RandomizedSVD can be used as the orthogonal 
-projection method [halko2011finding](@cite).   
-
-As far as oblique methods go, the difference between symmetric and asymmetric decompositions
-becomes more complicated. For symmetric matrices, the go to approximation is the Nystrom
+The type of approximation depends on the symmetry of the matrix. 
+For symmetric matrices, the go to approximation is the Nystrom
 approximation. For the non-symmetric matrices, we can have a generalization of Nystrom 
 known as Generalized Nystrom or we can interpolative approaches, which select subsets of 
 the rows and/or columns to a matrix. If it these interpolative decompositions are performed 
@@ -40,14 +28,14 @@ to select only columns or only rows then they are known as one sided IDs, if the
 to select both columns and rows then they are known as a CUR decomposition. Below, we 
 present a summary of the decompositions in a table. 
 
-|Approximation Name| General Matrices| Interpolative| Type| Form of Approximation|
-|:-----------------|:----------------|:-------------|:----|:---------------------|
-|RandRangeFinder| Yes| No| Orthogonal| ``A \approx QQ^\top A``|
-|RandSVD|Yes|No|Orthogonal|``A \approx U \Sigma V^\top``|
-|Nystrom| Symmetric| Can be| Oblique| ``(AS)((SA)^\top AS)^\dagger(AS)^\top``|
-|Generalizedd Nystrom| Yes| Can be| Oblique| ``(AS_1)(S_2A AS_1)^\dagger S_2 A``|
-|CUR| Yes| Yes| Oblique| ``(A[:,J])U(A[I,:])``|
-|One-Sided-ID| Yes| Yes| Oblique| ``A[:,J]U_c`` or ``U_r A[I,:]``|
+|Approximation Name|Matrix Type| Form of Approximation|
+|:-----------------|:----------------|:---------------------|
+|RandRangeFinder| General| ``A \approx QQ^\top A``|
+|RandSVD|General|``A \approx U \Sigma V^\top``|
+|Nystrom| Symmetric|  ``(AS)((SA)^\top AS)^\dagger(AS)^\top``|
+|Generalized Nystrom| General|  ``(AS_1)(S_2A AS_1)^\dagger S_2 A``|
+|CUR| Yes| Yes| General| ``(A[:,J])U(A[I,:])``|
+|One-Sided-ID| General|  ``A[:,J]U_c`` or ``U_r A[I,:]``|
 
 In RLinearAlgebra, 
 once you have obtained a low-rank approximation `Recipe` you can then use it to perform 
