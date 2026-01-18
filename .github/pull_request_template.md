@@ -1,19 +1,30 @@
 <!--- Provide a general summary of your changes in the Title above -->
-<!--- Please be sure to request review from @Vivak, @Adrian, and/or @Nathaniel -->
+<!--- Please be sure to request review from @vp314, @dmaldona, and/or @nathanielpritchard -->
 
 ## Description
 <!--- Describe your changes in detail and include references -->
-<!--- Please indicate any issues resolved -->
+Fixes # <!--- If there is an issue being resolved, please indicate it here. Otherwise delete this line. -->
 
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
 <!--- If it fixes an open issue, please link to the issue here. -->
 
+## How has this been tested
+<!--- Please describe the manual steps a reviewer can take to verify your changes. -->
+<!--- This is critical for ensuring the change works as expected. -->
+
 ## Types of changes
+<!--- The types are adapted from https://kapeli.com/cheat_sheets/Conventional_Commits.docset/Contents/Resources/Documents/index -->
 <!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] CI <!--- Changes to the continuous integration configuration -->
+- [ ] Docs <!--- Documentation only changes -->
+- [ ] Feature <!--- Non-breaking changes that adds a new feature -->
+- [ ] Fix <!--- Non-breaking change which addresses an issue -->
+- [ ] Performance <!--- A code change that improves performance -->
+- [ ] Refactor <!--- Non-breaking change that neither fixes a bug nor adds a feature -->
+- [ ] Style <!--- A change that corrects the style of the code presentation -->
+- [ ] Test <!--- Adding missing tests or correcting existing tests -->
+- [ ] Other (**use sparingly**): <!--- Use this sparingly. Please describe the type of change. -->
 
 ## Checklists:
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->

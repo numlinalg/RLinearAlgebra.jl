@@ -15,14 +15,24 @@ makedocs(
     modules = [RLinearAlgebra],
     pages = [
         "Home" => "index.md",
-#        "Tutorials" => [
-#            "Introduction" => "tutorials/introduction.md",
-#            "Getting started" => "tutorials/getting_started.md"
-#        ],
         "Manual" => [
             "Introduction" => "manual/introduction.md", 
             "Compression" => "manual/compression.md",
             "Low-Rank Approximation" => "manual/low_rank_approximators.md",
+        ],
+        "Tutorials" => [
+            "tutorials/tutorials_overview.md",
+            "Compressors" => [
+                "tutorials/compressors/compressor_example.md",
+            ],
+            "Consistent Linear System" => [
+                "tutorials/consistent_system/consistent_system.md",
+                "tutorials/consistent_system/configuring_kaczmarz.md",
+            ],
+            "Least Squares" => [
+                "tutorials/least_squares/least_squares.md",
+                #"tutorials/least_squares/least_squares_configure.md",
+            ],
         ],
         "API Reference" => [
             "Compressors" => [
@@ -37,6 +47,7 @@ makedocs(
             ],
             "Approximators" => [
                 "Approximators API" => "api/approximators.md",
+                "Selectors API" => "api/selectors.md",
                 "ApproximatorErrors API" => "api/approximator_errors.md",
             ],
         ],
@@ -49,6 +60,6 @@ makedocs(
 # for more information.
 deploydocs(
     repo = "github.com/numlinalg/RLinearAlgebra.jl",
-    devbranch = "master", # master's newest commit will become dev
+    devbranch = "main", # master's newest commit will become dev
     push_preview = true # pull requests to the master will become available
 )

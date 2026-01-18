@@ -12,6 +12,14 @@ SolverRecipe
 
 ## Solver Structures
 ```@docs
+ColumnProjection
+
+ColumnProjectionRecipe
+
+IHS
+
+IHSRecipe
+
 Kaczmarz
 
 KaczmarzRecipe
@@ -26,6 +34,10 @@ rsolve!
 
 ## Internal Functions
 ```@docs
+RLinearAlgebra.colproj_update!
+
+RLinearAlgebra.colproj_update_block!
+
 RLinearAlgebra.kaczmarz_update!
 
 RLinearAlgebra.kaczmarz_update_block!
