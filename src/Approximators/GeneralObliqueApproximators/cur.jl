@@ -1,32 +1,10 @@
-"""
-    Core
-
-An abstract type for the computation of the core linking matrix in a CUR decomposition.
-"""
-abstract type Core end
+###########################################
+# Include the CURCore definition
+##########################################
+include("CURCore.jl")
 
 """
-    CoreRecipe
-
-An abstract type for the recipes containg the preallocated information needed for 
-the computation of the core linking matrix in a CUR decomposition.
-"""
-abstract type CoreRecipe end
-
-function size(approx::CoreRecipe)
-    return approx.n_rows, approx.n_cols
-end
-
-function size(approx::CoreRecipe, 1)
-    return approx.n_rows
-end
-
-function size(approx::CoreRecipe, 2)
-    return approx.n_cols
-end
-
-"""
-    CUR
+    CUR <: Approximator
 
 A struct that implements the CUR decomposition for forming low-rank approximations to 
     a matrix, ``A``. This technique selects column subsets, ``C``, row subsets, ``R``, and a 
@@ -37,13 +15,13 @@ A struct that implements the CUR decomposition for forming low-rank approximatio
     ``
 This will always form the CUR approximation by selecting columns followed by rows. If you 
     desire to approximate columns first, input `A'`.
-# Mathamatical Description
+# Mathematical Description
 In general finding a set of ``I`` and ``J`` that minimize the qpproximation quality is a
     NP-hard problem (you're not going to do it); thus, we often aim to find sufficiently 
     good indices. The best known quality of a rank ``r`` cur approximation to a  matrix
     ``\\tilde A_r`` is known to be 
     ``
-        \\|A - \\tilde A_r \\|_F \\leq (r + 1) \|A - A_r\|_F,
+        \\|A - \\tilde A_r \\|_F \\leq (r + 1) \\|A - A_r\\|_F,
     ``
     where ``A_r`` is the rank-``r`` truncated svd.
 
@@ -72,13 +50,12 @@ In practice numerous randomized methods match the performance of this best possi
         core = CrossApproximation(),
     )
 """
-
-mutable struct CUR
+mutable struct CUR <: Approximator
     rank::Int64
     oversample::Int64
     col_selector::Selector
     row_selector::Selector
-    core::Core
+    core::CURCore
     blocksize::Int64
 end
 
@@ -93,12 +70,12 @@ function CUR(rank;
 end
 
 """
-    CURRecipe
+    CURRecipe <: ApproximatorRecipe
 
 A struct that contains the preallocated memory, completed compressor, and selector to form
     a CUR approximation.
 """
-mutable struct CURRecipe{CR<:CoreRecipe}
+mutable struct CURRecipe{CR<:CURCoreRecipe} <: ApproximatorRecipe
     n_row_vecs::Int64
     n_col_vecs::Int64
     row_idx::Vector{Int64}
@@ -110,17 +87,29 @@ mutable struct CURRecipe{CR<:CoreRecipe}
     buffer_core::AbstractArray
 end
 
+
+###############################################
+# Include files for core implementations
+###############################################
+include("./CURCore/cross_approximation.jl")
+
 # write the size functions for CUR
 function size(approx::CURRecipe)
-    return (size(approx.C, 1), size(approx.R, 2))
+    return size(approx.C, 1), size(approx.R, 2)
 end
 
-function size(approx::CURRecipe, 1)
-    return size(approx.C, 1)
+function Base.size(S::CURRecipe, dim::Int64)
+    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    return dim == 1 ? size(approx.C, 1) : size(approx.R, 2)
 end
 
-function size(approx::CURRecipe, 2)
-    return size(approx.R, 2)
+function size(approx::Adjoint{CURRecipe})
+    return size(approx.R, 2), size(approx.C, 1)
+end
+
+function Base.size(S::Adjoint{CURRecipe}, dim::Int64)
+    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
+    return dim == 1 ? size(approx.R, 2) : size(approx.C, 1)
 end
 
 function complete_approximator(ingredients::CUR, A::AbstractMatrix)
@@ -145,20 +134,6 @@ function complete_approximator(ingredients::CUR, A::AbstractMatrix)
         zeros(n_row_vecs, ingredients.blocksize),
         zeros(n_col_vecs, ingredients.blocksize)
     )
-end
-
-# add function for computing the size of the CURRecipe
-function size(A::CURRecipe)
-    return size(A.C, 1), size(A.R, 2)
-end
-
-
-function size(A::CURRecipe, 2)
-    return size(A.R, 2)
-end
-
-function size(A::CURRecipe, 1)
-    return size(A.C, 1)
 end
 
 # Implement the rapproximate function

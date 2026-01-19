@@ -65,7 +65,7 @@ end
             # check that the core is identity
             @test sum(diag(recipe.core) .== 1) == rank
             @test size(approx.core_view) == (2, 2)
-            @test typeof(approx.qr_decomp) <: QR
+            @test typeof(approx.qr_decomp) <: LinearAlgebra.QRCompactWY
         end
 
         # test with sparse matrix
@@ -83,7 +83,55 @@ end
             # check that the core is identity
             @test sum(diag(recipe.core) .== 1) == rank
             @test size(approx.core_view) == (2, 2)
-            @test typeof(approx.qr_decomp) <: QR
+            @test typeof(approx.qr_decomp) <: SparseArrays.SPQR.QRSparse
+        end
+
+    end
+    
+    @testset "CrossApproximation: Update Core" begin
+        # test with matrix
+        let n_rows = 10,
+            n_cols = 10,
+            rank = 2,
+            oversample = 1,
+            A = sprand(n_rows, rank, .9) * sprand(rank, n_cols, .9)
+            approx = TestCUR(rank, oversample) 
+            core = CrossApproximation()
+
+            # test the complete core function
+            recipe = complete_core(approx, core, A)
+            approx_recipe = complete_approximator(approx, A)
+            # update the core recipe
+            update_recipe!(recipe, approx_recipe, A)
+            # check that a QR decomposition is stored of with correct sizes
+            @test size(recipe) == (rank, rank + oversample)
+            # check that the core is the correct QR decomposition
+            @test typeof(approx.qr_decomp) <: LinearAlgebra.QRCompactWY
+            Q, R = qr(A[approx_recipe.col_idx, approx_recipe.row_idx])
+            @test approx.qr_decomp.Q == Q
+            @test approx.qr_decomp.R == R
+        end
+
+        # test with Spasrse matrix
+        let n_rows = 10,
+            n_cols = 10,
+            rank = 2,
+            oversample = 1,
+            A = rand(n_rows, rank) * rand(rank, n_cols)
+            approx = TestCUR(rank, oversample) 
+            core = CrossApproximation()
+             # test the complete core function
+            recipe = complete_core(approx, core, A)
+            approx_recipe = complete_approximator(approx, A)
+            # update the core recipe
+            update_recipe!(recipe, approx_recipe, A)
+            # check that a QR decomposition is stored of with correct sizes
+            @test size(recipe) == (rank, rank + oversample)
+            # check that the core is the correct QR decomposition
+            @test typeof(approx.qr_decomp) <: SparseArrays.SPQR.QRSparse
+            Q, R = qr(A[approx_recipe.col_idx, approx_recipe.row_idx])
+            @test approx.qr_decomp.Q == Q
+            @test approx.qr_decomp.R == R
         end
 
     end

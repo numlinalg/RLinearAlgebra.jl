@@ -2,12 +2,12 @@ module RLinearAlgebra
 import Base.:*
 import Base: transpose, adjoint
 import LinearAlgebra: Adjoint, axpby!, dot, I, ldiv!, lmul!, lq!, lq, LQ, lu!
-import LinearAlgebra: mul!, norm, qr!, svd
+import LinearAlgebra: mul!, norm, qr!, QRCompactWY, svd
 import StatsBase: sample, sample!, ProbabilityWeights, wsample!
 import Random: bitrand, rand!, randn!
-import SparseArrays: SparseMatrixCSC, sprandn, sparse
+import SparseArrays: SparseMatrixCSC, sparse, SPQR, sprandn
 
-# Include the files correspoding to the top-level techniques
+# Include the files corresponding to the top-level techniques
 include("Compressors.jl")
 include("Solvers.jl")
 include("Approximators.jl")
@@ -19,6 +19,9 @@ export rapproximate, rapproximate!, complete_approximator
 export RangeApproximator, RangeApproximatorRecipe
 export RangeFinder, RangeFinderRecipe
 export RandSVD, RandSVDRecipe
+export CUR, CURRecipe
+export Core, CoreRecipe 
+export CrossApproximation, CrossApproximationRecipe
 
 # Export Compressor types and functions
 export Compressor, CompressorRecipe, CompressorAdjoint
@@ -66,4 +69,7 @@ export complete_approximator_error, compute_approximator_error, compute_approxim
 export Selector, SelectorRecipe
 export LUPP, LUPPRecipe
 export complete_selector, update_selector!, select_indices!
+
+# Export CUR 
+
 end #module
