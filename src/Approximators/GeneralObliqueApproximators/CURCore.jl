@@ -54,4 +54,3 @@ function Base.size(S::CURCoreAdjoint, dim::Int64)
     ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
     return dim == 1 ? S.parent.n_cols : S.parent.n_rows
 end
-

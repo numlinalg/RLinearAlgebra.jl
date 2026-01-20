@@ -72,12 +72,13 @@ end
 """
     CURRecipe <: ApproximatorRecipe
 
-A struct that contains the preallocated memory, completed compressor, and selector to form
-    a CUR approximation.
+A struct that contains the CUR approximation. It is created  
 """
 mutable struct CURRecipe{CR<:CURCoreRecipe} <: ApproximatorRecipe
     n_row_vecs::Int64
     n_col_vecs::Int64
+    col_selector::SelectorRecipe
+    row_selector::SelectorRecipe
     row_idx::Vector{Int64}
     col_idx::Vector{Int64}
     C::AbstractMatrix
@@ -125,6 +126,8 @@ function complete_approximator(ingredients::CUR, A::AbstractMatrix)
     return CURRecipe(
         n_row_vecs, 
         n_col_vecs, 
+        col_selector,
+        row_selector,
         row_idx, 
         col_idx, 
         C, 
@@ -136,70 +139,9 @@ function complete_approximator(ingredients::CUR, A::AbstractMatrix)
     )
 end
 
-# Implement the rapproximate function
-function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::AbstractMatrix)
-    # select column indices
-    select_indices!(
-        approx.col_idx,
-        approx.col_selector,
-        A,
-        approx.n_col_vecs,
-        1
-    )
-    
-    # gather the columns to select rows dependently 
-    copyto!(approx.C, A[:, approx.col_idx])
-
-    # select row indices
-    select_indices!(
-        approx.row_idx,
-        approx.row_selector,
-        approx.C',
-        approx.n_row_vecs,
-        1
-    )
-
-    # gather the rows entries 
-    copyto!(approx.R, A[:, approx.row_idx])
-    # Compute the core matrix
-    update_core!(approx.U, approx, A)
-    return nothing
-end
-
-function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::AbstractMatrix)
-    # select column indices
-    select_indices!(
-        approx.col_idx,
-        approx.col_selector,
-        A,
-        approx.n_col_vecs,
-        1
-    )
-    
-
-    # select row indices
-    select_indices!(
-        approx.row_idx,
-        approx.row_selector,
-        A',
-        approx.n_row_vecs,
-        1
-    )
-
-    # gather the rows entries 
-    copyto!(approx.R, A[:, approx.row_idx])
-    # gather column entries
-    copyto!(approx.C, A[:, approx.col_idx])
-    # Compute the core matrix
-    update_core!(approx.U, approx, A)
-    return nothing
-end
-
-function rapproximate(approx::CUR, A::AbstractMatrix)
-    approx_recipe = complete_approximator(approx, A)
-    rapproximate!(approx_recipe, A)
-    return  approx_recipe
-end
+# implenetations of rapproximate can be found with the core matrix implementations
+# This is done to ensure stability as different core matrix approaches require 
+# different organizations of the CUR selection
 
 # Implement the muls
 function mul!(

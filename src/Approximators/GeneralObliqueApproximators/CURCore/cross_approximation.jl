@@ -56,6 +56,37 @@ function update_core!(core::CrossApproximationRecipe, decomp::CURRecipe, A::Abst
     return nothing
 end
 
+
+# Implement the rapproximate function for the Cross Approximation 
+function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::AbstractMatrix)
+    # select column indices
+    select_indices!(
+        approx.col_idx,
+        approx.col_selector,
+        A,
+        approx.n_col_vecs,
+        1
+    )
+    
+    # gather the columns to select rows dependently 
+    copyto!(approx.C, A[:, approx.col_idx])
+
+    # select row indices depent on the columns selected
+    select_indices!(
+        approx.row_idx,
+        approx.row_selector,
+        approx.C',
+        approx.n_row_vecs,
+        1
+    )
+
+    # gather the rows entries 
+    copyto!(approx.R, A[:, approx.row_idx])
+    # Compute the core matrix
+    update_core!(approx.U, approx, A)
+    return nothing
+end
+
 function mul!(
     C::AbstractArray, 
     core::CrossApproximationRecipe, 
