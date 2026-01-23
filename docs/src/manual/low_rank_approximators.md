@@ -23,11 +23,12 @@ matrix multiplication, clustering, or approximate eigenvalue decompositions
 [halko2011finding, eckart1936approximation, udell2019why, park2025curing](@cite).
  
 The type of approximation depends on the symmetry of the matrix. 
-For symmetric matrices, the go to approximation is the Nystrom
+For symmetric matrices, we can use the Nystrom
 approximation. For the non-symmetric matrices, we can have a generalization of Nystrom 
-known as Generalized Nystrom or we can interpolative approaches, which select subsets of 
-the rows and/or columns to a matrix. If it these interpolative decompositions are performed 
-to select only columns or only rows then they are known as one sided IDs, if they are used 
+known as Generalized Nystrom or we can interpolative decompositions(IDs), 
+which select subsets of the rows and/or columns of a matrix. If these interpolative 
+decompositions are performed to select only columns or only 
+rows then they are known as one sided IDs, if they are used 
 to select both columns and rows then they are known as a CUR decomposition. Below, we 
 present a summary of the decompositions in a table. 
 
@@ -96,7 +97,7 @@ orthogonalization is performed using the `orthogonalize` keyword argument in the
     will be returned and the approximation may be inefficient or less accurate.  
 
 ## A RangeFinder Example
-Lets say that we wish to obtain a five-dimensional Randomized Rangefinder approximation 
+Let's say that we wish to obtain a five-dimensional Randomized Rangefinder approximation 
 to matrix with 1000 rows and columns and a rank of five.
 In `RLinearAlgebra`, we can easily do this with the Fast Johnson-Lindenstrauss
 Compressor (see [`FJLT`](@ref)), say, as follows.
