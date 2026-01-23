@@ -350,6 +350,30 @@ Random.seed!(2131)
 
     end
 
+    @testset "Sparse Sign: Left Multiplication Sparse Transpose" begin
+        let n_rows = 6,
+            n_cols = 4,
+            nnz = 3,
+            c_dim = 5,
+            alpha = 1.25,
+            beta = 0.4
+
+            B = sprand(n_cols, n_rows, 0.6)
+            A = transpose(B)
+
+            S_info = SparseSign(; compression_dim=c_dim, nnz=nnz)
+            S = complete_compressor(S_info, A)
+            sparse_S = Matrix(S.op)
+
+            C = rand(c_dim, n_cols)
+            C0 = deepcopy(C)
+            A_dense = Matrix(A)
+
+            mul!(C, S, A, alpha, beta)
+            @test C ≈ alpha * (sparse_S * A_dense) + beta * C0
+        end
+    end
+
     # Test multimplcations with right compressors
     # Here we want to test the multiplication with matrices and vectors in the 
     # transposed and normal orientations for both the three and five argument mul!
