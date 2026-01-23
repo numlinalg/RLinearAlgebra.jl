@@ -41,7 +41,7 @@ In practice numerous randomized methods match the performance of this best possi
 - `col_selector::Selector`, the technique used for selecting column indices from a matrix.
 - `row_selector::Selector`, the technique used for selecting row indices from a matrix.
 - `core::Core`, the method for computing the core linking matrix, `U`, in the CUR.
-- `blocksize::Int64`, number of vectors stored in a buffer matrix for multiplication.
+- `block_size::Int64`, number of vectors stored in a buffer matrix for multiplication.
 # Constructor
     CUR(rank;
         oversample = 0,
@@ -56,11 +56,28 @@ mutable struct CUR <: Approximator
     col_selector::Selector
     row_selector::Selector
     core::CURCore
-    blocksize::Int64
+    block_size::Int64
+    function CUR(rank, oversample, col_selector, row_selector, core, block_size)
+        if rank < 0
+            return throw(ArgumentError("Field `rank` must be non-negative."))
+        end
+
+        if oversample < 0
+            return throw(ArgumentError("Field `oversample` must be non-negative."))
+        end
+
+        if block_size < 0 
+            return throw(ArgumentError("Field `block_size` must be non-negative."))
+        end
+
+        return new(rank, oversample, col_selector, row_selector, core, block_size)
+    end
+
 end
 
 
-function CUR(rank;
+function CUR(
+        rank = 1,
         oversample = 0,
         selector_cols = LUPP(),
         selector_rows = selector_cols,
@@ -95,7 +112,7 @@ end
 include("./CURCore/cross_approximation.jl")
 
 # write the size functions for CUR
-function size(approx::CURRecipe)
+function Base.size(approx::CURRecipe)
     return size(approx.C, 1), size(approx.R, 2)
 end
 
@@ -104,7 +121,7 @@ function Base.size(S::CURRecipe, dim::Int64)
     return dim == 1 ? size(approx.C, 1) : size(approx.R, 2)
 end
 
-function size(approx::Adjoint{CURRecipe})
+function Base.size(approx::Adjoint{CURRecipe})
     return size(approx.R, 2), size(approx.C, 1)
 end
 
@@ -116,13 +133,21 @@ end
 function complete_approximator(ingredients::CUR, A::AbstractMatrix)
     n_col_vecs = ingredients.rank
     n_row_vecs = ingredients.rank + ingredients.oversample
+    if n_row_vecs > size(A, 1)
+        throw(ArgumentError('`rank + oversample` is greater than number of rows.'))
+    end
+
+    if n_col_vecs > size(A, 2)
+        throw(ArgumentError('`rank` is greater than number of columns.'))
+    end
+
     col_idx = zeros(Int64, n_col_vecs)
     row_idx = zeros(Int64, n_row_vecs)
     col_selector = complete_selector(ingredients.col_selector, A)
     row_selector = complete_selector(ingredients.row_selector, A)
     C = Matrix{eltype(A)}(undef, size(A, 1), n_col_vecs)
     R = Matrix{eltype(A)}(undef, n_row_vecs, size(A, 2))
-    U = complete_core(CUR, CUR.core, A)
+    U = complete_core(ingredients.core, ingredients, A)
     return CURRecipe(
         n_row_vecs, 
         n_col_vecs, 
@@ -134,8 +159,8 @@ function complete_approximator(ingredients::CUR, A::AbstractMatrix)
         U, 
         R, 
         # because of oversampling
-        zeros(n_row_vecs, ingredients.blocksize),
-        zeros(n_col_vecs, ingredients.blocksize)
+        zeros(n_row_vecs, ingredients.block_size),
+        zeros(n_col_vecs, ingredients.block_size)
     )
 end
 
@@ -157,21 +182,21 @@ function mul!(
     m, n = size(A)
     n_its = div(n, buff_r_n)
     last_block = rem(n, buff_r_n)
-    # if the buffer is bigger than necessary set blocksize to be the 
+    # if the buffer is bigger than necessary set block_size to be the 
     # number of columns in A
-    blocksize = min(buff_r_n, n)
+    block_size = min(buff_r_n, n)
     # Perform first iteration to scale C by beta
-    br_v = view(approx.buffer_row, :, 1:blocksize)
-    bc_v = view(approx.buffer_core, :, 1:blocksize)
-    Cv = view(C, :, 1:blocksize)
-    mul!(br_v, approx.R, A[:, 1:blocksize])
+    br_v = view(approx.buffer_row, :, 1:block_size)
+    bc_v = view(approx.buffer_core, :, 1:block_size)
+    Cv = view(C, :, 1:block_size)
+    mul!(br_v, approx.R, A[:, 1:block_size])
     mul!(bc_v, approx.U, br_v)
     mul!(Cv, approx.C, bc_v, alpha, beta) 
 
-    start = blocksize + 1
+    start = block_size + 1
     # perform remaining necessary iterations
     for i = 2:n_its
-        last = start + blocksize
+        last = start + block_size
         # if in the loop using all columns of buffer
         br_v = view(approx.buffer_row, :, :)
         bc_v = view(approx.buffer_core, :, :)
@@ -210,21 +235,21 @@ function mul!(
     m, n = size(A)
     n_its = div(m, buff_r_n)
     last_block = rem(m, buff_r_n)
-    # if the buffer is bigger than necessary set blocksize to be the 
+    # if the buffer is bigger than necessary set block_size to be the 
     # number of columns in A
-    blocksize = min(buff_r_n, n)
+    block_size = min(buff_r_n, n)
     # Perform first iteration to scale C by beta
-    br_v = view(approx.buffer_row, :, 1:blocksize)
-    bc_v = view(approx.buffer_core, :, 1:blocksize)
-    Cv = view(C, 1:blocksize, :)
-    mul!(bc_v', A[1:blocksize, :], approx.C)
+    br_v = view(approx.buffer_row, :, 1:block_size)
+    bc_v = view(approx.buffer_core, :, 1:block_size)
+    Cv = view(C, 1:block_size, :)
+    mul!(bc_v', A[1:block_size, :], approx.C)
     mul!(br_v', bc_v', approx.U)
     mul!(Cv, br_v', approx.R, alpha, beta) 
 
-    start = blocksize + 1
+    start = block_size + 1
     # perform remaining necessary iterations
     for i = 2:n_its
-        last = start + blocksize
+        last = start + block_size
         # if in the loop using all columns of buffer
         br_v = view(approx.buffer_row, :, :)
         bc_v = view(approx.buffer_core, :, :)
@@ -263,21 +288,21 @@ function mul!(
     m, n = size(A)
     n_its = div(n, buff_r_n)
     last_block = rem(n, buff_r_n)
-    # if the buffer is bigger than necessary set blocksize to be the 
+    # if the buffer is bigger than necessary set block_size to be the 
     # number of columns in A
-    blocksize = min(buff_r_n, n)
+    block_size = min(buff_r_n, n)
     # Perform first iteration to scale C by beta
-    br_v = view(approx.buffer_row, :, 1:blocksize)
-    bc_v = view(approx.buffer_core, :, 1:blocksize)
-    Cv = view(C, :, 1:blocksize)
-    mul!(bc_v, approx.C', A[:, 1:blocksize])
+    br_v = view(approx.buffer_row, :, 1:block_size)
+    bc_v = view(approx.buffer_core, :, 1:block_size)
+    Cv = view(C, :, 1:block_size)
+    mul!(bc_v, approx.C', A[:, 1:block_size])
     mul!(br_v, approx.U', bc_v)
     mul!(Cv, approx.R', br_v, alpha, beta) 
 
-    start = blocksize + 1
+    start = block_size + 1
     # perform remaining necessary iterations
     for i = 2:n_its
-        last = start + blocksize
+        last = start + block_size
         # if in the loop using all columns of buffer
         br_v = view(approx.buffer_row, :, :)
         bc_v = view(approx.buffer_core, :, :)
@@ -316,21 +341,21 @@ function mul!(
     m, n = size(A)
     n_its = div(m, buff_r_n)
     last_block = rem(m, buff_r_n)
-    # if the buffer is bigger than necessary set blocksize to be the 
+    # if the buffer is bigger than necessary set block_size to be the 
     # number of columns in A
-    blocksize = min(buff_r_n, n)
+    block_size = min(buff_r_n, n)
     # Perform first iteration to scale C by beta
-    br_v = view(approx.buffer_row, :, 1:blocksize)
-    bc_v = view(approx.buffer_core, :, 1:blocksize)
-    Cv = view(C, 1:blocksize, :)
-    mul!(br_v', A[1:blocksize, :], approx.R')
+    br_v = view(approx.buffer_row, :, 1:block_size)
+    bc_v = view(approx.buffer_core, :, 1:block_size)
+    Cv = view(C, 1:block_size, :)
+    mul!(br_v', A[1:block_size, :], approx.R')
     mul!(bc_v', br_v', approx.U')
     mul!(Cv, bc_v', approx.C', alpha, beta) 
 
-    start = blocksize + 1
+    start = block_size + 1
     # perform remaining necessary iterations
     for i = 2:n_its
-        last = start + blocksize
+        last = start + block_size
         # if in the loop using all columns of buffer
         br_v = view(approx.buffer_row, :, :)
         bc_v = view(approx.buffer_core, :, :)
@@ -354,4 +379,50 @@ function mul!(
     end
 
     return
+end
+
+# functions for CUR must be placed here because they require the definition 
+# of CUR to work
+
+"""
+    complete_core()
+
+A function that generates a `CURCoreRecipe`given the arguments.
+
+# Arguments
+- `ingredients::CURCore`, a data structure containing the user-defined parameters 
+    associated with a particular type of linking matrix in a CUR decomposition.
+- `cur::CUR`, a data structure containing the user-defined parameters for the CUR 
+    approximation.
+- `A::AbstractMatrix`, a target matrix for approximation.
+"""
+function complete_core(core::CURCore, cur::CUR, A::AbstractMatrix)
+    return throw(
+        ArgumentError(
+            "No method `complete_core` exists for `CURCore` of type\
+            $(typeof(core)), `CUR`, and matrix of type $(typeof(A))."
+        )
+    ) 
+end
+
+"""
+    update_core!()
+
+A function that updates the `CURCoreRecipe` based on the parameters defined in the `CUR`
+    structure.
+
+# Arguments
+- `core::CURCoreRecipe`, a data structure containing the preallocated data structures 
+    necessary for computing the linking matrix in a CUR decomposition.
+- `cur::CURRecipe`, a data structure containing the user-defined parameters and 
+    preallocated .
+- `A::AbstractMatrix`, a target matrix for approximation.
+"""
+function update_core!(core::CURCoreRecipe, cur::CURRecipe, A::AbstractMatrix)
+    return throw(
+        ArgumentError(
+            "No method `update_core!` exists for `CURCore` of type\
+            $(typeof(core)), `CURRecipe`, and matrix of type $(typeof(A))."
+        )
+    )
 end

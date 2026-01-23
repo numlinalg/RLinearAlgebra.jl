@@ -30,35 +30,38 @@ mutable struct CrossApproximationRecipe <: CURCoreRecipe
     n_cols::Int64
     core::AbstractMatrix
     core_view::SubArray
-    qr_decomp::Union{QRCompactWY ,SPQR.QRSparse}
+    qr_decomp::Union{QRCompactWY, SPQR.QRSparse}
 end
 
-function complete_core(decomp::CUR, core::CrossApproximation,  A::AbstractMatrix)
+function complete_core(cur::CUR, core::CrossApproximation,  A::AbstractMatrix)
     # preallocate the core matrix with and Identity of the same type. We use identy because
     # this form preallocates all dense entries and works for sparse arrays.
-    core = typeof(A)(I, decomp.n_row_vecs, decomp.n_col_vecs)
+    core = typeof(A)(I, cur.rank + cur.oversample, cur.rank)
     core_view = view(core, 1:2, 1:2)
     qr_decomp = qr!(core_view)
-    return CrossApproximation(
-        decomp.n_row_vecs, 
-        decomp.n_col_vecs, 
+    return CrossApproximationRecipe(
+        cur.rank, 
+        cur.rank + cur.oversample, 
         core, 
         core_view, 
         qr_decomp
     )
 end
  
-function update_core!(core::CrossApproximationRecipe, decomp::CURRecipe, A::AbstractMatrix)
+function update_core!(core::CrossApproximationRecipe, cur::CURRecipe, A::AbstractMatrix)
     # set the core to be the number of rows and columns in the matrix
-    core.core_view = view(core.core, 1:decomp.n_row_vecs, 1:decomp.n_col_vecs)
-    copyto!(core.core_view, A[decomp.row_idx, decomp.col_idx])
-    core.qr_decomp = qr!(core.core_view)
+    # the core view is the number of rows by number of columns even though the size
+    # the core is number of columns by number of rows because of the transpose from the 
+    # implicit inversion of the core matrix
+    core.core_view = view(core.core, 1:cur.n_row_vecs, 1:cur.n_col_vecs)
+    copyto!(core.core_view, A[cur.row_idx, cur.col_idx])
+    core.qr_cur = qr!(core.core_view)
     return nothing
 end
 
 
 # Implement the rapproximate function for the Cross Approximation 
-function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::AbstractMatrix)
+function rapproximate!(approx::CURRecipe{CrossApproximationRecipe}, A::AbstractMatrix)
     # select column indices
     select_indices!(
         approx.col_idx,
@@ -81,12 +84,12 @@ function rapproximate!(appprox::CURRecipe{CrossApproximationRecipe}, A::Abstract
     )
 
     # gather the rows entries 
-    copyto!(approx.R, A[:, approx.row_idx])
+    copyto!(approx.R, A[approx.row_idx, :])
     # Compute the core matrix
     update_core!(approx.U, approx, A)
     return nothing
 end
-
+# you still need to figure out how to do these multiplications now the issue is that type of (A) does not work when A is a vector
 function mul!(
     C::AbstractArray, 
     core::CrossApproximationRecipe, 
@@ -94,26 +97,24 @@ function mul!(
     alpha::Number,
     beta::Number
 )
-    # to apply ldiv in place of 5 arg mul we first scale C by beta / alpha then apply alpha 
-    # at the end: alpha A + beta C = alpha (A + beta/alpha C)
-    lmul!(beta / alpha, C)
+    E = deepcopy(C)
+    lmul!(beta, E)
     ldiv!(C, core.qr_decomp, A)
     lmul!(alpha, C)
+    C .+= E
     return nothing
 end
     
 function mul!(
     C::AbstractArray, 
-    core::Adjoint{CrossApproximationRecipe}, 
+    core::CURCoreAdjoint{CrossApproximationRecipe}, 
     A::AbstractArray,
     alpha::Number,
     beta::Number
 )
-    # to apply ldiv in place of 5 arg mul we first scale C by beta / alpha then apply alpha 
-    # at the end: alpha A + beta C = alpha (A + beta/alpha C)
-    lmul!(beta / alpha, C)
-    ldiv!(C, core.qr_decomp', A)
-    lmul!(alpha, C)
+    E = typeof(A)(undef, size(core, 2), size(A, 2)) 
+    ldiv!(E, LowerTriangular(core.parent.qr_decomp.R'), A)
+    mul!(C, Array(core.parent.qr_decomp.Q), E, alpha, beta)
     return nothing
 end
 
@@ -124,21 +125,25 @@ function mul!(
     alpha::Number,
     beta::Number
 )
-    lmul!(beta / alpha, C)
-    ldiv!(C, core.qr_decomp, A)
-    lmul!(alpha, C)
+    E = typeof(A)(undef, size(A, 1), size(core, 1))
+    #AR^(-1) = (R^(-1)' A')' = ((R')^(-1)A')'
+    ldiv!(E', LowerTriangular(core.qr_decomp.R'), A')
+    # then multiply the Q from the right
+    mul!(C, E, core.qr_decomp.Q', alpha, beta)
     return nothing
 end
 
 function mul!(
     C::AbstractArray, 
     A::AbstractArray,
-    core::Adjoint{CrossApproximationRecipe}, 
+    core::CURCoreAdjoint{CrossApproximationRecipe}, 
     alpha::Number,
     beta::Number
 )
-    lmul!(beta / alpha, C)
-    ldiv!(C, core.qr_decomp, A)
-    lmul!(alpha, C)
+    E = typeof(A)(undef, size(core, 1), size(core, 2))
+    # form pseudoinverse matrix
+    ldiv!(E', core.qr_decomp.R, core.qr_decomp.Q')
+    # then multiply the E from the right
+    mul!(C, A, E', alpha, beta)
     return nothing    
 end

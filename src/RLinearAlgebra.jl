@@ -1,7 +1,7 @@
 module RLinearAlgebra
 import Base.:*
-import Base: transpose, adjoint
-import LinearAlgebra: Adjoint, axpby!, dot, I, ldiv!, lmul!, lq!, lq, LQ, lu!
+import Base: transpose, adjoint, size
+import LinearAlgebra: Adjoint, axpby!, dot, I, ldiv!, lmul!, UpperTriangular, lq!, lq, LQ, lu!
 import LinearAlgebra: mul!, norm, qr!, QRCompactWY, svd
 import StatsBase: sample, sample!, ProbabilityWeights, wsample!
 import Random: bitrand, rand!, randn!
@@ -20,7 +20,8 @@ export RangeApproximator, RangeApproximatorRecipe
 export RangeFinder, RangeFinderRecipe
 export RandSVD, RandSVDRecipe
 export CUR, CURRecipe
-export Core, CoreRecipe 
+export CURCore, CURCoreRecipe
+export complete_core, update_core! 
 export CrossApproximation, CrossApproximationRecipe
 
 # Export Compressor types and functions
