@@ -177,9 +177,9 @@ end
 # Calculates A * S.mat and stores it in C 
 function mul!(
     C::AbstractArray, 
-    A::AbstractArray, 
-    S::CountSketchRecipe{Left}, 
-    alpha::Number, 
+    A::AbstractArray,
+    S::CountSketchRecipe{Left},
+    alpha::Number,
     beta::Number
 )
     right_mul_dimcheck(C, A, S)
@@ -187,27 +187,76 @@ function mul!(
     return nothing
 end
 
-# Calculates S.mat' * A and stores it in C 
+# Calculates S.mat' * A and stores it in C
 function mul!(
-    C::AbstractArray, 
-    S::CountSketchRecipe{Right}, 
-    A::AbstractArray, 
-    alpha::Number, 
+    C::AbstractArray,
+    S::CountSketchRecipe{Right},
+    A::AbstractArray,
+    alpha::Number,
     beta::Number
 )
     left_mul_dimcheck(C, S, A)
     return mul!(C, S.mat', A, alpha, beta)
 end
 
-# Calculates A * S.mat' and stores it in C 
+# Calculates A * S.mat' and stores it in C
 function mul!(
-    C::AbstractArray, 
-    A::AbstractArray, 
-    S::CountSketchRecipe{Right}, 
-    alpha::Number, 
+    C::AbstractArray,
+    A::AbstractArray,
+    S::CountSketchRecipe{Right},
+    alpha::Number,
     beta::Number
 )
     right_mul_dimcheck(C, A, S)
     mul!(C, A, S.mat', alpha, beta)
+    return nothing
+end
+
+function mul!(
+    C::AbstractMatrix,
+    S::CountSketchRecipe{Left},
+    A::Transpose{T, <:SparseMatrixCSC},
+    alpha::Number,
+    beta::Number
+) where T
+    left_mul_dimcheck(C, S, A)
+
+    # Optimized implementation for Transpose of SparseMatrixCSC
+    # C = alpha * S.mat * A + beta * C
+    # A = B' where B is SparseMatrixCSC
+
+    B = parent(A)
+    S_mat = S.mat
+
+    if beta != 1
+        if beta == 0
+            fill!(C, 0)
+        else
+            rmul!(C, beta)
+        end
+    end
+
+    S_rows = rowvals(S_mat)
+    S_nz = nonzeros(S_mat)
+    B_rows = rowvals(B)
+    B_nz = nonzeros(B)
+
+    # Iterate over columns of S_mat (which correspond to rows of A)
+    for j in 1:size(S_mat, 2)
+        rng_S = nzrange(S_mat, j)
+        for k_S in rng_S
+            row_S = S_rows[k_S]
+            val_S = S_nz[k_S]
+
+            # Add val_S * (row j of A) to row row_S of C
+            # Row j of A is Column j of B
+            rng_B = nzrange(B, j)
+            for k_B in rng_B
+                col_C = B_rows[k_B] # row in B -> col in C
+                val_B = B_nz[k_B]
+                C[row_S, col_C] += alpha * val_S * val_B
+            end
+        end
+    end
     return nothing
 end
