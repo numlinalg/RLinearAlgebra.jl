@@ -76,14 +76,15 @@ mutable struct CUR <: Approximator
 end
 
 
-function CUR(
+function CUR(;
         rank = 1,
         oversample = 0,
         selector_cols = LUPP(),
         selector_rows = selector_cols,
         core = CrossApproximation(),
+        block_size = 0
     )
-    return CUR(rank, oversample, selector_cols, selector_rows, core, 0)
+    return CUR(rank, oversample, selector_cols, selector_rows, core, block_size)
 end
 
 """
@@ -92,6 +93,8 @@ end
 A struct that contains the CUR approximation. It is created  
 """
 mutable struct CURRecipe{CR<:CURCoreRecipe} <: ApproximatorRecipe
+    n_rows::Int64
+    n_cols::Int64
     n_row_vecs::Int64
     n_col_vecs::Int64
     col_selector::SelectorRecipe
@@ -111,44 +114,33 @@ end
 ###############################################
 include("./CURCore/cross_approximation.jl")
 
-# write the size functions for CUR
-function Base.size(approx::CURRecipe)
-    return size(approx.C, 1), size(approx.R, 2)
-end
-
-function Base.size(S::CURRecipe, dim::Int64)
-    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
-    return dim == 1 ? size(approx.C, 1) : size(approx.R, 2)
-end
-
-function Base.size(approx::Adjoint{CURRecipe})
-    return size(approx.R, 2), size(approx.C, 1)
-end
-
-function Base.size(S::Adjoint{CURRecipe}, dim::Int64)
-    ((dim < 1) || (dim > 2)) && throw(DomainError("`dim` must be 1 or 2."))
-    return dim == 1 ? size(approx.R, 2) : size(approx.C, 1)
-end
-
 function complete_approximator(ingredients::CUR, A::AbstractMatrix)
     n_col_vecs = ingredients.rank
     n_row_vecs = ingredients.rank + ingredients.oversample
     if n_row_vecs > size(A, 1)
-        throw(ArgumentError('`rank + oversample` is greater than number of rows.'))
+        throw(DomainError("`rank + oversample` is greater than number of rows."))
     end
 
     if n_col_vecs > size(A, 2)
-        throw(ArgumentError('`rank` is greater than number of columns.'))
+        throw(DomainError("`rank` is greater than number of columns."))
+    end
+
+    if ingredients.block_size == 0
+        block_size = size(A, 2) 
+    else
+        block_size = ingredients.block_size
     end
 
     col_idx = zeros(Int64, n_col_vecs)
     row_idx = zeros(Int64, n_row_vecs)
     col_selector = complete_selector(ingredients.col_selector, A)
     row_selector = complete_selector(ingredients.row_selector, A)
-    C = Matrix{eltype(A)}(undef, size(A, 1), n_col_vecs)
-    R = Matrix{eltype(A)}(undef, n_row_vecs, size(A, 2))
+    C = typeof(A)(undef, size(A, 1), n_col_vecs)
+    R = typeof(A)(undef, n_row_vecs, size(A, 2))
     U = complete_core(ingredients.core, ingredients, A)
     return CURRecipe(
+        size(A, 1),
+        size(A, 2),
         n_row_vecs, 
         n_col_vecs, 
         col_selector,
@@ -159,12 +151,12 @@ function complete_approximator(ingredients::CUR, A::AbstractMatrix)
         U, 
         R, 
         # because of oversampling
-        zeros(n_row_vecs, ingredients.block_size),
-        zeros(n_col_vecs, ingredients.block_size)
+        typeof(A)(undef, n_row_vecs, block_size),
+        typeof(A)(undef, n_col_vecs, block_size)
     )
 end
 
-# implenetations of rapproximate can be found with the core matrix implementations
+# implementations of rapproximate can be found with the core matrix implementations
 # This is done to ensure stability as different core matrix approaches require 
 # different organizations of the CUR selection
 
@@ -179,7 +171,13 @@ function mul!(
     # determine size of buffer we have and how much we need
     # okay just checking row buffer because both have the same number of columns
     buff_r_n = size(approx.buffer_row, 2)
-    m, n = size(A)
+    if typeof(A) <: AbstractVector
+        m = size(A)
+        n = 1
+    else
+        m, n = size(A)
+    end
+
     n_its = div(n, buff_r_n)
     last_block = rem(n, buff_r_n)
     # if the buffer is bigger than necessary set block_size to be the 
@@ -196,20 +194,20 @@ function mul!(
     start = block_size + 1
     # perform remaining necessary iterations
     for i = 2:n_its
-        last = start + block_size
+        last = start + block_size - 1
         # if in the loop using all columns of buffer
-        br_v = view(approx.buffer_row, :, :)
-        bc_v = view(approx.buffer_core, :, :)
+        br_v = view(approx.buffer_row, :, 1:block_size)
+        bc_v = view(approx.buffer_core, :, 1:block_size)
         Cv = view(C, :, start:last)
         mul!(br_v, approx.R, A[:, start:last])
-        mul!(bc_v, approx.U, br)
+        mul!(bc_v, approx.U, br_v)
         mul!(Cv, approx.C, bc_v, alpha, beta)
         start = last + 1
     end
 
     # complete the last block which could differ from block size
     if n_its > 0 && last_block > 0
-        last = start + last_block 
+        last = start + last_block - 1
         # perform last block
         br_v = view(approx.buffer_row, :, 1:last_block)
         bc_v = view(approx.buffer_core, :, 1:last_block)
@@ -232,12 +230,18 @@ function mul!(
     # determine size of buffer we have and how much we need
     # okay just checking row buffer because both have the same number of columns
     buff_r_n = size(approx.buffer_row, 2)
-    m, n = size(A)
+    if typeof(A) <: AbstractVector
+        m = size(A)
+        n = 1
+    else
+        m, n = size(A)
+    end
+
     n_its = div(m, buff_r_n)
     last_block = rem(m, buff_r_n)
     # if the buffer is bigger than necessary set block_size to be the 
     # number of columns in A
-    block_size = min(buff_r_n, n)
+    block_size = min(buff_r_n, m)
     # Perform first iteration to scale C by beta
     br_v = view(approx.buffer_row, :, 1:block_size)
     bc_v = view(approx.buffer_core, :, 1:block_size)
@@ -249,7 +253,7 @@ function mul!(
     start = block_size + 1
     # perform remaining necessary iterations
     for i = 2:n_its
-        last = start + block_size
+        last = start + block_size - 1
         # if in the loop using all columns of buffer
         br_v = view(approx.buffer_row, :, :)
         bc_v = view(approx.buffer_core, :, :)
@@ -262,7 +266,7 @@ function mul!(
 
     # complete the last block which could differ from block size
     if n_its > 0 && last_block > 0
-        last = start + last_block
+        last = start + last_block - 1
         # perform last block
         br_v = view(approx.buffer_row, :, 1:last_block)
         bc_v = view(approx.buffer_core, :, 1:last_block)
@@ -274,7 +278,29 @@ function mul!(
 
     return
 end
+#=
+function mul!(
+    C::AbstractArray, 
+    approx::Adjoint{CURRecipe}, 
+    A::AbstractArray, 
+    alpha::Number, 
+    beta::Number
+)
+    mul!(C', A', approx.parent, alpha, beta)
+    return
+end
 
+function mul!(
+    C::AbstractArray, 
+    A::AbstractArray, 
+    approx::Adjoint{CURRecipe}, 
+    alpha::Number, 
+    beta::Number
+)
+    mul!(C', approx.parent, A', alpha, beta)
+end
+=#
+#=
 function mul!(
     C::AbstractArray, 
     approx::Adjoint{CURRecipe}, 
@@ -285,7 +311,13 @@ function mul!(
     # determine size of buffer we have and how much we need
     # okay just checking row buffer because both have the same number of columns
     buff_r_n = size(approx.buffer_row, 2)
-    m, n = size(A)
+    if typeof(A) <: AbstractVector
+        m = size(A)
+        n = 1
+    else
+        m, n = size(A)
+    end
+
     n_its = div(n, buff_r_n)
     last_block = rem(n, buff_r_n)
     # if the buffer is bigger than necessary set block_size to be the 
@@ -338,7 +370,13 @@ function mul!(
     # determine size of buffer we have and how much we need
     # okay just checking row buffer because both have the same number of columns
     buff_r_n = size(approx.buffer_row, 2)
-    m, n = size(A)
+    if typeof(A) <: AbstractVector
+        m = size(A)
+        n = 1
+    else
+        m, n = size(A)
+    end
+
     n_its = div(m, buff_r_n)
     last_block = rem(m, buff_r_n)
     # if the buffer is bigger than necessary set block_size to be the 
@@ -404,7 +442,8 @@ function complete_core(core::CURCore, cur::CUR, A::AbstractMatrix)
         )
     ) 
 end
-
+=#
+# this must be placed here because it requires the CURCoreRecipe to be defined first
 """
     update_core!()
 
