@@ -90,7 +90,25 @@ end
 """
     CURRecipe <: ApproximatorRecipe
 
-A struct that contains the CUR approximation. It is created  
+A struct that contains the preallocated memory and completed `Selectors` to form a
+    CUR approximation to the matrix ``A``.
+    
+# Fields
+- `n_rows::Int64`, the number of rows in the approximation. 
+- `n_cols::Int64`, the number of columns in the approximation. 
+- `n_row_vecs::Int64`, the number of rows selected in the approximation. 
+- `n_col_vecs::Int64`, the number of columns selected in the approximation.
+- `col_selector::SelectorRecipe`, the method for selecting columns.
+- `row_selector::SelectorRecipe`, the method for selecting rows.
+- `row_idx::Vector{Int64}`, the selected row indices.
+- `col_idx::Vector{Int64}`, the selected column indices.
+- `C::AbstractMatrix`, the entries of `A` at the selected column indices.
+- `U::CURCoreRecipe`, the matrix linking the `C` and `R` matrices to approximate `A`.
+- `R::AbstractMatrix`, the entries of `A` at the selected row indices.
+- `buffer_row::AbstractArray`, a buffer matrix used to store the result of `R` 
+    and an array.
+- `buffer_core::AbstractArray`, a buffer matrix used to store the result of `U` 
+    and an array.
 """
 mutable struct CURRecipe{CR<:CURCoreRecipe} <: ApproximatorRecipe
     n_rows::Int64
