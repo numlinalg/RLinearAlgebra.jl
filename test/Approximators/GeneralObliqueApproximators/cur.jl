@@ -380,7 +380,6 @@ end
 
     end
 
-
     @testset "CUR: mul!" begin
         # begin with left multiplication with a matrix and vector and default 
         # default block size

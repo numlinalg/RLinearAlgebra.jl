@@ -56,6 +56,17 @@ end
     @test_throws DomainError size(cur.U', 0)
 end
 
+# check that the adjoint functions work correctly
+@testset "CURCore: adjoint" begin
+    core = TestCURCoreRecipe(1, 2, 1)
+    core_t = transpose(core)
+    core_a = adjoint(core)
+    typeof(core_t) <: CURCoreAdjoint
+    typeof(core_a) <: CURCoreAdjoint
+    transpose(core_t) == core
+    adjoint(core_a)  == core
+end
+
 @testset "CURCore: Update Errors" begin
     cur = CURRecipe{TestCURCoreRecipe}(
         2, 
