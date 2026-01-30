@@ -1,15 +1,15 @@
 """
     CURCore
 
-An abstract type for the computation of the core linking matrix in a CUR decomposition.
+An abstract type for computing the core linking matrix in a CUR decomposition.
 """
 abstract type CURCore end
 
 """
     CURCoreRecipe
 
-An abstract type for the recipes containing the preallocated information needed for 
-the computation of the core linking matrix in a CUR decomposition.
+An abstract type for the recipes containing the preallocated information required for
+    computing the core linking matrix in a CUR decomposition.
 """
 abstract type CURCoreRecipe end
 
@@ -20,7 +20,7 @@ A structure for the adjoint of an `CURCoreRecipe`.
 
 # Fields
 
-  - `Parent::CURCoreRecipe`, the approximator that we compute the adjoint of.
+  - `Parent::CURCoreRecipe`, the approximator that we are taking the adjoint.
 """
 struct CURCoreAdjoint{S<:CURCoreRecipe} <: CURCoreRecipe
     parent::S

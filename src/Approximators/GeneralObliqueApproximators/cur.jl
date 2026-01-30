@@ -6,38 +6,41 @@ include("CURCore.jl")
 """
     CUR <: Approximator
 
-A struct that implements the CUR decomposition for forming low-rank approximations to 
-    a matrix, ``A``. This technique selects column subsets, ``C``, row subsets, ``R``, and a 
-    linking matrix, ``U``(this can either be ``C^\\dagger A R^\\dagger`` or ``A[I,J]``, 
+A struct that implements the CUR decomposition, a technique for computing a 
+    low-rank approximation to a matrix, ``A``. This technique selects column subsets, 
+    ``C``, row subsets, ``R``, and a linking matrix, ``U`` 
+    (this can either be ``C^\\dagger A R^\\dagger`` or ``A[I,J]``, 
     where ``I`` is a set of row indices and ``J`` is a set of column indices) such that 
     ``
         A \\approx CUR.
     ``
-This will always form the CUR approximation by selecting columns followed by rows. If you 
-    desire to approximate columns first, input `A'`.
+
 # Mathematical Description
-In general finding a set of ``I`` and ``J`` that minimize the qpproximation quality is a
-    NP-hard problem (you're not going to do it); thus, we often aim to find sufficiently 
+In general finding a ``I`` and ``J`` that minimize the approximation error is a
+    NP-hard problem (you're not going to do it)[shitov2021column](@cite); 
+    thus, we often aim to find sufficiently 
     good indices. The best known quality of a rank ``r`` cur approximation to a  matrix
     ``\\tilde A_r`` is known to be 
     ``
         \\|A - \\tilde A_r \\|_F \\leq (r + 1) \\|A - A_r\\|_F,
     ``
-    where ``A_r`` is the rank-``r`` truncated svd.
+    where ``A_r`` is the rank-``r`` truncated svd [osinsky2025close](@cite).
 
 In practice numerous randomized methods match the performance of this best possible 
     selection procedure. These approaches can be broken into sampling and pivoting 
-    approaches. The sampling approaches, like leverage score sampling, typically 
-    have better theory, and involve imputed a distribution over the rows/columns of a matrix
+    approaches. The sampling approaches, like leverage score sampling 
+    [mahoney2009cur](@cite), typically have better theory, and involve 
+    imputing a distribution over the rows/columns of a matrix
     and drawing from that distribution with replacement. Randomized pivoting procedures
     on the other hand tend to be more efficient and accurate in practice and involve 
-    compressing the matrix then applying a pivoting procedure on the compressed form.
+    compressing the matrix then applying a pivoting procedure on the compressed form
+    [dong2023simpler](@cite).
 
 # Fields
 - `rank::Int64`, the desired rank of approximation.
 - `oversample::Int64`, the amount of extra indices we wish to select with the row selection
-    procedure. By default this is zero, although it can improve the stability of the cross
-    approximation core.
+    procedure. By default this is zero, although it can improve the stability of the 
+    approximation [park2025accuracy](@cite).
 - `col_selector::Selector`, the technique used for selecting column indices from a matrix.
 - `row_selector::Selector`, the technique used for selecting row indices from a matrix.
 - `core::Core`, the method for computing the core linking matrix, `U`, in the CUR.
@@ -94,8 +97,8 @@ A struct that contains the preallocated memory and completed `Selectors` to form
     CUR approximation to the matrix ``A``.
     
 # Fields
-- `n_rows::Int64`, the number of rows in the approximation. 
-- `n_cols::Int64`, the number of columns in the approximation. 
+- `n_rows::Int64`, the row dimension of the approximation. 
+- `n_cols::Int64`, the column dimension of the approximation. 
 - `n_row_vecs::Int64`, the number of rows selected in the approximation. 
 - `n_col_vecs::Int64`, the number of columns selected in the approximation.
 - `col_selector::SelectorRecipe`, the method for selecting columns.
@@ -106,9 +109,9 @@ A struct that contains the preallocated memory and completed `Selectors` to form
 - `U::CURCoreRecipe`, the matrix linking the `C` and `R` matrices to approximate `A`.
 - `R::AbstractMatrix`, the entries of `A` at the selected row indices.
 - `buffer_row::AbstractArray`, a buffer matrix used to store the result of `R` 
-    and an array.
+    multiplied with an array.
 - `buffer_core::AbstractArray`, a buffer matrix used to store the result of `U` 
-    and an array.
+    multiplied with an array.
 """
 mutable struct CURRecipe{CR<:CURCoreRecipe} <: ApproximatorRecipe
     n_rows::Int64
@@ -303,11 +306,11 @@ end
 """
     complete_core()
 
-A function that generates a `CURCoreRecipe`given the arguments.
+A function that generates a `CURCoreRecipe` given the arguments.
 
 # Arguments
 - `ingredients::CURCore`, a data structure containing the user-defined parameters 
-    associated with a particular type of linking matrix in a CUR decomposition.
+    associated with a particular type of core matrix in a CUR decomposition.
 - `cur::CUR`, a data structure containing the user-defined parameters for the CUR 
     approximation.
 - `A::AbstractMatrix`, a target matrix for approximation.
@@ -330,10 +333,10 @@ A function that updates the `CURCoreRecipe` based on the parameters defined in t
 
 # Arguments
 - `core::CURCoreRecipe`, a data structure containing the preallocated data structures 
-    necessary for computing the linking matrix in a CUR decomposition.
+    necessary for computing the core matrix in a CUR decomposition.
 - `cur::CURRecipe`, a data structure containing the user-defined parameters and 
-    preallocated .
-- `A::AbstractMatrix`, a target matrix for approximation.
+    preallocated structures.
+- `A::AbstractMatrix`, a target matrix to be approximated.
 """
 function update_core!(core::CURCoreRecipe, cur::CURRecipe, A::AbstractMatrix)
     return throw(
