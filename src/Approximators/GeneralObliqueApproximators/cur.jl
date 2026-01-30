@@ -296,146 +296,6 @@ function mul!(
 
     return
 end
-#=
-function mul!(
-    C::AbstractArray, 
-    approx::Adjoint{CURRecipe}, 
-    A::AbstractArray, 
-    alpha::Number, 
-    beta::Number
-)
-    mul!(C', A', approx.parent, alpha, beta)
-    return
-end
-
-function mul!(
-    C::AbstractArray, 
-    A::AbstractArray, 
-    approx::Adjoint{CURRecipe}, 
-    alpha::Number, 
-    beta::Number
-)
-    mul!(C', approx.parent, A', alpha, beta)
-end
-=#
-#=
-function mul!(
-    C::AbstractArray, 
-    approx::Adjoint{CURRecipe}, 
-    A::AbstractArray, 
-    alpha::Number, 
-    beta::Number
-)
-    # determine size of buffer we have and how much we need
-    # okay just checking row buffer because both have the same number of columns
-    buff_r_n = size(approx.buffer_row, 2)
-    if typeof(A) <: AbstractVector
-        m = size(A)
-        n = 1
-    else
-        m, n = size(A)
-    end
-
-    n_its = div(n, buff_r_n)
-    last_block = rem(n, buff_r_n)
-    # if the buffer is bigger than necessary set block_size to be the 
-    # number of columns in A
-    block_size = min(buff_r_n, n)
-    # Perform first iteration to scale C by beta
-    br_v = view(approx.buffer_row, :, 1:block_size)
-    bc_v = view(approx.buffer_core, :, 1:block_size)
-    Cv = view(C, :, 1:block_size)
-    mul!(bc_v, approx.C', A[:, 1:block_size])
-    mul!(br_v, approx.U', bc_v)
-    mul!(Cv, approx.R', br_v, alpha, beta) 
-
-    start = block_size + 1
-    # perform remaining necessary iterations
-    for i = 2:n_its
-        last = start + block_size
-        # if in the loop using all columns of buffer
-        br_v = view(approx.buffer_row, :, :)
-        bc_v = view(approx.buffer_core, :, :)
-        Cv = view(C, :, start:last)
-        mul!(bc_v, approx.C', A[:, start:last])
-        mul!(br_v, approx.U', bc_v)
-        mul!(Cv, approx.R', br_v, alpha, beta) 
-        start = last + 1
-    end
-
-    # complete the last block which could differ from block size
-    if n_its > 0 && last_block > 0
-        last = start + last_block 
-        # perform last block
-        br_v = view(approx.buffer_row, :, 1:last_block)
-        bc_v = view(approx.buffer_core, :, 1:last_block)
-        Cv = view(C, :, start:last)
-        mul!(bc_v, approx.C', A[:, start:last])
-        mul!(br_v, approx.U', bc_v)
-        mul!(Cv, approx.R', br_v, alpha, beta) 
-    end
-
-    return
-end
-
-function mul!(
-    C::AbstractArray, 
-    A::AbstractArray, 
-    approx::Adjoint{CURRecipe}, 
-    alpha::Number, 
-    beta::Number
-)
-    # determine size of buffer we have and how much we need
-    # okay just checking row buffer because both have the same number of columns
-    buff_r_n = size(approx.buffer_row, 2)
-    if typeof(A) <: AbstractVector
-        m = size(A)
-        n = 1
-    else
-        m, n = size(A)
-    end
-
-    n_its = div(m, buff_r_n)
-    last_block = rem(m, buff_r_n)
-    # if the buffer is bigger than necessary set block_size to be the 
-    # number of columns in A
-    block_size = min(buff_r_n, n)
-    # Perform first iteration to scale C by beta
-    br_v = view(approx.buffer_row, :, 1:block_size)
-    bc_v = view(approx.buffer_core, :, 1:block_size)
-    Cv = view(C, 1:block_size, :)
-    mul!(br_v', A[1:block_size, :], approx.R')
-    mul!(bc_v', br_v', approx.U')
-    mul!(Cv, bc_v', approx.C', alpha, beta) 
-
-    start = block_size + 1
-    # perform remaining necessary iterations
-    for i = 2:n_its
-        last = start + block_size
-        # if in the loop using all columns of buffer
-        br_v = view(approx.buffer_row, :, :)
-        bc_v = view(approx.buffer_core, :, :)
-        Cv = view(C, start:last, :) 
-        mul!(br_v', A[start:last, :], approx.R')
-        mul!(bc_v', br_v', approx.U')
-        mul!(Cv, bc_v', approx.C', alpha, beta) 
-        start = last + 1
-    end
-
-    # complete the last block which could differ from block size
-    if n_its > 0 && last_block > 0
-        last = start + last_block
-        # perform last block
-        br_v = view(approx.buffer_row, :, 1:last_block)
-        bc_v = view(approx.buffer_core, :, 1:last_block)
-        Cv = view(C, start:last, :)
-        mul!(br_v', A[start:last, :], approx.R')
-        mul!(bc_v', br_v', approx.U')
-        mul!(Cv, bc_v', approx.C', alpha, beta)
-    end
-
-    return
-end
 
 # functions for CUR must be placed here because they require the definition 
 # of CUR to work
@@ -455,12 +315,12 @@ A function that generates a `CURCoreRecipe`given the arguments.
 function complete_core(core::CURCore, cur::CUR, A::AbstractMatrix)
     return throw(
         ArgumentError(
-            "No method `complete_core` exists for `CURCore` of type\
+            "No method `complete_core` exists for `CURCore` of type \
             $(typeof(core)), `CUR`, and matrix of type $(typeof(A))."
         )
     ) 
 end
-=#
+
 # this must be placed here because it requires the CURCoreRecipe to be defined first
 """
     update_core!()
@@ -478,7 +338,7 @@ A function that updates the `CURCoreRecipe` based on the parameters defined in t
 function update_core!(core::CURCoreRecipe, cur::CURRecipe, A::AbstractMatrix)
     return throw(
         ArgumentError(
-            "No method `update_core!` exists for `CURCore` of type\
+            "No method `update_core!` exists for `CURCore` of type \
             $(typeof(core)), `CURRecipe`, and matrix of type $(typeof(A))."
         )
     )

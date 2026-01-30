@@ -20,31 +20,21 @@ core matrix to a CUR decomposition.
 - `n_cols::Int64`, the number of columns in the core matrix.
 - `core::AbstractMatrix`, the core matrix, found as the intersection of the row and column
     indices.
-- `core_view::SubArray`, a sub-matrix for the part of the allocated core where the actual 
-    values of the core are stored. This allows you to increase the size of the core matrix 
-    without additional memory allocations.
-- `qr_decomp::QR`, storage for the inplace QR decomposition of the core.
 """
 mutable struct CrossApproximationRecipe <: CURCoreRecipe
     n_rows::Int64
     n_cols::Int64
     core::AbstractMatrix
-    core_view::SubArray
-    qr_decomp::Union{QRCompactWY, SPQR.QRSparse}
 end
 
-function complete_core(cur::CUR, core::CrossApproximation,  A::AbstractMatrix)
+function complete_core(core::CrossApproximation, cur::CUR,  A::AbstractMatrix)
     # preallocate the core matrix with and Identity of the same type. We use identy because
     # this form preallocates all dense entries and works for sparse arrays.
     core = typeof(A)(I, cur.rank + cur.oversample, cur.rank)
-    core_view = view(core, 1:2, 1:2)
-    qr_decomp = qr!(core_view)
     return CrossApproximationRecipe(
         cur.rank, 
         cur.rank + cur.oversample, 
-        core, 
-        core_view, 
-        qr_decomp
+        core 
     )
 end
  
@@ -53,9 +43,8 @@ function update_core!(core::CrossApproximationRecipe, cur::CURRecipe, A::Abstrac
     # the core view is the number of rows by number of columns even though the size
     # the core is number of columns by number of rows because of the transpose from the 
     # implicit inversion of the core matrix
-    core.core_view = view(core.core, 1:cur.n_row_vecs, 1:cur.n_col_vecs)
-    copyto!(core.core_view, A[cur.row_idx, cur.col_idx])
-    core.qr_cur = qr!(core.core_view)
+    Q, R = qr!(A[cur.row_idx, cur.col_idx])
+    core.core = R \ Array(Q)'
     return nothing
 end
 
@@ -89,6 +78,7 @@ function rapproximate!(approx::CURRecipe{CrossApproximationRecipe}, A::AbstractM
     update_core!(approx.U, approx, A)
     return nothing
 end
+
 # you still need to figure out how to do these multiplications now the issue is that type of (A) does not work when A is a vector
 function mul!(
     C::AbstractArray, 
@@ -97,27 +87,10 @@ function mul!(
     alpha::Number,
     beta::Number
 )
-    E = deepcopy(C)
-    lmul!(beta, E)
-    ldiv!(C, core.qr_decomp, A)
-    lmul!(alpha, C)
-    C .+= E
+    mul!(C, core.core, A, alpha, beta)
     return nothing
 end
     
-function mul!(
-    C::AbstractArray, 
-    core::CURCoreAdjoint{CrossApproximationRecipe}, 
-    A::AbstractArray,
-    alpha::Number,
-    beta::Number
-)
-    E = typeof(A)(undef, size(core, 2), size(A, 2)) 
-    ldiv!(E, LowerTriangular(core.parent.qr_decomp.R'), A)
-    mul!(C, Array(core.parent.qr_decomp.Q), E, alpha, beta)
-    return nothing
-end
-
 function mul!(
     C::AbstractArray, 
     A::AbstractArray,
@@ -125,25 +98,6 @@ function mul!(
     alpha::Number,
     beta::Number
 )
-    E = typeof(A)(undef, size(A, 1), size(core, 1))
-    #AR^(-1) = (R^(-1)' A')' = ((R')^(-1)A')'
-    ldiv!(E', LowerTriangular(core.qr_decomp.R'), A')
-    # then multiply the Q from the right
-    mul!(C, E, core.qr_decomp.Q', alpha, beta)
+    mul!(C, A, core.core, alpha, beta)
     return nothing
-end
-
-function mul!(
-    C::AbstractArray, 
-    A::AbstractArray,
-    core::CURCoreAdjoint{CrossApproximationRecipe}, 
-    alpha::Number,
-    beta::Number
-)
-    E = typeof(A)(undef, size(core, 1), size(core, 2))
-    # form pseudoinverse matrix
-    ldiv!(E', core.qr_decomp.R, core.qr_decomp.Q')
-    # then multiply the E from the right
-    mul!(C, A, E', alpha, beta)
-    return nothing    
 end

@@ -1,11 +1,11 @@
-module CrossApproximation 
+module CrossApproximation_tests 
 using Test, RLinearAlgebra, LinearAlgebra, SparseArrays
 
 # Write test selector recipe 
 mutable struct TestSelector <: Selector end 
 mutable struct TestSelectorRecipe <: SelectorRecipe end
 
-function RLinearAlgebra.complete_selector(TestSelector::Selector, A::AbstractArray)
+function RLinearAlgebra.complete_selector(T::TestSelector, A::AbstractMatrix)
     return TestSelectorRecipe()
 end
 
@@ -22,7 +22,7 @@ end
 
 @testset "CrossApproximation" begin
     @testset "CrossApproximation" begin
-        @test supertype(CrossApproximation) == Core
+        @test supertype(CrossApproximation) == CURCore
 
         # test the fieldnames and types
         @test fieldnames(CrossApproximation) == ()
@@ -36,14 +36,14 @@ end
     end
 
     @testset "CrossApproximation Recipe" begin
-        supertype(CrossApproximationRecipe) == CoreRecipe
+        supertype(CrossApproximationRecipe) == CURCoreRecipe
 
         # test the fieldnames and types
         @test fieldnames(CrossApproximationRecipe) == (
-            :n_row_vecs, :n_col_vecs, :core, :core_view, :qr_decomp
+            :n_rows, :n_cols, :core
         )
         @test fieldtypes(CrossApproximationRecipe) == (
-            Int64, Int64, core, core_view, qr_decomp
+            Int64, Int64, AbstractMatrix 
         )
     end
 
@@ -55,19 +55,17 @@ end
             oversample = 1,
             A = rand(n_rows, rank) * rand(rank, n_cols)
             approx = CUR(
-                rank, 
+                rank = rank, 
                 oversample = oversample, 
                 selector_cols = TestSelector()
             ) 
             core = CrossApproximation()
 
             # test the complete core function
-            recipe = complete_core(approx, core, A)
+            recipe = complete_core(core, approx, A)
             @test size(recipe) == (rank, rank + oversample)
             # check that the core is identity
             @test sum(diag(recipe.core) .== 1) == rank
-            @test size(recipe.core_view) == (2, 2)
-            @test typeof(recipe.qr_decomp) <: LinearAlgebra.QRCompactWY
         end
 
         # test with sparse matrix
@@ -77,19 +75,17 @@ end
             oversample = 1,
             A = sprand(n_rows, rank, .9) * sprand(rank, n_cols, .9)
             approx = CUR(
-                rank, 
+                rank = rank, 
                 oversample = oversample, 
                 selector_cols = TestSelector()
             ) 
             core = CrossApproximation()
 
             # test the complete core function
-            recipe = complete_core(approx, core, A)
+            recipe = complete_core(core, approx, A)
             @test size(recipe) == (rank, rank + oversample)
             # check that the core is identity
             @test sum(diag(recipe.core) .== 1) == rank
-            @test size(recipe.core_view) == (2, 2)
-            @test typeof(recipe.qr_decomp) <: SparseArrays.SPQR.QRSparse
         end
 
     end
@@ -102,14 +98,14 @@ end
             oversample = 1,
             A = sprand(n_rows, rank, .9) * sprand(rank, n_cols, .9)
             approx = CUR(
-                rank, 
+                rank = rank, 
                 oversample = oversample, 
                 selector_cols = TestSelector()
             ) 
             core = CrossApproximation()
 
             # test the complete core function
-            recipe = complete_core(approx, core, A)
+            recipe = complete_core(core, approx, A)
             approx_recipe = complete_approximator(approx, A)
             # change indices selected to be first n
             approx_recipe.col_idx = 1:approx_recipe.n_col_vecs
@@ -118,11 +114,6 @@ end
             update_core!(recipe, approx_recipe, A)
             # check that a QR decomposition is stored of with correct sizes
             @test size(recipe) == (rank, rank + oversample)
-            # check that the core is the correct QR decomposition
-            @test typeof(recipe.qr_decomp) <: LinearAlgebra.QRCompactWY
-            Q, R = qr(A[approx_recipe.row_idx, approx_recipe.col_idx])
-            @test recipe.qr_decomp.Q == Q
-            @test recipe.qr_decomp.R == R
         end
 
         # test with matrix
@@ -132,26 +123,21 @@ end
             oversample = 1,
             A = rand(n_rows, rank) * rand(rank, n_cols)
             approx = CUR(
-                rank, 
+                rank = rank, 
                 oversample = oversample, 
                 selector_cols = TestSelector()
             ) 
             core = CrossApproximation()
-             # test the complete core function
-            recipe = complete_core(approx, core, A)
+            # test the complete core function
+            recipe = complete_core(core, approx, A)
             approx_recipe = complete_approximator(approx, A)
             # change indices selected to be first n
             approx_recipe.col_idx = 1:approx_recipe.n_col_vecs
             approx_recipe.row_idx = 1:approx_recipe.n_row_vecs
             # update the core recipe
-            update_recipe!(recipe, approx_recipe, A)
+            update_core!(recipe, approx_recipe, A)
             # check that a QR decomposition is stored of with correct sizes
             @test size(recipe) == (rank, rank + oversample)
-            # check that the core is the correct QR decomposition
-            @test typeof(recipe.qr_decomp) <: SparseArrays.SPQR.QRSparse
-            Q, R = qr(A[approx_recipe.row_idx, approx_recipe.col_idx])
-            @test recipe.qr_decomp.Q == Q
-            @test recipe.qr_decomp.R == R
         end
 
     end
@@ -164,9 +150,10 @@ end
             A = rand(n_rows, rank) * rand(rank, n_cols)
             
             approx = CUR(
-                rank, 
+                rank = rank, 
                 oversample = oversample, 
-                selector_cols = TestSelector()
+                selector_cols = TestSelector(),
+                core = CrossApproximation() 
             ) 
             approx_recipe = complete_approximator(approx, A)
             rapproximate!(approx_recipe, A)
@@ -179,8 +166,7 @@ end
             @test approx_recipe.C == A[:, 1:col_idx]
             @test approx_recipe.R == A[1:row_idx, :]
             @test typeof(approx_recipe.U) == CrossApproximationRecipe
-            @test approx_recipe.U.qr_decomp == qr!(A[1:row_idx, 1:col_idx])
-            @test size(approx_recipe.U) == (row_idx, col_idx)
+            @test size(approx_recipe.U) == (col_idx, row_idx)
         end
 
         let n_rows = 10,
@@ -190,9 +176,10 @@ end
             A = sprand(n_rows, rank, .9) * sprand(rank, n_cols, .9)
 
             approx = CUR(
-                rank, 
+                rank = rank, 
                 oversample = oversample, 
-                selector_cols = TestSelector()
+                selector_cols = TestSelector(), 
+                core = CrossApproximation()
             ) 
             approx_recipe = complete_approximator(approx, A)
             rapproximate!(approx_recipe, A)
@@ -205,7 +192,6 @@ end
             @test approx_recipe.C == A[:, 1:col_idx]
             @test approx_recipe.R == A[1:row_idx, :]
             @test typeof(approx_recipe.U) == CrossApproximationRecipe
-            @test approx_recipe.U.qr_decomp == qr!(A[1:row_idx, 1:col_idx])
             @test size(approx_recipe.U) == (col_idx, row_idx)
         end
 
@@ -226,31 +212,28 @@ end
             beta = 1.0
 
             approx = CUR(
-                rank, 
+                rank = rank, 
                 oversample = oversample, 
-                selector_cols = TestSelector()
+                selector_cols = TestSelector(),
+                core = CrossApproximation()
             ) 
-            approx_recipe = complete_approximator(approx, A)
-            approx_recipe.col_idx = 1:rank
-            approx_recipe.row_idx = 1:rank + oversample
-            core = CrossApproximation()
-            recipe = complete_core(approx, core, A)
-            update_core!(recipe, approx_recipe, A)
+            recipe = complete_approximator(approx, A)
+            rapproximate!(recipe, A) 
             # test for matrices
             Btest = deepcopy(B)
-            mul!(B, recipe, C, alpha, beta)
+            mul!(B, recipe.U, C, alpha, beta)
             @test norm(B - ( beta * Btest + alpha * pinv(A[1:3, 1:2]) * C)) < 1e-10
             # test for vectors
             xtest = deepcopy(x)
-            mul!(x, recipe, y, alpha, beta)
+            mul!(x, recipe.U, y, alpha, beta)
             @test norm(x - ( beta * xtest + alpha * pinv(A[1:3, 1:2]) * y)) < 1e-10
             # test for adjoints from the left
             Ctest = deepcopy(C)
-            mul!(C, recipe', B, alpha, beta)
+            mul!(C, recipe.U', B, alpha, beta)
             @test norm(C - ( beta * Ctest + alpha * pinv(A[1:3, 1:2])' * B)) < 1e-10
             #test for adjoint with vector
             ytest = deepcopy(y)
-            mul!(y, recipe', x, alpha, beta)
+            mul!(y, recipe.U', x, alpha, beta)
             @test norm(y - ( beta * ytest + alpha * pinv(A[1:3, 1:2])' * x)) < 1e-10
         end
 
@@ -260,36 +243,120 @@ end
             rank = 2,
             oversample = 1,
             A = rand(n_rows, rank) * rand(rank, n_cols),
-            B = ones(rank, rank + oversample),
-            C = ones(rank + oversample, rank),
+            B = ones(rank + oversample, rank),
+            C = ones(rank, rank + oversample),
+            D = ones(rank + oversample, rank + oversample),
+            E = ones(rank, rank),
             x = ones(rank + oversample),
             y = ones(rank),
             alpha = 0.2,
             beta = 1.0
 
             approx = CUR(
-                rank, 
+                rank = rank, 
                 oversample = oversample, 
-                selector_cols = TestSelector()
+                selector_cols = TestSelector(),
+                core = CrossApproximation()
             ) 
-            core = CrossApproximation()
-            recipe = complete_core(approx, core, A) 
+            recipe = complete_approximator(approx, A)
+            rapproximate!(recipe, A) 
             # test for matrices
-            Btest = deepcopy(B)
-            mul!(B, C, recipe, alpha, beta)
-            @test norm(B - ( beta * Btest + alpha * C * pinv(A[1:3, 1:2]))) < 1e-10
+            Dtest = deepcopy(D)
+            mul!(D, B, recipe.U, alpha, beta)
+            @test norm(D - ( beta * Dtest + alpha * B * pinv(A[1:3, 1:2]))) < 1e-10
             # test for vectors
             xtest = deepcopy(x)
-            mul!(x', y', recipe, alpha, beta)
+            mul!(x', y', recipe.U, alpha, beta)
             @test norm(x' - ( beta * xtest' + alpha * y' * pinv(A[1:3, 1:2]))) < 1e-10
             # test for adjoints from the left
-            Ctest = deepcopy(C)
-            mul!(C, B, recipe', alpha, beta)
-            @test norm(C - ( beta * Ctest + alpha *  B * pinv(A[1:3, 1:2])')) < 1e-10
+            Etest = deepcopy(E)
+            mul!(E, C, recipe.U', alpha, beta)
+            @test norm(E - ( beta * Etest + alpha *  C * pinv(A[1:3, 1:2])')) < 1e-10
             #test for adjoint with vector
             ytest = deepcopy(y)
-            mul!(y', x', recipe', alpha, beta)
+            mul!(y', x', recipe.U', alpha, beta)
             @test norm(y' - ( beta * ytest' + alpha * x' * pinv(A[1:3, 1:2])')) < 1e-10
+        end
+
+        # same tests with sparse matrices
+        # test multiplying the core matrix from the left
+        let n_rows = 10,
+            n_cols = 10,
+            rank = 2,
+            oversample = 1,
+            A = sprand(n_rows, rank, .9) * sprand(rank, n_cols, .9),
+            B = ones(rank, rank + 1),
+            C = ones(rank + oversample, rank + 1),
+            x = ones(rank),
+            y = ones(rank + oversample),
+            alpha = 0.2,
+            beta = 1.0
+
+            approx = CUR(
+                rank = rank, 
+                oversample = oversample, 
+                selector_cols = TestSelector(),
+                core = CrossApproximation()
+            ) 
+            recipe = complete_approximator(approx, A)
+            rapproximate!(recipe, A) 
+            # test for matrices
+            Btest = deepcopy(B)
+            mul!(B, recipe.U, C, alpha, beta)
+            @test norm(B - ( beta * Btest + alpha * pinv(Array(A[1:3, 1:2])) * C)) < 1e-10
+            # test for vectors
+            xtest = deepcopy(x)
+            mul!(x, recipe.U, y, alpha, beta)
+            @test norm(x - ( beta * xtest + alpha * pinv(Array(A[1:3, 1:2])) * y)) < 1e-10
+            # test for adjoints from the left
+            Ctest = deepcopy(C)
+            mul!(C, recipe.U', B, alpha, beta)
+            @test norm(C - ( beta * Ctest + alpha * pinv(Array(A[1:3, 1:2]))' * B)) < 1e-10
+            #test for adjoint with vector
+            ytest = deepcopy(y)
+            mul!(y, recipe.U', x, alpha, beta)
+            @test norm(y - ( beta * ytest + alpha * pinv(Array(A[1:3, 1:2]))' * x)) < 1e-10
+        end
+
+        # test multiplying the core matrix from the right
+        let n_rows = 10,
+            n_cols = 10,
+            rank = 2,
+            oversample = 1,
+            A = sprand(n_rows, rank, .9) * sprand(rank, n_cols, .9),
+            B = ones(rank + oversample, rank),
+            C = ones(rank, rank + oversample),
+            D = ones(rank + oversample, rank + oversample),
+            E = ones(rank, rank),
+            x = ones(rank + oversample),
+            y = ones(rank),
+            alpha = 0.2,
+            beta = 1.0
+
+            approx = CUR(
+                rank = rank, 
+                oversample = oversample, 
+                selector_cols = TestSelector(),
+                core = CrossApproximation()
+            ) 
+            recipe = complete_approximator(approx, A)
+            rapproximate!(recipe, A) 
+            # test for matrices
+            Dtest = deepcopy(D)
+            mul!(D, B, recipe.U, alpha, beta)
+            @test norm(D - ( beta * Dtest + alpha * B * pinv(Array(A[1:3, 1:2])))) < 1e-10
+            # test for vectors
+            xtest = deepcopy(x)
+            mul!(x', y', recipe.U, alpha, beta)
+            @test norm(x' - ( beta * xtest' + alpha * y' * pinv(Array(A[1:3, 1:2])))) < 1e-10
+            # test for adjoints from the left
+            Etest = deepcopy(E)
+            mul!(E, C, recipe.U', alpha, beta)
+            @test norm(E - ( beta * Etest + alpha *  C * pinv(Array(A[1:3, 1:2]))')) < 1e-10
+            #test for adjoint with vector
+            ytest = deepcopy(y)
+            mul!(y', x', recipe.U', alpha, beta)
+            @test norm(y' - ( beta * ytest' + alpha * x' * pinv(Array(A[1:3, 1:2]))')) < 1e-10
         end
 
     end

@@ -20,7 +20,7 @@ export RangeApproximator, RangeApproximatorRecipe
 export RangeFinder, RangeFinderRecipe
 export RandSVD, RandSVDRecipe
 export CUR, CURRecipe
-export CURCore, CURCoreRecipe
+export CURCore, CURCoreRecipe, CURCoreAdjoint
 export complete_core, update_core! 
 export CrossApproximation, CrossApproximationRecipe
 
@@ -71,6 +71,5 @@ export Selector, SelectorRecipe
 export LUPP, LUPPRecipe
 export complete_selector, update_selector!, select_indices!
 
-# Export CUR 
 
 end #module

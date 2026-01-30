@@ -1,4 +1,4 @@
-module CrossApproximation 
+module cur_test 
 using Test, RLinearAlgebra, LinearAlgebra, SparseArrays
 import Base.*
 import Base: size
@@ -56,52 +56,24 @@ function size(S::CURCoreAdjoint{TestCoreRecipe}, dim::Int64)
     return size(S.parent.A', dim)
 end
 
-function mul!(C::AbstractArray, S::TestCoreRecipe, B::AbstractArray, alpha, beta)
+function mul!(
+    C::AbstractArray, 
+    S::TestCoreRecipe, 
+    B::AbstractArray, 
+    alpha::Number, 
+    beta::Number
+)
     mul!(C, S.A, B, alpha, beta)
 end
 
-function mul!(C::AbstractArray, B::AbstractArray, S::TestCoreRecipe, alpha, beta)
+function mul!(
+    C::AbstractArray, 
+    B::AbstractArray, 
+    S::TestCoreRecipe, 
+    alpha::Number, 
+    beta::Number
+)
     mul!(C, B, S.A, alpha, beta)
-end
-
-function mul!(C::AbstractArray, S::CURCoreAdjoint{TestCoreRecipe}, B::AbstractArray, alpha, beta)
-    mul!(C, S.parent.A', B, alpha, beta)
-end
-
-function mul!(C::AbstractArray, B::AbstractArray, S::CURCoreAdjoint{TestCoreRecipe}, alpha, beta)
-    mul!(C, B, S.parent.A', alpha, beta)
-end
-
-function (*)(S::TestCoreRecipe, B::AbstractArray)
-    s_rows = size(S, 1)
-    a_cols = size(B, 2)
-    C = a_cols == 1 ? zeros(eltype(B), s_rows) : zeros(eltype(B), s_rows, a_cols)
-    mul!(C, S, B, 1.0, 0.0)
-    return C
-end
-
-function (*)(B::AbstractArray, S::TestCoreRecipe)
-    s_cols = size(S, 2)
-    a_rows = size(B, 1)
-    C = a_rows == 1 ? zeros(eltype(B), s_cols)' : zeros(eltype(B), a_rows, s_cols)
-    mul!(C, B, S, 1.0, 0.0)
-    return C
-end
-
-function (*)(S::CURCoreAdjoint{TestCoreRecipe}, B::AbstractArray)
-    s_rows = size(S, 1)
-    a_cols = size(B, 2)
-    C = a_cols == 1 ? zeros(eltype(B), s_rows) : zeros(eltype(B), s_rows, a_cols)
-    mul!(C, S, B, 1.0, 0.0)
-    return C
-end
-
-function (*)(B::AbstractArray, S::CURCoreAdjoint{TestCoreRecipe})
-    s_cols = size(S, 2)
-    a_rows = size(B, 1)
-    C = a_rows == 1 ? zeros(eltype(B), s_cols)' : zeros(eltype(B), a_rows, s_cols)
-    mul!(C, B, S, 1.0, 0.0)
-    return C
 end
 
 function rapproximate!(approx::CURRecipe{TestCoreRecipe}, A::AbstractMatrix)
