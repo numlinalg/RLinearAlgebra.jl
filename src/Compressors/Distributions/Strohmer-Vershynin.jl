@@ -104,13 +104,3 @@ function sample_distribution!(x::AbstractVector, distribution::L2NormRecipe)
     wsample!(distribution.state_space, distribution.weights, x, ordered = true, replace = distribution.replace)
     return nothing
 end
-
-
-
-
-
-
-
-
-
-

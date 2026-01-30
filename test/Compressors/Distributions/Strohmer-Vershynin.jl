@@ -126,6 +126,48 @@ using StatsBase: ProbabilityWeights
             @test_throws ArgumentError update_distribution!(ur, A2)
         end       
 
+        # All zero row
+        # Row 1: [1, 0] -> norm^2 = 1
+        # Row 2: [0, 0] -> norm^2 = 0  <-- Should never be sampled
+        # Row 3: [1, 1] -> norm^2 = 2
+        let A = [1.0 0.0; 0.0 0.0; 1.0 1.0],
+            x = zeros(Int, 100), # Sample 100 times to be sure
+            u = L2Norm(cardinality = Left()),
+            ur = complete_distribution(u, A)
+
+            # Check weights are correct
+            @test ur.weights ≈ ProbabilityWeights([1.0, 0.0, 2.0])
+
+            # Perform sampling
+            sample_distribution!(x, ur)
+
+            # Verify that index 2 (the zero row) is NEVER sampled
+            @test 2 ∉ x
+            # Verify that valid indices (1 and 3) ARE sampled (statistically likely in 100 tries)
+            @test any(==(1), x)
+            @test any(==(3), x)
+        end
+
+        # All zero column
+        # Col 1: [1, 1] -> norm^2 = 2
+        # Col 2: [0, 0] -> norm^2 = 0 <-- Should never be sampled
+        let A = [1.0 0.0; 1.0 0.0],
+            x = zeros(Int, 100),
+            u = L2Norm(cardinality = Right()),
+            ur = complete_distribution(u, A)
+
+            # Check weights
+            @test ur.weights ≈ ProbabilityWeights([2.0, 0.0])
+
+            # Perform sampling
+            sample_distribution!(x, ur)
+
+            # Verify that index 2 (the zero col) is NEVER sampled
+            @test 2 ∉ x
+            # Verify that index 1 IS sampled
+            @test all(==(1), x)
+        end
+
     end
 
     @testset "L2Norm: Sample Distribution" begin
