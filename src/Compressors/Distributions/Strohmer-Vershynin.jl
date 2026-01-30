@@ -8,13 +8,11 @@ Distribution where the probability of selecting a row (or column) is proportiona
 # Mathematical Description
 
 During the sampling, the distribution is defined on the domain of row/column 
-     indices based on their norms. 
-
-If it's compressing from the left, the probability ``p_i`` of selecting 
-     row ``i`` is: ``p_i = \\frac{\\|A_{i,:}\\|_2^2}{\\|A\\|_F^2}.``
-
-If it's compressing from the right, the probability ``p_j`` of selecting 
-     column ``j`` is: ``p_j = \\frac{\\|A_{:,j}\\|_2^2}{\\|A\\|_F^2}.``
+     indices based on their norms. If it's compressing from the left, 
+     the probability ``p_i`` of selecting 
+     row ``i`` is: ``p_i = \\frac{\\|A_{i,:}\\|_2^2}{\\|A\\|_F^2}``;
+     If it's compressing from the right, the probability ``p_j`` of selecting 
+     column ``j`` is: ``p_j = \\frac{\\|A_{:,j}\\|_2^2}{\\|A\\|_F^2}``.
 
 # Fields
 - `cardinality::Cardinality`, the direction the compression matrix is intended to be
