@@ -31,6 +31,7 @@ export complete_compressor, update_compressor!
 export CountSketch, CountSketchRecipe
 export FJLT, FJLTRecipe
 export Gaussian, GaussianRecipe
+export Identity, IdentityRecipe
 export Sampling, SamplingRecipe
 export SparseSign, SparseSignRecipe
 export SRHT, SRHTRecipe
@@ -43,7 +44,9 @@ export Uniform, UniformRecipe
 # Export Solver types and functions
 export Solver, SolverRecipe
 export Kaczmarz, KaczmarzRecipe
+export ColumnProjection, ColumnProjectionRecipe
 export complete_solver, update_solver!, rsolve!
+export IHS, IHSRecipe
 
 # Export Logger types and functions
 export Logger, LoggerRecipe
@@ -60,7 +63,8 @@ export QRSolver, QRSolverRecipe
 # Export SolverError types and functions
 export SolverError, SolverErrorRecipe
 export complete_error, compute_error
-export FullResidual, FullResidualRecipe
+export FullResidual, FullResidualRecipe, CompressedResidual, CompressedResidualRecipe
+export LSGradient, LSGradientRecipe
 
 # Export ApproximatorError types and functions
 export ApproximatorError, ApproximatorErrorRecipe
@@ -68,7 +72,7 @@ export complete_approximator_error, compute_approximator_error, compute_approxim
 
 # Export Selector types and functions
 export Selector, SelectorRecipe
-export LUPP, LUPPRecipe
+export LUPP, LUPPRecipe, QRCP, QRCPRecipe
 export complete_selector, update_selector!, select_indices!
 
 

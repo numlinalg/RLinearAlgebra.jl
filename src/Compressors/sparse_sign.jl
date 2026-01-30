@@ -26,7 +26,7 @@ with dimension ``n \\times s``, where ``s`` is the compression dimension that
 is supplied by the user.
 In this case, each row of ``S`` is generated independently by the following steps:
 
-1. Randomly choose `nnz` components fo the ``s`` components of the row. Note, `nnz`
+1. Randomly choose `nnz` components of the ``s`` components of the row. Note, `nnz`
     is supplied by the user.
 2. For each selected component, randomly set it either to ``-1/\\sqrt{\\text{nnz}}`` or
     ``1/\\sqrt{\\text{nnz}}`` with equal probability.
@@ -95,6 +95,35 @@ function SparseSign(;
 ) where {N<:Number}
     # Partially construct the sparse sign datatype
     return SparseSign(cardinality, compression_dim, nnz, type)
+end
+
+# Reload property
+function setproperty!(obj::SparseSign, sym::Symbol, val)
+    if sym === :compression_dim
+        new_dim = val
+        if new_dim <= 0
+            throw(ArgumentError("Field `compression_dim` must be positive."))
+        elseif obj.nnz > new_dim
+            throw(
+                ArgumentError("New `compression_dim`, $new_dim, must be greater than \
+                or equal to current `nnz`, $(obj.nnz)."
+                )
+            )
+        end
+    elseif sym === :nnz
+        new_nnz = val
+        if new_nnz <= 0
+            throw(ArgumentError("Field `nnz` must be positive."))
+        elseif new_nnz > obj.compression_dim 
+            throw(
+                ArgumentError("New `nnz`, $new_nnz, must be less than or equal to \
+                current `compression_dim`, $(obj.compression_dim)."
+                )
+            )
+        end
+    end
+
+    return setfield!(obj, sym, val)
 end
 
 """
