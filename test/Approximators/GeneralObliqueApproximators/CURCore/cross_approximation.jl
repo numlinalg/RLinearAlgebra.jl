@@ -1,15 +1,15 @@
 module CrossApproximation_tests 
 using Test, RLinearAlgebra, LinearAlgebra, SparseArrays
-
+import RLinearAlgebra: complete_selector, select_indices!
 # Write test selector recipe 
 mutable struct TestSelector <: Selector end 
 mutable struct TestSelectorRecipe <: SelectorRecipe end
 
-function RLinearAlgebra.complete_selector(T::TestSelector, A::AbstractMatrix)
+function complete_selector(T::TestSelector, A::AbstractMatrix)
     return TestSelectorRecipe()
 end
 
-function RLinearAlgebra.select_indices!(
+function select_indices!(
     idx::Vector{Int64}, 
     recipe::TestSelectorRecipe,
     A::AbstractMatrix,

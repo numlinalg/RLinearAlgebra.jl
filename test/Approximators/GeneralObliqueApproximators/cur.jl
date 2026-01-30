@@ -29,11 +29,11 @@ mutable struct TestCoreRecipe <: CURCoreRecipe
     A::AbstractMatrix
 end
 
-function complete_core(core::CURCore, cur::CUR, A::AbstractMatrix)
+function complete_core(core::TestCore, cur::CUR, A::AbstractMatrix)
     return TestCoreRecipe(rand(2,2))
 end
 
-function update_core!(core::CURCoreRecipe, cur::CURRecipe, A::AbstractMatrix)
+function update_core!(core::TestCoreRecipe, cur::CURRecipe, A::AbstractMatrix)
     core.A = pinv(Array(A[cur.row_idx, cur.col_idx]))
     return nothing
 end
@@ -440,7 +440,7 @@ end
             alpha = 0.2,
             beta = 0.1,
             A = rand(n_rows, n_cols),
-            block_size = 2,
+            block_size = 3,
             col_selector = TestSelector(),
             core = TestCore(),
             B = rand(n_cols, 10),
@@ -536,7 +536,7 @@ end
             alpha = 0.2,
             beta = 0.1,
             A = rand(n_rows, n_cols),
-            block_size = 2,
+            block_size = 3,
             col_selector = TestSelector(),
             core = TestCore(),
             B = rand(10, n_rows),

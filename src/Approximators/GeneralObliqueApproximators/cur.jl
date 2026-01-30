@@ -251,12 +251,7 @@ function mul!(
     # determine size of buffer we have and how much we need
     # okay just checking row buffer because both have the same number of columns
     buff_r_n = size(approx.buffer_row, 2)
-    if typeof(A) <: AbstractVector
-        m = size(A)
-        n = 1
-    else
-        m, n = size(A)
-    end
+    m, n = size(A)
 
     n_its = div(m, buff_r_n)
     last_block = rem(m, buff_r_n)
