@@ -1,7 +1,7 @@
 module RLinearAlgebra
 import Base.:*
-import Base: transpose, adjoint, size
-import LinearAlgebra: Adjoint, axpy!, axpby!, dot, I 
+import Base: transpose, adjoint, size, setproperty!
+import LinearAlgebra: djoint, axpby!, axpy!, ColumnNorm, dot, I
 import LinearAlgebra: ldiv!, lmul!, UpperTriangular, lq!, lq, LQ, lu!
 import LinearAlgebra: mul!, norm, qr!, QRCompactWY, svd
 import StatsBase: sample, sample!, ProbabilityWeights, wsample!

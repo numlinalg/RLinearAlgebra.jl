@@ -15,6 +15,7 @@ directs =
             "Compressors/Distributions/",
             "Compressors/",
             "Approximators/",
+            "Approximators/Selectors/",
             "Approximators/RangeApproximator/",
             "Approximators/selection_techniques/",
             "Approximators/GeneralObliqueApproximators/",
