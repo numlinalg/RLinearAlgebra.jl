@@ -24,11 +24,11 @@ matrix multiplication, clustering, or approximate eigenvalue decompositions
  
 The type of approximation depends on the symmetry of the matrix. 
 For symmetric matrices, we can use the Nystrom
-approximation. For the non-symmetric matrices, we can have a generalization of Nystrom 
-known as Generalized Nystrom or we can interpolative decompositions(IDs), 
+approximation. For non-symmetric matrices, we can use 
+the Generalized Nystrom decomposition or interpolative decompositions (IDs), 
 which select subsets of the rows and/or columns of a matrix. If these interpolative 
 decompositions are performed to select only columns or only 
-rows then they are known as one sided IDs, if they are used 
+rows then they are known as one-sided IDs, if they are used 
 to select both columns and rows then they are known as a CUR decomposition. Below, we 
 present a summary of the decompositions in a table. 
 
@@ -39,7 +39,7 @@ present a summary of the decompositions in a table.
 |Nystrom| Symmetric|  ``(AS)((SA)^\top AS)^\dagger(AS)^\top``|
 |Generalized Nystrom| General|  ``(AS_1)(S_2A AS_1)^\dagger S_2 A``|
 |CUR| Yes| Yes| General| ``(A[:,J])U(A[I,:])``|
-|One-Sided-ID| General|  ``A[:,J]U_c`` or ``U_r A[I,:]``|
+|One-Sided ID| General|  ``A[:,J]U_c`` or ``U_r A[I,:]``|
 
 In `RLinearAlgebra`, 
 once you have obtained a low-rank approximation `Recipe`, you can use it 
