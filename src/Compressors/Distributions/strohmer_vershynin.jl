@@ -2,8 +2,7 @@
     L2Norm <: Distribution
 
 Distribution where the probability of selecting a row (or column) is proportional 
-     to its squared Euclidean norm, as proposed by 
-     Strohmer and Vershynin (2009) [strohmer2009randomized](@cite).
+     to its squared Euclidean norm, as proposed by [strohmer2009randomized](@citet).
 
 # Mathematical Description
 
@@ -19,11 +18,11 @@ During the sampling, the distribution is defined on the domain of row/column
     applied to a target matrix or operator. Values allowed are `Left()` or `Right()` 
     or `Undef()`. The default value is `Undef()`. 
 - `replace::Bool`, if `true`, then the sampling occurs with replacement; if `false`, 
-    then the sampling occurs without replacement. The default value is `true`. 
+    then the sampling occurs without replacement. The default value is `false`. 
 
 # Constructor
 
-    L2Norm(;cardinality=Undef(), replace = true)
+    L2Norm(;cardinality=Undef(), replace = false)
 
 ## Returns
 - A `L2Norm` object.
@@ -33,7 +32,7 @@ mutable struct L2Norm <: Distribution
     replace::Bool
 end
 
-function L2Norm(; cardinality = Undef(), replace = true)
+function L2Norm(; cardinality = Undef(), replace = false)
     return L2Norm(cardinality, replace)
 end
 
@@ -49,7 +48,7 @@ The recipe containing all allocations and information for the
 - `replace::Bool`, an option to replace or not during the sampling process based 
     on the given weights.
 - `state_space::Vector{Int64}`, the row/column index set.
-- `weights::ProbabilityWeights`, the weights of each element in the state space, 
+- `weights::ProbabilityWeights`, the probability of each element in the state space, 
     calculated as the squared Euclidean norms.
 """
 mutable struct L2NormRecipe <: DistributionRecipe
@@ -72,8 +71,12 @@ function complete_distribution(distribution::L2Norm, A::AbstractMatrix)
         # Calculate column norms squared: sum(|x|^2) along dimension 1
         weights = ProbabilityWeights(vec(sum(abs2, A, dims=1)))
     elseif cardinality == Undef()
-        throw(ArgumentError("`L2Norm` cardinality must be specified as `Left()` or `Right()`.\
-        `Undef()` is not allowed in `complete_distribution`."))
+        throw(
+            ArgumentError(
+                "`L2Norm` cardinality must be specified as `Left()` or `Right()`.\
+                `Undef()` is not allowed in `complete_distribution`."
+            )
+        )
     end
 
     return L2NormRecipe(cardinality, distribution.replace, state_space, weights)
@@ -91,8 +94,12 @@ function update_distribution!(ingredients::L2NormRecipe, A::AbstractMatrix)
         # Update weights based on current matrix values
         ingredients.weights = ProbabilityWeights(vec(sum(abs2, A, dims=1)))
     elseif ingredients.cardinality == Undef()
-        throw(ArgumentError("`L2Norm` cardinality must be specified as `Left()` or `Right()`.\
-        `Undef()` is not allowed in `update_distribution!`."))
+        throw(
+            ArgumentError(
+                "`L2Norm` cardinality must be specified as `Left()` or `Right()`.\
+                `Undef()` is not allowed in `update_distribution!`."
+            )
+        )
     end
 
     return nothing

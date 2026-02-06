@@ -104,4 +104,4 @@ end
 # Include Distribution files
 ###########################################
 include("Distributions/uniform.jl")
-include("Distributions/Strohmer-Vershynin.jl")
+include("Distributions/strohmer_vershynin.jl")

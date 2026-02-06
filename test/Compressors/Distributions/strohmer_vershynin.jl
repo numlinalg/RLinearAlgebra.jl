@@ -10,19 +10,22 @@ using StatsBase: ProbabilityWeights
         @test fieldtypes(L2Norm) == (Cardinality, Bool)
 
         # Default
-        let u = L2Norm()
+        let 
+            u = L2Norm()
             @test u.cardinality == Undef()
-            @test u.replace == true
+            @test u.replace == false
         end
 
-        let u2 = L2Norm(cardinality = Left(), replace = false)
+        let 
+            u2 = L2Norm(cardinality = Left(), replace = true)
             @test u2.cardinality == Left()
-            @test u2.replace == false
+            @test u2.replace == true
         end
 
-        let u3 = L2Norm(cardinality = Right(), replace = true)
+        let 
+            u3 = L2Norm(cardinality = Right(), replace = false)
             @test u3.cardinality == Right()
-            @test u3.replace == true
+            @test u3.replace == false
         end
 
     end
@@ -40,9 +43,9 @@ using StatsBase: ProbabilityWeights
         # Row 2: 0^2 + 2^2 = 4
         # Row 3: 1^2 + 1^2 = 2
         let A = [1.0 0.0; 0.0 2.0; 1.0 1.0], 
-            u = L2Norm(cardinality = Left()),
+            u = L2Norm(cardinality = Left())
+            
             ur = complete_distribution(u, A)
-
             @test ur.cardinality == Left()
             @test length(ur.state_space) == 3
             @test ur.weights ≈ ProbabilityWeights([1.0, 4.0, 2.0])
@@ -52,9 +55,9 @@ using StatsBase: ProbabilityWeights
         # Col 1: 1+0+1 = 2
         # Col 2: 0+4+1 = 5
         let A = [1.0 0.0; 0.0 2.0; 1.0 1.0], 
-            u = L2Norm(cardinality = Right()),
-            ur = complete_distribution(u, A)
+            u = L2Norm(cardinality = Right())
 
+            ur = complete_distribution(u, A)
             @test ur.cardinality == Right()
             @test length(ur.state_space) == 2
             @test ur.weights ≈ ProbabilityWeights([2.0, 5.0])
@@ -96,7 +99,7 @@ using StatsBase: ProbabilityWeights
             @test ur.weights ≈ ProbabilityWeights(vec(sum(abs2, A2, dims=2)))
         end
 
-        # Updating without changing dimensions (Testing optimization path)
+        # Updating without changing dimensions
         let A = [1.0 0.0; 0.0 1.0],     # Weights [1, 1]
             A2 = [2.0 1.0; 1.0 2.0],    # Weights [5, 5]
             u = L2Norm(cardinality = Left()),
@@ -104,11 +107,8 @@ using StatsBase: ProbabilityWeights
 
             # Pre-check
             @test ur.weights ≈ ProbabilityWeights([1.0, 1.0])
-            
-            # Update
+
             update_distribution!(ur, A2)
-            
-            # Check weights updated
             @test ur.weights ≈ ProbabilityWeights([5.0, 5.0])
             # Check state space is still valid size
             @test length(ur.state_space) == 2
@@ -126,19 +126,21 @@ using StatsBase: ProbabilityWeights
             @test_throws ArgumentError update_distribution!(ur, A2)
         end       
 
+    end
+
+    @testset "L2Norm: Sample Distribution" begin
         # All zero row
         # Row 1: [1, 0] -> norm^2 = 1
         # Row 2: [0, 0] -> norm^2 = 0  <-- Should never be sampled
         # Row 3: [1, 1] -> norm^2 = 2
         let A = [1.0 0.0; 0.0 0.0; 1.0 1.0],
-            x = zeros(Int, 100), # Sample 100 times to be sure
-            u = L2Norm(cardinality = Left()),
+            x = zeros(Int, 100), # Sample 100 times
+            replace = true,
+            u = L2Norm(cardinality = Left(), replace = replace),
             ur = complete_distribution(u, A)
 
             # Check weights are correct
             @test ur.weights ≈ ProbabilityWeights([1.0, 0.0, 2.0])
-
-            # Perform sampling
             sample_distribution!(x, ur)
 
             # Verify that index 2 (the zero row) is NEVER sampled
@@ -153,7 +155,8 @@ using StatsBase: ProbabilityWeights
         # Col 2: [0, 0] -> norm^2 = 0 <-- Should never be sampled
         let A = [1.0 0.0; 1.0 0.0],
             x = zeros(Int, 100),
-            u = L2Norm(cardinality = Right()),
+            replace = true,
+            u = L2Norm(cardinality = Right(), replace = replace),
             ur = complete_distribution(u, A)
 
             # Check weights
@@ -168,18 +171,25 @@ using StatsBase: ProbabilityWeights
             @test all(==(1), x)
         end
 
-    end
-
-    @testset "L2Norm: Sample Distribution" begin
         # Test if the sample_distribution! returns valid indices
-        let A = randn(3, 5),
+        let A = randn(3, 20),
             x = zeros(Int, 10),
             u = L2Norm(cardinality = Right()),
             ur = complete_distribution(u, A)
             
             sample_distribution!(x, ur)
             @test ur.cardinality == Right()
-            @test all(s -> 1 <= s <= 5, x)
+            @test all(s -> 1 <= s <= 20, x)
+        end
+
+        let A = randn(20, 3),
+            x = zeros(Int, 10),
+            u = L2Norm(cardinality = Left()),
+            ur = complete_distribution(u, A)
+            
+            sample_distribution!(x, ur)
+            @test ur.cardinality == Left()
+            @test all(s -> 1 <= s <= 20, x)
         end
 
     end
