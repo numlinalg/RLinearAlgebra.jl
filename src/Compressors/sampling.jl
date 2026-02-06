@@ -269,8 +269,6 @@ function mul!(
 
     left_mul_dimcheck(C, S, A)
 
-    # println("Fast mul!") # Debug
-
     B = parent(A)
     rows = S.idx_v
 

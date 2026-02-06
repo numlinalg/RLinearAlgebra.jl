@@ -5,7 +5,7 @@ import LinearAlgebra: Adjoint, Transpose, axpby!, axpy!, ColumnNorm, dot, I, ldi
 import LinearAlgebra: lmul!, lq!, lq, LQ, lu!, mul!, norm, qr!, rmul!, svd, UpperTriangular
 import StatsBase: ProbabilityWeights, sample, sample!, wsample!
 import Random: bitrand, rand!, randn!
-import SparseArrays: SparseMatrixCSC, SparseVector, spzeros, sprandn, sparse, rowvals, nzrange, nonzeros
+import SparseArrays: SparseMatrixCSC, SparseVector, nonzeros, nzrange, rowvals, sparse, sprandn, spzeros
 
 # Include the files correspoding to the top-level techniques
 include("Compressors.jl")
