@@ -129,23 +129,201 @@ using StatsBase: ProbabilityWeights
     end
 
     @testset "L2Norm: Sample Distribution" begin
+        # Test if the sample_distribution! returns valid indices
+        # Replacement is false
+        let A = randn(100, 3),
+            u = L2Norm(cardinality = Left()),
+            ur = complete_distribution(u, A)
+            
+            # Sample within the number of non-zero columns
+            x_success_1 = zeros(Int, 50)
+            sample_distribution!(x_success_1, ur)
+
+            @test ur.cardinality == Left()
+            # All the sample indices should not exceed 100
+            @test all(i -> 1 <= i <= 100, x_success_1)
+            # All should be unique
+            @test length(unique(x_success_1)) == 50
+
+            # Sample within the number of non-zero columns
+            x_success_2 = zeros(Int, 100)
+            sample_distribution!(x_success_2, ur)
+
+            @test ur.cardinality == Left()
+            # All the sample indices should not exceed 100
+            @test all(i -> 1 <= i <= 100, x_success_2)
+            # All should be unique
+            @test length(unique(x_success_2)) == 100
+
+            # Sample outside the number of non-zero columns, should return DimensionMismatch
+            x_fail = zeros(Int, 101)
+            @test_throws ErrorException sample_distribution!(x_fail, ur)
+        end
+
+        let A = randn(3, 100),
+            u = L2Norm(cardinality = Right()),
+            ur = complete_distribution(u, A)
+
+            # Sample within the number of non-zero columns
+            x_success_1 = zeros(Int, 50)
+            sample_distribution!(x_success_1, ur)
+
+            @test ur.cardinality == Right()
+            # All the sample indices should not exceed 100
+            @test all(i -> 1 <= i <= 100, x_success_1)
+            # All should be unique
+            @test length(unique(x_success_1)) == 50
+
+            # Sample within the number of non-zero columns
+            x_success_2 = zeros(Int, 100)
+            sample_distribution!(x_success_2, ur)
+
+            @test ur.cardinality == Right()
+            # All the sample indices should not exceed 100
+            @test all(i -> 1 <= i <= 100, x_success_2)
+            # All should be unique
+            @test length(unique(x_success_2)) == 100
+
+            # Sample outside the number of non-zero columns, should return DimensionMismatch
+            x_fail = zeros(Int, 101)
+            @test_throws ErrorException sample_distribution!(x_fail, ur)
+        end
+
+        let A = randn(100, 3),
+            u = L2Norm(cardinality = Left(), replace = true),
+            ur = complete_distribution(u, A)
+            
+            # Sample within the number of non-zero columns
+            x_success_1 = zeros(Int, 50)
+            sample_distribution!(x_success_1, ur)
+
+            @test ur.cardinality == Left()
+            # All the sample indices should not exceed 100
+            @test all(i -> 1 <= i <= 100, x_success_1)
+
+            # Sample within the number of non-zero columns
+            x_success_2 = zeros(Int, 200)
+            sample_distribution!(x_success_2, ur)
+
+            @test ur.cardinality == Left()
+            # All the sample indices should not exceed 100
+            @test all(i -> 1 <= i <= 100, x_success_2)
+        end
+
+        # Replacement is true
+        let A = randn(3, 100),
+            u = L2Norm(cardinality = Right(), replace = true),
+            ur = complete_distribution(u, A)
+            
+            # Sample within the number of non-zero columns
+            x_success_1 = zeros(Int, 50)
+            sample_distribution!(x_success_1, ur)
+
+            @test ur.cardinality == Right()
+            # All the sample indices should not exceed 100
+            @test all(i -> 1 <= i <= 100, x_success_1)
+
+            # Sample within the number of non-zero columns
+            x_success_2 = zeros(Int, 200)
+            sample_distribution!(x_success_2, ur)
+
+            @test ur.cardinality == Right()
+            # All the sample indices should not exceed 100
+            @test all(i -> 1 <= i <= 100, x_success_2)
+        end
+
+        # Test the zero weight
+        # Replacement is false
+        # Row 1-450: Random values in [1, 5] -> Non-zero Norm
+        # Row 451-500: All zeros -> Zero Norm
+        let A = zeros(500, 2),
+            _ = A[1:450, :] .= rand(1:5, 450, 2),
+            u = L2Norm(cardinality = Left(), replace = false),
+            ur = complete_distribution(u, A)
+
+            # Test the weights are correct
+            @test count(>(0), ur.weights) == 450
+            @test all(==(0), ur.weights[451:500])
+
+            # Sample within the number of non-zero columns
+            x_success_1 = zeros(Int, 200)
+            sample_distribution!(x_success_1, ur)
+
+            @test ur.cardinality == Left()
+            # All the sample indices should not exceed 450
+            @test all(i -> 1 <= i <= 450, x_success_1)
+            # All should be unique
+            @test length(unique(x_success_1)) == 200
+
+            # Sample within the number of non-zero columns
+            x_success_2 = zeros(Int, 450)
+            sample_distribution!(x_success_2, ur)
+
+            @test ur.cardinality == Left()
+            # All the sample indices should not exceed 450
+            @test all(i -> 1 <= i <= 450, x_success_2)
+            # All should be unique
+            @test length(unique(x_success_2)) == 450
+
+            # Sample outside the number of non-zero columns, should return DimensionMismatch
+            x_fail = zeros(Int, 451)
+            @test_throws DimensionMismatch sample_distribution!(x_fail, ur)
+        end
+
+        # Col 1-450: Random values in [1, 5] -> Non-zero Norm
+        # Col 451-500: All zeros -> Zero Norm
+        let A = zeros(2, 500),
+            _ = A[:, 1:450] .= rand(1:5, 2, 450), 
+            u = L2Norm(cardinality = Right(), replace = false),
+            ur = complete_distribution(u, A)
+
+            # Test the weights are correct
+            @test count(>(0), ur.weights) == 450
+            @test all(==(0), ur.weights[451:500])
+
+            # Sample within the number of non-zero columns
+            x_success_1 = zeros(Int, 200)
+            sample_distribution!(x_success_1, ur)
+
+            @test ur.cardinality == Right()
+            # All the sample indices should not exceed 450
+            @test all(i -> 1 <= i <= 450, x_success_1)
+            # All should be unique
+            @test length(unique(x_success_1)) == 200
+
+            # Sample within the number of non-zero columns
+            x_success_2 = zeros(Int, 450)
+            sample_distribution!(x_success_2, ur)
+
+            @test ur.cardinality == Right()
+            # All the sample indices should not exceed 450
+            @test all(i -> 1 <= i <= 450, x_success_2)
+            # All should be unique
+            @test length(unique(x_success_2)) == 450
+
+            # Sample outside the number of non-zero columns, should return DimensionMismatch
+            x_fail = zeros(Int, 451)
+            @test_throws DimensionMismatch sample_distribution!(x_fail, ur)
+        end
+
+        # Replacement is true 
         # All zero row
         # Row 1: [1, 0] -> norm^2 = 1
         # Row 2: [0, 0] -> norm^2 = 0  <-- Should never be sampled
         # Row 3: [1, 1] -> norm^2 = 2
         let A = [1.0 0.0; 0.0 0.0; 1.0 1.0],
             x = zeros(Int, 100), # Sample 100 times
-            replace = true,
-            u = L2Norm(cardinality = Left(), replace = replace),
+            u = L2Norm(cardinality = Left(), replace = true),
             ur = complete_distribution(u, A)
 
             # Check weights are correct
             @test ur.weights ≈ ProbabilityWeights([1.0, 0.0, 2.0])
             sample_distribution!(x, ur)
 
-            # Verify that index 2 (the zero row) is NEVER sampled
+            @test ur.cardinality == Left()
+            # 2 is not sampled
+            # This is actually the performance of wsample!, we do not want to test it.
             @test 2 ∉ x
-            # Verify that valid indices (1 and 3) ARE sampled (statistically likely in 100 tries)
             @test any(==(1), x)
             @test any(==(3), x)
         end
@@ -155,8 +333,7 @@ using StatsBase: ProbabilityWeights
         # Col 2: [0, 0] -> norm^2 = 0 <-- Should never be sampled
         let A = [1.0 0.0; 1.0 0.0],
             x = zeros(Int, 100),
-            replace = true,
-            u = L2Norm(cardinality = Right(), replace = replace),
+            u = L2Norm(cardinality = Right(), replace = true),
             ur = complete_distribution(u, A)
 
             # Check weights
@@ -165,31 +342,11 @@ using StatsBase: ProbabilityWeights
             # Perform sampling
             sample_distribution!(x, ur)
 
-            # Verify that index 2 (the zero col) is NEVER sampled
-            @test 2 ∉ x
-            # Verify that index 1 IS sampled
-            @test all(==(1), x)
-        end
-
-        # Test if the sample_distribution! returns valid indices
-        let A = randn(3, 20),
-            x = zeros(Int, 10),
-            u = L2Norm(cardinality = Right()),
-            ur = complete_distribution(u, A)
-            
-            sample_distribution!(x, ur)
             @test ur.cardinality == Right()
-            @test all(s -> 1 <= s <= 20, x)
-        end
-
-        let A = randn(20, 3),
-            x = zeros(Int, 10),
-            u = L2Norm(cardinality = Left()),
-            ur = complete_distribution(u, A)
-            
-            sample_distribution!(x, ur)
-            @test ur.cardinality == Left()
-            @test all(s -> 1 <= s <= 20, x)
+            # 2 is not sampled
+            # This is actually the performance of wsample!, we do not want to test it.
+            @test 2 ∉ x
+            @test all(==(1), x)
         end
 
     end
