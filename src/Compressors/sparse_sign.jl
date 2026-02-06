@@ -335,27 +335,108 @@ function update_compressor!(S::SparseSignRecipe{Right})
     return nothing
 end
 
-# Calculates S.op * A and stores it in C 
+# Calculates S.op * A and stores it in C
 function mul!(
-    C::AbstractArray, 
-    S::SparseSignRecipe, 
-    A::AbstractArray, 
-    alpha::Number, 
+    C::AbstractArray,
+    S::SparseSignRecipe,
+    A::AbstractArray,
+    alpha::Number,
     beta::Number
 )
     left_mul_dimcheck(C, S, A)
     return mul!(C, S.op, A, alpha, beta)
 end
 
-# Calculates A * S.op and stores it in C 
+# Calculates A * S.op and stores it in C
 function mul!(
-    C::AbstractArray, 
-    A::AbstractArray, 
-    S::SparseSignRecipe, 
-    alpha::Number, 
+    C::AbstractArray,
+    A::AbstractArray,
+    S::SparseSignRecipe,
+    alpha::Number,
     beta::Number
 )
     right_mul_dimcheck(C, A, S)
     mul!(C, A, S.op, alpha, beta)
+    return nothing
+end
+
+# Calculates S.op * A and stores it in C
+function mul!(
+    C::AbstractMatrix,
+    S::SparseSignRecipe{Left},
+    A::Transpose{T, <:SparseMatrixCSC},
+    alpha::Number,
+    beta::Number
+) where T
+    left_mul_dimcheck(C, S, A)
+
+    # Optimized implementation for Transpose of SparseMatrixCSC
+    # C = alpha * S.op * A + beta * C
+    # S.op is Adjoint(P) where P is SparseMatrixCSC
+    # A is Transpose(B) where B is SparseMatrixCSC
+
+    P = parent(S.op) # The underlying SparseMatrixCSC (m x s)
+    B = parent(A)    # The underlying SparseMatrixCSC (m x n)
+
+    if beta != 1
+        if beta == 0
+            fill!(C, 0)
+        else
+            rmul!(C, beta)
+        end
+    end
+
+    if S.op isa Adjoint
+        # S.op = P'. P is CSC.
+        # Iterate columns of P (Rows of S.op)
+        P_rows = rowvals(P)
+        P_nz = nonzeros(P)
+        B_rows = rowvals(B)
+        B_nz = nonzeros(B)
+
+        for i in 1:size(P, 2) # For each column i of P (Row i of C)
+            rng_P = nzrange(P, i)
+            for k_P in rng_P
+                row_P = P_rows[k_P] # Row index in P -> Column index in S.op -> Row index in A
+                val_P = P_nz[k_P]   # Value in P
+
+                # We are in Row i of C.
+                # We have a nonzero at column row_P of S.op with value conj(val_P).
+                # We need to add conj(val_P) * (Row row_P of A) to Row i of C.
+                # Row row_P of A is Column row_P of B.
+
+                rng_B = nzrange(B, row_P)
+                for k_B in rng_B
+                    col_C = B_rows[k_B] # Row index in B -> Column index in C
+                    val_B = B_nz[k_B]
+
+                    C[i, col_C] += alpha * conj(val_P) * val_B
+                end
+            end
+        end
+    else
+        # S.op is SparseMatrixCSC (or other AbstractMatrix, but we assume CSC-like access)
+        # Iterate columns of S.op (Rows of A)
+        S_mat = S.op
+        S_rows = rowvals(S_mat)
+        S_nz = nonzeros(S_mat)
+        B_rows = rowvals(B)
+        B_nz = nonzeros(B)
+
+        for j in 1:size(S_mat, 2)
+            rng_S = nzrange(S_mat, j)
+            for k_S in rng_S
+                row_S = S_rows[k_S]
+                val_S = S_nz[k_S]
+
+                rng_B = nzrange(B, j)
+                for k_B in rng_B
+                    col_C = B_rows[k_B]
+                    val_B = B_nz[k_B]
+                    C[row_S, col_C] += alpha * val_S * val_B
+                end
+            end
+        end
+    end
     return nothing
 end
