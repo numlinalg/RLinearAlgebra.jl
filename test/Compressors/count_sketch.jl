@@ -273,6 +273,11 @@ using ..FieldTest
 
             mul!(C, S, A, alpha, beta)
             @test C ≈ alpha * (sparse_S * A_dense) + beta * C0
+
+            # Cover the beta == 0 fill! branch in the specialized method
+            C = rand(c_dim, n_cols)
+            mul!(C, S, A, alpha, 0.0)
+            @test C ≈ alpha * (sparse_S * A_dense)
         end
     end
 

@@ -589,6 +589,11 @@ Random.seed!(2131)
 
                 mul!(C, S, A, alpha, beta)
                 @test C ≈ alpha * SA_exact + beta * C0
+
+                # Cover the beta == 0 fill! branch in the specialized method
+                C = randn(comp_dim, a_matrix_cols)
+                mul!(C, S, A, alpha, 0.0)
+                @test C ≈ alpha * SA_exact
             end
         end
 

@@ -371,6 +371,33 @@ Random.seed!(2131)
 
             mul!(C, S, A, alpha, beta)
             @test C ≈ alpha * (sparse_S * A_dense) + beta * C0
+
+            # Cover the beta == 0 fill! branch in the specialized method
+            C = rand(c_dim, n_cols)
+            mul!(C, S, A, alpha, 0.0)
+            @test C ≈ alpha * (sparse_S * A_dense)
+        end
+    end
+
+    @testset "Sparse Sign: Left Multiplication Sparse Transpose (Adjoint op)" begin
+        let m = 7,      # number of columns of A = number of rows of B
+            n = 6,      # number of rows of A = number of columns of B
+            c_dim = 5,
+            alpha = 1.1
+
+            # A is a transpose of sparse B (m x n) -> A is (n x m)
+            B = sprand(m, n, 0.5)
+            A = transpose(B)
+            A_dense = Matrix(A)
+
+            # Construct a Left recipe whose op is stored as an Adjoint (c_dim x n)
+            P = sprand(n, c_dim, 0.5) # (n x c_dim) so P' is (c_dim x n)
+            op = adjoint(P)
+            S = SparseSignRecipe(Left(), c_dim, n, 1, [-1.0, 1.0], op)
+
+            C = rand(c_dim, m)
+            mul!(C, S, A, alpha, 0.0)
+            @test C ≈ alpha * (Matrix(S.op) * A_dense)
         end
     end
 
