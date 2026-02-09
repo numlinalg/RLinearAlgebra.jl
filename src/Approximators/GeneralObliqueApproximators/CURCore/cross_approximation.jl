@@ -50,6 +50,18 @@ end
 
 
 # Implement the rapproximate function for the Cross Approximation 
+# This function will 
+# 1. apply a selection routine to the columns of A
+# 2. on the selected columns only, apply the row selection routine to select rows. (This is 
+# applied to only selected columns and not the whole matrix because of the example
+# 3 0 0
+# 0 2 0
+# 1 0 0
+# where the first column would be selected. If the rows are selected disregarding the 
+# selection of the first column the second row would be selected, which results in an 
+# intersection matrix of 0 causing overflows when computing the pseudo inverse.)
+# 3. form the core matrix will be formed using the entries at the interesection 
+# of the index sets.
 function rapproximate!(approx::CURRecipe{CrossApproximationRecipe}, A::AbstractMatrix)
     # select column indices
     select_indices!(

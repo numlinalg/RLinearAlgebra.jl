@@ -22,7 +22,7 @@ export RangeFinder, RangeFinderRecipe
 export RandSVD, RandSVDRecipe
 export CUR, CURRecipe
 export CURCore, CURCoreRecipe, CURCoreAdjoint
-export complete_core, update_core! 
+#export complete_core, update_core! 
 export CrossApproximation, CrossApproximationRecipe
 
 # Export Compressor types and functions

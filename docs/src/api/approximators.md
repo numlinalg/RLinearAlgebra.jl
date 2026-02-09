@@ -52,10 +52,6 @@ CrossApproximationRecipe
 ```@docs
 complete_approximator
 
-complete_core
-
-update_core!
-
 rapproximate
 
 rapproximate!
@@ -66,4 +62,9 @@ rapproximate!
 RLinearAlgebra.rand_power_it
 
 RLinearAlgebra.rand_ortho_it
+
+RLinearAlgebra.complete_core
+
+RLinearAlgebra.update_core!
+
 ```

@@ -8,7 +8,7 @@ include("CURCore.jl")
 
 A struct that implements the CUR decomposition, a technique for computing a 
     low-rank approximation to a matrix, ``A``. This technique selects column subsets, 
-    ``C``, row subsets, ``R``, and a linking matrix, ``U`` 
+    ``C``, row subsets, ``R``, and a core matrix, ``U`` 
     (this can either be ``C^\\dagger A R^\\dagger`` or ``A[I,J]``, 
     where ``I`` is a set of row indices and ``J`` is a set of column indices) such that 
     ``
@@ -43,7 +43,7 @@ In practice numerous randomized methods match the performance of this best possi
     approximation [park2025accuracy](@cite).
 - `col_selector::Selector`, the technique used for selecting column indices from a matrix.
 - `row_selector::Selector`, the technique used for selecting row indices from a matrix.
-- `core::Core`, the method for computing the core linking matrix, `U`, in the CUR.
+- `core::Core`, the method for computing the core matrix, `U`, in the CUR.
 - `block_size::Int64`, number of vectors stored in a buffer matrix for multiplication.
 # Constructor
     CUR(rank;
@@ -106,7 +106,7 @@ A struct that contains the preallocated memory and completed `Selectors` to form
 - `row_idx::Vector{Int64}`, the selected row indices.
 - `col_idx::Vector{Int64}`, the selected column indices.
 - `C::AbstractMatrix`, the entries of `A` at the selected column indices.
-- `U::CURCoreRecipe`, the matrix linking the `C` and `R` matrices to approximate `A`.
+- `U::CURCoreRecipe`, the core matrix linking the `C` and `R` matrices to approximate `A`.
 - `R::AbstractMatrix`, the entries of `A` at the selected row indices.
 - `buffer_row::AbstractArray`, a buffer matrix used to store the result of `R` 
     multiplied with an array.

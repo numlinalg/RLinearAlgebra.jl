@@ -3,7 +3,8 @@ using Test, RLinearAlgebra, LinearAlgebra, SparseArrays
 import Base.*
 import Base: size
 import LinearAlgebra: mul!
-import RLinearAlgebra: CURCoreAdjoint, complete_selector, complete_core, rapproximate!, update_core! 
+import RLinearAlgebra: CURCoreAdjoint, complete_selector, complete_core
+import RLinearAlgebra: rapproximate!, update_core! 
 
 # Write test selector recipe 
 mutable struct TestSelector <: Selector end 
