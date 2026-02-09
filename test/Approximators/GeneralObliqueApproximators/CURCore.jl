@@ -62,10 +62,10 @@ end
     core = TestCURCoreRecipe(1, 2, 1)
     core_t = transpose(core)
     core_a = adjoint(core)
-    typeof(core_t) <: CURCoreAdjoint
-    typeof(core_a) <: CURCoreAdjoint
-    transpose(core_t) == core
-    adjoint(core_a)  == core
+    @test typeof(core_t) <: CURCoreAdjoint
+    @test typeof(core_a) <: CURCoreAdjoint
+    @test transpose(core_t) == core
+    @test adjoint(core_a)  == core
 end
 
 @testset "CURCore: Update Errors" begin
