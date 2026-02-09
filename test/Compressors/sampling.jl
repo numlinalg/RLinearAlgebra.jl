@@ -563,6 +563,40 @@ Random.seed!(2131)
             end
         end
 
+        @testset "Left Cardinality Sparse Transpose" begin
+            let a_matrix_rows = 8,
+                a_matrix_cols = 6,
+                comp_dim = 3,
+                alpha = 1.7,
+                beta = 0.6
+
+                # A is a Transpose of a sparse matrix
+                B = sprandn(a_matrix_cols, a_matrix_rows, 0.5)
+                A = transpose(B)
+
+                C = randn(comp_dim, a_matrix_cols)
+                C0 = deepcopy(C)
+
+                S_info = Sampling(
+                    cardinality=Left(),
+                    compression_dim=comp_dim,
+                    distribution=Uniform(cardinality=Left(), replace=false)
+                )
+                S = complete_compressor(S_info, A)
+
+                A_dense = Matrix(A)
+                SA_exact = A_dense[S.idx, :]
+
+                mul!(C, S, A, alpha, beta)
+                @test C ≈ alpha * SA_exact + beta * C0
+
+                # Cover the beta == 0 fill! branch in the specialized method
+                C = randn(comp_dim, a_matrix_cols)
+                mul!(C, S, A, alpha, 0.0)
+                @test C ≈ alpha * SA_exact
+            end
+        end
+
         # Test multiplications with right compressors
         @testset "Right Cardinality" begin
             let n = 20,         

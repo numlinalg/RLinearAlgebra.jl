@@ -350,6 +350,57 @@ Random.seed!(2131)
 
     end
 
+    @testset "Sparse Sign: Left Multiplication Sparse Transpose" begin
+        let n_rows = 6,
+            n_cols = 4,
+            nnz = 3,
+            c_dim = 5,
+            alpha = 1.25,
+            beta = 0.4
+
+            B = sprand(n_cols, n_rows, 0.6)
+            A = transpose(B)
+
+            S_info = SparseSign(; compression_dim=c_dim, nnz=nnz)
+            S = complete_compressor(S_info, A)
+            sparse_S = Matrix(S.op)
+
+            C = rand(c_dim, n_cols)
+            C0 = deepcopy(C)
+            A_dense = Matrix(A)
+
+            mul!(C, S, A, alpha, beta)
+            @test C ≈ alpha * (sparse_S * A_dense) + beta * C0
+
+            # Cover the beta == 0 fill! branch in the specialized method
+            C = rand(c_dim, n_cols)
+            mul!(C, S, A, alpha, 0.0)
+            @test C ≈ alpha * (sparse_S * A_dense)
+        end
+    end
+
+    @testset "Sparse Sign: Left Multiplication Sparse Transpose (Adjoint op)" begin
+        let m = 7,      # number of columns of A = number of rows of B
+            n = 6,      # number of rows of A = number of columns of B
+            c_dim = 5,
+            alpha = 1.1
+
+            # A is a transpose of sparse B (m x n) -> A is (n x m)
+            B = sprand(m, n, 0.5)
+            A = transpose(B)
+            A_dense = Matrix(A)
+
+            # Construct a Left recipe whose op is stored as an Adjoint (c_dim x n)
+            P = sprand(n, c_dim, 0.5) # (n x c_dim) so P' is (c_dim x n)
+            op = adjoint(P)
+            S = SparseSignRecipe(Left(), c_dim, n, 1, [-1.0, 1.0], op)
+
+            C = rand(c_dim, m)
+            mul!(C, S, A, alpha, 0.0)
+            @test C ≈ alpha * (Matrix(S.op) * A_dense)
+        end
+    end
+
     # Test multimplcations with right compressors
     # Here we want to test the multiplication with matrices and vectors in the 
     # transposed and normal orientations for both the three and five argument mul!

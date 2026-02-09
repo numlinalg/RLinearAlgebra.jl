@@ -1,6 +1,6 @@
 module CountSketch_compressor
 using Test, RLinearAlgebra, Random
-import SparseArrays: sparse, SparseMatrixCSC
+import SparseArrays: sparse, SparseMatrixCSC, sprandn
 import LinearAlgebra: mul!, lmul!
 import Random: randn!, seed!, rand
 using ..FieldTest
@@ -251,6 +251,34 @@ using ..FieldTest
             @test x ≈ 2.0 * sparse_S' * y + 2.0 * xc
         end
 
+    end
+
+    @testset "Count Sketch: Left Cardinality Sparse Transpose" begin
+        let n_rows = 7,
+            n_cols = 5,
+            c_dim = 4,
+            alpha = 1.4,
+            beta = 0.5
+
+            B = sprandn(n_cols, n_rows, 0.5)
+            A = transpose(B)
+
+            S_info = CountSketch(; compression_dim=c_dim)
+            S = complete_compressor(S_info, A)
+            sparse_S = Matrix(deepcopy(S.mat))
+
+            C = rand(c_dim, n_cols)
+            C0 = deepcopy(C)
+            A_dense = Matrix(A)
+
+            mul!(C, S, A, alpha, beta)
+            @test C ≈ alpha * (sparse_S * A_dense) + beta * C0
+
+            # Cover the beta == 0 fill! branch in the specialized method
+            C = rand(c_dim, n_cols)
+            mul!(C, S, A, alpha, 0.0)
+            @test C ≈ alpha * (sparse_S * A_dense)
+        end
     end
 
     @testset "Count Sketch: Right Cardinality" begin

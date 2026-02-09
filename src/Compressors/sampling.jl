@@ -220,7 +220,7 @@ end
 ###############################################################################
 # Binary Operator Compressor-Array Multiplications for sparse matrices/vectors
 ###############################################################################
-# S * A 
+# S * A
 function (*)(S::SamplingRecipe, A::Union{SparseMatrixCSC, SparseVector})
     s_rows = size(S, 1)
     a_cols = size(A, 2)
@@ -229,7 +229,7 @@ function (*)(S::SamplingRecipe, A::Union{SparseMatrixCSC, SparseVector})
     return C
 end
 
-# A * S 
+# A * S
 function (*)(A::Union{SparseMatrixCSC, SparseVector}, S::SamplingRecipe)
     s_cols = size(S, 2)
     a_rows = size(A, 1)
@@ -256,3 +256,47 @@ function (*)(A::Union{SparseMatrixCSC, SparseVector}, S::CompressorAdjoint{<:Sam
     return C
 end
 
+function mul!(
+    C::AbstractMatrix,
+    S::SamplingRecipe{Left},
+    A::Transpose{T, <:SparseMatrixCSC},
+    alpha::Number,
+    beta::Number
+) where T
+    # Fast path for Transpose of Sparse
+    # We want C = alpha * A[S.idx_v, :] + beta * C
+    # A[rows, :] is (B[:, rows])' where B = parent(A)
+
+    left_mul_dimcheck(C, S, A)
+
+    B = parent(A)
+    rows = S.idx_v
+
+    # Handle beta
+    if beta != 1
+        if beta == 0
+            fill!(C, 0)
+        else
+            rmul!(C, beta)
+        end
+    end
+
+    # Add alpha * A_sub
+    # A_sub rows are columns of B
+    # C is dense (assumed)
+
+    rv = rowvals(B)
+    nz = nonzeros(B)
+
+    for (i, r) in enumerate(rows)
+        rng = nzrange(B, r)
+        for k in rng
+            row = rv[k]
+            val = nz[k]
+            # C[i, row] += alpha * val
+            # We use atomic add if parallel? No, this is serial.
+            C[i, row] += alpha * val
+        end
+    end
+    return nothing
+end

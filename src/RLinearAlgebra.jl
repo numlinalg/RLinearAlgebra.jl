@@ -1,5 +1,6 @@
 module RLinearAlgebra
 import Base.:*
+<<<<<<< v0.2-cur
 import Base: transpose, adjoint, size, setproperty!
 import LinearAlgebra: Adjoint, axpby!, axpy!, ColumnNorm, dot, I
 import LinearAlgebra: ldiv!, lmul!, UpperTriangular, lq!, lq, LQ, lu!
@@ -7,6 +8,14 @@ import LinearAlgebra: mul!, norm, qr!, QRCompactWY, svd
 import StatsBase: sample, sample!, ProbabilityWeights, wsample!
 import Random: bitrand, rand!, randn!
 import SparseArrays: SparseMatrixCSC, sparse, SparseVector, SPQR, sprandn, spzeros
+=======
+import Base: transpose, adjoint, setproperty!
+import LinearAlgebra: Adjoint, Transpose, axpby!, axpy!, ColumnNorm, dot, I, ldiv!
+import LinearAlgebra: lmul!, lq!, lq, LQ, lu!, mul!, norm, qr!, rmul!, svd, UpperTriangular
+import StatsBase: ProbabilityWeights, sample, sample!, wsample!
+import Random: bitrand, rand!, randn!
+import SparseArrays: SparseMatrixCSC, SparseVector, nonzeros, nzrange, rowvals, sparse, sprandn, spzeros
+>>>>>>> main
 
 # Include the files corresponding to the top-level techniques
 include("Compressors.jl")

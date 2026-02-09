@@ -223,7 +223,7 @@ function complete_solver(
     return KaczmarzRecipe{
         eltype(A), 
         typeof(b), 
-        typeof(A), 
+        typeof(compressed_mat), 
         typeof(vec_view),
         typeof(mat_view),
         typeof(compressor),
