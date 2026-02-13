@@ -135,7 +135,7 @@ using StatsBase: ProbabilityWeights
             u = L2Norm(cardinality = Left()),
             ur = complete_distribution(u, A)
             
-            # Sample within the number of non-zero columns
+            # Sample within the number of total columns
             x_success_1 = zeros(Int, 50)
             sample_distribution!(x_success_1, ur)
 
@@ -145,7 +145,7 @@ using StatsBase: ProbabilityWeights
             # All should be unique
             @test length(unique(x_success_1)) == 50
 
-            # Sample within the number of non-zero columns
+            # Sample within the number of total columns
             x_success_2 = zeros(Int, 100)
             sample_distribution!(x_success_2, ur)
 
@@ -155,7 +155,7 @@ using StatsBase: ProbabilityWeights
             # All should be unique
             @test length(unique(x_success_2)) == 100
 
-            # Sample outside the number of non-zero columns, should return DimensionMismatch
+            # Sample outside the number of total columns, should return ErrorException
             x_fail = zeros(Int, 101)
             @test_throws ErrorException sample_distribution!(x_fail, ur)
         end
@@ -164,7 +164,7 @@ using StatsBase: ProbabilityWeights
             u = L2Norm(cardinality = Right()),
             ur = complete_distribution(u, A)
 
-            # Sample within the number of non-zero columns
+            # Sample within the number of total columns
             x_success_1 = zeros(Int, 50)
             sample_distribution!(x_success_1, ur)
 
@@ -174,7 +174,7 @@ using StatsBase: ProbabilityWeights
             # All should be unique
             @test length(unique(x_success_1)) == 50
 
-            # Sample within the number of non-zero columns
+            # Sample within the number of total columns
             x_success_2 = zeros(Int, 100)
             sample_distribution!(x_success_2, ur)
 
@@ -184,7 +184,7 @@ using StatsBase: ProbabilityWeights
             # All should be unique
             @test length(unique(x_success_2)) == 100
 
-            # Sample outside the number of non-zero columns, should return DimensionMismatch
+            # Sample outside the number of total columns, should return ErrorException
             x_fail = zeros(Int, 101)
             @test_throws ErrorException sample_distribution!(x_fail, ur)
         end
@@ -193,7 +193,7 @@ using StatsBase: ProbabilityWeights
             u = L2Norm(cardinality = Left(), replace = true),
             ur = complete_distribution(u, A)
             
-            # Sample within the number of non-zero columns
+            # Sample within the number of total columns
             x_success_1 = zeros(Int, 50)
             sample_distribution!(x_success_1, ur)
 
@@ -201,7 +201,7 @@ using StatsBase: ProbabilityWeights
             # All the sample indices should not exceed 100
             @test all(i -> 1 <= i <= 100, x_success_1)
 
-            # Sample within the number of non-zero columns
+            # Sample within the number of total columns
             x_success_2 = zeros(Int, 200)
             sample_distribution!(x_success_2, ur)
 
@@ -215,7 +215,7 @@ using StatsBase: ProbabilityWeights
             u = L2Norm(cardinality = Right(), replace = true),
             ur = complete_distribution(u, A)
             
-            # Sample within the number of non-zero columns
+            # Sample within the number of total columns
             x_success_1 = zeros(Int, 50)
             sample_distribution!(x_success_1, ur)
 
@@ -223,7 +223,7 @@ using StatsBase: ProbabilityWeights
             # All the sample indices should not exceed 100
             @test all(i -> 1 <= i <= 100, x_success_1)
 
-            # Sample within the number of non-zero columns
+            # Sample within the number of total columns
             x_success_2 = zeros(Int, 200)
             sample_distribution!(x_success_2, ur)
 
@@ -234,8 +234,8 @@ using StatsBase: ProbabilityWeights
 
         # Test the zero weight
         # Replacement is false
-        # Row 1-450: Random values in [1, 5] -> Non-zero Norm
-        # Row 451-500: All zeros -> Zero Norm
+        # Row 1-450: Random values in [1, 5]
+        # Row 451-500: All zeros 
         let A = zeros(500, 2),
             _ = A[1:450, :] .= rand(1:5, 450, 2),
             u = L2Norm(cardinality = Left(), replace = false),
@@ -322,7 +322,7 @@ using StatsBase: ProbabilityWeights
 
             @test ur.cardinality == Left()
             # 2 is not sampled
-            # This is actually the performance of wsample!, we do not want to test it.
+            # This is actually the performance of wsample!, we may not want to test it.
             @test 2 ∉ x
             @test any(==(1), x)
             @test any(==(3), x)
@@ -344,7 +344,6 @@ using StatsBase: ProbabilityWeights
 
             @test ur.cardinality == Right()
             # 2 is not sampled
-            # This is actually the performance of wsample!, we do not want to test it.
             @test 2 ∉ x
             @test all(==(1), x)
         end
