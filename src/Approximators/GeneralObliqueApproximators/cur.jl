@@ -17,14 +17,14 @@ A struct that implements the CUR decomposition, a technique for computing a
 
 # Mathematical Description
 In general finding a ``I`` and ``J`` that minimize the approximation error is a
-    NP-hard problem (you're not going to do it)[shitov2021column](@cite); 
+    NP-hard problem (you're not going to do it) [shitov2021column](@cite); 
     thus, we often aim to find sufficiently 
-    good indices. The best known quality of a rank ``r`` cur approximation to a  matrix
+    good indices. The best known quality of a rank ``r`` CUR approximation to a  matrix
     ``\\tilde A_r`` is known to be 
     ``
         \\|A - \\tilde A_r \\|_F \\leq (r + 1) \\|A - A_r\\|_F,
     ``
-    where ``A_r`` is the rank-``r`` truncated svd [osinsky2025close](@cite).
+    where ``A_r`` is the rank-``r`` truncated SVD [osinsky2025close](@cite).
 
 In practice numerous randomized methods match the performance of this best possible 
     selection procedure. These approaches can be broken into sampling and pivoting 
@@ -38,12 +38,11 @@ In practice numerous randomized methods match the performance of this best possi
 
 # Fields
 - `rank::Int64`, the desired rank of approximation.
-- `oversample::Int64`, the amount of extra indices we wish to select with the row selection
-    procedure. By default this is zero, although it can improve the stability of the 
-    approximation [park2025accuracy](@cite).
+- `oversample::Int64`, the amount of extra rows to sample. By default this zero. Making it a
+    positive integer can improve the approximation quality [park2025accuracy](@cite).
 - `col_selector::Selector`, the technique used for selecting column indices from a matrix.
 - `row_selector::Selector`, the technique used for selecting row indices from a matrix.
-- `core::Core`, the method for computing the core matrix, `U`, in the CUR.
+- `core::CURCore`, the method for computing the core matrix, `U`, in the CUR.
 - `block_size::Int64`, number of vectors stored in a buffer matrix for multiplication.
 # Constructor
     CUR(rank;
@@ -51,7 +50,25 @@ In practice numerous randomized methods match the performance of this best possi
         selector_cols = LUPP(),
         selector_rows = selector_cols,
         core = CrossApproximation(),
+        block_size = 0
     )
+
+## Keywords 
+- `rank::Int64`, the desired rank of approximation.
+- `oversample::Int64`, the amount of extra rows to sample. By default this zero. Making it a
+    positive integer can improve the approximation quality [park2025accuracy](@cite).
+- `col_selector::Selector`, the technique used for selecting column indices from a matrix.
+- `row_selector::Selector`, the technique used for selecting row indices from a matrix.
+- `core::CURCore`, the method for computing the core matrix, `U`, in the CUR.
+- `block_size::Int64`, number of vectors stored in a buffer matrix for multiplication. If 
+    zero is inputted it set this to be the number of columns in `A`.
+
+## Returns
+- A `CUR` object.
+
+## Throws
+- An `ArgumentError`, if `rank`, `oversample`, or `blocksize` are less than zero.
+
 """
 mutable struct CUR <: Approximator
     rank::Int64
